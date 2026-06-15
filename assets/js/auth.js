@@ -1,20 +1,23 @@
 // =====================================================
 // Building Care System Enterprise v3.1
-// Authentication Frontend
+// Authentication Module
 // Radiant Group Duri
+// Version : 3.1.0-final
 // =====================================================
 
 const Auth = {
 
-    /**
-     * Login
-     */
+    // ==========================================
+    // LOGIN
+    // ==========================================
+
     async login() {
 
         const email = document
             .getElementById("email")
             .value
-            .trim();
+            .trim()
+            .toLowerCase();
 
         const password = document
             .getElementById("password")
@@ -23,7 +26,10 @@ const Auth = {
 
         if (!email) {
 
-            App.toast("Email wajib diisi", "warning");
+            App.toast(
+                "Email wajib diisi",
+                "warning"
+            );
 
             return;
 
@@ -31,113 +37,114 @@ const Auth = {
 
         if (!password) {
 
-            App.toast("Password wajib diisi", "warning");
+            App.toast(
+                "Password wajib diisi",
+                "warning"
+            );
 
             return;
 
         }
 
-        try {
+        const result = await App.requestGet(
 
-            const result = await App.request(
+            "login",
 
-                "login",
+            {
 
-                {
+                email,
 
-                    email,
-
-                    password
-
-                }
-
-            );
-
-            if (!result.success) {
-
-                App.toast(
-
-                    result.message,
-
-                    "error"
-
-                );
-
-                return;
+                password
 
             }
 
-            App.setSession(
+        );
 
-                result.data
-
-            );
-
-            if (
-
-                document.getElementById("remember")
-
-                    ?.checked
-
-            ) {
-
-                localStorage.setItem(
-
-                    CONFIG.STORAGE.REMEMBER,
-
-                    email
-
-                );
-
-            }
+        if (!result.success) {
 
             App.toast(
 
-                "Login berhasil",
+                result.message ||
 
-                "success"
-
-            );
-
-            setTimeout(() => {
-
-                window.location.href =
-                    "dashboard.html";
-
-            }, 1000);
-
-        }
-
-        catch (err) {
-
-            App.toast(
-
-                err.message,
+                "Login gagal",
 
                 "error"
 
             );
 
+            return;
+
         }
+
+        App.setSession(
+
+            result.data
+
+        );
+
+        const remember = document.getElementById(
+
+            "remember"
+
+        );
+
+        if (
+
+            remember &&
+
+            remember.checked
+
+        ) {
+
+            App.remember(email);
+
+        }
+
+        App.toast(
+
+            "Login berhasil",
+
+            "success"
+
+        );
+
+        setTimeout(() => {
+
+            App.redirect(
+
+                "dashboard.html"
+
+            );
+
+        }, 1000);
 
     },
 
-    /**
-     * Logout
-     */
+    // ==========================================
+    // LOGOUT
+    // ==========================================
+
     async logout() {
 
         const session = App.getSession();
 
-        if (session) {
+        if (
 
-            await App.request(
+            session &&
+
+            session.token
+
+        ) {
+
+            await App.requestGet(
 
                 "logout",
 
                 {
 
-                    token: session.token
+                    token:
+
+                    session.token
 
                 }
 
@@ -147,7 +154,7 @@ const Auth = {
 
         App.removeSession();
 
-        window.location.replace(
+        App.redirect(
 
             "login.html"
 
@@ -155,57 +162,112 @@ const Auth = {
 
     },
 
-    /**
-     * Check Login
-     */
-    check() {
+    // ==========================================
+    // VERIFY SESSION
+    // ==========================================
+
+    async verify() {
 
         const session = App.getSession();
 
-        if (!session) {
+        if (
 
-            window.location.replace(
+            !session ||
+
+            !session.token
+
+        ) {
+
+            App.redirect(
 
                 "login.html"
 
             );
 
+            return false;
+
         }
 
-    },
+        const result = await App.requestGet(
 
-    /**
-     * Remember Email
-     */
-    remember() {
+            "verifySession",
 
-        const email = localStorage.getItem(
+            {
 
-            CONFIG.STORAGE.REMEMBER
+                token:
+
+                session.token
+
+            }
 
         );
 
-        if (email) {
+        if (
 
-            document.getElementById(
+            !result.success
 
-                "email"
+        ) {
 
-            ).value = email;
+            App.removeSession();
 
-            document.getElementById(
+            App.redirect(
 
-                "remember"
+                "login.html"
 
-            ).checked = true;
+            );
+
+            return false;
+
+        }
+
+        return true;
+
+    },
+
+    // ==========================================
+    // REMEMBER EMAIL
+    // ==========================================
+
+    remember() {
+
+        const email = App.getRemember();
+
+        if (!email) {
+
+            return;
+
+        }
+
+        const input = document.getElementById(
+
+            "email"
+
+        );
+
+        const check = document.getElementById(
+
+            "remember"
+
+        );
+
+        if (input) {
+
+            input.value = email;
+
+        }
+
+        if (check) {
+
+            check.checked = true;
 
         }
 
     },
 
-    /**
-     * Show Password
-     */
+    // ==========================================
+    // SHOW PASSWORD
+    // ==========================================
+
     togglePassword() {
 
         const password = document.getElementById(
@@ -213,6 +275,12 @@ const Auth = {
             "password"
 
         );
+
+        if (!password) {
+
+            return;
+
+        }
 
         password.type =
 
@@ -225,6 +293,10 @@ const Auth = {
     }
 
 };
+
+// ==========================================
+// INIT
+// ==========================================
 
 document.addEventListener(
 

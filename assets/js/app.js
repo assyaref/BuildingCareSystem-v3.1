@@ -1,46 +1,124 @@
-// Request API
-async function request(body) {
+// =====================================================
+// Building Care System Enterprise v3.1
+// Global Application
+// =====================================================
 
-    const response = await fetch(CONFIG.API.URL, {
+const App = {
 
-        method: "POST",
+    loading(show = true) {
 
-        headers: {
+        const loader = document.getElementById("loading");
 
-            "Content-Type": "application/json"
+        if (!loader) return;
 
-        },
+        loader.style.display = show ? "flex" : "none";
 
-        body: JSON.stringify(body)
+    },
 
-    });
+    toast(message, type = "success") {
 
-    return await response.json();
+        Swal.fire({
 
-}
-// Session
-function setSession(user) {
+            toast: true,
 
-    localStorage.setItem(
+            position: "top-end",
 
-        CONFIG.STORAGE.SESSION,
+            icon: type,
 
-        JSON.stringify(user)
+            title: message,
 
-    );
+            showConfirmButton: false,
 
-}
+            timer: 2500
 
-function getSession() {
+        });
 
-    return JSON.parse(
+    },
 
-        localStorage.getItem(
+    async request(action, data = {}) {
+
+        try {
+
+            this.loading(true);
+
+            const response = await fetch(CONFIG.API.URL, {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type": "application/json"
+
+                },
+
+                body: JSON.stringify({
+
+                    action,
+
+                    data
+
+                })
+
+            });
+
+            return await response.json();
+
+        }
+
+        finally {
+
+            this.loading(false);
+
+        }
+
+    },
+
+    setSession(user) {
+
+        localStorage.setItem(
+
+            CONFIG.STORAGE.SESSION,
+
+            JSON.stringify(user)
+
+        );
+
+    },
+
+    getSession() {
+
+        return JSON.parse(
+
+            localStorage.getItem(
+
+                CONFIG.STORAGE.SESSION
+
+            )
+
+        );
+
+    },
+
+    removeSession() {
+
+        localStorage.removeItem(
 
             CONFIG.STORAGE.SESSION
 
-        )
+        );
 
-    );
+    },
 
-}
+    checkSession() {
+
+        const session = this.getSession();
+
+        if (!session) {
+
+            window.location.href = "login.html";
+
+        }
+
+    }
+
+};

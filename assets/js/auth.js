@@ -1,41 +1,239 @@
-// Login
-async function login(email, password) {
+// =====================================================
+// Building Care System Enterprise v3.1
+// Authentication Frontend
+// Radiant Group Duri
+// =====================================================
 
-    const response = await request({
+const Auth = {
 
-        action: "login",
+    /**
+     * Login
+     */
+    async login() {
 
-        data: {
+        const email = document
+            .getElementById("email")
+            .value
+            .trim();
 
-            email,
+        const password = document
+            .getElementById("password")
+            .value
+            .trim();
 
-            password
+        if (!email) {
+
+            App.toast("Email wajib diisi", "warning");
+
+            return;
 
         }
 
-    });
+        if (!password) {
 
-    if (!response.success) {
+            App.toast("Password wajib diisi", "warning");
 
-        throw new Error(response.message);
+            return;
+
+        }
+
+        try {
+
+            const result = await App.request(
+
+                "login",
+
+                {
+
+                    email,
+
+                    password
+
+                }
+
+            );
+
+            if (!result.success) {
+
+                App.toast(
+
+                    result.message,
+
+                    "error"
+
+                );
+
+                return;
+
+            }
+
+            App.setSession(
+
+                result.data
+
+            );
+
+            if (
+
+                document.getElementById("remember")
+
+                    ?.checked
+
+            ) {
+
+                localStorage.setItem(
+
+                    CONFIG.STORAGE.REMEMBER,
+
+                    email
+
+                );
+
+            }
+
+            App.toast(
+
+                "Login berhasil",
+
+                "success"
+
+            );
+
+            setTimeout(() => {
+
+                window.location.href =
+                    "dashboard.html";
+
+            }, 1000);
+
+        }
+
+        catch (err) {
+
+            App.toast(
+
+                err.message,
+
+                "error"
+
+            );
+
+        }
+
+    },
+
+    /**
+     * Logout
+     */
+    async logout() {
+
+        const session = App.getSession();
+
+        if (session) {
+
+            await App.request(
+
+                "logout",
+
+                {
+
+                    token: session.token
+
+                }
+
+            );
+
+        }
+
+        App.removeSession();
+
+        window.location.replace(
+
+            "login.html"
+
+        );
+
+    },
+
+    /**
+     * Check Login
+     */
+    check() {
+
+        const session = App.getSession();
+
+        if (!session) {
+
+            window.location.replace(
+
+                "login.html"
+
+            );
+
+        }
+
+    },
+
+    /**
+     * Remember Email
+     */
+    remember() {
+
+        const email = localStorage.getItem(
+
+            CONFIG.STORAGE.REMEMBER
+
+        );
+
+        if (email) {
+
+            document.getElementById(
+
+                "email"
+
+            ).value = email;
+
+            document.getElementById(
+
+                "remember"
+
+            ).checked = true;
+
+        }
+
+    },
+
+    /**
+     * Show Password
+     */
+    togglePassword() {
+
+        const password = document.getElementById(
+
+            "password"
+
+        );
+
+        password.type =
+
+            password.type === "password"
+
+            ? "text"
+
+            : "password";
 
     }
 
-    setSession(response.data);
+};
 
-    window.location.href = "dashboard.html";
+document.addEventListener(
 
-}
+    "DOMContentLoaded",
 
-// Logout
-function logout() {
+    () => {
 
-    localStorage.removeItem(CONFIG.STORAGE.SESSION);
+        Auth.remember();
 
-    localStorage.removeItem(CONFIG.STORAGE.USER);
+    }
 
-    window.location.replace("login.html");
-
-}
-// Check Session
-Check Session
+);

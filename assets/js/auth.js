@@ -1,9 +1,10 @@
-// =====================================================
+```javascript
+// ======================================================
 // Building Care System Enterprise v3.1
-// Authentication Module
-// Radiant Group Duri
+// assets/js/auth.js
 // Version : 3.1.0-final
-// =====================================================
+// Radiant Group Duri
+// ======================================================
 
 const Auth = {
 
@@ -24,99 +25,135 @@ const Auth = {
             .value
             .trim();
 
-        if (!email) {
+        if (email === "") {
 
-            App.toast(
-                "Email wajib diisi",
-                "warning"
-            );
+            App.toast("Email wajib diisi", "warning");
 
             return;
 
         }
 
-        if (!password) {
+        if (password === "") {
 
-            App.toast(
-                "Password wajib diisi",
-                "warning"
-            );
+            App.toast("Password wajib diisi", "warning");
 
             return;
 
         }
 
-        const result = await App.requestGet(
+        const btn = document.getElementById("btnLogin");
 
-            "login",
+        if (btn) {
 
-            {
+            btn.disabled = true;
 
-                email,
+            btn.innerHTML = "Loading...";
 
-                password
+        }
+
+        try {
+
+            const result = await App.requestGet(
+
+                "login",
+
+                {
+
+                    email: email,
+
+                    password: password
+
+                }
+
+            );
+
+            if (!result.success) {
+
+                App.toast(
+
+                    result.message ||
+
+                    "Login gagal",
+
+                    "error"
+
+                );
+
+                return;
 
             }
 
-        );
+            App.setSession(
 
-        if (!result.success) {
+                result.data
+
+            );
+
+            const remember = document.getElementById(
+
+                "remember"
+
+            );
+
+            if (
+
+                remember &&
+
+                remember.checked
+
+            ) {
+
+                App.remember(
+
+                    email
+
+                );
+
+            }
 
             App.toast(
 
-                result.message ||
+                "Login berhasil",
 
-                "Login gagal",
+                "success"
+
+            );
+
+            setTimeout(() => {
+
+                window.location.href =
+
+                    "dashboard.html";
+
+            }, 800);
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            App.toast(
+
+                err.message,
 
                 "error"
 
             );
 
-            return;
-
         }
 
-        App.setSession(
+        finally {
 
-            result.data
+            if (btn) {
 
-        );
+                btn.disabled = false;
 
-        const remember = document.getElementById(
+                btn.innerHTML = "LOGIN";
 
-            "remember"
-
-        );
-
-        if (
-
-            remember &&
-
-            remember.checked
-
-        ) {
-
-            App.remember(email);
+            }
 
         }
-
-        App.toast(
-
-            "Login berhasil",
-
-            "success"
-
-        );
-
-        setTimeout(() => {
-
-            App.redirect(
-
-                "dashboard.html"
-
-            );
-
-        }, 1000);
 
     },
 
@@ -142,9 +179,7 @@ const Auth = {
 
                 {
 
-                    token:
-
-                    session.token
+                    token: session.token
 
                 }
 
@@ -154,11 +189,9 @@ const Auth = {
 
         App.removeSession();
 
-        App.redirect(
+        window.location.href =
 
-            "login.html"
-
-        );
+            "login.html";
 
     },
 
@@ -178,11 +211,9 @@ const Auth = {
 
         ) {
 
-            App.redirect(
+            window.location.href =
 
-                "login.html"
-
-            );
+                "login.html";
 
             return false;
 
@@ -194,9 +225,7 @@ const Auth = {
 
             {
 
-                token:
-
-                session.token
+                token: session.token
 
             }
 
@@ -210,11 +239,9 @@ const Auth = {
 
             App.removeSession();
 
-            App.redirect(
+            window.location.href =
 
-                "login.html"
-
-            );
+                "login.html";
 
             return false;
 
@@ -228,7 +255,7 @@ const Auth = {
     // REMEMBER EMAIL
     // ==========================================
 
-    remember() {
+    loadRemember() {
 
         const email = App.getRemember();
 
@@ -244,7 +271,7 @@ const Auth = {
 
         );
 
-        const check = document.getElementById(
+        const remember = document.getElementById(
 
             "remember"
 
@@ -256,9 +283,9 @@ const Auth = {
 
         }
 
-        if (check) {
+        if (remember) {
 
-            check.checked = true;
+            remember.checked = true;
 
         }
 
@@ -286,9 +313,9 @@ const Auth = {
 
             password.type === "password"
 
-            ? "text"
+                ? "text"
 
-            : "password";
+                : "password";
 
     }
 
@@ -302,10 +329,29 @@ document.addEventListener(
 
     "DOMContentLoaded",
 
-    () => {
+    function () {
 
-        Auth.remember();
+        Auth.loadRemember();
+
+        const btn = document.getElementById(
+
+            "btnLogin"
+
+        );
+
+        if (btn) {
+
+            btn.addEventListener(
+
+                "click",
+
+                Auth.login
+
+            );
+
+        }
 
     }
 
 );
+```

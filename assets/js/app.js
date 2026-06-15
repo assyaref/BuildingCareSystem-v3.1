@@ -35,6 +35,10 @@ const App = {
 
     },
 
+    /**
+     * Global Request
+     * Compatible with Google Apps Script Web App
+     */
     async request(action, data = {}) {
 
         try {
@@ -45,23 +49,48 @@ const App = {
 
                 method: "POST",
 
+                // Jangan gunakan application/json
                 headers: {
 
-                    "Content-Type": "application/json"
+                    "Content-Type": "text/plain;charset=utf-8"
 
                 },
 
                 body: JSON.stringify({
 
-                    action,
+                    action: action,
 
-                    data
+                    data: data
 
                 })
 
             });
 
+            if (!response.ok) {
+
+                throw new Error(
+
+                    "HTTP Error : " + response.status
+
+                );
+
+            }
+
             return await response.json();
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            return {
+
+                success: false,
+
+                message: err.message
+
+            };
 
         }
 

@@ -1,9 +1,15 @@
-// =====================================================
+// ======================================================
 // Building Care System Enterprise v3.1
-// Global Application
-// =====================================================
+// Global Application Framework
+// Radiant Group Duri
+// Version : 3.1.0-final
+// ======================================================
 
 const App = {
+
+    // ===============================
+    // Loading
+    // ===============================
 
     loading(show = true) {
 
@@ -15,7 +21,11 @@ const App = {
 
     },
 
-    toast(message, type = "success") {
+    // ===============================
+    // Toast
+    // ===============================
+
+    toast(message, icon = "success") {
 
         Swal.fire({
 
@@ -23,7 +33,7 @@ const App = {
 
             position: "top-end",
 
-            icon: type,
+            icon: icon,
 
             title: message,
 
@@ -35,42 +45,43 @@ const App = {
 
     },
 
-    /**
-     * Global Request
-     * Compatible with Google Apps Script Web App
-     */
-    async request(action, data = {}) {
+    // ===============================
+    // GET API
+    // ===============================
+
+    async requestGet(action, data = {}) {
 
         try {
 
             this.loading(true);
 
-            const response = await fetch(CONFIG.API.URL, {
+            const params = new URLSearchParams({
 
-                method: "POST",
+                action,
 
-                // Jangan gunakan application/json
-                headers: {
-
-                    "Content-Type": "text/plain;charset=utf-8"
-
-                },
-
-                body: JSON.stringify({
-
-                    action: action,
-
-                    data: data
-
-                })
+                ...data
 
             });
+
+            const response = await fetch(
+
+                CONFIG.API.URL + "?" + params.toString(),
+
+                {
+
+                    method: "GET",
+
+                    cache: "no-store"
+
+                }
+
+            );
 
             if (!response.ok) {
 
                 throw new Error(
 
-                    "HTTP Error : " + response.status
+                    "HTTP " + response.status
 
                 );
 
@@ -102,6 +113,72 @@ const App = {
 
     },
 
+    // ===============================
+    // POST API
+    // ===============================
+
+    async requestPost(action, data = {}) {
+
+        try {
+
+            this.loading(true);
+
+            const response = await fetch(
+
+                CONFIG.API.URL,
+
+                {
+
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type": "text/plain;charset=utf-8"
+
+                    },
+
+                    body: JSON.stringify({
+
+                        action,
+
+                        data
+
+                    })
+
+                }
+
+            );
+
+            return await response.json();
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            return {
+
+                success: false,
+
+                message: err.message
+
+            };
+
+        }
+
+        finally {
+
+            this.loading(false);
+
+        }
+
+    },
+
+    // ===============================
+    // Session
+    // ===============================
+
     setSession(user) {
 
         localStorage.setItem(
@@ -116,15 +193,13 @@ const App = {
 
     getSession() {
 
-        return JSON.parse(
+        const data = localStorage.getItem(
 
-            localStorage.getItem(
-
-                CONFIG.STORAGE.SESSION
-
-            )
+            CONFIG.STORAGE.SESSION
 
         );
+
+        return data ? JSON.parse(data) : null;
 
     },
 
@@ -138,13 +213,57 @@ const App = {
 
     },
 
+    // ===============================
+    // Remember Email
+    // ===============================
+
+    remember(email) {
+
+        localStorage.setItem(
+
+            CONFIG.STORAGE.REMEMBER,
+
+            email
+
+        );
+
+    },
+
+    getRemember() {
+
+        return localStorage.getItem(
+
+            CONFIG.STORAGE.REMEMBER
+
+        );
+
+    },
+
+    // ===============================
+    // Redirect
+    // ===============================
+
+    redirect(page) {
+
+        window.location.href = page;
+
+    },
+
+    // ===============================
+    // Route Protection
+    // ===============================
+
     checkSession() {
 
         const session = this.getSession();
 
         if (!session) {
 
-            window.location.href = "login.html";
+            this.redirect(
+
+                "login.html"
+
+            );
 
         }
 

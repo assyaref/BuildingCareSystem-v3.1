@@ -1,8 +1,14 @@
 // ======================================================
-// AUTH MODULE
+// Building Care System Enterprise v3.2
+// assets/js/modules/auth.js
+// Radiant Group Duri
 // ======================================================
 
 const Auth = {
+
+    // ==========================================
+    // LOGIN
+    // ==========================================
 
     async login() {
 
@@ -20,7 +26,6 @@ const Auth = {
         if (!email) {
 
             App.toast("Email wajib diisi", "warning");
-
             return;
 
         }
@@ -28,7 +33,6 @@ const Auth = {
         if (!password) {
 
             App.toast("Password wajib diisi", "warning");
-
             return;
 
         }
@@ -38,25 +42,26 @@ const Auth = {
         if (btn) {
 
             btn.disabled = true;
-
             btn.innerHTML = "Loading...";
 
         }
 
         try {
 
-            const result = await App.requestGet(
+            const result = await App.requestPost(
 
                 "login",
 
                 {
 
-                    email,
-                    password
+                    email: email,
+                    password: password
 
                 }
 
             );
+
+            console.log("LOGIN RESULT :", result);
 
             if (!result.success) {
 
@@ -72,7 +77,17 @@ const Auth = {
 
             }
 
-            App.setSession(result.data);
+            // =====================================
+            // Simpan Session
+            // =====================================
+
+            const session = result.data || result;
+
+            App.setSession(session);
+
+            // =====================================
+            // Remember Email
+            // =====================================
 
             const remember = document.getElementById("remember");
 
@@ -82,13 +97,19 @@ const Auth = {
 
             }
 
-            App.toast("Login berhasil", "success");
+            App.toast(
+
+                "Login berhasil",
+
+                "success"
+
+            );
 
             setTimeout(() => {
 
                 window.location.href = "dashboard.html";
 
-            }, 700);
+            }, 800);
 
         }
 
@@ -96,7 +117,13 @@ const Auth = {
 
             console.error(err);
 
-            App.toast(err.message, "error");
+            App.toast(
+
+                err.message,
+
+                "error"
+
+            );
 
         }
 
@@ -105,7 +132,6 @@ const Auth = {
             if (btn) {
 
                 btn.disabled = false;
-
                 btn.innerHTML = "LOGIN";
 
             }
@@ -114,37 +140,43 @@ const Auth = {
 
     },
 
-    async logout() {
+    // ==========================================
+    // AUTO LOGIN
+    // ==========================================
+
+    autoLogin() {
 
         const session = App.getSession();
 
-        if (session?.token) {
+        if (
 
-            await App.requestGet(
+            session &&
 
-                "logout",
+            session.token
 
-                {
+        ) {
 
-                    token: session.token
-
-                }
-
-            );
+            window.location.href = "dashboard.html";
 
         }
 
-        App.removeSession();
-
-        window.location.href = "login.html";
-
     },
 
-    async verify() {
+    // ==========================================
+    // VERIFY SESSION
+    // ==========================================
+
+    verify() {
 
         const session = App.getSession();
 
-        if (!session) {
+        if (
+
+            !session ||
+
+            !session.token
+
+        ) {
 
             window.location.href = "login.html";
 
@@ -156,11 +188,65 @@ const Auth = {
 
     },
 
+    // ==========================================
+    // LOGOUT
+    // ==========================================
+
+    async logout() {
+
+        try {
+
+            const session = App.getSession();
+
+            if (
+
+                session &&
+
+                session.token
+
+            ) {
+
+                await App.requestPost(
+
+                    "logout",
+
+                    {
+
+                        token: session.token
+
+                    }
+
+                );
+
+            }
+
+        }
+
+        catch (e) {
+
+            console.log(e);
+
+        }
+
+        App.removeSession();
+
+        window.location.href = "login.html";
+
+    },
+
+    // ==========================================
+    // REMEMBER EMAIL
+    // ==========================================
+
     loadRemember() {
 
         const email = App.getRemember();
 
-        if (!email) return;
+        if (!email) {
+
+            return;
+
+        }
 
         const input = document.getElementById("email");
 
@@ -180,11 +266,19 @@ const Auth = {
 
     },
 
+    // ==========================================
+    // SHOW PASSWORD
+    // ==========================================
+
     togglePassword() {
 
         const password = document.getElementById("password");
 
-        if (!password) return;
+        if (!password) {
+
+            return;
+
+        }
 
         password.type =
 
@@ -198,6 +292,10 @@ const Auth = {
 
 };
 
+// ==========================================
+// INIT
+// ==========================================
+
 document.addEventListener(
 
     "DOMContentLoaded",
@@ -205,6 +303,8 @@ document.addEventListener(
     () => {
 
         Auth.loadRemember();
+
+        Auth.autoLogin();
 
         const btn = document.getElementById("btnLogin");
 
@@ -214,7 +314,11 @@ document.addEventListener(
 
                 "click",
 
-                Auth.login
+                () => {
+
+                    Auth.login();
+
+                }
 
             );
 

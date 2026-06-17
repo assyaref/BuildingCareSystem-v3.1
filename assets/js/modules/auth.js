@@ -115,27 +115,28 @@ const Auth = (() => {
 
     // ==================================================
     // BUTTON STATE
+    // Note: id="loginButton" — matches login.html
     // ==================================================
 
     function disableButton() {
 
-        const button = document.getElementById("btnLogin");
+        const button = document.getElementById("loginButton");
 
         if (!button) return;
 
         button.disabled  = true;
-        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Login...';
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Login...';
 
     }
 
     function enableButton() {
 
-        const button = document.getElementById("btnLogin");
+        const button = document.getElementById("loginButton");
 
         if (!button) return;
 
         button.disabled  = false;
-        button.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Login';
+        button.innerHTML = '<i class="fa-solid fa-right-to-bracket me-2"></i>LOGIN';
 
     }
 
@@ -384,7 +385,7 @@ const AuthModule = (() => {
                 "Apakah Anda yakin ingin keluar?"
             );
 
-            if (!confirmed.isConfirmed) return;
+            if (!confirmed || !confirmed.isConfirmed) return;
 
             await AuthService.logout();
 
@@ -450,7 +451,7 @@ const AuthModule = (() => {
     }
 
     // ==================================================
-    // HEARTBEAT — refresh session every 5 minutes
+    // HEARTBEAT — verify session every 5 minutes
     // ==================================================
 
     function startHeartbeat() {

@@ -564,7 +564,100 @@ Bootstrap Card
     color:var(--warning);
 
 }
+/* ==========================
+Activity Timeline
+========================== */
+.activity-item{
 
+    display:flex;
+
+    align-items:flex-start;
+
+    gap:15px;
+
+    padding:14px 0;
+
+    border-bottom:1px solid #f0f0f0;
+
+}
+
+.activity-item:last-child{
+
+    border:none;
+
+}
+
+.activity-icon{
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:white;
+
+    flex-shrink:0;
+
+}
+
+.activity-icon.success{
+
+    background:#16A34A;
+
+}
+
+.activity-icon.warning{
+
+    background:#F59E0B;
+
+}
+
+.activity-icon.primary{
+
+    background:#2563EB;
+
+}
+
+.activity-icon.purple{
+
+    background:#7C3AED;
+
+}
+
+.activity-content{
+
+    flex:1;
+
+}
+
+.activity-content strong{
+
+    display:block;
+
+    font-size:14px;
+
+}
+
+.activity-content small{
+
+    color:#6B7280;
+
+}
+
+.activity-item span{
+
+    font-size:12px;
+
+    color:#6B7280;
+
+}
 /* ==========================
 Recent Activity
 ========================== */
@@ -785,6 +878,8 @@ Enterprise Statistics Card
     color:var(--secondary);
     font-weight:500;
 }
+
+
 /* ==========================
 Responsive
 ========================== */

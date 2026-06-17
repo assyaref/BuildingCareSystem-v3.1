@@ -45,6 +45,17 @@ Design System
 
 --purple:#7C3AED;
 }
+body{
+
+    background:var(--background);
+
+    color:var(--text);
+
+    overflow-x:hidden;
+
+    line-height:1.6;
+
+}
 
 /* ==========================
 Wrapper
@@ -444,9 +455,9 @@ Enterprise Profile Card
 
 .avatar{
 
-    width:58px;
+    width:64px;
 
-    height:58px;
+    height:64px;
 
     border-radius:50%;
 
@@ -477,14 +488,15 @@ Enterprise Profile Card
 }
 
 .role-badge{
-
+    display:inline-block;
+    margin-top:6px;
+    padding:6px 14px;
+    border-radius:999px;
     background:#EEF4FF;
-
     color:var(--primary);
-
-    box-shadow:
-
-    0 4px 12px rgba(37,99,235,.15);
+    font-size:12px;
+    font-weight:700;
+    box-shadow:0 4px 12px rgba(37,99,235,.15);
 
 }
 .profile-detail{
@@ -548,20 +560,24 @@ Enterprise Statistics Card
     color:white;
     font-size:26px;
     flex-shrink:0;
-   transition:.3s ease;
-   transform:rotate(-6deg) scale(1.08);
+    transition:.3s ease;
+}
+.summary-card:hover .summary-icon{
+
+    transform:rotate(-6deg) scale(1.08);
+
 }
 .bg-primary{
-    background:#0D47A1;
+    background:var(--primary);
 }
 .bg-info{
-    background:#06B6D4;
+    background:var(--info);
 }
 .bg-warning{
-    background:#FBBF24;
+    background:var(--warning);
 }
 .bg-purple{
-    background:#7C3AED;
+    background:var(--purple);
 }
 .summary-trend{
     margin-top:18px;
@@ -674,13 +690,7 @@ Responsive
     font-size:28px;
 
 }
-.user-profile-card{
 
-    width:100%;
-
-    min-width:100%;
-
-}
 
 }
 @media(max-width:768px){

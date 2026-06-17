@@ -466,16 +466,11 @@ Enterprise Profile Card
         var(--primary),
         var(--secondary)
     );
-
     display:flex;
-
     justify-content:center;
-
     align-items:center;
-
     color:white;
-
-    font-size:24px;
+    font-size:28px;
 
 }
 

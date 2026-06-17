@@ -1,4 +1,3 @@
-```javascript
 // ======================================================
 // Building Care System Enterprise v3.1
 // assets/js/auth.js
@@ -354,4 +353,4 @@ document.addEventListener(
     }
 
 );
-```
+

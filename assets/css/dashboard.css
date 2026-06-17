@@ -422,6 +422,63 @@ STATUS CARD ENTERPRISE
     color:#16A34A;
 
 }
+.sparkline{
+
+    height:34px;
+
+    margin-top:18px;
+
+    border-radius:30px;
+
+}
+
+.spark-orange{
+
+    background:
+
+    radial-gradient(circle at 10% 80%,orange 2px,transparent 3px),
+
+    radial-gradient(circle at 25% 40%,orange 2px,transparent 3px),
+
+    radial-gradient(circle at 40% 70%,orange 2px,transparent 3px),
+
+    radial-gradient(circle at 60% 50%,orange 2px,transparent 3px),
+
+    radial-gradient(circle at 80% 75%,orange 2px,transparent 3px);
+
+}
+
+.spark-blue{
+
+    background:
+
+    radial-gradient(circle at 10% 70%,#2563EB 2px,transparent 3px),
+
+    radial-gradient(circle at 30% 30%,#2563EB 2px,transparent 3px),
+
+    radial-gradient(circle at 50% 60%,#2563EB 2px,transparent 3px),
+
+    radial-gradient(circle at 70% 45%,#2563EB 2px,transparent 3px),
+
+    radial-gradient(circle at 90% 75%,#2563EB 2px,transparent 3px);
+
+}
+
+.spark-green{
+
+    background:
+
+    radial-gradient(circle at 10% 70%,#16A34A 2px,transparent 3px),
+
+    radial-gradient(circle at 30% 40%,#16A34A 2px,transparent 3px),
+
+    radial-gradient(circle at 55% 75%,#16A34A 2px,transparent 3px),
+
+    radial-gradient(circle at 75% 45%,#16A34A 2px,transparent 3px),
+
+    radial-gradient(circle at 92% 20%,#16A34A 2px,transparent 3px);
+
+}
 /* ==========================
 Bootstrap Card
 ========================== */

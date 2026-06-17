@@ -53,3 +53,23 @@ All notable changes to this project will be documented in this file.
 
 - Basic Building Care System
 ```
+
+## [3.2.0-alpha]
+
+### Added
+
+- Enterprise Core Framework Planning
+- App Singleton Architecture
+- Config Manager
+- Logger Manager
+- Event Bus
+
+### Changed
+
+- Development Workflow
+- Repository Structure
+
+### Fixed
+
+- Future: Console Error
+- Future: Reference Error

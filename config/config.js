@@ -19,7 +19,7 @@ const CONFIG = {
     API: {
 
         // Ganti dengan URL Web App Google Apps Script
-        URL: "https://script.google.com/macros/s/AKfycbziy2oEgvUh0avukTqsvmT9i64LfUVt6LguPZ-FGgAEGHE7xCACGo-PzUgk0at6rlRFHQ/exec"
+        URL: "https://script.google.com/macros/s/AKfycbydH_mlcc-McpRBs-eY5n4db98rw6THO71_cQ4ANRWx8KxzMjBXQDvSi5zsNbIjE7PMPw/exec"
 
     },
 

@@ -524,6 +524,53 @@ Enterprise Profile Card
     color:var(--text-light);
 
 }
+
+/* ================================
+Enterprise Statistics Card
+================================ */
+
+.summary-top{
+    display:flex;
+    align-items:center;
+    gap:18px;
+}
+.summary-icon{
+    width:60px;
+    height:60px;
+    border-radius:16px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    font-size:26px;
+    flex-shrink:0;
+}
+.bg-primary{
+    background:#0D47A1;
+}
+.bg-info{
+    background:#06B6D4;
+}
+.bg-warning{
+    background:#FBBF24;
+}
+.bg-purple{
+    background:#7C3AED;
+}
+.summary-trend{
+    margin-top:18px;
+    font-size:13px;
+    font-weight:600;
+}
+.summary-trend.success{
+    color:#16A34A;
+}
+
+.summary-trend.danger{
+
+    color:#DC2626;
+
+}
 /* ==========================
 Responsive
 ========================== */

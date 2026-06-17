@@ -198,57 +198,23 @@ const Auth = {
     // VERIFY SESSION
     // ==========================================
 
-    async verify() {
+async verify() {
 
-        const session = App.getSession();
+    const session =
+        App.getSession();
 
-        if (
+    if (!session) {
 
-            !session ||
+        window.location.href =
+            "login.html";
 
-            !session.token
+        return false;
 
-        ) {
+    }
 
-            window.location.href =
+    return true;
 
-                "login.html";
-
-            return false;
-
-        }
-
-        const result = await App.requestGet(
-
-            "verifySession",
-
-            {
-
-                token: session.token
-
-            }
-
-        );
-
-        if (
-
-            !result.success
-
-        ) {
-
-            App.removeSession();
-
-            window.location.href =
-
-                "login.html";
-
-            return false;
-
-        }
-
-        return true;
-
-    },
+}
 
     // ==========================================
     // REMEMBER EMAIL

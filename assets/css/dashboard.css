@@ -479,6 +479,37 @@ STATUS CARD ENTERPRISE
     radial-gradient(circle at 92% 20%,#16A34A 2px,transparent 3px);
 
 }
+/* =====================================
+Enterprise Card
+===================================== */
+
+.enterprise-card{
+
+    border:none;
+
+    border-radius:22px;
+
+    overflow:hidden;
+
+    box-shadow:var(--shadow);
+
+}
+
+.enterprise-card .card-header{
+
+    background:
+
+    linear-gradient(
+
+    90deg,
+
+    var(--primary),
+
+    var(--secondary)
+
+    );
+
+}
 /* ==========================
 Bootstrap Card
 ========================== */

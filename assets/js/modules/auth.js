@@ -66,15 +66,15 @@ const Auth = (() => {
     function loadRemember() {
 
         const remember = document.getElementById("remember");
-        const email    = document.getElementById("email");
+        const nik      = document.getElementById("nik");
 
-        if (!remember || !email) return;
+        if (!remember || !nik) return;
 
         const saved = App.getRemember();
 
         if (!saved) return;
 
-        email.value      = saved;
+        nik.value        = saved;
         remember.checked = true;
 
     }
@@ -82,12 +82,12 @@ const Auth = (() => {
     function saveRemember() {
 
         const remember = document.getElementById("remember");
-        const email    = document.getElementById("email");
+        const nik      = document.getElementById("nik");
 
-        if (!remember || !email) return;
+        if (!remember || !nik) return;
 
         if (remember.checked) {
-            App.remember(email.value.trim());
+            App.remember(nik.value.trim());
             return;
         }
 
@@ -179,19 +179,19 @@ const AuthService = (() => {
 
         if (Auth.isLoading()) return;
 
-        const emailEl    = document.getElementById("email");
+        const nikEl      = document.getElementById("nik");
         const passwordEl = document.getElementById("password");
 
-        if (!emailEl || !passwordEl) {
+        if (!nikEl || !passwordEl) {
             App.toast("Form login tidak ditemukan.", "error");
             return;
         }
 
-        const email    = emailEl.value.trim().toLowerCase();
+        const nik      = nikEl.value.trim();
         const password = passwordEl.value;
 
-        if (!email || !password) {
-            App.toast("Email dan Password wajib diisi.", "warning");
+        if (!nik || !password) {
+            App.toast("NIK dan Password wajib diisi.", "warning");
             return;
         }
 
@@ -201,7 +201,7 @@ const AuthService = (() => {
 
         try {
 
-            const result = await Api.post("login", { email, password });
+            const result = await Api.post("login", { nik, password });
 
             if (!result.success) {
                 App.toast(result.message || "Login gagal.", "error");

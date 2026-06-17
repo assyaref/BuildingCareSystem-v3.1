@@ -1,54 +1,127 @@
 // ======================================================
-// Building Care System Enterprise v3.1
-// Global Application Framework
+// Building Care System Enterprise v3.2
+// assets/js/core/app.js
+// Radiant Group Duri
 // ======================================================
 
-const App = {
+"use strict";
 
-    // ===============================
-    // Loading
-    // ===============================
+const App = (() => {
 
-    loading(show = true) {
+    // ==================================================
+    // PRIVATE
+    // ==================================================
+
+    let loadingCounter = 0;
+
+    // ==================================================
+    // LOADING
+    // ==================================================
+
+    function loading(show = true) {
 
         const loader = document.getElementById("loading");
 
         if (!loader) return;
 
-        loader.style.display = show ? "flex" : "none";
+        if (show) {
 
-    },
+            loadingCounter++;
 
-    // ===============================
-    // Toast
-    // ===============================
+            loader.style.display = "flex";
 
-    toast(message, icon = "success") {
+            return;
+
+        }
+
+        loadingCounter--;
+
+        if (loadingCounter <= 0) {
+
+            loadingCounter = 0;
+
+            loader.style.display = "none";
+
+        }
+
+    }
+
+    // ==================================================
+    // TOAST
+    // ==================================================
+
+    function toast(message = "", icon = "success") {
+
+        if (typeof Swal === "undefined") {
+
+            console.log(message);
+
+            return;
+
+        }
 
         Swal.fire({
+
             toast: true,
+
             position: "top-end",
+
             icon: icon,
+
             title: message,
+
             showConfirmButton: false,
+
             timer: 2500
+
         });
 
-    },
+    }
 
-    // ===============================
-    // GET API
-    // ===============================
+    // ==================================================
+    // LOGGER
+    // ==================================================
 
-    async requestGet(action, data = {}) {
+    function log(...args) {
+
+        console.log(
+
+            "[BCS]",
+
+            ...args
+
+        );
+
+    }
+
+    function error(...args) {
+
+        console.error(
+
+            "[BCS ERROR]",
+
+            ...args
+
+        );
+
+    }
+
+    // ==================================================
+    // API GET
+    // ==================================================
+
+    async function requestGet(action, data = {}) {
+
+        loading(true);
 
         try {
 
-            this.loading(true);
-
             const params = new URLSearchParams({
+
                 action,
+
                 ...data
+
             });
 
             const response = await fetch(
@@ -56,15 +129,22 @@ const App = {
                 CONFIG.API.URL + "?" + params.toString(),
 
                 {
+
                     method: "GET",
+
                     cache: "no-store"
+
                 }
 
             );
 
             if (!response.ok) {
 
-                throw new Error("HTTP " + response.status);
+                throw new Error(
+
+                    "HTTP " + response.status
+
+                );
 
             }
 
@@ -74,11 +154,12 @@ const App = {
 
         catch (err) {
 
-            console.error(err);
+            error(err);
 
             return {
 
                 success: false,
+
                 message: err.message
 
             };
@@ -87,21 +168,21 @@ const App = {
 
         finally {
 
-            this.loading(false);
+            loading(false);
 
         }
 
-    },
+    }
 
-    // ===============================
-    // POST API
-    // ===============================
+    // ==================================================
+    // API POST
+    // ==================================================
 
-    async requestPost(action, data = {}) {
+    async function requestPost(action, data = {}) {
+
+        loading(true);
 
         try {
-
-            this.loading(true);
 
             const response = await fetch(
 
@@ -113,13 +194,14 @@ const App = {
 
                     headers: {
 
-                        "Content-Type": "text/plain;charset=utf-8"
+                        "Content-Type": "application/json"
 
                     },
 
                     body: JSON.stringify({
 
                         action,
+
                         data
 
                     })
@@ -128,17 +210,28 @@ const App = {
 
             );
 
+            if (!response.ok) {
+
+                throw new Error(
+
+                    "HTTP " + response.status
+
+                );
+
+            }
+
             return await response.json();
 
         }
 
         catch (err) {
 
-            console.error(err);
+            error(err);
 
             return {
 
                 success: false,
+
                 message: err.message
 
             };
@@ -147,17 +240,17 @@ const App = {
 
         finally {
 
-            this.loading(false);
+            loading(false);
 
         }
 
-    },
+    }
 
-    // ===============================
+    // ==================================================
     // SESSION
-    // ===============================
+    // ==================================================
 
-    setSession(user) {
+    function setSession(user) {
 
         localStorage.setItem(
 
@@ -167,39 +260,39 @@ const App = {
 
         );
 
-    },
+    }
 
-    getSession() {
+    function getSession() {
 
         try {
 
-            const session = localStorage.getItem(
+            const value = localStorage.getItem(
 
                 CONFIG.STORAGE.SESSION
 
             );
 
-            if (!session) {
+            if (!value) {
 
                 return null;
 
             }
 
-            return JSON.parse(session);
+            return JSON.parse(value);
 
         }
 
-        catch (e) {
+        catch (err) {
 
-            console.error(e);
+            error(err);
 
             return null;
 
         }
 
-    },
+    }
 
-    removeSession() {
+    function removeSession() {
 
         localStorage.removeItem(
 
@@ -207,13 +300,13 @@ const App = {
 
         );
 
-    },
+    }
 
-    // ===============================
-    // REMEMBER EMAIL
-    // ===============================
+    // ==================================================
+    // REMEMBER
+    // ==================================================
 
-    remember(email) {
+    function remember(email) {
 
         localStorage.setItem(
 
@@ -223,9 +316,9 @@ const App = {
 
         );
 
-    },
+    }
 
-    getRemember() {
+    function getRemember() {
 
         return localStorage.getItem(
 
@@ -233,32 +326,112 @@ const App = {
 
         );
 
-    },
+    }
 
-    // ===============================
-    // REDIRECT
-    // ===============================
+    function clearRemember() {
 
-    redirect(page) {
+        localStorage.removeItem(
 
-        window.location.href = page;
+            CONFIG.STORAGE.REMEMBER
 
-    },
-
-    // ===============================
-    // CHECK SESSION
-    // ===============================
-
-    checkSession() {
-
-        const session = this.getSession();
-
-        if (!session) {
-
-            this.redirect("login.html");
-
-        }
+        );
 
     }
 
-};
+    // ==================================================
+    // REDIRECT
+    // ==================================================
+
+    function redirect(page) {
+
+        if (
+
+            window.location.pathname.endsWith(page)
+
+        ) {
+
+            return;
+
+        }
+
+        window.location.replace(page);
+
+    }
+
+    // ==================================================
+    // SESSION CHECK
+    // ==================================================
+
+    function checkSession() {
+
+        const session = getSession();
+
+        if (
+
+            !session ||
+
+            !session.token
+
+        ) {
+
+            redirect("login.html");
+
+            return false;
+
+        }
+
+        return true;
+
+    }
+
+    // ==================================================
+    // CLEAR
+    // ==================================================
+
+    function clear() {
+
+        removeSession();
+
+        clearRemember();
+
+    }
+
+    // ==================================================
+    // PUBLIC
+    // ==================================================
+
+    return {
+
+        loading,
+
+        toast,
+
+        log,
+
+        error,
+
+        requestGet,
+
+        requestPost,
+
+        setSession,
+
+        getSession,
+
+        removeSession,
+
+        remember,
+
+        getRemember,
+
+        clearRemember,
+
+        redirect,
+
+        checkSession,
+
+        clear
+
+    };
+
+})();

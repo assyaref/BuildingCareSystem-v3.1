@@ -191,17 +191,34 @@ const App = {
 
     },
 
-    getSession() {
+getSession() {
 
-        const data = localStorage.getItem(
+    try {
 
-            CONFIG.STORAGE.SESSION
+        const session =
+            localStorage.getItem(
+                CONFIG.STORAGE.USER
+            );
 
-        );
+        if (!session) {
 
-        return data ? JSON.parse(data) : null;
+            return null;
 
-    },
+        }
+
+        return JSON.parse(session);
+
+    }
+
+    catch (e) {
+
+        console.error(e);
+
+        return null;
+
+    }
+
+}
 
     removeSession() {
 

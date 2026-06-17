@@ -257,32 +257,63 @@ Radiant Group Duri
 
 </section>
 
-        <!-- STATUS CARDS -->
-        <section class="row g-3 mt-1">
-
-            <div class="col-md-4">
-                <div class="summary-card dashboard-card" style="border-left-color:#ffc107;">
+       <!-- STATUS CARDS -->
+<section class="row g-4 mt-3">
+    <!-- OPEN -->
+    <div class="col-xl-4 col-md-4">
+        <div class="status-card open">
+            <div class="status-header">
+                <div class="status-icon bg-warning-soft">
+                    <i class="bi bi-folder2-open"></i>
+                </div>
+                <div>
                     <h6>Open</h6>
-                    <h2 id="totalOpen" style="color:#ffc107;">0</h2>
+                    <h2 id="totalOpen">0</h2>
                 </div>
             </div>
-
-            <div class="col-md-4">
-                <div class="summary-card dashboard-card" style="border-left-color:#0dcaf0;">
+            <div class="status-percent">
+                14.4% dari total report
+            </div>
+            <div class="sparkline spark-orange"></div>
+        </div>
+    </div>
+   <!-- IN PROGRESS -->
+    <div class="col-xl-4 col-md-4">
+        <div class="status-card progress-card">
+            <div class="status-header">
+                <div class="status-icon bg-info-soft">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+                <div>
                     <h6>In Progress</h6>
-                    <h2 id="totalProgress" style="color:#0dcaf0;">0</h2>
+                    <h2 id="totalProgress">0</h2>
                 </div>
             </div>
-
-            <div class="col-md-4">
-                <div class="summary-card dashboard-card" style="border-left-color:#198754;">
-                    <h6>Done</h6>
-                    <h2 id="totalDone" style="color:#198754;">0</h2>
+            <div class="status-percent">
+                21.6% dari total report
+            </div>
+            <div class="sparkline spark-blue"></div>
+        </div>
+    </div>
+    <!-- DONE -->
+    <div class="col-xl-4 col-md-4">
+        <div class="status-card done-card">
+            <div class="status-header">
+              <div class="status-icon bg-success-soft">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div>
+                   <h6>Done</h6>
+                    <h2 id="totalDone">0</h2>
                 </div>
             </div>
-
-        </section>
-
+            <div class="status-percent">
+                64.0% dari total report
+            </div>
+            <div class="sparkline spark-green"></div>
+        </div>
+    </div>
+</section>
         <!-- CHART + ACTIVITY -->
         <section class="row mt-4 g-3">
 

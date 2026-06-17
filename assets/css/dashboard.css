@@ -586,6 +586,13 @@ Enterprise Statistics Card
     color:var(--danger);
 }
 /* ==========================
+ Brand Location
+========================== */
+.brand-location{
+    color:var(--secondary);
+    font-weight:500;
+}
+/* ==========================
 Responsive
 ========================== */
 

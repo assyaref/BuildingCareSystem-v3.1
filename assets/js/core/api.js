@@ -1,76 +1,66 @@
-// =====================================================
-// Building Care System Enterprise v3.1
+// ======================================================
+// Building Care System Enterprise v3.2
 // Core API Service
 // Radiant Group Duri
-// =====================================================
+// ======================================================
 
 "use strict";
 
 const Api = (() => {
 
     // ==========================================
-    // BASE URL
+    // PRIVATE
     // ==========================================
 
-    const BASE_URL = CONFIG.API_URL;
+    const BASE_URL = CONFIG.API.URL;
 
     // ==========================================
-    // POST REQUEST
+    // LOGGER
     // ==========================================
 
-    async function post(action, data = {}) {
+    function log(...args) {
+
+        console.log(
+
+            "[API]",
+
+            ...args
+
+        );
+
+    }
+
+    function error(...args) {
+
+        console.error(
+
+            "[API ERROR]",
+
+            ...args
+
+        );
+
+    }
+
+    // ==========================================
+    // PARSE RESPONSE
+    // ==========================================
+
+    async function parse(response) {
 
         try {
-
-            const response = await fetch(BASE_URL, {
-
-                method: "POST",
-
-                headers: {
-
-                    "Content-Type": "application/json"
-
-                },
-
-                body: JSON.stringify({
-
-                    action,
-
-                    data
-
-                })
-
-            });
-
-            if (!response.ok) {
-
-                throw new Error(
-
-                    "HTTP " + response.status
-
-                );
-
-            }
 
             return await response.json();
 
         }
 
-        catch (error) {
-
-            console.error(
-
-                "[API ERROR]",
-
-                error
-
-            );
+        catch (err) {
 
             return {
 
                 success: false,
 
-                message: error.message
+                message: "Invalid JSON Response"
 
             };
 
@@ -79,44 +69,109 @@ const Api = (() => {
     }
 
     // ==========================================
-    // GET (Health Check)
+    // POST
     // ==========================================
 
-    async function get() {
+    async function post(action, data = {}) {
 
         try {
 
-            const response = await fetch(BASE_URL);
+            const response = await fetch(
 
-            if (!response.ok) {
+                BASE_URL,
 
-                throw new Error(
+                {
 
-                    "HTTP " + response.status
+                    method: "POST",
 
-                );
+                    /*
+                     * Jangan gunakan application/json
+                     * supaya tidak terkena CORS preflight
+                     */
 
-            }
+                    headers: {
 
-            return await response.json();
+                        "Content-Type": "text/plain;charset=utf-8"
+
+                    },
+
+                    body: JSON.stringify({
+
+                        action,
+
+                        data
+
+                    }),
+
+                    cache: "no-store"
+
+                }
+
+            );
+
+            return await parse(response);
 
         }
 
-        catch (error) {
+        catch (err) {
 
-            console.error(
-
-                "[API ERROR]",
-
-                error
-
-            );
+            error(err);
 
             return {
 
                 success: false,
 
-                message: error.message
+                message: err.message || "Failed to fetch"
+
+            };
+
+        }
+
+    }
+
+    // ==========================================
+    // GET
+    // ==========================================
+
+    async function get(action, data = {}) {
+
+        try {
+
+            const params = new URLSearchParams({
+
+                action,
+
+                ...data
+
+            });
+
+            const response = await fetch(
+
+                BASE_URL + "?" + params.toString(),
+
+                {
+
+                    method: "GET",
+
+                    cache: "no-store"
+
+                }
+
+            );
+
+            return await parse(response);
+
+        }
+
+        catch (err) {
+
+            error(err);
+
+            return {
+
+                success: false,
+
+                message: err.message || "Failed to fetch"
 
             };
 
@@ -130,9 +185,9 @@ const Api = (() => {
 
     return {
 
-        post,
+        get,
 
-        get
+        post
 
     };
 

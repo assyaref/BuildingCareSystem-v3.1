@@ -1,4 +1,3 @@
-```javascript
 // ======================================================
 // Building Care System Enterprise v3.1
 // Dashboard.gs
@@ -7,32 +6,24 @@
 
 /**
  * ======================================================
- * GET DASHBOARD SUMMARY
+ * DASHBOARD SUMMARY
  * ======================================================
  */
 function getDashboard(data) {
 
   try {
 
-    // ------------------------------------------
-    // VERIFY TOKEN
-    // ------------------------------------------
+    // ============================================
+    // GET SHEET
+    // ============================================
 
-    const session = verifySession(data.token);
-
-    if (!session) {
-
-      return failure("Session expired.");
-
-    }
-
-    // ------------------------------------------
-    // SHEET
-    // ------------------------------------------
-
-    const sheet = getSheet(CONFIG.SHEET_REPORT);
+    const sheet = getSheet("LAPORAN");
 
     const values = sheet.getDataRange().getValues();
+
+    // ============================================
+    // EMPTY DATA
+    // ============================================
 
     if (values.length <= 1) {
 
@@ -46,29 +37,67 @@ function getDashboard(data) {
 
         gedung: 0,
 
+        open: 0,
+
+        progress: 0,
+
+        done: 0,
+
         activity: []
 
       });
 
     }
 
-    // ------------------------------------------
+    // ============================================
     // HEADER
-    // ------------------------------------------
+    // ============================================
 
     const header = values.shift();
 
-    const index = {};
+    const headers = header.map(function (item) {
 
-    header.forEach(function (item, i) {
-
-      index[String(item).trim().toLowerCase()] = i;
+      return String(item)
+        .trim()
+        .toLowerCase();
 
     });
 
-    // ------------------------------------------
+    const indexKategori = headers.indexOf("kategori");
+
+    const indexStatus = headers.indexOf("status");
+
+    const indexLokasi = headers.indexOf("lokasi");
+
+    const indexTanggal = headers.indexOf("tanggal");
+
+    // ============================================
+    // VALIDATION
+    // ============================================
+
+    if (
+
+      indexKategori < 0 ||
+
+      indexStatus < 0 ||
+
+      indexLokasi < 0 ||
+
+      indexTanggal < 0
+
+    ) {
+
+      return failure(
+
+        "Header Spreadsheet tidak valid."
+
+      );
+
+    }
+
+    // ============================================
     // SUMMARY
-    // ------------------------------------------
+    // ============================================
 
     let total = 0;
 
@@ -78,84 +107,125 @@ function getDashboard(data) {
 
     let gedung = 0;
 
-    const activity = [];
+    let open = 0;
+
+    let progress = 0;
+
+    let done = 0;
 
     values.forEach(function (row) {
 
       total++;
 
-      const kategori =
-        String(
+      const kategori = String(
 
-          row[index.kategori] || ""
+        row[indexKategori] || ""
 
-        ).toUpperCase();
+      )
 
-      if (kategori === "AC") {
+      .trim()
 
-        ac++;
+      .toUpperCase();
+
+      const status = String(
+
+        row[indexStatus] || ""
+
+      )
+
+      .trim()
+
+      .toUpperCase();
+
+      // --------------------------------------
+
+      // CATEGORY
+
+      // --------------------------------------
+
+      switch (kategori) {
+
+        case "AC":
+
+          ac++;
+
+          break;
+
+        case "LISTRIK":
+
+          listrik++;
+
+          break;
+
+        case "GEDUNG":
+
+        case "KONDISI GEDUNG":
+
+          gedung++;
+
+          break;
 
       }
 
-      else if (kategori === "LISTRIK") {
+      // --------------------------------------
 
-        listrik++;
+      // STATUS
+
+      // --------------------------------------
+
+      switch (status) {
+
+        case "OPEN":
+
+          open++;
+
+          break;
+
+        case "PROGRESS":
+
+          progress++;
+
+          break;
+
+        case "DONE":
+
+          done++;
+
+          break;
 
       }
 
-      else {
+    });
 
-        gedung++;
+    // ============================================
+    // RECENT ACTIVITY
+    // ============================================
 
-      }
+    const recent = values
 
-      activity.push({
+      .slice(-5)
 
-        tanggal:
+      .reverse()
 
-          row[index.tanggal] || "",
+      .map(function (row) {
 
-        lokasi:
+        return {
 
-          row[index.lokasi] || "",
+          tanggal: row[indexTanggal],
 
-        kategori:
+          kategori: row[indexKategori],
 
-          kategori,
+          lokasi: row[indexLokasi],
 
-        status:
+          status: row[indexStatus]
 
-          row[index.status] || ""
+        };
 
       });
 
-    });
-
-    // ------------------------------------------
-    // SORT DESC
-    // ------------------------------------------
-
-    activity.sort(function (a, b) {
-
-      return String(b.tanggal)
-
-        .localeCompare(
-
-          String(a.tanggal)
-
-        );
-
-    });
-
-    // ------------------------------------------
-    // LIMIT
-    // ------------------------------------------
-
-    const recent = activity.slice(0, 5);
-
-    // ------------------------------------------
-    // RETURN
-    // ------------------------------------------
+    // ============================================
+    // RESPONSE
+    // ============================================
 
     return success({
 
@@ -166,6 +236,12 @@ function getDashboard(data) {
       listrik: listrik,
 
       gedung: gedung,
+
+      open: open,
+
+      progress: progress,
+
+      done: done,
 
       activity: recent,
 
@@ -179,9 +255,9 @@ function getDashboard(data) {
 
     saveError(
 
-      "Dashboard",
+      "Dashboard.gs",
 
-      err
+      err.toString()
 
     );
 
@@ -194,5 +270,3 @@ function getDashboard(data) {
   }
 
 }
-```
-

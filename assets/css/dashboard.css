@@ -393,7 +393,137 @@ Scrollbar
     border-radius:20px;
 
 }
+/* ==================================
+Enterprise Profile Card
+================================== */
 
+.user-profile-card{
+
+    min-width:340px;
+
+    background:var(--card);
+
+    border-radius:var(--radius);
+
+    padding:22px;
+
+    box-shadow:var(--shadow);
+
+    transition:var(--transition);
+
+}
+
+.user-profile-card:hover{
+
+    transform:translateY(-4px);
+
+}
+
+.profile-top{
+
+    display:flex;
+
+    gap:16px;
+
+    align-items:center;
+
+}
+
+.avatar{
+
+    width:58px;
+
+    height:58px;
+
+    border-radius:50%;
+
+    background:linear-gradient(
+        135deg,
+        var(--primary),
+        var(--secondary)
+    );
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    color:white;
+
+    font-size:24px;
+
+}
+
+.profile-name{
+
+    font-size:18px;
+
+    font-weight:700;
+
+}
+
+.role-badge{
+
+    display:inline-block;
+
+    margin-top:6px;
+
+    padding:6px 14px;
+
+    border-radius:999px;
+
+    background:#e8f2ff;
+
+    color:var(--primary);
+
+    font-size:12px;
+
+    font-weight:700;
+
+}
+
+.profile-detail{
+
+    margin-top:18px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:8px;
+
+    color:var(--text-light);
+
+    font-size:14px;
+
+}
+
+.profile-footer{
+
+    margin-top:18px;
+
+    padding-top:16px;
+
+    border-top:1px solid var(--border);
+
+    font-size:13px;
+
+    font-weight:600;
+
+    color:var(--text);
+
+}
+
+.profile-footer small{
+
+    display:block;
+
+    margin-top:3px;
+
+    color:var(--text-light);
+
+}
 /* ==========================
 Responsive
 ========================== */
@@ -489,6 +619,17 @@ Responsive
 .summary-card h2{
 
     font-size:28px;
+
+}
+
+}
+@media(max-width:768px){
+
+.user-profile-card{
+
+    width:100%;
+
+    min-width:100%;
 
 }
 

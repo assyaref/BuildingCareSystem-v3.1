@@ -1,329 +1,521 @@
 // ======================================================
 // Building Care System Enterprise v3.2
-// assets/js/modules/auth.js
+// File : assets/js/modules/auth.js
 // Radiant Group Duri
 // ======================================================
 
-const Auth = {
+"use strict";
 
-    // ==========================================
+/**
+ * =====================================================
+ * AUTH — UI STATE
+ * Handles: remember me, auto-login redirect, button state
+ * =====================================================
+ */
+
+const Auth = (() => {
+
+    // ==================================================
+    // PRIVATE STATE
+    // ==================================================
+
+    let loginProcess = false;
+
+    // ==================================================
+    // INIT
+    // ==================================================
+
+    function init() {
+
+        App.log("Authentication Module Loaded");
+
+        loadRemember();
+        autoLogin();
+        bindRemember();
+
+    }
+
+    // ==================================================
+    // AUTO LOGIN
+    // ==================================================
+
+    function autoLogin() {
+
+        const session = App.getSession();
+
+        if (!session) return;
+
+        if (!session.token) {
+            App.removeSession();
+            return;
+        }
+
+        const currentPage = window.location.pathname.split("/").pop();
+
+        if (currentPage === "login.html") {
+            App.log("Auto Login — redirecting to dashboard");
+            App.redirect("dashboard.html");
+        }
+
+    }
+
+    // ==================================================
+    // REMEMBER ME
+    // ==================================================
+
+    function loadRemember() {
+
+        const remember = document.getElementById("remember");
+        const email    = document.getElementById("email");
+
+        if (!remember || !email) return;
+
+        const saved = App.getRemember();
+
+        if (!saved) return;
+
+        email.value      = saved;
+        remember.checked = true;
+
+    }
+
+    function saveRemember() {
+
+        const remember = document.getElementById("remember");
+        const email    = document.getElementById("email");
+
+        if (!remember || !email) return;
+
+        if (remember.checked) {
+            App.remember(email.value.trim());
+            return;
+        }
+
+        App.clearRemember();
+
+    }
+
+    function bindRemember() {
+
+        const remember = document.getElementById("remember");
+
+        if (!remember) return;
+
+        remember.addEventListener("change", saveRemember);
+
+    }
+
+    // ==================================================
+    // PROCESS LOCK
+    // ==================================================
+
+    function isLoading()  { return loginProcess; }
+    function lock()       { loginProcess = true;  }
+    function unlock()     { loginProcess = false; }
+
+    // ==================================================
+    // BUTTON STATE
+    // ==================================================
+
+    function disableButton() {
+
+        const button = document.getElementById("loginButton");
+
+        if (!button) return;
+
+        button.disabled  = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Login...';
+
+    }
+
+    function enableButton() {
+
+        const button = document.getElementById("loginButton");
+
+        if (!button) return;
+
+        button.disabled  = false;
+        button.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Login';
+
+    }
+
+    // ==================================================
+    // PUBLIC
+    // ==================================================
+
+    return {
+        init,
+        autoLogin,
+        loadRemember,
+        saveRemember,
+        bindRemember,
+        isLoading,
+        lock,
+        unlock,
+        disableButton,
+        enableButton
+    };
+
+})();
+
+
+/**
+ * =====================================================
+ * AUTH SERVICE
+ * Handles: login, logout, session verify, guards
+ * =====================================================
+ */
+
+const AuthService = (() => {
+
+    // ==================================================
     // LOGIN
-    // ==========================================
+    // ==================================================
 
-    async login() {
+    async function login(event = null) {
 
-        const email = document
-            .getElementById("email")
-            .value
-            .trim()
-            .toLowerCase();
+        if (event) event.preventDefault();
 
-        const password = document
-            .getElementById("password")
-            .value
-            .trim();
+        if (Auth.isLoading()) return;
 
-        if (!email) {
+        const emailEl    = document.getElementById("email");
+        const passwordEl = document.getElementById("password");
 
-            App.toast("Email wajib diisi", "warning");
+        if (!emailEl || !passwordEl) {
+            App.toast("Form login tidak ditemukan.", "error");
             return;
+        }
+
+        const email    = emailEl.value.trim().toLowerCase();
+        const password = passwordEl.value;
+
+        if (!email || !password) {
+            App.toast("Email dan Password wajib diisi.", "warning");
+            return;
+        }
+
+        Auth.lock();
+        Auth.disableButton();
+        App.showLoading();
+
+        try {
+
+            const result = await Api.post("login", { email, password });
+
+            if (!result.success) {
+                App.toast(result.message || "Login gagal.", "error");
+                return;
+            }
+
+            const user = result.data || {};
+
+            App.setSession(user);
+            Auth.saveRemember();
+            App.toast("Login berhasil.", "success");
+
+            setTimeout(() => App.redirect("dashboard.html"), 500);
+
+        } catch (err) {
+
+            App.handleError(err);
+
+        } finally {
+
+            Auth.unlock();
+            Auth.enableButton();
+            App.hideLoading();
 
         }
 
-        if (!password) {
+    }
 
-            App.toast("Password wajib diisi", "warning");
-            return;
+    // ==================================================
+    // VERIFY SESSION
+    // ==================================================
 
-        }
+    async function verifySession() {
 
-        const btn = document.getElementById("btnLogin");
+        const session = App.getSession();
 
-        if (btn) {
+        if (!session) return false;
 
-            btn.disabled = true;
-            btn.innerHTML = "Loading...";
-
+        if (!session.token) {
+            App.removeSession();
+            return false;
         }
 
         try {
 
-            const result = await App.requestPost(
-
-                "login",
-
-                {
-
-                    email: email,
-                    password: password
-
-                }
-
-            );
-
-            console.log("LOGIN RESULT :", result);
+            const result = await Api.post("verifySession", { token: session.token });
 
             if (!result.success) {
-
-                App.toast(
-
-                    result.message || "Login gagal",
-
-                    "error"
-
-                );
-
-                return;
-
+                App.removeSession();
+                return false;
             }
 
-            // =====================================
-            // Simpan Session
-            // =====================================
+            return true;
 
-            const session = result.data || result;
+        } catch (err) {
 
-            App.setSession(session);
-
-            // =====================================
-            // Remember Email
-            // =====================================
-
-            const remember = document.getElementById("remember");
-
-            if (remember && remember.checked) {
-
-                App.remember(email);
-
-            }
-
-            App.toast(
-
-                "Login berhasil",
-
-                "success"
-
-            );
-
-            setTimeout(() => {
-
-                window.location.href = "dashboard.html";
-
-            }, 800);
-
-        }
-
-        catch (err) {
-
-            console.error(err);
-
-            App.toast(
-
-                err.message,
-
-                "error"
-
-            );
-
-        }
-
-        finally {
-
-            if (btn) {
-
-                btn.disabled = false;
-                btn.innerHTML = "LOGIN";
-
-            }
-
-        }
-
-    },
-
-    // ==========================================
-    // AUTO LOGIN
-    // ==========================================
-
-    autoLogin() {
-
-        const session = App.getSession();
-
-        if (
-
-            session &&
-
-            session.token
-
-        ) {
-
-            window.location.href = "dashboard.html";
-
-        }
-
-    },
-
-    // ==========================================
-    // VERIFY SESSION
-    // ==========================================
-
-    verify() {
-
-        const session = App.getSession();
-
-        if (
-
-            !session ||
-
-            !session.token
-
-        ) {
-
-            window.location.href = "login.html";
-
+            App.error(err);
             return false;
 
         }
 
-        return true;
+    }
 
-    },
+    // ==================================================
+    // SESSION GUARD
+    // ==================================================
 
-    // ==========================================
+    async function guard() {
+
+        const valid = await verifySession();
+
+        if (valid) return true;
+
+        App.toast("Session telah berakhir.", "warning");
+        App.removeSession();
+
+        setTimeout(() => App.redirect("login.html"), 300);
+
+        return false;
+
+    }
+
+    // ==================================================
     // LOGOUT
-    // ==========================================
+    // ==================================================
 
-    async logout() {
+    async function logout() {
+
+        const session = App.getSession();
 
         try {
 
-            const session = App.getSession();
-
-            if (
-
-                session &&
-
-                session.token
-
-            ) {
-
-                await App.requestPost(
-
-                    "logout",
-
-                    {
-
-                        token: session.token
-
-                    }
-
-                );
-
+            if (session && session.token) {
+                await Api.post("logout", { token: session.token });
             }
 
-        }
+        } catch (err) {
 
-        catch (e) {
+            App.error(err);
 
-            console.log(e);
+        } finally {
 
-        }
+            App.removeSession();
+            App.toast("Logout berhasil.", "success");
 
-        App.removeSession();
-
-        window.location.href = "login.html";
-
-    },
-
-    // ==========================================
-    // REMEMBER EMAIL
-    // ==========================================
-
-    loadRemember() {
-
-        const email = App.getRemember();
-
-        if (!email) {
-
-            return;
+            setTimeout(() => App.redirect("login.html"), 300);
 
         }
 
-        const input = document.getElementById("email");
+    }
 
-        const remember = document.getElementById("remember");
+    // ==================================================
+    // PAGE HELPERS
+    // ==================================================
 
-        if (input) {
+    function currentPage() {
+        return window.location.pathname.split("/").pop();
+    }
 
-            input.value = email;
+    function isLogin()     { return currentPage() === "login.html";     }
+    function isDashboard() { return currentPage() === "dashboard.html"; }
 
-        }
+    // ==================================================
+    // PUBLIC
+    // ==================================================
 
-        if (remember) {
+    return {
+        login,
+        logout,
+        verifySession,
+        guard,
+        isLogin,
+        isDashboard
+    };
 
-            remember.checked = true;
+})();
 
-        }
 
-    },
+/**
+ * =====================================================
+ * AUTH MODULE
+ * Handles: event binding, page guards, heartbeat, bootstrap
+ * =====================================================
+ */
 
-    // ==========================================
-    // SHOW PASSWORD
-    // ==========================================
+const AuthModule = (() => {
 
-    togglePassword() {
+    // ==================================================
+    // BIND LOGIN FORM
+    // ==================================================
+
+    function bindLoginForm() {
+
+        const form = document.getElementById("loginForm");
+
+        if (!form) return;
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            await AuthService.login(event);
+        });
+
+    }
+
+    // ==================================================
+    // BIND LOGOUT BUTTON
+    // ==================================================
+
+    function bindLogoutButton() {
+
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        if (!logoutBtn) return;
+
+        logoutBtn.addEventListener("click", async (event) => {
+
+            event.preventDefault();
+
+            const confirmed = await App.confirm(
+                "Logout",
+                "Apakah Anda yakin ingin keluar?"
+            );
+
+            if (!confirmed.isConfirmed) return;
+
+            await AuthService.logout();
+
+        });
+
+    }
+
+    // ==================================================
+    // ENTER KEY SUPPORT
+    // ==================================================
+
+    function bindEnterKey() {
 
         const password = document.getElementById("password");
 
-        if (!password) {
+        if (!password) return;
 
-            return;
+        password.addEventListener("keypress", async (event) => {
 
-        }
+            if (event.key !== "Enter") return;
 
-        password.type =
+            event.preventDefault();
 
-            password.type === "password"
+            await AuthService.login(event);
 
-                ? "text"
-
-                : "password";
+        });
 
     }
 
-};
+    // ==================================================
+    // LOGIN PAGE GUARD
+    // Redirect to dashboard if already logged in
+    // ==================================================
 
-// ==========================================
-// INIT
-// ==========================================
+    function loginGuard() {
 
-document.addEventListener(
+        if (!AuthService.isLogin()) return;
 
-    "DOMContentLoaded",
+        const session = App.getSession();
 
-    () => {
-
-        Auth.loadRemember();
-
-        Auth.autoLogin();
-
-        const btn = document.getElementById("btnLogin");
-
-        if (btn) {
-
-            btn.addEventListener(
-
-                "click",
-
-                () => {
-
-                    Auth.login();
-
-                }
-
-            );
-
+        if (session && session.token) {
+            App.redirect("dashboard.html");
         }
 
     }
 
-);
+    // ==================================================
+    // DASHBOARD GUARD
+    // Redirect to login if session is invalid
+    // ==================================================
+
+    async function dashboardGuard() {
+
+        if (!AuthService.isDashboard()) return;
+
+        const valid = await AuthService.verifySession();
+
+        if (!valid) {
+            App.removeSession();
+            App.redirect("login.html");
+        }
+
+    }
+
+    // ==================================================
+    // HEARTBEAT — refresh session every 5 minutes
+    // ==================================================
+
+    function startHeartbeat() {
+
+        if (!AuthService.isDashboard()) return;
+
+        setInterval(async () => {
+
+            const session = App.getSession();
+
+            if (!session || !session.token) return;
+
+            const valid = await AuthService.verifySession();
+
+            if (!valid) {
+                App.toast("Session telah berakhir.", "warning");
+                setTimeout(() => App.redirect("login.html"), 300);
+            }
+
+        }, 5 * 60 * 1000);
+
+    }
+
+    // ==================================================
+    // INITIALIZE
+    // ==================================================
+
+    async function init() {
+
+        App.log("Authentication Bootstrap");
+
+        Auth.init();
+
+        loginGuard();
+
+        await dashboardGuard();
+
+        bindLoginForm();
+        bindLogoutButton();
+        bindEnterKey();
+
+        startHeartbeat();
+
+    }
+
+    // ==================================================
+    // PUBLIC
+    // ==================================================
+
+    return {
+        init,
+        bindLoginForm,
+        bindLogoutButton,
+        bindEnterKey,
+        loginGuard,
+        dashboardGuard,
+        startHeartbeat
+    };
+
+})();
+
+// ======================================================
+// APPLICATION START
+// ======================================================
+
+document.addEventListener("DOMContentLoaded", async () => {
+    await AuthModule.init();
+});

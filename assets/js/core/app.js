@@ -1,8 +1,6 @@
 // ======================================================
 // Building Care System Enterprise v3.1
 // Global Application Framework
-// Radiant Group Duri
-// Version : 3.1.0-final
 // ======================================================
 
 const App = {
@@ -28,19 +26,12 @@ const App = {
     toast(message, icon = "success") {
 
         Swal.fire({
-
             toast: true,
-
             position: "top-end",
-
             icon: icon,
-
             title: message,
-
             showConfirmButton: false,
-
             timer: 2500
-
         });
 
     },
@@ -56,11 +47,8 @@ const App = {
             this.loading(true);
 
             const params = new URLSearchParams({
-
                 action,
-
                 ...data
-
             });
 
             const response = await fetch(
@@ -68,22 +56,15 @@ const App = {
                 CONFIG.API.URL + "?" + params.toString(),
 
                 {
-
                     method: "GET",
-
                     cache: "no-store"
-
                 }
 
             );
 
             if (!response.ok) {
 
-                throw new Error(
-
-                    "HTTP " + response.status
-
-                );
+                throw new Error("HTTP " + response.status);
 
             }
 
@@ -98,7 +79,6 @@ const App = {
             return {
 
                 success: false,
-
                 message: err.message
 
             };
@@ -140,7 +120,6 @@ const App = {
                     body: JSON.stringify({
 
                         action,
-
                         data
 
                     })
@@ -160,7 +139,6 @@ const App = {
             return {
 
                 success: false,
-
                 message: err.message
 
             };
@@ -176,7 +154,7 @@ const App = {
     },
 
     // ===============================
-    // Session
+    // SESSION
     // ===============================
 
     setSession(user) {
@@ -191,34 +169,35 @@ const App = {
 
     },
 
-getSession() {
+    getSession() {
 
-    try {
+        try {
 
-        const session =
-            localStorage.getItem(
-                CONFIG.STORAGE.USER
+            const session = localStorage.getItem(
+
+                CONFIG.STORAGE.SESSION
+
             );
 
-        if (!session) {
+            if (!session) {
+
+                return null;
+
+            }
+
+            return JSON.parse(session);
+
+        }
+
+        catch (e) {
+
+            console.error(e);
 
             return null;
 
         }
 
-        return JSON.parse(session);
-
-    }
-
-    catch (e) {
-
-        console.error(e);
-
-        return null;
-
-    }
-
-}
+    },
 
     removeSession() {
 
@@ -231,7 +210,7 @@ getSession() {
     },
 
     // ===============================
-    // Remember Email
+    // REMEMBER EMAIL
     // ===============================
 
     remember(email) {
@@ -257,7 +236,7 @@ getSession() {
     },
 
     // ===============================
-    // Redirect
+    // REDIRECT
     // ===============================
 
     redirect(page) {
@@ -267,7 +246,7 @@ getSession() {
     },
 
     // ===============================
-    // Route Protection
+    // CHECK SESSION
     // ===============================
 
     checkSession() {
@@ -276,11 +255,7 @@ getSession() {
 
         if (!session) {
 
-            this.redirect(
-
-                "login.html"
-
-            );
+            this.redirect("login.html");
 
         }
 

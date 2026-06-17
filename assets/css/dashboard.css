@@ -580,13 +580,10 @@ Enterprise Statistics Card
     font-weight:600;
 }
 .summary-trend.success{
-    color:#16A34A;
+    color:var(--success);
 }
-
 .summary-trend.danger{
-
-    color:#DC2626;
-
+    color:var(--danger);
 }
 /* ==========================
 Responsive

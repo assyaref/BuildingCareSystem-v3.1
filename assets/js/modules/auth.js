@@ -1,15 +1,8 @@
 // ======================================================
-// Building Care System Enterprise v3.1
-// assets/js/auth.js
-// Version : 3.1.0-final
-// Radiant Group Duri
+// AUTH MODULE
 // ======================================================
 
 const Auth = {
-
-    // ==========================================
-    // LOGIN
-    // ==========================================
 
     async login() {
 
@@ -24,7 +17,7 @@ const Auth = {
             .value
             .trim();
 
-        if (email === "") {
+        if (!email) {
 
             App.toast("Email wajib diisi", "warning");
 
@@ -32,7 +25,7 @@ const Auth = {
 
         }
 
-        if (password === "") {
+        if (!password) {
 
             App.toast("Password wajib diisi", "warning");
 
@@ -58,9 +51,8 @@ const Auth = {
 
                 {
 
-                    email: email,
-
-                    password: password
+                    email,
+                    password
 
                 }
 
@@ -70,9 +62,7 @@ const Auth = {
 
                 App.toast(
 
-                    result.message ||
-
-                    "Login gagal",
+                    result.message || "Login gagal",
 
                     "error"
 
@@ -82,49 +72,23 @@ const Auth = {
 
             }
 
-            App.setSession(
+            App.setSession(result.data);
 
-                result.data
+            const remember = document.getElementById("remember");
 
-            );
+            if (remember && remember.checked) {
 
-            const remember = document.getElementById(
-
-                "remember"
-
-            );
-
-            if (
-
-                remember &&
-
-                remember.checked
-
-            ) {
-
-                App.remember(
-
-                    email
-
-                );
+                App.remember(email);
 
             }
 
-            App.toast(
-
-                "Login berhasil",
-
-                "success"
-
-            );
+            App.toast("Login berhasil", "success");
 
             setTimeout(() => {
 
-                window.location.href =
+                window.location.href = "dashboard.html";
 
-                    "dashboard.html";
-
-            }, 800);
+            }, 700);
 
         }
 
@@ -132,13 +96,7 @@ const Auth = {
 
             console.error(err);
 
-            App.toast(
-
-                err.message,
-
-                "error"
-
-            );
+            App.toast(err.message, "error");
 
         }
 
@@ -156,21 +114,11 @@ const Auth = {
 
     },
 
-    // ==========================================
-    // LOGOUT
-    // ==========================================
-
     async logout() {
 
         const session = App.getSession();
 
-        if (
-
-            session &&
-
-            session.token
-
-        ) {
+        if (session?.token) {
 
             await App.requestGet(
 
@@ -188,59 +136,35 @@ const Auth = {
 
         App.removeSession();
 
-        window.location.href =
-
-            "login.html";
+        window.location.href = "login.html";
 
     },
 
-    // ==========================================
-    // VERIFY SESSION
-    // ==========================================
+    async verify() {
 
-async verify() {
+        const session = App.getSession();
 
-    const session =
-        App.getSession();
+        if (!session) {
 
-    if (!session) {
+            window.location.href = "login.html";
 
-        window.location.href =
-            "login.html";
+            return false;
 
-        return false;
+        }
 
-    }
+        return true;
 
-    return true;
-
-}
-
-    // ==========================================
-    // REMEMBER EMAIL
-    // ==========================================
+    },
 
     loadRemember() {
 
         const email = App.getRemember();
 
-        if (!email) {
+        if (!email) return;
 
-            return;
+        const input = document.getElementById("email");
 
-        }
-
-        const input = document.getElementById(
-
-            "email"
-
-        );
-
-        const remember = document.getElementById(
-
-            "remember"
-
-        );
+        const remember = document.getElementById("remember");
 
         if (input) {
 
@@ -256,23 +180,11 @@ async verify() {
 
     },
 
-    // ==========================================
-    // SHOW PASSWORD
-    // ==========================================
-
     togglePassword() {
 
-        const password = document.getElementById(
+        const password = document.getElementById("password");
 
-            "password"
-
-        );
-
-        if (!password) {
-
-            return;
-
-        }
+        if (!password) return;
 
         password.type =
 
@@ -286,23 +198,15 @@ async verify() {
 
 };
 
-// ==========================================
-// INIT
-// ==========================================
-
 document.addEventListener(
 
     "DOMContentLoaded",
 
-    function () {
+    () => {
 
         Auth.loadRemember();
 
-        const btn = document.getElementById(
-
-            "btnLogin"
-
-        );
+        const btn = document.getElementById("btnLogin");
 
         if (btn) {
 

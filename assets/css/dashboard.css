@@ -326,11 +326,17 @@ Bootstrap Card
 
 .card-header{
 
-    background:#0d47a1;
+    background:linear-gradient(
+        90deg,
+        var(--primary),
+        var(--secondary)
+    );
 
-    color:white;
+    color:#fff;
 
     font-weight:600;
+
+    padding:18px 22px;
 
 }
 
@@ -378,7 +384,11 @@ Scrollbar
 
 ::-webkit-scrollbar-thumb{
 
-    background:#0d47a1;
+    background:linear-gradient(
+        180deg,
+        var(--primary),
+        var(--secondary)
+    );
 
     border-radius:20px;
 

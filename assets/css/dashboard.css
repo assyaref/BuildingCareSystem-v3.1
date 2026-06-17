@@ -10,14 +10,42 @@
     box-sizing:border-box;
     font-family:'Poppins',sans-serif;
 }
+/* ===================================
+Design System
+=================================== */
 
+:root{
+
+    --primary:#0D47A1;
+
+    --secondary:#2563EB;
+
+    --background:#F5F7FB;
+
+    --card:#FFFFFF;
+
+    --border:#E5E7EB;
+
+    --text:#111827;
+
+    --text-light:#6B7280;
+
+    --radius:20px;
+
+    --shadow:0 12px 32px rgba(15,23,42,.08);
+
+    --transition:.3s ease;
+
+}
 body{
 
-    background:#f4f7fb;
+    background:var(--background);
 
-    color:#333;
+    color:var(--text);
 
     overflow-x:hidden;
+
+    line-height:1.6;
 
 }
 
@@ -39,28 +67,39 @@ Sidebar
 
 .sidebar{
 
-    width:260px;
+    width:280px;
 
-    background:#0d47a1;
+    background:linear-gradient(
+        180deg,
+        #0D47A1 0%,
+        #1565C0 100%
+    );
 
-    color:white;
+    color:#fff;
 
     position:fixed;
 
-    left:0;
-
     top:0;
+
+    left:0;
 
     bottom:0;
 
-    padding:25px;
+    padding:28px;
 
-    box-shadow:0 0 20px rgba(0,0,0,.15);
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:space-between;
+
+    box-shadow:var(--shadow);
+
+    transition:var(--transition);
 
     z-index:1000;
 
 }
-
 .logo-area{
 
     text-align:center;
@@ -69,15 +108,45 @@ Sidebar
 
 }
 
+.logo-area{
+
+    text-align:center;
+
+    margin-bottom:45px;
+
+}
+
 .logo{
 
-    width:85px;
+    width:82px;
 
-    height:85px;
+    height:82px;
 
     object-fit:contain;
 
-    margin-bottom:15px;
+}
+
+.logo-area h5{
+
+    margin-top:14px;
+
+    font-size:22px;
+
+    font-weight:700;
+
+    letter-spacing:.3px;
+
+}
+
+.logo-area small{
+
+    display:block;
+
+    margin-top:5px;
+
+    opacity:.85;
+
+    font-size:13px;
 
 }
 
@@ -115,19 +184,19 @@ Menu
 
     align-items:center;
 
-    gap:12px;
+    gap:14px;
 
-    padding:14px 18px;
+    padding:15px 18px;
 
-    border-radius:12px;
+    border-radius:16px;
 
     text-decoration:none;
 
-    color:white;
-
-    transition:.25s;
+    color:#fff;
 
     font-weight:500;
+
+    transition:var(--transition);
 
 }
 
@@ -135,48 +204,44 @@ Menu
 
     font-size:20px;
 
+    width:22px;
+
 }
 
 .menu:hover{
 
-    background:rgba(255,255,255,.15);
+    transform:translateX(6px);
 
-    color:white;
+    background:rgba(255,255,255,.12);
+
+    color:#fff;
 
 }
 
 .menu.active{
 
-    background:white;
+    background:#fff;
 
-    color:#0d47a1;
+    color:var(--primary);
 
-    font-weight:600;
-
-}
-
-.menu.text-danger{
-
-    margin-top:30px;
-
-    background:#ffffff15;
+    font-weight:700;
 
 }
-
 /* ==========================
 Content
 ========================== */
 
 .content{
 
-    margin-left:260px;
+    margin-left:280px;
 
     width:100%;
 
-    padding:35px;
+    padding:40px;
+
+    transition:var(--transition);
 
 }
-
 /* ==========================
 Topbar
 ========================== */
@@ -187,40 +252,33 @@ Topbar
 
     justify-content:space-between;
 
-    align-items:center;
+    align-items:flex-start;
 
-    margin-bottom:25px;
+    margin-bottom:35px;
 
 }
 
 .topbar h3{
 
+    font-size:34px;
+
     font-weight:700;
 
-    margin-bottom:2px;
+    color:var(--text);
 
 }
 
 .topbar small{
 
-    color:#666;
+    display:block;
+
+    margin-top:5px;
+
+    color:var(--text-light);
+
+    font-size:15px;
 
 }
-
-.user-info{
-
-    background:white;
-
-    padding:12px 18px;
-
-    border-radius:12px;
-
-    box-shadow:0 4px 10px rgba(0,0,0,.08);
-
-    font-weight:600;
-
-}
-
 /* ==========================
 Summary Card
 ========================== */

@@ -1,323 +1,491 @@
 // ======================================================
-// Building Care System Enterprise v3.1
-// dashboard.js
+// Building Care System Enterprise v3.2
+// File : assets/js/modules/dashboard.js
 // Radiant Group Duri
 // ======================================================
 
-const Dashboard = {
+"use strict";
 
-    chart: null,
+/**
+ * =====================================================
+ * DASHBOARD — CORE
+ * Handles: init, session guard, user profile, summary data
+ * =====================================================
+ */
 
-    // ==========================================
+const Dashboard = (() => {
+
+    // ==================================================
+    // PRIVATE STATE
+    // ==================================================
+
+    let chart        = null;
+    let initialized  = false;
+    let dashboardData = {};
+
+    // ==================================================
     // INIT
-    // ==========================================
+    // ==================================================
 
-    async init() {
+    async function init() {
 
-        const valid = await Auth.verify();
+        if (initialized) return;
 
-        if (!valid) {
+        initialized = true;
 
-            return;
+        App.log("Dashboard Module Loaded");
 
-        }
+        const valid = await AuthService.guard();
 
-        this.loadUser();
+        if (!valid) return;
 
-        await this.loadSummary();
+        loadUser();
 
-        this.bindEvent();
+        await loadSummary();
 
-    },
+    }
 
-    // ==========================================
-    // USER
-    // ==========================================
+    // ==================================================
+    // LOAD USER
+    // ==================================================
 
-    loadUser() {
-
-        const session = App.getSession();
-
-        if (!session) {
-
-            return;
-
-        }
-
-        const userName = document.getElementById(
-
-            "userName"
-
-        );
-
-        if (userName) {
-
-            userName.innerHTML =
-
-                session.nama ||
-
-                session.name ||
-
-                session.email ||
-
-                "Administrator";
-
-        }
-
-    },
-
-    // ==========================================
-    // DASHBOARD SUMMARY
-    // ==========================================
-
-    async loadSummary() {
+    function loadUser() {
 
         const session = App.getSession();
 
-        const result = await App.requestGet(
+        if (!session) return;
 
-            "getDashboard",
+        setText("userName",  session.nama  || session.name || "Administrator");
+        setText("userEmail", session.email || "-");
+        setText("userRole",  session.role  || "-");
 
-            {
+    }
 
+    // ==================================================
+    // LOAD DASHBOARD SUMMARY
+    // ==================================================
+
+    async function loadSummary() {
+
+        try {
+
+            App.showLoading();
+
+            const session = App.getSession();
+
+            const result = await Api.get("getDashboard", {
                 token: session.token
+            });
 
+            if (!result.success) {
+                App.toast(result.message || "Dashboard gagal dimuat.", "error");
+                return;
             }
 
-        );
+            dashboardData = result.data || {};
 
-        if (!result.success) {
+            renderSummary();
 
-            console.log(result);
+        } catch (err) {
 
-            return;
+            App.handleError(err);
 
-        }
+        } finally {
 
-        const data = result.data || {};
-
-        document.getElementById("totalReport").innerHTML =
-            data.total || 0;
-
-        document.getElementById("totalAC").innerHTML =
-            data.ac || 0;
-
-        document.getElementById("totalListrik").innerHTML =
-            data.listrik || 0;
-
-        document.getElementById("totalGedung").innerHTML =
-            data.gedung || 0;
-
-        this.renderActivity(
-
-            data.activity || []
-
-        );
-
-        this.renderChart(
-
-            data
-
-        );
-
-    },
-
-    // ==========================================
-    // RECENT ACTIVITY
-    // ==========================================
-
-    renderActivity(list) {
-
-        const container = document.getElementById(
-
-            "recentActivity"
-
-        );
-
-        if (!container) {
-
-            return;
+            App.hideLoading();
 
         }
 
-        if (!list.length) {
+    }
 
-            container.innerHTML =
+    // ==================================================
+    // RENDER SUMMARY
+    // ==================================================
 
-                "<p>Tidak ada aktivitas.</p>";
+    function renderSummary() {
 
-            return;
+        setText("totalReport",   dashboardData.total    || 0);
+        setText("totalAC",       dashboardData.ac       || 0);
+        setText("totalListrik",  dashboardData.listrik  || 0);
+        setText("totalGedung",   dashboardData.gedung   || 0);
+        setText("totalOpen",     dashboardData.open     || 0);
+        setText("totalProgress", dashboardData.progress || 0);
+        setText("totalDone",     dashboardData.done     || 0);
 
-        }
+    }
 
-        let html = "";
+    // ==================================================
+    // HELPER
+    // ==================================================
 
-        list.forEach(item => {
+    function setText(id, value) {
 
-            html += `
+        const el = document.getElementById(id);
 
-            <div class="border-bottom pb-2 mb-2">
+        if (!el) return;
 
-                <strong>${item.kategori}</strong>
+        el.textContent = value;
 
-                <br>
+    }
 
-                <small>
+    // ==================================================
+    // GETTERS & SETTERS
+    // ==================================================
 
-                ${item.lokasi}
+    function getData()             { return dashboardData; }
+    function getChart()            { return chart;         }
+    function setChart(instance)    { chart = instance;     }
 
-                </small>
+    // ==================================================
+    // PUBLIC
+    // ==================================================
 
-                <br>
+    return {
+        init,
+        loadUser,
+        loadSummary,
+        renderSummary,
+        getData,
+        getChart,
+        setChart
+    };
 
-                <span class="badge bg-primary">
+})();
 
-                ${item.status}
 
-                </span>
+/**
+ * =====================================================
+ * DASHBOARD VIEW
+ * Handles: card animation, activity list, chart, last refresh
+ * =====================================================
+ */
 
-            </div>
+const DashboardView = (() => {
 
-            `;
+    // ==================================================
+    // CARD ANIMATION
+    // ==================================================
+
+    function animateCards() {
+
+        const cards = document.querySelectorAll(".dashboard-card");
+
+        cards.forEach((card, index) => {
+
+            card.style.opacity   = "0";
+            card.style.transform = "translateY(20px)";
+
+            setTimeout(() => {
+                card.style.transition = "all .4s ease";
+                card.style.opacity    = "1";
+                card.style.transform  = "translateY(0px)";
+            }, index * 120);
 
         });
 
-        container.innerHTML = html;
+    }
 
-    },
+    // ==================================================
+    // RECENT ACTIVITY
+    // ==================================================
 
-    // ==========================================
-    // CHART
-    // ==========================================
+    function renderActivity() {
 
-    renderChart(data) {
+        const container = document.getElementById("recentActivity");
 
-        const ctx = document.getElementById(
+        if (!container) return;
 
-            "reportChart"
+        const data = Dashboard.getData();
+        const list = data.activity || [];
 
-        );
-
-        if (!ctx) {
-
+        if (!list.length) {
+            container.innerHTML = `
+                <div class="text-center text-muted p-3">
+                    Tidak ada aktivitas terbaru.
+                </div>`;
             return;
-
         }
 
-        if (this.chart) {
+        container.innerHTML = list.map(item => `
+            <div class="border-bottom py-2">
+                <div class="fw-bold">${item.kategori || "-"}</div>
+                <small class="text-muted">${item.lokasi || "-"}</small><br>
+                <span class="badge bg-primary">${item.status || "-"}</span>
+            </div>`
+        ).join("");
 
-            this.chart.destroy();
+    }
 
-        }
+    // ==================================================
+    // CHART
+    // ==================================================
 
-        this.chart = new Chart(
+    function renderChart() {
 
-            ctx,
+        const canvas = document.getElementById("reportChart");
 
-            {
+        if (!canvas) return;
 
-                type: "doughnut",
+        const oldChart = Dashboard.getChart();
 
-                data: {
+        if (oldChart) oldChart.destroy();
 
-                    labels: [
+        const data = Dashboard.getData();
 
-                        "AC",
-
-                        "Listrik",
-
-                        "Gedung"
-
+        const chart = new Chart(canvas, {
+            type: "doughnut",
+            data: {
+                labels: ["AC", "Listrik", "Gedung"],
+                datasets: [{
+                    data: [
+                        data.ac      || 0,
+                        data.listrik || 0,
+                        data.gedung  || 0
                     ],
-
-                    datasets: [
-
-                        {
-
-                            data: [
-
-                                data.ac || 0,
-
-                                data.listrik || 0,
-
-                                data.gedung || 0
-
-                            ]
-
-                        }
-
-                    ]
-
-                },
-
-                options: {
-
-                    responsive: true,
-
-                    plugins: {
-
-                        legend: {
-
-                            position: "bottom"
-
-                        }
-
-                    }
-
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: "bottom" }
                 }
-
             }
+        });
 
-        );
+        Dashboard.setChart(chart);
 
-    },
+    }
 
-    // ==========================================
-    // EVENT
-    // ==========================================
+    // ==================================================
+    // LAST REFRESH
+    // ==================================================
 
-    bindEvent() {
+    function updateLastRefresh() {
 
-        const logout = document.getElementById(
+        const target = document.getElementById("lastUpdate");
 
-            "logoutBtn"
+        if (!target) return;
 
-        );
+        target.textContent = new Date().toLocaleString("id-ID");
 
-        if (logout) {
+    }
 
-            logout.addEventListener(
+    // ==================================================
+    // REFRESH ALL
+    // ==================================================
 
-                "click",
+    async function refresh() {
 
-                function (e) {
+        App.log("Refreshing Dashboard...");
 
-                    e.preventDefault();
+        await Dashboard.loadSummary();
 
-                    Auth.logout();
+        renderActivity();
+        renderChart();
+        updateLastRefresh();
 
-                }
+    }
 
+    // ==================================================
+    // PUBLIC
+    // ==================================================
+
+    return {
+        animateCards,
+        renderActivity,
+        renderChart,
+        updateLastRefresh,
+        refresh
+    };
+
+})();
+
+
+/**
+ * =====================================================
+ * DASHBOARD MODULE
+ * Handles: event binding, auto-refresh, visibility, bootstrap
+ * =====================================================
+ */
+
+const DashboardModule = (() => {
+
+    // ==================================================
+    // PRIVATE STATE
+    // ==================================================
+
+    let refreshInterval = null;
+
+    // ==================================================
+    // BIND REFRESH BUTTON
+    // ==================================================
+
+    function bindRefreshButton() {
+
+        const button = document.getElementById("refreshDashboard");
+
+        if (!button) return;
+
+        button.addEventListener("click", async (event) => {
+            event.preventDefault();
+            await DashboardView.refresh();
+        });
+
+    }
+
+    // ==================================================
+    // BIND LOGOUT BUTTON
+    // ==================================================
+
+    function bindLogoutButton() {
+
+        const button = document.getElementById("logoutBtn");
+
+        if (!button) return;
+
+        button.addEventListener("click", async (event) => {
+
+            event.preventDefault();
+
+            const confirmed = await App.confirm(
+                "Logout",
+                "Keluar dari aplikasi?"
             );
 
-        }
+            if (!confirmed || !confirmed.isConfirmed) return;
+
+            await AuthService.logout();
+
+        });
 
     }
 
-};
+    // ==================================================
+    // AUTO REFRESH
+    // ==================================================
 
-// ==========================================
-// START
-// ==========================================
+    function startAutoRefresh() {
 
-document.addEventListener(
+        stopAutoRefresh();
 
-    "DOMContentLoaded",
+        refreshInterval = setInterval(async () => {
 
-    function () {
+            App.log("Dashboard Auto Refresh");
 
-        Dashboard.init();
+            await DashboardView.refresh();
+
+        }, 60000);
 
     }
 
-);
+    function stopAutoRefresh() {
+
+        if (!refreshInterval) return;
+
+        clearInterval(refreshInterval);
+
+        refreshInterval = null;
+
+    }
+
+    // ==================================================
+    // PAGE VISIBILITY
+    // Pause auto-refresh when tab is hidden, resume on focus
+    // ==================================================
+
+    function bindVisibility() {
+
+        document.addEventListener("visibilitychange", () => {
+
+            if (document.hidden) {
+                stopAutoRefresh();
+                return;
+            }
+
+            startAutoRefresh();
+
+        });
+
+    }
+
+    // ==================================================
+    // BEFORE UNLOAD — cleanup
+    // ==================================================
+
+    function bindUnload() {
+
+        window.addEventListener("beforeunload", () => {
+            stopAutoRefresh();
+        });
+
+    }
+
+    // ==================================================
+    // SESSION CHECK
+    // ==================================================
+
+    async function checkSession() {
+
+        const valid = await AuthService.verifySession();
+
+        if (valid) return true;
+
+        App.removeSession();
+        App.redirect("login.html");
+
+        return false;
+
+    }
+
+    // ==================================================
+    // INITIALIZE
+    // ==================================================
+
+    async function init() {
+
+        App.log("Dashboard Bootstrap");
+
+        const valid = await checkSession();
+
+        if (!valid) return;
+
+        await Dashboard.init();
+
+        DashboardView.animateCards();
+        DashboardView.renderActivity();
+        DashboardView.renderChart();
+        DashboardView.updateLastRefresh();
+
+        bindRefreshButton();
+        bindLogoutButton();
+        bindVisibility();
+        bindUnload();
+
+        startAutoRefresh();
+
+    }
+
+    // ==================================================
+    // PUBLIC
+    // ==================================================
+
+    return {
+        init,
+        bindRefreshButton,
+        bindLogoutButton,
+        startAutoRefresh,
+        stopAutoRefresh,
+        checkSession
+    };
+
+})();
+
+// ======================================================
+// APPLICATION START
+// ======================================================
+
+document.addEventListener("DOMContentLoaded", async () => {
+    await DashboardModule.init();
+});

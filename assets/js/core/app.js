@@ -1,7 +1,6 @@
 // ======================================================
 // Building Care System Enterprise v3.2
 // File : assets/js/core/app.js
-// Part 1 : Header, Core, Logger, Loading, Toast
 // Radiant Group Duri
 // ======================================================
 
@@ -34,65 +33,38 @@ const App = (() => {
         enable: true,
 
         info(...args) {
-
             if (!this.enable) return;
-
             console.log(
-
                 "%c[BCS]",
-
                 "color:#0d6efd;font-weight:bold;",
-
                 ...args
-
             );
-
         },
 
         success(...args) {
-
             if (!this.enable) return;
-
             console.log(
-
                 "%c[SUCCESS]",
-
                 "color:#198754;font-weight:bold;",
-
                 ...args
-
             );
-
         },
 
         warning(...args) {
-
             if (!this.enable) return;
-
             console.warn(
-
                 "%c[WARNING]",
-
                 "color:#ffc107;font-weight:bold;",
-
                 ...args
-
             );
-
         },
 
         error(...args) {
-
             console.error(
-
                 "%c[ERROR]",
-
                 "color:#dc3545;font-weight:bold;",
-
                 ...args
-
             );
-
         }
 
     };
@@ -104,28 +76,33 @@ const App = (() => {
     function init() {
 
         if (initialized) {
-
-            Logger.warning(
-
-                "App already initialized."
-
-            );
-
+            Logger.warning("App already initialized.");
             return;
-
         }
 
         initialized = true;
 
         Logger.success(
-
             "Building Care System Enterprise",
-
             VERSION,
-
             "Initialized"
-
         );
+
+    }
+
+    // =================================================
+    // BOOTSTRAP
+    // =================================================
+
+    function bootstrap() {
+
+        Logger.success("====================================");
+        Logger.success("Building Care System Enterprise");
+        Logger.success("Version :", VERSION);
+        Logger.success("Bootstrap Success");
+        Logger.success("====================================");
+
+        init();
 
     }
 
@@ -135,100 +112,52 @@ const App = (() => {
 
     function loading(show = true) {
 
-        const loader = document.getElementById(
+        const loader = document.getElementById("loading");
 
-            "loading"
-
-        );
-
-        if (!loader) {
-
-            return;
-
-        }
+        if (!loader) return;
 
         if (show) {
-
             loadingCounter++;
-
             loader.style.display = "flex";
-
             return;
-
         }
 
         loadingCounter--;
 
         if (loadingCounter <= 0) {
-
             loadingCounter = 0;
-
             loader.style.display = "none";
-
         }
 
     }
 
-    // =================================================
-    // SHOW LOADER
-    // =================================================
-
     function showLoading() {
-
         loading(true);
-
     }
 
-    // =================================================
-    // HIDE LOADER
-    // =================================================
-
     function hideLoading() {
-
         loading(false);
-
     }
 
     // =================================================
     // TOAST
     // =================================================
 
-    function toast(
+    function toast(message = "", icon = "success") {
 
-        message = "",
-
-        icon = "success"
-
-    ) {
-
-        if (
-
-            typeof Swal === "undefined"
-
-        ) {
-
+        if (typeof Swal === "undefined") {
             Logger.info(message);
-
             return;
-
         }
 
         Swal.fire({
-
             toast: true,
-
             position: "top-end",
-
             icon: icon,
-
             title: message,
-
             timer: 2500,
-
             showConfirmButton: false,
-
             timerProgressBar: true
-
         });
 
     }
@@ -237,37 +166,14 @@ const App = (() => {
     // ALERT
     // =================================================
 
-    function alert(
+    function alert(title, text, icon = "info") {
 
-        title,
-
-        text,
-
-        icon = "info"
-
-    ) {
-
-        if (
-
-            typeof Swal === "undefined"
-
-        ) {
-
+        if (typeof Swal === "undefined") {
             window.alert(text);
-
             return;
-
         }
 
-        return Swal.fire({
-
-            title,
-
-            text,
-
-            icon
-
-        });
+        return Swal.fire({ title, text, icon });
 
     }
 
@@ -275,125 +181,32 @@ const App = (() => {
     // CONFIRM
     // =================================================
 
-    function confirm(
+    function confirm(title, text) {
 
-        title,
-
-        text
-
-    ) {
-
-        if (
-
-            typeof Swal === "undefined"
-
-        ) {
-
-            return Promise.resolve(
-
-                window.confirm(text)
-
-            );
-
+        if (typeof Swal === "undefined") {
+            return Promise.resolve(window.confirm(text));
         }
 
         return Swal.fire({
-
             title,
-
             text,
-
             icon: "question",
-
             showCancelButton: true,
-
             confirmButtonText: "Ya",
-
             cancelButtonText: "Batal"
-
         });
 
     }
 
     // =================================================
-    // LOG SHORTCUT
+    // LOGGER SHORTCUTS
     // =================================================
 
-    function log(...args) {
+    function log(...args)     { Logger.info(...args);    }
+    function success(...args) { Logger.success(...args); }
+    function warning(...args) { Logger.warning(...args); }
+    function error(...args)   { Logger.error(...args);   }
 
-        Logger.info(...args);
-
-    }
-
-    function success(...args) {
-
-        Logger.success(...args);
-
-    }
-
-    function warning(...args) {
-
-        Logger.warning(...args);
-
-    }
-
-    function error(...args) {
-
-        Logger.error(...args);
-
-    }
-
-    // =================================================
-    // PUBLIC API (PART 1)
-    // =================================================
-
-    return {
-
-        VERSION,
-
-        init,
-
-        loading,
-
-        showLoading,
-
-        hideLoading,
-
-        toast,
-
-        alert,
-
-        confirm,
-
-        log,
-
-        success,
-
-        warning,
-
-        error
-
-    };
-
-})();
-
-/**
- * =====================================================
- * AUTO INIT
- * =====================================================
- */
-
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    () => {
-
-        App.init();
-
-    }
-
-);
     // =================================================
     // SESSION
     // =================================================
@@ -402,36 +215,20 @@ document.addEventListener(
 
         try {
 
-            if (!user) {
-
-                return false;
-
-            }
+            if (!user) return false;
 
             localStorage.setItem(
-
                 CONFIG.STORAGE.SESSION,
-
                 JSON.stringify(user)
-
             );
 
-            Logger.success(
-
-                "Session Saved",
-
-                user.email || ""
-
-            );
+            Logger.success("Session Saved", user.email || "");
 
             return true;
 
-        }
-
-        catch (err) {
+        } catch (err) {
 
             Logger.error(err);
-
             return false;
 
         }
@@ -442,26 +239,15 @@ document.addEventListener(
 
         try {
 
-            const value = localStorage.getItem(
+            const value = localStorage.getItem(CONFIG.STORAGE.SESSION);
 
-                CONFIG.STORAGE.SESSION
-
-            );
-
-            if (!value) {
-
-                return null;
-
-            }
+            if (!value) return null;
 
             return JSON.parse(value);
 
-        }
-
-        catch (err) {
+        } catch (err) {
 
             Logger.error(err);
-
             return null;
 
         }
@@ -472,13 +258,7 @@ document.addEventListener(
 
         const session = getSession();
 
-        return (
-
-            session !== null &&
-
-            session.token
-
-        );
+        return session !== null && !!session.token;
 
     }
 
@@ -486,21 +266,10 @@ document.addEventListener(
 
         try {
 
-            localStorage.removeItem(
+            localStorage.removeItem(CONFIG.STORAGE.SESSION);
+            Logger.info("Session Removed");
 
-                CONFIG.STORAGE.SESSION
-
-            );
-
-            Logger.info(
-
-                "Session Removed"
-
-            );
-
-        }
-
-        catch (err) {
+        } catch (err) {
 
             Logger.error(err);
 
@@ -515,71 +284,33 @@ document.addEventListener(
     function remember(email = "") {
 
         try {
-
-            localStorage.setItem(
-
-                CONFIG.STORAGE.REMEMBER,
-
-                email
-
-            );
-
-        }
-
-        catch (err) {
-
+            localStorage.setItem(CONFIG.STORAGE.REMEMBER, email);
+        } catch (err) {
             Logger.error(err);
-
         }
 
     }
 
     function getRemember() {
-
-        return localStorage.getItem(
-
-            CONFIG.STORAGE.REMEMBER
-
-        );
-
+        return localStorage.getItem(CONFIG.STORAGE.REMEMBER);
     }
 
     function clearRemember() {
-
-        localStorage.removeItem(
-
-            CONFIG.STORAGE.REMEMBER
-
-        );
-
+        localStorage.removeItem(CONFIG.STORAGE.REMEMBER);
     }
 
     // =================================================
-    // STORAGE HELPER
+    // STORAGE HELPERS
     // =================================================
 
     function set(key, value) {
 
         try {
-
-            localStorage.setItem(
-
-                key,
-
-                JSON.stringify(value)
-
-            );
-
+            localStorage.setItem(key, JSON.stringify(value));
             return true;
-
-        }
-
-        catch (err) {
-
+        } catch (err) {
             Logger.error(err);
-
             return false;
-
         }
 
     }
@@ -590,20 +321,13 @@ document.addEventListener(
 
             const value = localStorage.getItem(key);
 
-            if (!value) {
-
-                return null;
-
-            }
+            if (!value) return null;
 
             return JSON.parse(value);
 
-        }
-
-        catch (err) {
+        } catch (err) {
 
             Logger.error(err);
-
             return null;
 
         }
@@ -611,160 +335,55 @@ document.addEventListener(
     }
 
     function remove(key) {
-
         localStorage.removeItem(key);
-
     }
 
     function clearStorage() {
-
         localStorage.clear();
-
     }
 
     // =================================================
-    // REDIRECT
+    // NAVIGATION
     // =================================================
 
     function redirect(page) {
 
-        if (!page) {
+        if (!page) return;
 
-            return;
+        const current = window.location.pathname.split("/").pop();
 
-        }
+        if (current === page) return;
 
-        const current = window.location.pathname
-            .split("/")
-            .pop();
-
-        if (current === page) {
-
-            return;
-
-        }
-
-        Logger.info(
-
-            "Redirect =>",
-
-            page
-
-        );
+        Logger.info("Redirect =>", page);
 
         window.location.replace(page);
 
     }
 
     // =================================================
-    // CHECK LOGIN
+    // SESSION GUARD & LOGOUT
     // =================================================
 
     function checkSession() {
 
         if (!hasSession()) {
-
-            redirect(
-
-                "login.html"
-
-            );
-
+            redirect("login.html");
             return false;
-
         }
 
         return true;
 
     }
 
-    // =================================================
-    // LOGOUT
-    // =================================================
-
     function logout() {
 
         removeSession();
-
-        redirect(
-
-            "login.html"
-
-        );
+        redirect("login.html");
 
     }
 
     // =================================================
-    // UPDATE EXPORT
-    // =================================================
-
-    return {
-
-        VERSION,
-
-        init,
-
-        loading,
-
-        showLoading,
-
-        hideLoading,
-
-        toast,
-
-        alert,
-
-        confirm,
-
-        log,
-
-        success,
-
-        warning,
-
-        error,
-
-        // Session
-
-        setSession,
-
-        getSession,
-
-        hasSession,
-
-        removeSession,
-
-        checkSession,
-
-        logout,
-
-        // Remember
-
-        remember,
-
-        getRemember,
-
-        clearRemember,
-
-        // Storage
-
-        set,
-
-        get,
-
-        remove,
-
-        clearStorage,
-
-        // Navigation
-
-        redirect
-
-    };
-
-})();
-    // =================================================
-    // API GET
+    // API WRAPPERS
     // =================================================
 
     async function requestGet(action, data = {}) {
@@ -773,41 +392,24 @@ document.addEventListener(
 
             loading(true);
 
-            return await Api.get(
+            return await Api.get(action, data);
 
-                action,
-
-                data
-
-            );
-
-        }
-
-        catch (err) {
+        } catch (err) {
 
             Logger.error(err);
 
             return {
-
                 success: false,
-
                 message: err.message || "Request Failed"
-
             };
 
-        }
-
-        finally {
+        } finally {
 
             loading(false);
 
         }
 
     }
-
-    // =================================================
-    // API POST
-    // =================================================
 
     async function requestPost(action, data = {}) {
 
@@ -815,31 +417,18 @@ document.addEventListener(
 
             loading(true);
 
-            return await Api.post(
+            return await Api.post(action, data);
 
-                action,
-
-                data
-
-            );
-
-        }
-
-        catch (err) {
+        } catch (err) {
 
             Logger.error(err);
 
             return {
-
                 success: false,
-
                 message: err.message || "Request Failed"
-
             };
 
-        }
-
-        finally {
+        } finally {
 
             loading(false);
 
@@ -848,21 +437,16 @@ document.addEventListener(
     }
 
     // =================================================
-    // HTTP ERROR
+    // ERROR HANDLER
     // =================================================
 
-    function handleError(error) {
+    function handleError(err) {
 
-        Logger.error(error);
+        Logger.error(err);
 
         toast(
-
-            error.message ||
-
-            "Terjadi kesalahan.",
-
+            err.message || "Terjadi kesalahan.",
             "error"
-
         );
 
     }
@@ -879,17 +463,12 @@ document.addEventListener(
 
             return await callback();
 
-        }
-
-        catch (err) {
+        } catch (err) {
 
             handleError(err);
-
             return null;
 
-        }
-
-        finally {
+        } finally {
 
             loading(false);
 
@@ -898,216 +477,93 @@ document.addEventListener(
     }
 
     // =================================================
-    // DELAY
+    // UTILITIES
     // =================================================
 
     function delay(ms = 300) {
-
-        return new Promise(
-
-            resolve =>
-
-                setTimeout(
-
-                    resolve,
-
-                    ms
-
-                )
-
-        );
-
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
-
-    // =================================================
-    // UUID
-    // =================================================
 
     function uuid() {
-
-        return Date.now().toString(36) +
-
-            Math.random()
-
-                .toString(36)
-
-                .substring(2);
-
+        return Date.now().toString(36) + Math.random().toString(36).substring(2);
     }
-
-    // =================================================
-    // CLONE
-    // =================================================
 
     function clone(obj) {
-
-        return JSON.parse(
-
-            JSON.stringify(obj)
-
-        );
-
+        return JSON.parse(JSON.stringify(obj));
     }
-
-    // =================================================
-    // RESET APPLICATION
-    // =================================================
-
-    function reset() {
-
-        removeSession();
-
-        clearRemember();
-
-        clearStorage();
-
-    }
-
-    // =================================================
-    // VERSION
-    // =================================================
 
     function version() {
-
         return VERSION;
+    }
 
+    function reset() {
+        removeSession();
+        clearRemember();
+        clearStorage();
     }
 
     // =================================================
-    // BOOTSTRAP
-    // =================================================
-
-    function bootstrap() {
-
-        Logger.success(
-
-            "===================================="
-
-        );
-
-        Logger.success(
-
-            "Building Care System Enterprise"
-
-        );
-
-        Logger.success(
-
-            "Version :",
-
-            VERSION
-
-        );
-
-        Logger.success(
-
-            "Bootstrap Success"
-
-        );
-
-        Logger.success(
-
-            "===================================="
-
-        );
-
-    }
-
-    // =================================================
-    // FINAL EXPORT
+    // PUBLIC API
     // =================================================
 
     return {
 
         VERSION,
-
         version,
 
+        // Bootstrap
         init,
-
         bootstrap,
 
         // Loading
-
         loading,
-
         showLoading,
-
         hideLoading,
 
         // UI
-
         toast,
-
         alert,
-
         confirm,
 
         // Logger
-
         log,
-
         success,
-
         warning,
-
         error,
 
         // Session
-
         setSession,
-
         getSession,
-
         hasSession,
-
         removeSession,
-
         checkSession,
-
         logout,
 
         // Remember
-
         remember,
-
         getRemember,
-
         clearRemember,
 
         // Storage
-
         set,
-
         get,
-
         remove,
-
         clearStorage,
 
         // Navigation
-
         redirect,
 
         // API
-
         requestGet,
-
         requestPost,
-
         safe,
+        handleError,
 
         // Utils
-
         delay,
-
         uuid,
-
         clone,
-
-        reset,
-
-        handleError
+        reset
 
     };
 
@@ -1117,14 +573,6 @@ document.addEventListener(
 // AUTO BOOTSTRAP
 // ======================================================
 
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    () => {
-
-        App.bootstrap();
-
-    }
-
-);
+document.addEventListener("DOMContentLoaded", () => {
+    App.bootstrap();
+});

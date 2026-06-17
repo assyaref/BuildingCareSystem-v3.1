@@ -119,7 +119,7 @@ const Auth = (() => {
 
     function disableButton() {
 
-        const button = document.getElementById("loginButton");
+        const button = document.getElementById("btnLogin");
 
         if (!button) return;
 
@@ -130,7 +130,7 @@ const Auth = (() => {
 
     function enableButton() {
 
-        const button = document.getElementById("loginButton");
+        const button = document.getElementById("btnLogin");
 
         if (!button) return;
 

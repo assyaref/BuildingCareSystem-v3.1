@@ -19,9 +19,20 @@ const Dashboard = (() => {
     // PRIVATE STATE
     // ==================================================
 
-    let chart        = null;
     let initialized  = false;
     let dashboardData = {};
+   function getDonutChart(){
+    return donutChart;
+}
+function setDonutChart(chart){
+    donutChart=chart;
+}
+function getLineChart(){
+    return lineChart;
+}
+function setLineChart(chart){
+    lineChart=chart;
+}
 
     // ==================================================
     // INIT
@@ -51,15 +62,17 @@ const Dashboard = (() => {
 
     function loadUser() {
 
-        const session = App.getSession();
-
-        if (!session) return;
-
-        setText("userName",  session.nama  || session.name || "Administrator");
-        setText("userEmail", session.email || "-");
-        setText("userRole",  session.role  || "-");
-
-    }
+    const session = App.getSession();
+    if (!session) return;
+    setText("userName", session.nama || "-");
+    setText("userRole", session.role || "-");
+    setText("userNik", session.nik || "-");
+    setText(
+        "lastLogin",
+        session.lastLogin ||
+        new Date().toLocaleString("id-ID")
+    );
+}
 
     // ==================================================
     // LOAD DASHBOARD SUMMARY
@@ -104,14 +117,13 @@ const Dashboard = (() => {
 
     function renderSummary() {
 
-        setText("totalReport",   dashboardData.total    || 0);
-        setText("totalAC",       dashboardData.ac       || 0);
-        setText("totalListrik",  dashboardData.listrik  || 0);
-        setText("totalGedung",   dashboardData.gedung   || 0);
-        setText("totalOpen",     dashboardData.open     || 0);
-        setText("totalProgress", dashboardData.progress || 0);
-        setText("totalDone",     dashboardData.done     || 0);
-
+setText("totalReport", dashboardData.total || 0);
+setText("acTotal", dashboardData.ac || 0);
+setText("listrikTotal", dashboardData.listrik || 0);
+setText("gedungTotal", dashboardData.gedung || 0);
+setText("totalOpen", dashboardData.open || 0);
+setText("totalProgress", dashboardData.progress || 0);
+setText("totalDone", dashboardData.done || 0);
     }
 
     // ==================================================
@@ -188,33 +200,32 @@ const DashboardView = (() => {
     // ==================================================
     // RECENT ACTIVITY
     // ==================================================
-
-    function renderActivity() {
-
-        const container = document.getElementById("recentActivity");
-
-        if (!container) return;
-
-        const data = Dashboard.getData();
-        const list = data.activity || [];
-
-        if (!list.length) {
-            container.innerHTML = `
-                <div class="text-center text-muted p-3">
-                    Tidak ada aktivitas terbaru.
-                </div>`;
-            return;
-        }
-
-        container.innerHTML = list.map(item => `
-            <div class="border-bottom py-2">
-                <div class="fw-bold">${item.kategori || "-"}</div>
-                <small class="text-muted">${item.lokasi || "-"}</small><br>
-                <span class="badge bg-primary">${item.status || "-"}</span>
-            </div>`
-        ).join("");
-
+function renderActivity() {
+    const container = document.getElementById("recentActivity");
+    if (!container) return;
+    const data = Dashboard.getData();
+    const list = data.activity || [];
+    if (!list.length) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-4">
+                Tidak ada aktivitas terbaru
+            </div>
+        `;
+        return;
     }
+    container.innerHTML = list.map(item => `
+        <div class="activity-item">
+            <div class="activity-icon success">
+                <i class="bi bi-file-earmark-check"></i>
+            </div>
+            <div class="activity-content">
+                <strong>${item.kategori || "-"}</strong>
+                <small>${item.lokasi || "-"}</small>
+            </div>
+            <span>${item.waktu || "-"}</span>
+        </div>
+    `).join("");
+}
 
     // ==================================================
     // CHART
@@ -285,6 +296,10 @@ const DashboardView = (() => {
         renderActivity();
         renderChart();
         updateLastRefresh();
+        
+  //      renderDonutChart()
+  //      renderLineChart()
+       
 
     }
 
@@ -450,23 +465,51 @@ const DashboardModule = (() => {
         const valid = await checkSession();
 
         if (!valid) return;
-
-        await Dashboard.init();
-
-        DashboardView.animateCards();
-        DashboardView.renderActivity();
-        DashboardView.renderChart();
-        DashboardView.updateLastRefresh();
-
+await Dashboard.init();
+DashboardView.renderActivity();
+DashboardView.renderChart();
+DashboardView.updateLastRefresh();
+updateFooter();
         bindRefreshButton();
         bindLogoutButton();
         bindVisibility();
         bindUnload();
-
         startAutoRefresh();
 
     }
-
+// =================
+//   Footer KPI
+// =================
+function updateFooter() {
+    const data = Dashboard.getData();
+    setFooter(
+        "todayDate",
+        new Date().toLocaleDateString("id-ID")
+    );
+    setFooter(
+        "currentTime",
+        new Date().toLocaleTimeString("id-ID")
+    );
+    setFooter(
+        "onlineUser",
+        data.onlineUser || 0
+    );
+    setFooter(
+        "todayReport",
+        data.todayReport || 0
+    );
+    setFooter(
+        "pendingApproval",
+        data.pendingApproval || 0
+    );
+}
+// Helper Lokal
+function setFooter(id, value){
+    const el = document.getElementById(id);
+    if(el){
+        el.textContent = value;
+    }
+}
     // ==================================================
     // PUBLIC
     // ==================================================

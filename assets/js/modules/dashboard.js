@@ -21,19 +21,9 @@ const Dashboard = (() => {
 
     let initialized  = false;
     let dashboardData = {};
-   function getDonutChart(){
-    return donutChart;
-}
-function setDonutChart(chart){
-    donutChart=chart;
-}
-function getLineChart(){
-    return lineChart;
-}
-function setLineChart(chart){
-    lineChart=chart;
-}
-
+    let donutChart = null;
+    let lineChart = null;
+   
     // ==================================================
     // INIT
     // ==================================================
@@ -144,23 +134,36 @@ setText("totalDone", dashboardData.done || 0);
     // GETTERS & SETTERS
     // ==================================================
 
-    function getData()             { return dashboardData; }
-    function getChart()            { return chart;         }
-    function setChart(instance)    { chart = instance;     }
-
+    function getData()             
+    { return dashboardData; }
+    function getDonutChart() {
+    return donutChart;
+}
+function setDonutChart(instance) {
+    donutChart = instance;
+}
+function getLineChart() {
+    return lineChart;
+}
+function setLineChart(instance) {
+    lineChart = instance;
+}
     // ==================================================
-    // PUBLIC
+    // PUBLIC API
     // ==================================================
 
     return {
-        init,
-        loadUser,
-        loadSummary,
-        renderSummary,
-        getData,
-        getChart,
-        setChart
-    };
+    init,
+    loadUser,
+    loadSummary,
+    renderSummary,
+    getData,
+    getDonutChart,
+    setDonutChart,
+    getLineChart,
+    setLineChart
+
+};
 
 })();
 
@@ -180,23 +183,38 @@ const DashboardView = (() => {
 
     function animateCards() {
 
-        const cards = document.querySelectorAll(".dashboard-card");
+    const cards = document.querySelectorAll(
+        ".summary-card,.status-card,.enterprise-card,.user-profile-card"
+    );
 
-        cards.forEach((card, index) => {
+    cards.forEach((card, index) => {
 
-            card.style.opacity   = "0";
-            card.style.transform = "translateY(20px)";
+        card.animate(
 
-            setTimeout(() => {
-                card.style.transition = "all .4s ease";
-                card.style.opacity    = "1";
-                card.style.transform  = "translateY(0px)";
-            }, index * 120);
+            [
+                {
+                    opacity: 0,
+                    transform: "translateY(20px)"
+                },
+                {
+                    opacity: 1,
+                    transform: "translateY(0)"
+                }
 
-        });
+            ],
 
-    }
+            {
+                duration: 500,
+                delay: index * 120,
+                fill: "forwards",
+                easing: "ease-out"
+            }
 
+        );
+
+    });
+
+}
     // ==================================================
     // RECENT ACTIVITY
     // ==================================================
@@ -211,20 +229,44 @@ function renderActivity() {
                 Tidak ada aktivitas terbaru
             </div>
         `;
-        return;
+         return;
     }
-    container.innerHTML = list.map(item => `
+   container.innerHTML = list.map(item => {
+
+    const icon =
+        item.status === "DONE"
+            ? "bi-check-circle-fill"
+            : item.status === "PROGRESS"
+            ? "bi-arrow-repeat"
+            : "bi-folder2-open";
+
+    return `
+
         <div class="activity-item">
+
             <div class="activity-icon success">
-                <i class="bi bi-file-earmark-check"></i>
+
+                <i class="bi ${icon}"></i>
+
             </div>
+
             <div class="activity-content">
+
                 <strong>${item.kategori || "-"}</strong>
+
                 <small>${item.lokasi || "-"}</small>
+
             </div>
+
             <span>${item.waktu || "-"}</span>
+
         </div>
-    `).join("");
+
+    `;
+
+}).join("");
+    function renderChart() {
+
 }
 
     // ==================================================
@@ -237,7 +279,7 @@ function renderActivity() {
 
         if (!canvas) return;
 
-        const oldChart = Dashboard.getChart();
+      const oldChart = Dashboard.getDonutChart();
 
         if (oldChart) oldChart.destroy();
 
@@ -247,28 +289,71 @@ function renderActivity() {
             type: "doughnut",
             data: {
                 labels: ["AC", "Listrik", "Gedung"],
-                datasets: [{
-                    data: [
-                        data.ac      || 0,
-                        data.listrik || 0,
-                        data.gedung  || 0
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: "bottom" }
-                }
-            }
-        });
+ datasets: [{
+    data: [
+        data.ac || 0,
+        data.listrik || 0,
+        data.gedung || 0
+    ],
 
-        Dashboard.setChart(chart);
+    backgroundColor:[
+    "#2563EB",
+    "#F59E0B",
+    "#7C3AED"
+],
+
+hoverBackgroundColor:[
+    "#1D4ED8",
+    "#D97706",
+    "#6D28D9"
+],
+
+    hoverOffset: 8,
+    borderWidth: 0
+}]
+            },
+options:{
+
+    responsive:true,
+
+    maintainAspectRatio:false,
+
+    cutout:"72%",
+
+    animation:{
+
+        animateRotate:true,
+
+        duration:1000
+
+    },
+
+    plugins:{
+
+        legend:{
+
+            position:"bottom",
+
+            labels:{
+
+                usePointStyle:true,
+
+                pointStyle:"circle",
+
+                padding:20
+
+            }
+
+        }
 
     }
 
+}
+        });
+
+        Dashboard.setDonutChart(chart);
+
+    }
     // ==================================================
     // LAST REFRESH
     // ==================================================
@@ -444,8 +529,7 @@ const DashboardModule = (() => {
     async function checkSession() {
 
         const valid = await AuthService.verifySession();
-
-        if (valid) return true;
+            if (valid) return true;
 
         App.removeSession();
         App.redirect("login.html");
@@ -469,7 +553,8 @@ await Dashboard.init();
 DashboardView.renderActivity();
 DashboardView.renderChart();
 DashboardView.updateLastRefresh();
-updateFooter();
+        updateFooter();
+        startClock();
         bindRefreshButton();
         bindLogoutButton();
         bindVisibility();
@@ -477,32 +562,54 @@ updateFooter();
         startAutoRefresh();
 
     }
+// =====================
+// Fuunction Start Clock
+//======================
+    function startClock(){
+    updateClock();
+    setInterval(updateClock,1000);
+}
+function updateClock(){
+    setFooter(
+        "currentTime",
+
+        new Date().toLocaleTimeString("id-ID")
+    );
+}
 // =================
 //   Footer KPI
 // =================
-function updateFooter() {
+function updateFooter(){
+
     const data = Dashboard.getData();
+
     setFooter(
         "todayDate",
         new Date().toLocaleDateString("id-ID")
     );
+
     setFooter(
         "currentTime",
         new Date().toLocaleTimeString("id-ID")
     );
+
     setFooter(
         "onlineUser",
         data.onlineUser || 0
     );
+
     setFooter(
         "todayReport",
         data.todayReport || 0
     );
+
     setFooter(
         "pendingApproval",
         data.pendingApproval || 0
     );
+
 }
+     
 // Helper Lokal
 function setFooter(id, value){
     const el = document.getElementById(id);

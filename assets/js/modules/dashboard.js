@@ -234,7 +234,7 @@ function renderActivity() {
    container.innerHTML = list.map(item => {
 const status = item.status || "OPEN";
     const icon =
-        item.status === "DONE"
+      status === "DONE"
             ? "bi-check-circle-fill"
             : item.status === "PROGRESS"
             ? "bi-arrow-repeat"

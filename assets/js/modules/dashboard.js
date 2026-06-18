@@ -232,7 +232,7 @@ function renderActivity() {
          return;
     }
    container.innerHTML = list.map(item => {
-
+const status = item.status || "OPEN";
     const icon =
         item.status === "DONE"
             ? "bi-check-circle-fill"
@@ -265,10 +265,8 @@ function renderActivity() {
     `;
 
 }).join("");
-    function renderChart() {
-
-}
-
+    }
+    
     // ==================================================
     // CHART
     // ==================================================
@@ -565,14 +563,15 @@ DashboardView.updateLastRefresh();
 // =====================
 // Fuunction Start Clock
 //======================
-    function startClock(){
+let clockInterval = null;
+function startClock(){
+    if(clockInterval) return;
     updateClock();
-    setInterval(updateClock,1000);
+    clockInterval = setInterval(updateClock,1000);
 }
 function updateClock(){
     setFooter(
         "currentTime",
-
         new Date().toLocaleTimeString("id-ID")
     );
 }

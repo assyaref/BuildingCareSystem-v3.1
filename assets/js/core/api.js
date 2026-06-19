@@ -109,7 +109,15 @@ const Api = (() => {
 
             );
 
-            return await parse(response);
+            const result = await parse(response);
+
+console.log("================================");
+console.log("API URL :", BASE_URL);
+console.log("ACTION  :", action);
+console.log("RESULT  :", result);
+console.log("================================");
+
+return result;
 
         }
 

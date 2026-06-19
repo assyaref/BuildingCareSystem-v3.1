@@ -142,8 +142,28 @@ function renderSummary(){
         dashboardData.done || 0
     );
 
-}
+    DashboardView.setTrend(
+        "total",
+        dashboardData.totalTrend || 0
+    );
 
+    DashboardView.setTrend(
+        "ac",
+        dashboardData.acTrend || 0
+    );
+
+    DashboardView.setTrend(
+        "listrik",
+        dashboardData.listrikTrend || 0
+    );
+
+    DashboardView.setTrend(
+        "gedung",
+        dashboardData.gedungTrend || 0
+    );
+
+}
+  
     // ==================================================
     // HELPER
     // ==================================================
@@ -193,8 +213,6 @@ return {
 };
 
 })();
-        
-    }
 
 /**
  * =====================================================
@@ -218,23 +236,24 @@ const DashboardView = (() => {
         let start = Number(element.textContent) || 0;
 
         const duration = 800;
-        const step = Math.max(1, Math.ceil(endValue / 30));
+        const diff = endValue - start;
+const step = diff / 30;
 
-        const timer = setInterval(() => {
+const timer = setInterval(() => {
 
-            start += step;
+    start += step;
 
-            if (start >= endValue) {
+    if (
+        (step > 0 && start >= endValue) ||
+        (step < 0 && start <= endValue)
+    ) {
+        start = endValue;
+        clearInterval(timer);
+    }
 
-                start = endValue;
-                clearInterval(timer);
+    element.textContent = Math.round(start);
 
-            }
-
-            element.textContent = start;
-
-        }, duration / 30);
-
+}, duration / 30);
     }
 
     // ==================================================
@@ -299,73 +318,108 @@ const DashboardView = (() => {
 
     }
 
-    // ... function lainnya ...
-
-    return {
-        animateCards,
-        animateCounter,
-        setTrend,
-        renderActivity,
-        renderChart,
-        renderLineChart,
-        updateLastRefresh,
-        refresh
-    };
-
-})();
 
 
-    // ==================================================
-    // RECENT ACTIVITY
-    // ==================================================
+
+// ==================================================
+// RECENT ACTIVITY
+// ==================================================
+
 function renderActivity() {
+
     const container = document.getElementById("recentActivity");
+
     if (!container) return;
-    const data = Dashboard.getData();
-    const list = data.activity || [];
-    if (!list.length) {
+
+    const list = Dashboard.getData()?.activity ?? [];
+
+    // Empty State
+    if (list.length === 0) {
+
         container.innerHTML = `
             <div class="text-center text-muted py-4">
-                Tidak ada aktivitas terbaru
+                <i class="bi bi-clock-history fs-1 d-block mb-2"></i>
+                <span>Tidak ada aktivitas terbaru</span>
             </div>
         `;
-         return;
+
+        return;
+
     }
-   container.innerHTML = list.map(item => {
-const status = item.status || "OPEN";
-    const icon =
-    status === "DONE"
-        ? "bi-check-circle-fill"
-        : status === "PROGRESS"
-        ? "bi-arrow-repeat"
-        : "bi-folder2-open";
 
-    return `
+    // Status Configuration
+    const STATUS_CONFIG = {
 
-        <div class="activity-item">
+        OPEN: {
+            icon: "bi-folder2-open",
+            color: "primary"
+        },
 
-            <div class="activity-icon success">
+        PROGRESS: {
+            icon: "bi-arrow-repeat",
+            color: "warning"
+        },
 
-                <i class="bi ${icon}"></i>
+        DONE: {
+            icon: "bi-check-circle-fill",
+            color: "success"
+        }
+
+    };
+
+    // Escape HTML (Prevent XSS)
+    const escapeHtml = (value) => {
+
+        const div = document.createElement("div");
+
+        div.textContent = value ?? "";
+
+        return div.innerHTML;
+
+    };
+
+    container.innerHTML = list.map(item => {
+
+        const status = item.status || "OPEN";
+
+        const config =
+            STATUS_CONFIG[status] || STATUS_CONFIG.OPEN;
+
+        return `
+
+            <div class="activity-item">
+
+                <div class="activity-icon ${config.color}">
+
+                    <i class="bi ${config.icon}"></i>
+
+                </div>
+
+                <div class="activity-content">
+
+                    <strong>
+                        ${escapeHtml(item.kategori || "-")}
+                    </strong>
+
+                    <small>
+                        ${escapeHtml(item.lokasi || "-")}
+                    </small>
+
+                </div>
+
+                <span>
+                    ${escapeHtml(item.waktu || "-")}
+                </span>
 
             </div>
 
-            <div class="activity-content">
+        `;
 
-                <strong>${item.kategori || "-"}</strong>
+    }).join("");
 
-                <small>${item.lokasi || "-"}</small>
+}
 
-            </div>
 
-            <span>${item.waktu || "-"}</span>
-
-        </div>
-
-    `;
-
-}).join("");
-    }
     
     // ==================================================
     // CHART
@@ -452,6 +506,7 @@ animation: {
 
 }
         });
+
 
         Dashboard.setDonutChart(chart);
 
@@ -567,31 +622,34 @@ function renderLineChart(){
     // ==================================================
 
     async function refresh(){
+
     App.log("Refreshing Dashboard...");
+
     await Dashboard.loadSummary();
     renderActivity();
+
     renderChart();
+
     renderLineChart();
+
     updateLastRefresh();
 
 }
-    // ==================================================
-    // PUBLIC
-    // ==================================================
+     // ... function lainnya ...
 
-return {
-    animateCards,
-    animateCounter,
-    renderActivity,
-    renderChart,
-    renderLineChart,
-    updateLastRefresh,
-    refresh
-};
+    return {
+        animateCards,
+        animateCounter,
+        setTrend,
+        renderActivity,
+        renderChart,
+        renderLineChart,
+        updateLastRefresh,
+        refresh
+    };
 
-})();
-
-
+})();   
+    
 /**
  * =====================================================
  * DASHBOARD MODULE
@@ -694,16 +752,24 @@ function startAutoRefresh() {
     // ==================================================
 
    function bindVisibility(){
-    document.addEventListener("visibilitychange",function(){
-        if(document.hidden){
-            App.log("Pause Refresh");
-            stopAutoRefresh();
-        }else{
-            App.log("Resume Refresh");
-            DashboardView.refresh();
-            startAutoRefresh();
-        }
-    });
+document.addEventListener("visibilitychange", async () => {
+
+    if (document.hidden) {
+
+        App.log("Pause Refresh");
+        stopAutoRefresh();
+
+    } else {
+
+        App.log("Resume Refresh");
+
+        await DashboardView.refresh();
+
+        startAutoRefresh();
+
+    }
+
+});
 }
     // ==================================================
     // BEFORE UNLOAD — cleanup
@@ -778,27 +844,11 @@ function updateClock(){
 // =================
 function updateFooter(){
 
-    const data = Dashboard.getData();
+   const data = Dashboard.getData() || {};
 
-    setFooter(
-        "todayDate",
-        new Date().toLocaleDateString("id-ID")
-    );
-
-    setFooter(
-        "onlineUser",
-        data.onlineUser || 0
-    );
-
-    setFooter(
-        "todayReport",
-        data.todayReport || 0
-    );
-
-    setFooter(
-        "pendingApproval",
-        data.pendingApproval || 0
-    );
+setFooter("onlineUser", data.onlineUser ?? 0);
+setFooter("todayReport", data.todayReport ?? 0);
+setFooter("pendingApproval", data.pendingApproval ?? 0);
 
 }
      

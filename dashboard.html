@@ -88,6 +88,7 @@
 
     <!-- MAIN CONTENT -->
     <main class="content">
+<div class="container-fluid">
 
         <!-- TOPBAR -->
         <header class="topbar">
@@ -346,14 +347,12 @@ Radiant Group Duri
 
                 <div class="row">
 
-                    <div class="col-md-5">
-                        <canvas id="categoryChart"></canvas>
-                    </div>
-
-                    <div class="col-md-7">
-                        <canvas id="reportChart"></canvas>
-                    </div>
-
+                    <div style="height:320px;">
+    <canvas id="categoryChart"></canvas>
+</div>
+<div style="height:320px;">
+    <canvas id="reportChart"></canvas>
+</div>
                 </div>
 
             </div>
@@ -473,11 +472,7 @@ Radiant Group Duri
 
 <h6 class="mt-2">User Online</h6>
 
-<strong>
-
-4 User
-
-</strong>
+<strong id="onlineUser">0</strong>
 
 </div>
 
@@ -495,11 +490,7 @@ Report Hari Ini
 
 </h6>
 
-<strong>
-
-5 Laporan
-
-</strong>
+<strong id="todayReport">0</strong>
 
 </div>
 
@@ -517,18 +508,15 @@ Approval Pending
 
 </h6>
 
-<strong>
-
-3 Laporan
-
-</strong>
+<strong id="pendingApproval">0</strong>
 
 </div>
 
 </div>
 
 </section>
-    </main>
+</div>
+</main>
 
 </div>
 

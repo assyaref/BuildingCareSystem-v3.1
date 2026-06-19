@@ -165,14 +165,18 @@ Radiant Group Duri
 
 </div>
         </header>
-   <!-- SUMMARY CARDS -->
+<!-- ======================================================
+     SUMMARY CARDS
+======================================================= -->
 <section class="row g-4 mt-2">
 
-    <!-- Total Report -->
-    <div class="col-xl-3 col-lg-6 col-md-6">
+    <!-- TOTAL REPORT -->
+    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+
         <div class="summary-card total-card">
 
             <div class="summary-top">
+
                 <div class="summary-icon bg-primary">
                     <i class="bi bi-file-earmark-text-fill"></i>
                 </div>
@@ -181,20 +185,30 @@ Radiant Group Duri
                     <h6>Total Report</h6>
                     <h2 id="totalReport">0</h2>
                 </div>
+
             </div>
 
             <div class="summary-trend success">
-                ▲ <span id="totalTrend">0</span> dari minggu lalu
+
+                <i id="totalTrendIcon" class="bi bi-arrow-up"></i>
+
+                <span id="totalTrend">0</span>
+
+                <small>dari minggu lalu</small>
+
             </div>
 
         </div>
+
     </div>
 
     <!-- AC -->
-    <div class="col-xl-3 col-lg-6 col-md-6">
+    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+
         <div class="summary-card ac-card">
 
             <div class="summary-top">
+
                 <div class="summary-icon bg-info">
                     <i class="bi bi-snow"></i>
                 </div>
@@ -203,20 +217,30 @@ Radiant Group Duri
                     <h6>AC</h6>
                     <h2 id="acTotal">0</h2>
                 </div>
+
             </div>
 
             <div class="summary-trend success">
-              <span id="acTrend">0</span>
+
+                <i id="acTrendIcon" class="bi bi-arrow-up"></i>
+
+                <span id="acTrend">0</span>
+
+                <small>dari minggu lalu</small>
+
             </div>
 
         </div>
+
     </div>
 
-    <!-- Listrik -->
-    <div class="col-xl-3 col-lg-6 col-md-6">
+    <!-- LISTRIK -->
+    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+
         <div class="summary-card listrik-card">
 
             <div class="summary-top">
+
                 <div class="summary-icon bg-warning">
                     <i class="bi bi-lightning-charge-fill"></i>
                 </div>
@@ -225,20 +249,30 @@ Radiant Group Duri
                     <h6>Listrik</h6>
                     <h2 id="listrikTotal">0</h2>
                 </div>
+
             </div>
 
             <div class="summary-trend danger">
-               <span id="listrikTrend">0</span>
+
+                <i id="listrikTrendIcon" class="bi bi-arrow-down"></i>
+
+                <span id="listrikTrend">0</span>
+
+                <small>dari minggu lalu</small>
+
             </div>
 
         </div>
+
     </div>
 
-    <!-- Kondisi Gedung -->
-    <div class="col-xl-3 col-lg-6 col-md-6">
+    <!-- GEDUNG -->
+    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+
         <div class="summary-card gedung-card">
 
             <div class="summary-top">
+
                 <div class="summary-icon bg-purple">
                     <i class="bi bi-building-fill"></i>
                 </div>
@@ -247,16 +281,25 @@ Radiant Group Duri
                     <h6>Kondisi Gedung</h6>
                     <h2 id="gedungTotal">0</h2>
                 </div>
+
             </div>
 
             <div class="summary-trend success">
-               <span id="gedungTrend">0</span>
+
+                <i id="gedungTrendIcon" class="bi bi-arrow-up"></i>
+
+                <span id="gedungTrend">0</span>
+
+                <small>dari minggu lalu</small>
+
             </div>
 
         </div>
+
     </div>
 
 </section>
+
 
        <!-- STATUS CARDS -->
 <section class="row g-4 mt-3">
@@ -322,40 +365,36 @@ Radiant Group Duri
 
     <!-- Statistics -->
     <div class="col-xl-8">
+<div class="card enterprise-card">
 
-        <div class="card enterprise-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
 
-            <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
 
-    <span>
+            <span>
+                <i class="bi bi-bar-chart me-2"></i>
+                Statistik Laporan
+            </span>
 
-        <i class="bi bi-bar-chart me-2"></i>
+            <small class="text-muted">
+                Last Update :
+                <span id="lastUpdate">-</span>
+            </small>
 
-        Statistik Laporan
+        </div>
 
-    </span>
+        <button
+            class="btn btn-sm btn-outline-light"
+            id="refreshDashboard">
 
-    <small class="text-muted">
+            <i class="bi bi-arrow-clockwise"></i>
+            Refresh
 
-        Last Update :
-        <span id="lastUpdate">-</span>
+        </button>
 
-    </small>
+    </div>
 
-</div>
-
-<button
-class="btn btn-sm btn-outline-light"
-id="refreshDashboard">
-
-    <i class="bi bi-arrow-clockwise"></i>
-    Refresh
-
-</button>
-
-            </div>
-
-            <div class="card-body">
+    <div class="card-body">
 
                <div class="row">
 

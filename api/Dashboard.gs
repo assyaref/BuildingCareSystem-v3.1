@@ -1,295 +1,273 @@
 // ======================================================
-// Building Care System Enterprise v3.1
+// Building Care System Enterprise v3.2
 // Dashboard.gs
-// Radiant Group Duri
 // ======================================================
 
-/**
- * ======================================================
- * DASHBOARD SUMMARY
- * ======================================================
- */
 function getDashboard(data) {
 
   try {
 
-    // ============================================
-    // GET SHEET
-    // ============================================
-
     const sheet = getSheet("REPORT");
-
     const values = sheet.getDataRange().getValues();
 
-// ============================================
-// EMPTY DATA
-// ============================================
+    // ==========================================
+    // EMPTY DATA
+    // ==========================================
 
-if (values.length <= 1) {
+    if (values.length <= 1) {
 
-  return success({
+      return success({
 
-    total: 0,
-    ac: 0,
-    listrik: 0,
-    gedung: 0,
+        total: 0,
+        ac: 0,
+        listrik: 0,
+        gedung: 0,
 
-    open: 0,
-    progress: 0,
-    done: 0,
+        open: 0,
+        progress: 0,
+        done: 0,
 
-    todayReport: 0,
-    onlineUser: 0,
-    pendingApproval: 0,
+        todayReport: 0,
+        onlineUser: 0,
+        pendingApproval: 0,
 
-    activity: [],
+        activity: [],
+        monthly: Array(12).fill(0),
 
-    monthly: Array(12).fill(0),
+        serverTime: now(),
+        lastUpdate: now()
 
-    serverTime: now(),
-    lastUpdate: now()
+      });
 
-  });
     }
-    // ============================================
+
+    // ==========================================
     // HEADER
-    // ============================================
+    // ==========================================
 
     const header = values.shift();
 
-    const headers = header.map(function (item) {
+    const headers = header.map(item =>
+      String(item).trim().toLowerCase()
+    );
 
-      return String(item)
-        .trim()
-        .toLowerCase();
-
-    });
-
-    const indexKategori = headers.indexOf("kategori");
-
-    const indexStatus = headers.indexOf("status");
-
-    const indexLokasi = headers.indexOf("lokasi");
-
-    const indexTanggal = headers.indexOf("tanggal");
     const indexId = headers.indexOf("id");
-
-    // ============================================
-    // VALIDATION
-    // ============================================
+    const indexTanggal = headers.indexOf("tanggal");
+    const indexPelapor = headers.indexOf("pelapor");
+    const indexLokasi = headers.indexOf("lokasi");
+    const indexKategori = headers.indexOf("kategori");
+    const indexStatus = headers.indexOf("status");
 
     if (
 
-  indexId < 0 ||
+      indexId === -1 ||
+      indexTanggal === -1 ||
+      indexKategori === -1 ||
+      indexStatus === -1 ||
+      indexLokasi === -1
 
-  indexKategori < 0 ||
+    ) {
 
-  indexStatus < 0 ||
-
-  indexLokasi < 0 ||
-
-  indexTanggal < 0
-
-) {
-
-      return failure(
-
-        "Header Spreadsheet tidak valid."
-
-      );
+      return failure("Header REPORT tidak sesuai.");
 
     }
 
-    // ============================================
+    // ==========================================
     // SUMMARY
-    // ============================================
-let total = 0;
-let ac = 0;
-let listrik = 0;
-let gedung = 0;
+    // ==========================================
 
-let open = 0;
-let progress = 0;
-let done = 0;
+    let total = 0;
+    let ac = 0;
+    let listrik = 0;
+    let gedung = 0;
 
-let todayReport = 0;
+    let open = 0;
+    let progress = 0;
+    let done = 0;
 
-const monthly = Array(12).fill(0);
+    let todayReport = 0;
 
-const today = Utilities.formatDate(
-    new Date(),
-    CONFIG.TIMEZONE,
-    "yyyy-MM-dd"
-);
-values.forEach(function(row){
+    const monthly = Array(12).fill(0);
 
-    total++;
-
-    const kategori = String(
-        row[indexKategori] || ""
-    ).trim().toUpperCase();
-
-    const status = String(
-        row[indexStatus] || ""
-    ).trim().toUpperCase();
-
-    const date = new Date(
-        row[indexTanggal]
+    const today = Utilities.formatDate(
+      new Date(),
+      CONFIG.TIMEZONE,
+      "yyyy-MM-dd"
     );
 
-    // ======================
-    // CATEGORY
-    // ======================
+    values.forEach(row => {
 
-    switch(kategori){
+      total++;
 
-        case "AC":
-            ac++;
-            break;
+      const kategori = String(
+        row[indexKategori] || ""
+      ).trim().toUpperCase();
 
-        case "LISTRIK":
-            listrik++;
-            break;
+      const status = String(
+        row[indexStatus] || ""
+      ).trim().toUpperCase();
 
-        case "GEDUNG":
-        case "KONDISI GEDUNG":
-            gedung++;
-            break;
+      const tanggalObj = new Date(
+        row[indexTanggal]
+      );
 
-    }
+      // =========================
+      // KATEGORI
+      // =========================
 
-    // ======================
-    // STATUS
-    // ======================
+      if (kategori === "AC") {
 
-    switch(status){
+        ac++;
 
-        case "OPEN":
-            open++;
-            break;
+      } else if (kategori === "LISTRIK") {
 
-        case "PROGRESS":
-            progress++;
-            break;
+        listrik++;
 
-        case "DONE":
-            done++;
-            break;
+      } else {
 
-    }
+        gedung++;
 
-    // ======================
-    // DATE KPI
-    // ======================
+      }
 
-    if(!isNaN(date)){
+      // =========================
+      // STATUS
+      // =========================
 
-        const tanggal = Utilities.formatDate(
+      if (status === "OPEN") {
 
-            date,
+        open++;
 
-            CONFIG.TIMEZONE,
+      } else if (status === "PROGRESS") {
 
-            "yyyy-MM-dd"
+        progress++;
+
+      } else if (status === "DONE") {
+
+        done++;
+
+      }
+
+      // =========================
+      // BULAN & TODAY
+      // =========================
+
+      if (!isNaN(tanggalObj.getTime())) {
+
+        const tgl = Utilities.formatDate(
+
+          tanggalObj,
+
+          CONFIG.TIMEZONE,
+
+          "yyyy-MM-dd"
 
         );
 
-        if(tanggal === today){
+        if (tgl === today) {
 
-            todayReport++;
+          todayReport++;
 
         }
 
-        monthly[date.getMonth()]++;
+        monthly[tanggalObj.getMonth()]++;
 
-    }
+      }
 
-});
-// ============================================
-// EXTRA KPI
-// ============================================
+    });
 
-const onlineUser = 1;
+    // ==========================================
+    // ACTIVITY
+    // ==========================================
 
-// sementara pending approval = OPEN
-const pendingApproval = open;
-// ============================================
-// SORTING RECENT ACTIVITY
-// ============================================
+    const recent = [...values]
 
-const recent = [...values]
+      .sort((a, b) => {
 
-    .sort(function (a, b) {
+        return new Date(b[indexTanggal]) -
 
-        return new Date(b[indexTanggal]) - new Date(a[indexTanggal]);
+               new Date(a[indexTanggal]);
 
-    })
+      })
 
-    .slice(0, 5)
+      .slice(0, 5)
 
-    .map(function (row) {
+      .map(row => {
 
-        const activityDate = new Date(row[indexTanggal]);
+        const d = new Date(row[indexTanggal]);
 
         return {
 
-            id: row[indexId] || "",
+          id: row[indexId],
 
-            tanggal: Utilities.formatDate(
-                activityDate,
-                CONFIG.TIMEZONE,
-                "yyyy-MM-dd"
-            ),
+          kategori: String(
+            row[indexKategori]
+          ).toUpperCase(),
 
-            waktu: Utilities.formatDate(
-                activityDate,
-                CONFIG.TIMEZONE,
-                "HH:mm"
-            ),
+          lokasi: row[indexLokasi],
 
-            kategori: String(
-                row[indexKategori] || ""
-            ).trim().toUpperCase(),
+          status: String(
+            row[indexStatus]
+          ).toUpperCase(),
 
-            lokasi: String(
-                row[indexLokasi] || "-"
-            ).trim(),
+          waktu: Utilities.formatDate(
 
-            status: String(
-                row[indexStatus] || "OPEN"
-            ).trim().toUpperCase()
+            d,
+
+            CONFIG.TIMEZONE,
+
+            "HH:mm"
+
+          ),
+
+          tanggal: Utilities.formatDate(
+
+            d,
+
+            CONFIG.TIMEZONE,
+
+            "dd/MM/yyyy"
+
+          )
 
         };
 
+      });
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
+    return success({
+
+      total,
+
+      ac,
+
+      listrik,
+
+      gedung,
+
+      open,
+
+      progress,
+
+      done,
+
+      todayReport,
+
+      onlineUser: 1,
+
+      pendingApproval: open,
+
+      activity: recent,
+
+      monthly,
+
+      serverTime: now(),
+
+      lastUpdate: now()
+
     });
-    // ============================================
-    // RESPONSE API
-    // ============================================
-
-   return success({
-
-    total,
-    ac,
-    listrik,
-    gedung,
-
-    open,
-    progress,
-    done,
-
-    todayReport,
-    onlineUser,
-    pendingApproval,
-
-    activity: recent,
-
-    monthly,
-
-    serverTime: now(),
-
-    lastUpdate: now()
-
-});
 
   }
 

@@ -119,7 +119,7 @@ function hashPassword(password) {
 }
 
 /**
- * Find User by Email
+ * Find User by Email (legacy — kept for internal use)
  */
 function findUser(email) {
 
@@ -141,13 +141,47 @@ function findUser(email) {
 
         row: i + 1,
 
-        email: data[i][0],
+        email:    data[i][0],
+        nik:      String(data[i][1]).trim(),
+        nama:     data[i][2],
+        password: data[i][3],
+        role:     data[i][4],
+        status:   data[i][5]
 
-        nama: data[i][1],
+      };
 
-        password: data[i][2],
+    }
 
-        role: data[i][3]
+  }
+
+  return null;
+
+}
+
+/**
+ * Find User by NIK
+ * DB columns: A=Email(0), B=NIK(1), C=Nama(2), D=Password(3), E=Role(4), F=Status(5)
+ */
+function findUserByNik(nik) {
+
+  const sheet = getSheet(SHEET.USERS);
+
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+
+    if (String(data[i][1]).trim() === String(nik).trim()) {
+
+      return {
+
+        row: i + 1,
+
+        email:    data[i][0],
+        nik:      String(data[i][1]).trim(),
+        nama:     data[i][2],
+        password: data[i][3],
+        role:     data[i][4],
+        status:   data[i][5]
 
       };
 

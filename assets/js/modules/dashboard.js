@@ -176,11 +176,11 @@ function getLineChart() {
 function setLineChart(instance) {
     lineChart = instance;
 }
-    // ==================================================
-    // PUBLIC API
-    // ==================================================
+// ==================================================
+// PUBLIC API
+// ==================================================
 
-    return {
+return {
     init,
     loadUser,
     loadSummary,
@@ -190,11 +190,11 @@ function setLineChart(instance) {
     setDonutChart,
     getLineChart,
     setLineChart
-
 };
 
 })();
-
+        
+    }
 
 /**
  * =====================================================
@@ -204,73 +204,117 @@ function setLineChart(instance) {
  */
 
 const DashboardView = (() => {
-function animateCounter(id,endValue){
 
-    const element = document.getElementById(id);
+    // ==================================================
+    // COUNTER ANIMATION
+    // ==================================================
 
-    if(!element) return;
+    function animateCounter(id, endValue) {
 
-    let start = Number(element.textContent) || 0;
+        const element = document.getElementById(id);
 
-    const duration = 800;
+        if (!element) return;
 
-    const step = Math.max(1,Math.ceil(endValue/30));
+        let start = Number(element.textContent) || 0;
 
-    const timer = setInterval(()=>{
+        const duration = 800;
+        const step = Math.max(1, Math.ceil(endValue / 30));
 
-        start += step;
+        const timer = setInterval(() => {
 
-        if(start>=endValue){
+            start += step;
 
-            start=endValue;
+            if (start >= endValue) {
 
-            clearInterval(timer);
+                start = endValue;
+                clearInterval(timer);
+
+            }
+
+            element.textContent = start;
+
+        }, duration / 30);
+
+    }
+
+    // ==================================================
+    // TREND INDICATOR
+    // ==================================================
+
+    function setTrend(id, value) {
+
+        const trendText = document.getElementById(id + "Trend");
+        const trendIcon = document.getElementById(id + "TrendIcon");
+
+        if (!trendText || !trendIcon) return;
+
+        trendText.textContent = Math.abs(value);
+
+        if (value >= 0) {
+
+            trendIcon.className = "bi bi-arrow-up";
+            trendText.parentElement.className = "summary-trend success";
+
+        } else {
+
+            trendIcon.className = "bi bi-arrow-down";
+            trendText.parentElement.className = "summary-trend danger";
 
         }
 
-        element.textContent=start;
+    }
 
-    },duration/30);
-
-}
     // ==================================================
     // CARD ANIMATION
     // ==================================================
 
     function animateCards() {
 
-    const cards = document.querySelectorAll(
-        ".summary-card,.status-card,.enterprise-card,.user-profile-card"
-    );
-
-    cards.forEach((card, index) => {
-
-        card.animate(
-
-            [
-                {
-                    opacity: 0,
-                    transform: "translateY(20px)"
-                },
-                {
-                    opacity: 1,
-                    transform: "translateY(0)"
-                }
-
-            ],
-
-            {
-                duration: 500,
-                delay: index * 120,
-                fill: "forwards",
-                easing: "ease-out"
-            }
-
+        const cards = document.querySelectorAll(
+            ".summary-card,.status-card,.enterprise-card,.user-profile-card"
         );
 
-    });
+        cards.forEach((card, index) => {
 
-}
+            card.animate(
+                [
+                    {
+                        opacity: 0,
+                        transform: "translateY(20px)"
+                    },
+                    {
+                        opacity: 1,
+                        transform: "translateY(0)"
+                    }
+                ],
+                {
+                    duration: 500,
+                    delay: index * 120,
+                    fill: "forwards",
+                    easing: "ease-out"
+                }
+            );
+
+        });
+
+    }
+
+    // ... function lainnya ...
+
+    return {
+        animateCards,
+        animateCounter,
+        setTrend,
+        renderActivity,
+        renderChart,
+        renderLineChart,
+        updateLastRefresh,
+        refresh
+    };
+
+})();
+
+
     // ==================================================
     // RECENT ACTIVITY
     // ==================================================
@@ -531,13 +575,6 @@ function renderLineChart(){
     updateLastRefresh();
 
 }
-        
-  //      renderDonutChart()
-  //      renderLineChart()
-       
-
-    }
-
     // ==================================================
     // PUBLIC
     // ==================================================

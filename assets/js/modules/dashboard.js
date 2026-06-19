@@ -62,7 +62,12 @@ let lineChart = null;
 async function init() {
 
     // Mencegah multiple initialization
-    if (initialized || initializing) {
+    if (initialized) {
+        return true;
+    }
+
+    // Mencegah init berjalan bersamaan
+    if (initializing) {
         return false;
     }
 
@@ -72,17 +77,24 @@ async function init() {
 
     try {
 
-        const valid = await AuthService.guard();
+        // Validasi session
+        const isAuthenticated = await AuthService.guard();
 
-        if (!valid) {
+        if (!isAuthenticated) {
             return false;
         }
 
-        loadUser();
+        // Load informasi user
+        const userLoaded = loadUser();
 
-        const loaded = await loadSummary();
+        if (!userLoaded) {
+            throw new Error("Data user gagal dimuat.");
+        }
 
-        if (!loaded) {
+        // Load data dashboard
+        const summaryLoaded = await loadSummary();
+
+        if (!summaryLoaded) {
             throw new Error("Dashboard data gagal dimuat.");
         }
 
@@ -109,8 +121,6 @@ async function init() {
     }
 
 }
-
-
 
 // ==================================================
 // LOAD USER
@@ -1014,33 +1024,65 @@ document.addEventListener("visibilitychange", async () => {
 
     }
 
-    // ==================================================
-    // INITIALIZE
-    // ==================================================
+   // ==================================================
+// INITIALIZE
+// ==================================================
 
-    async function init() {
+async function init() {
 
-        App.log("Dashboard Bootstrap");
+    App.log("Dashboard Bootstrap");
 
-        const valid = await checkSession();
+    try {
 
-        if (!valid) return;
-await Dashboard.init();
+        // Validasi session
+        const sessionValid = await checkSession();
 
-DashboardView.animateCards();
-DashboardView.renderActivity();
-DashboardView.renderChart();
-DashboardView.renderLineChart();
-DashboardView.updateLastRefresh();
-updateFooter();
-startClock();
-bindRefreshButton();
-bindLogoutButton();
-bindVisibility();
-bindUnload();
+        if (!sessionValid) {
+            return false;
+        }
 
-startAutoRefresh();
+        // Inisialisasi Dashboard
+        const dashboardReady = await Dashboard.init();
+
+        if (!dashboardReady) {
+            throw new Error("Dashboard gagal diinisialisasi.");
+        }
+
+        // Render UI
+        DashboardView.animateCards();
+        DashboardView.renderActivity();
+        DashboardView.renderChart();
+        DashboardView.renderLineChart();
+        DashboardView.updateLastRefresh();
+
+        // Footer & Clock
+        updateFooter();
+        startClock();
+
+        // Event Binding
+        bindRefreshButton();
+        bindLogoutButton();
+        bindVisibility();
+        bindUnload();
+
+        // Auto Refresh
+        startAutoRefresh();
+
+        App.log("Dashboard Module Ready");
+
+        return true;
+
+    } catch (err) {
+
+        console.error("[DashboardModule Init]", err);
+
+        App.handleError(err);
+
+        return false;
+
     }
+
+}
 // =====================
 // Fuunction Start Clock
 //======================

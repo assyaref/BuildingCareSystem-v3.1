@@ -24,14 +24,16 @@ const Dashboard = (() => {
     let donutChart = null;
     let lineChart = null;
    
+
 // ==================================================
 // INIT
 // ==================================================
 
 async function init() {
 
+    // Mencegah multiple initialization
     if (initialized || initializing) {
-        return;
+        return false;
     }
 
     initializing = true;
@@ -43,16 +45,22 @@ async function init() {
         const valid = await AuthService.guard();
 
         if (!valid) {
-            return;
+            return false;
         }
 
         loadUser();
 
-        await loadSummary();
+        const loaded = await loadSummary();
+
+        if (!loaded) {
+            throw new Error("Dashboard data gagal dimuat.");
+        }
 
         initialized = true;
 
         App.log("Dashboard Initialized Successfully");
+
+        return true;
 
     } catch (err) {
 
@@ -62,6 +70,8 @@ async function init() {
 
         App.handleError(err);
 
+        return false;
+
     } finally {
 
         initializing = false;
@@ -69,23 +79,35 @@ async function init() {
     }
 
 }
-    // ==================================================
-    // LOAD USER
-    // ==================================================
 
-    function loadUser() {
+
+
+// ==================================================
+// LOAD USER
+// ==================================================
+
+function loadUser() {
 
     const session = App.getSession();
-    if (!session) return;
-    setText("userName", session.nama || "-");
-    setText("userRole", session.role || "-");
-    setText("userNik", session.nik || "-");
+
+    if (!session) {
+        return false;
+    }
+
+    setText("userName", session.nama ?? "-");
+    setText("userRole", session.role ?? "-");
+    setText("userNik", session.nik ?? "-");
+
     setText(
         "lastLogin",
-        session.lastLogin ||
+        session.lastLogin ??
         new Date().toLocaleString("id-ID")
     );
+
+    return true;
+
 }
+
 
 // ==================================================
 // LOAD DASHBOARD SUMMARY

@@ -836,22 +836,54 @@ target.textContent =
     new Date().toLocaleString("id-ID");
 }
 
-    // ==================================================
-    // REFRESH ALL
-    // ==================================================
+// ==================================================
+// REFRESH ALL
+// ==================================================
 
-    async function refresh(){
+let isRefreshing = false;
+
+async function refresh() {
+
+    if (isRefreshing) {
+        return false;
+    }
+
+    isRefreshing = true;
 
     App.log("Refreshing Dashboard...");
 
-    await Dashboard.loadSummary();
-    renderActivity();
+    try {
 
-    renderChart();
+        const loaded = await Dashboard.loadSummary();
 
-    renderLineChart();
+        if (!loaded) {
+            return false;
+        }
 
-    updateLastRefresh();
+        [
+            renderActivity,
+            renderChart,
+            renderLineChart,
+            updateLastRefresh
+        ].forEach(fn => fn());
+
+        App.log("Dashboard Refresh Success");
+
+        return true;
+
+    } catch (err) {
+
+        console.error("[Dashboard Refresh]", err);
+
+        App.handleError(err);
+
+        return false;
+
+    } finally {
+
+        isRefreshing = false;
+
+    }
 
 }
      // ... function lainnya ...
@@ -878,11 +910,12 @@ target.textContent =
 
 const DashboardModule = (() => {
 
-    // ==================================================
-    // PRIVATE STATE
-    // ==================================================
+// ==================================================
+// PRIVATE STATE
+// ==================================================
 
-    let refreshInterval = null;
+let refreshInterval = null;
+let isRefreshing = false;
 
     // ==================================================
     // BIND REFRESH BUTTON

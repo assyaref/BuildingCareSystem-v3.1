@@ -159,44 +159,208 @@ async function loadSummary() {
 
     try {
 
+        // ==========================================
+        // GET SESSION
+        // ==========================================
+
         const session = App.getSession();
 
-        if (!session?.token) {
-            throw new Error("Session tidak ditemukan.");
-        }
-
-        const result = await Api.get("getDashboard", {
-            token: session.token
-        });
-
-        if (!result?.success) {
+        if (!session || !session.token) {
 
             App.toast(
-                result?.message || "Dashboard gagal dimuat.",
+                "Session telah berakhir. Silakan login kembali.",
+                "error"
+            );
+
+            App.redirect("login.html");
+
+            return false;
+
+        }
+
+        // ==========================================
+        // API REQUEST
+        // ==========================================
+
+        const result = await Api.post(
+            "getDashboard",
+            {
+                token: session.token
+            }
+        );
+
+        console.log("[Dashboard API]", result);
+
+        // ==========================================
+        // VALIDASI RESPONSE
+        // ==========================================
+
+        if (!result) {
+
+            App.toast(
+                "Tidak ada respon dari server.",
                 "error"
             );
 
             return false;
+
         }
 
-dashboardData = {
-    ...dashboardData,
-    ...(result.data || {}),
-    activity: Array.isArray(result.data?.activity)
-        ? result.data.activity
-        : [],
-    monthly: Array.isArray(result.data?.monthly)
-        ? result.data.monthly
-        : []
+        if (result.success !== true) {
+
+            App.toast(
+                result.message || "Dashboard gagal dimuat.",
+                "error"
+            );
+
+            return false;
+
+        }
+
+        // ==========================================
+// DATA MAPPING
+// ==========================================
+
+// Support beberapa format response API
+const data =
+    result?.data ??
+    result?.payload ??
+    result?.result ??
+    {};
+
+// Helper convert number
+const toNumber = (value) => {
+
+    const number = Number(value);
+
+    return Number.isFinite(number)
+        ? number
+        : 0;
+
 };
 
+// Helper array
+const toArray = (value, fallback = []) => {
+
+    return Array.isArray(value)
+        ? [...value]
+        : [...fallback];
+
+};
+
+// Update Dashboard State
+dashboardData = {
+
+    // mempertahankan state lama
+    ...dashboardData,
+
+    // =========================
+    // SUMMARY
+    // =========================
+
+    total: toNumber(data.total),
+    ac: toNumber(data.ac),
+    listrik: toNumber(data.listrik),
+    gedung: toNumber(data.gedung),
+
+    // =========================
+    // STATUS
+    // =========================
+
+    open: toNumber(data.open),
+    progress: toNumber(data.progress),
+    done: toNumber(data.done),
+
+    // =========================
+    // TREND
+    // =========================
+
+    totalTrend: toNumber(data.totalTrend),
+    acTrend: toNumber(data.acTrend),
+    listrikTrend: toNumber(data.listrikTrend),
+    gedungTrend: toNumber(data.gedungTrend),
+
+    // =========================
+    // FOOTER KPI
+    // =========================
+
+    onlineUser: toNumber(data.onlineUser),
+    todayReport: toNumber(data.todayReport),
+    pendingApproval: toNumber(data.pendingApproval),
+
+    // =========================
+    // LAST UPDATE
+    // =========================
+
+    lastUpdate:
+        data.lastUpdate ||
+        data.serverTime ||
+        new Date().toLocaleString("id-ID"),
+
+    // =========================
+    // RECENT ACTIVITY
+    // =========================
+
+    activity: toArray(data.activity),
+
+    // =========================
+    // MONTHLY CHART
+    // =========================
+
+    monthly: (() => {
+
+        const monthly = toArray(
+            data.monthly,
+            Array(12).fill(0)
+        );
+
+        while (monthly.length < 12) {
+            monthly.push(0);
+        }
+
+        return monthly.slice(0, 12);
+
+    })()
+
+};
+
+// ==========================================
+// DEBUG LOG
+// ==========================================
+
+App.log("Dashboard Data Loaded");
+
+console.table({
+    total: dashboardData.total,
+    ac: dashboardData.ac,
+    listrik: dashboardData.listrik,
+    gedung: dashboardData.gedung,
+    open: dashboardData.open,
+    progress: dashboardData.progress,
+    done: dashboardData.done,
+    todayReport: dashboardData.todayReport,
+    onlineUser: dashboardData.onlineUser,
+    pendingApproval: dashboardData.pendingApproval
+});
+
+console.log("Recent Activity :", dashboardData.activity);
+console.log("Monthly Data :", dashboardData.monthly);
+        // ==========================================
+        // RENDER SUMMARY
+        // ==========================================
+
         renderSummary();
+
+        App.log("Dashboard Summary Loaded");
 
         return true;
 
     } catch (err) {
 
-        console.error("Load Summary Error:", err);
+        console.error(
+            "[Dashboard Load Summary]",
+            err
+        );
 
         App.handleError(err);
 

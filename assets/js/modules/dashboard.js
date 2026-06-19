@@ -356,15 +356,14 @@ options:{
     // LAST REFRESH
     // ==================================================
 
-    function updateLastRefresh() {
-
-        const target = document.getElementById("lastUpdate");
-
-        if (!target) return;
-
-        target.textContent = new Date().toLocaleString("id-ID");
-
-    }
+   function updateLastRefresh(){
+    const target = document.getElementById("lastUpdate");
+    if(!target) return;
+    const data = Dashboard.getData();
+    target.textContent =
+        data.lastUpdate ||
+        new Date().toLocaleString("id-ID");
+}
 
     // ==================================================
     // REFRESH ALL
@@ -464,20 +463,35 @@ const DashboardModule = (() => {
     // AUTO REFRESH
     // ==================================================
 
-    function startAutoRefresh() {
+ function startAutoRefresh() {
 
-        stopAutoRefresh();
+    stopAutoRefresh();
 
-        refreshInterval = setInterval(async () => {
+    refreshInterval = setInterval(async () => {
 
-            App.log("Dashboard Auto Refresh");
+        App.log("Realtime Dashboard Refresh");
 
-            await DashboardView.refresh();
+        try {
 
-        }, 60000);
+            await Dashboard.loadSummary();
 
-    }
+            DashboardView.renderActivity();
 
+            DashboardView.renderChart();
+
+            DashboardView.updateLastRefresh();
+
+            updateFooter();
+
+        } catch(err){
+
+            console.error(err);
+
+        }
+
+    },30000);
+
+}
     function stopAutoRefresh() {
 
         if (!refreshInterval) return;
@@ -493,21 +507,18 @@ const DashboardModule = (() => {
     // Pause auto-refresh when tab is hidden, resume on focus
     // ==================================================
 
-    function bindVisibility() {
-
-        document.addEventListener("visibilitychange", () => {
-
-            if (document.hidden) {
-                stopAutoRefresh();
-                return;
-            }
-
+   function bindVisibility(){
+    document.addEventListener("visibilitychange",function(){
+        if(document.hidden){
+            App.log("Pause Refresh");
+            stopAutoRefresh();
+        }else{
+            App.log("Resume Refresh");
+            DashboardView.refresh();
             startAutoRefresh();
-
-        });
-
-    }
-
+        }
+    });
+}
     // ==================================================
     // BEFORE UNLOAD — cleanup
     // ==================================================

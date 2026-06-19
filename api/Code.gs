@@ -1,29 +1,33 @@
 // =====================================================
-// Building Care System Enterprise v3.1
+// Building Care System Enterprise v3.2
 // Main Router API
-// Radiant Group Duri
 // =====================================================
 
-/**
- * Health Check
- */
-function doGet() {
+function doGet(e) {
 
   try {
 
-    return success({
+    const action = e.parameter.action || "health";
 
-      app: CONFIG.APP.NAME,
+    switch (action) {
 
-      version: CONFIG.APP.VERSION,
+      case "getDashboard":
+        return getDashboard({});
 
-      company: CONFIG.APP.COMPANY,
+      case "health":
+      default:
 
-      status: "ONLINE",
+        return success({
 
-      serverTime: now()
+          app: CONFIG.APP.NAME,
+          version: CONFIG.APP.VERSION,
+          company: CONFIG.APP.COMPANY,
+          status: "ONLINE",
+          serverTime: now()
 
-    });
+        });
+
+    }
 
   } catch (err) {
 
@@ -35,20 +39,29 @@ function doGet() {
 
 }
 
-/**
- * Main API
- */
 function doPost(e) {
 
   try {
 
-    if (!e || !e.postData || !e.postData.contents) {
+    if (!e || !e.postData) {
 
       return failed("Request tidak valid.");
 
     }
 
-    const request = JSON.parse(e.postData.contents);
+    let request = {};
+
+    try {
+
+      request = JSON.parse(
+        e.postData.contents || "{}"
+      );
+
+    } catch (jsonError) {
+
+      return failed("Format JSON tidak valid.");
+
+    }
 
     const action = request.action || "";
 
@@ -56,81 +69,40 @@ function doPost(e) {
 
     switch (action) {
 
-      // ============================================
-      // AUTH
-      // ============================================
-
       case "login":
-
         return login(data);
 
       case "logout":
-
         return logout(data);
 
       case "verifySession":
-
         return verifySession(data);
 
-      // ============================================
-      // DASHBOARD
-      // ============================================
-
       case "getDashboard":
-
         return getDashboard(data);
 
-      // ============================================
-      // REPORT
-      // ============================================
-
       case "createReport":
-
         return createReport(data);
 
       case "getReport":
-
         return getReport(data);
 
       case "updateReport":
-
         return updateReport(data);
 
-      // ============================================
-      // UPLOAD
-      // ============================================
-
       case "uploadPhoto":
-
         return uploadPhoto(data);
 
-      // ============================================
-      // DEFAULT
-      // ============================================
-
       default:
-
-        return failed("Action tidak ditemukan.");
+        return failed("Action tidak ditemukan : " + action);
 
     }
 
-  }
+  } catch (err) {
 
-  catch (err) {
+    saveError("Code.gs", err.toString());
 
-    saveError(
-
-      "Code.gs",
-
-      err.toString()
-
-    );
-
-    return failed(
-
-      err.toString()
-
-    );
+    return failed(err.toString());
 
   }
 

@@ -599,11 +599,6 @@ function updateFooter(){
     );
 
     setFooter(
-        "currentTime",
-        new Date().toLocaleTimeString("id-ID")
-    );
-
-    setFooter(
         "onlineUser",
         data.onlineUser || 0
     );

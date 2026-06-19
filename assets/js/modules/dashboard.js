@@ -30,22 +30,21 @@ const Dashboard = (() => {
 
     async function init() {
 
-        if (initialized) return;
+    if (initialized) return;
 
-        initialized = true;
+    App.log("Dashboard Module Loaded");
 
-        App.log("Dashboard Module Loaded");
+    const valid = await AuthService.guard();
 
-        const valid = await AuthService.guard();
+    if (!valid) return;
 
-        if (!valid) return;
+    initialized = true;
 
-        loadUser();
+    loadUser();
 
-        await loadSummary();
+    await loadSummary();
 
-    }
-
+}
     // ==================================================
     // LOAD USER
     // ==================================================
@@ -85,9 +84,13 @@ const Dashboard = (() => {
                 return;
             }
 
-            dashboardData = result.data || {};
+            dashboardData = {
+    activity: [],
+    monthly: [],
+    ...result.data
+};
 
-            renderSummary();
+renderSummary();
 
         } catch (err) {
 
@@ -227,7 +230,7 @@ const DashboardView = (() => {
 // COUNTER ANIMATION
 // ==================================================
 
-const counterTimers = {};
+const counterTimers = Object.create(null);
 
 function animateCounter(id, endValue) {
 
@@ -461,9 +464,11 @@ function renderActivity() {
 
       const oldChart = Dashboard.getDonutChart();
 
-        if (oldChart) oldChart.destroy();
+        if (oldChart instanceof Chart) {
+    oldChart.destroy();
+}
 
-        const data = Dashboard.getData();
+        const data = Dashboard.getData() || {};
 
         const chart = new Chart(canvas, {
             type: "doughnut",
@@ -543,84 +548,147 @@ animation: {
 // MONTHLY LINE CHART
 // ==================================================
 
-function renderLineChart(){
+function renderLineChart() {
 
     const canvas = document.getElementById("monthlyChart");
 
-    if(!canvas) return;
+    if (!canvas) return;
 
+    // Destroy chart lama
     const oldChart = Dashboard.getLineChart();
 
-    if(oldChart){
-
+    if (oldChart instanceof Chart) {
         oldChart.destroy();
-
     }
 
-    const data = Dashboard.getData();
+    const data = Dashboard.getData() || {};
 
-    const chart = new Chart(canvas,{
+    // Validasi data bulanan
+    const monthlyData = Array.isArray(data.monthly)
+        ? [...data.monthly]
+        : [];
 
-        type:"line",
+    // Pastikan selalu 12 bulan
+    while (monthlyData.length < 12) {
+        monthlyData.push(0);
+    }
 
-        data:{
+    const chart = new Chart(canvas, {
 
-            labels:[
-                "Jan","Feb","Mar","Apr","Mei","Jun",
-                "Jul","Agu","Sep","Okt","Nov","Des"
+        type: "line",
+
+        data: {
+
+            labels: [
+                "Jan", "Feb", "Mar", "Apr",
+                "Mei", "Jun", "Jul", "Agu",
+                "Sep", "Okt", "Nov", "Des"
             ],
 
-            datasets:[{
+            datasets: [{
 
-                label:"Total Report",
+                label: "Total Report",
 
-                data:data.monthly || Array(12).fill(0),
+                data: monthlyData.slice(0, 12),
 
-                borderColor:"#2563EB",
+                borderColor: "#2563EB",
 
-                backgroundColor:"rgba(37,99,235,0.15)",
+                backgroundColor: "rgba(37,99,235,0.15)",
 
-                fill:true,
+                borderWidth: 3,
 
-                tension:0.35,
+                fill: true,
 
-                pointRadius:4,
+                tension: 0.35,
 
-                pointHoverRadius:6
+                pointRadius: 4,
+
+                pointHoverRadius: 7,
+
+                pointHitRadius: 15
 
             }]
 
         },
 
-        options:{
+        options: {
 
-            responsive:true,
+            responsive: true,
 
-            maintainAspectRatio:false,
+            maintainAspectRatio: false,
 
-            animation:{
+            animation: {
 
-                duration:1200,
+                duration: 1000,
 
-                easing:"easeOutQuart"
+                easing: "easeOutQuart"
 
             },
 
-            plugins:{
+            interaction: {
 
-                legend:{
-                    display:false
+                intersect: false,
+
+                mode: "index"
+
+            },
+
+            plugins: {
+
+                legend: {
+
+                    display: false
+
+                },
+
+                tooltip: {
+
+                    displayColors: false,
+
+                    callbacks: {
+
+                        label(context) {
+
+                            return `Total Report : ${context.parsed.y}`;
+
+                        }
+
+                    }
+
                 }
 
             },
 
-            scales:{
+            scales: {
 
-                y:{
-                    beginAtZero:true,
-                    ticks:{
-                        precision:0
+                x: {
+
+                    grid: {
+
+                        display: false
+
                     }
+
+                },
+
+                y: {
+
+                    beginAtZero: true,
+
+                    ticks: {
+
+                        precision: 0,
+
+                        stepSize: 1
+
+                    },
+
+                    grid: {
+
+                        color: "rgba(0,0,0,0.05)"
+
+                    }
+
                 }
 
             }
@@ -639,10 +707,10 @@ function renderLineChart(){
    function updateLastRefresh(){
     const target = document.getElementById("lastUpdate");
     if(!target) return;
-    const data = Dashboard.getData();
-    target.textContent =
-        data.lastUpdate ||
-        new Date().toLocaleString("id-ID");
+    const data = Dashboard.getData() || {};
+target.textContent =
+    data.lastUpdate ??
+    new Date().toLocaleString("id-ID");
 }
 
     // ==================================================
@@ -786,14 +854,20 @@ document.addEventListener("visibilitychange", async () => {
 
         App.log("Pause Refresh");
         stopAutoRefresh();
+        return;
 
-    } else {
+    }
 
-        App.log("Resume Refresh");
+    App.log("Resume Refresh");
+
+    try {
 
         await DashboardView.refresh();
-
         startAutoRefresh();
+
+    } catch (err) {
+
+        console.error(err);
 
     }
 
@@ -839,6 +913,7 @@ document.addEventListener("visibilitychange", async () => {
 
         if (!valid) return;
 await Dashboard.init();
+
 DashboardView.animateCards();
 DashboardView.renderActivity();
 DashboardView.renderChart();
@@ -850,6 +925,7 @@ bindRefreshButton();
 bindLogoutButton();
 bindVisibility();
 bindUnload();
+
 startAutoRefresh();
     }
 // =====================
@@ -870,13 +946,17 @@ function updateClock(){
 // =================
 //   Footer KPI
 // =================
-function updateFooter(){
+function updateFooter() {
 
-   const data = Dashboard.getData() || {};
+    const {
+        onlineUser = 0,
+        todayReport = 0,
+        pendingApproval = 0
+    } = Dashboard.getData() || {};
 
-setFooter("onlineUser", data.onlineUser ?? 0);
-setFooter("todayReport", data.todayReport ?? 0);
-setFooter("pendingApproval", data.pendingApproval ?? 0);
+    setFooter("onlineUser", onlineUser);
+    setFooter("todayReport", todayReport);
+    setFooter("pendingApproval", pendingApproval);
 
 }
      

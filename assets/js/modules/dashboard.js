@@ -87,109 +87,125 @@ async function init() {
     );
 }
 
-    // ==================================================
-    // LOAD DASHBOARD SUMMARY
-    // ==================================================
+// ==================================================
+// LOAD DASHBOARD SUMMARY
+// ==================================================
 
-    async function loadSummary() {
+async function loadSummary() {
 
-        try {
+    App.showLoading();
 
-            App.showLoading();
+    try {
 
-            const session = App.getSession();
+        const session = App.getSession();
 
-            const result = await Api.get("getDashboard", {
-                token: session.token
-            });
-
-            if (!result.success) {
-                App.toast(result.message || "Dashboard gagal dimuat.", "error");
-                return;
-            }
-
-            dashboardData = {
-    activity: [],
-    monthly: [],
-    ...result.data
-};
-
-renderSummary();
-
-        } catch (err) {
-
-            App.handleError(err);
-
-        } finally {
-
-            App.hideLoading();
-
+        if (!session?.token) {
+            throw new Error("Session tidak ditemukan.");
         }
+
+        const result = await Api.get("getDashboard", {
+            token: session.token
+        });
+
+        if (!result?.success) {
+
+            App.toast(
+                result?.message || "Dashboard gagal dimuat.",
+                "error"
+            );
+
+            return false;
+        }
+
+        dashboardData = {
+            activity: [],
+            monthly: [],
+            total: 0,
+            ac: 0,
+            listrik: 0,
+            gedung: 0,
+            open: 0,
+            progress: 0,
+            done: 0,
+            totalTrend: 0,
+            acTrend: 0,
+            listrikTrend: 0,
+            gedungTrend: 0,
+            ...(result.data || {})
+        };
+
+        renderSummary();
+
+        return true;
+
+    } catch (err) {
+
+        console.error("Load Summary Error:", err);
+
+        App.handleError(err);
+
+        return false;
+
+    } finally {
+
+        App.hideLoading();
 
     }
 
-    // ==================================================
-    // RENDER SUMMARY
-    // ==================================================
+}
 
-function renderSummary(){
+// ==================================================
+// RENDER SUMMARY
+// ==================================================
 
-    DashboardView.animateCounter(
-        "totalReport",
-        dashboardData.total || 0
-    );
+function renderSummary() {
 
-    DashboardView.animateCounter(
-        "acTotal",
-        dashboardData.ac || 0
-    );
+    const {
 
-    DashboardView.animateCounter(
-        "listrikTotal",
-        dashboardData.listrik || 0
-    );
+        total = 0,
+        ac = 0,
+        listrik = 0,
+        gedung = 0,
 
-    DashboardView.animateCounter(
-        "gedungTotal",
-        dashboardData.gedung || 0
-    );
+        open = 0,
+        progress = 0,
+        done = 0,
 
-    DashboardView.animateCounter(
-        "totalOpen",
-        dashboardData.open || 0
-    );
+        totalTrend = 0,
+        acTrend = 0,
+        listrikTrend = 0,
+        gedungTrend = 0
 
-    DashboardView.animateCounter(
-        "totalProgress",
-        dashboardData.progress || 0
-    );
+    } = dashboardData;
 
-    DashboardView.animateCounter(
-        "totalDone",
-        dashboardData.done || 0
-    );
+    const counters = [
+        ["totalReport", total],
+        ["acTotal", ac],
+        ["listrikTotal", listrik],
+        ["gedungTotal", gedung],
+        ["totalOpen", open],
+        ["totalProgress", progress],
+        ["totalDone", done]
+    ];
 
-    DashboardView.setTrend(
-        "total",
-        dashboardData.totalTrend || 0
-    );
+    counters.forEach(([id, value]) => {
+        DashboardView.animateCounter(id, value);
+    });
 
-    DashboardView.setTrend(
-        "ac",
-        dashboardData.acTrend || 0
-    );
+    const trends = [
+        ["total", totalTrend],
+        ["ac", acTrend],
+        ["listrik", listrikTrend],
+        ["gedung", gedungTrend]
+    ];
 
-    DashboardView.setTrend(
-        "listrik",
-        dashboardData.listrikTrend || 0
-    );
-
-    DashboardView.setTrend(
-        "gedung",
-        dashboardData.gedungTrend || 0
-    );
+    trends.forEach(([id, value]) => {
+        DashboardView.setTrend(id, value);
+    });
 
 }
+
+
   
     // ==================================================
     // HELPER

@@ -222,7 +222,31 @@ function getDashboard(data) {
         };
 
       });
+// ============================================
+// TODAY REPORT
+// ============================================
 
+const today = Utilities.formatDate(
+  new Date(),
+  CONFIG.TIMEZONE,
+  "yyyy-MM-dd"
+);
+
+let todayReport = 0;
+
+values.forEach(function(row){
+
+  const tanggal = Utilities.formatDate(
+    new Date(row[indexTanggal]),
+    CONFIG.TIMEZONE,
+    "yyyy-MM-dd"
+  );
+
+  if(tanggal === today){
+    todayReport++;
+  }
+
+});
     // ============================================
     // RESPONSE
     // ============================================

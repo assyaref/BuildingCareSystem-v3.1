@@ -28,12 +28,8 @@ const Dashboard = (() => {
 // INIT
 // ==================================================
 
-let initialized = false;
-let initializing = false;
-
 async function init() {
 
-    // Sudah selesai atau sedang berjalan
     if (initialized || initializing) {
         return;
     }
@@ -44,20 +40,16 @@ async function init() {
 
     try {
 
-        // Validasi session
         const valid = await AuthService.guard();
 
         if (!valid) {
             return;
         }
 
-        // Load user profile
         loadUser();
 
-        // Load dashboard data
         await loadSummary();
 
-        // Tandai berhasil
         initialized = true;
 
         App.log("Dashboard Initialized Successfully");
@@ -66,13 +58,12 @@ async function init() {
 
         initialized = false;
 
-        console.error("Dashboard Init Error:", err);
+        console.error("[Dashboard Init]", err);
 
         App.handleError(err);
 
     } finally {
 
-        // Selalu reset lock
         initializing = false;
 
     }

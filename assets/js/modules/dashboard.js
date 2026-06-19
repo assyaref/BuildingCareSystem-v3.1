@@ -15,15 +15,45 @@
 
 const Dashboard = (() => {
 
-    // ==================================================
-    // PRIVATE STATE
-    // ==================================================
 
-    let initialized  = false;
-    let dashboardData = {};
-    let donutChart = null;
-    let lineChart = null;
-   
+// ==================================================
+// PRIVATE STATE
+// ==================================================
+
+let initialized = false;
+let initializing = false;
+
+let dashboardData = {
+
+    activity: [],
+    monthly: [],
+
+    total: 0,
+    ac: 0,
+    listrik: 0,
+    gedung: 0,
+
+    open: 0,
+    progress: 0,
+    done: 0,
+
+    totalTrend: 0,
+    acTrend: 0,
+    listrikTrend: 0,
+    gedungTrend: 0,
+
+    onlineUser: 0,
+    todayReport: 0,
+    pendingApproval: 0,
+
+    lastUpdate: null
+
+};
+
+let donutChart = null;
+let lineChart = null;
+
+
 
 // ==================================================
 // INIT
@@ -139,22 +169,16 @@ async function loadSummary() {
             return false;
         }
 
-        dashboardData = {
-            activity: [],
-            monthly: [],
-            total: 0,
-            ac: 0,
-            listrik: 0,
-            gedung: 0,
-            open: 0,
-            progress: 0,
-            done: 0,
-            totalTrend: 0,
-            acTrend: 0,
-            listrikTrend: 0,
-            gedungTrend: 0,
-            ...(result.data || {})
-        };
+dashboardData = {
+    ...dashboardData,
+    ...(result.data || {}),
+    activity: Array.isArray(result.data?.activity)
+        ? result.data.activity
+        : [],
+    monthly: Array.isArray(result.data?.monthly)
+        ? result.data.monthly
+        : []
+};
 
         renderSummary();
 
@@ -243,24 +267,51 @@ function renderSummary() {
 
     }
 
-    // ==================================================
-    // GETTERS & SETTERS
-    // ==================================================
+   
+// ==================================================
+// GETTERS & SETTERS
+// ==================================================
 
-    function getData()             
-    { return dashboardData; }
-    function getDonutChart() {
+function getData() {
+
+    // Mengembalikan salinan object agar tidak bisa dimodifikasi dari luar
+    return {
+
+        ...dashboardData,
+
+        activity: [...dashboardData.activity],
+
+        monthly: [...dashboardData.monthly]
+
+    };
+
+}
+
+function getDonutChart() {
+
     return donutChart;
+
 }
+
 function setDonutChart(instance) {
+
     donutChart = instance;
+
 }
+
 function getLineChart() {
+
     return lineChart;
+
 }
+
 function setLineChart(instance) {
+
     lineChart = instance;
+
 }
+
+
 // ==================================================
 // PUBLIC API
 // ==================================================

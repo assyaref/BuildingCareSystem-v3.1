@@ -412,6 +412,99 @@ animation: {
         Dashboard.setDonutChart(chart);
 
     }
+// ==================================================
+// MONTHLY LINE CHART
+// ==================================================
+
+function renderLineChart(){
+
+    const canvas = document.getElementById("monthlyChart");
+
+    if(!canvas) return;
+
+    const oldChart = Dashboard.getLineChart();
+
+    if(oldChart){
+
+        oldChart.destroy();
+
+    }
+
+    const data = Dashboard.getData();
+
+    const chart = new Chart(canvas,{
+
+        type:"line",
+
+        data:{
+
+            labels:[
+                "Jan","Feb","Mar","Apr","Mei","Jun",
+                "Jul","Agu","Sep","Okt","Nov","Des"
+            ],
+
+            datasets:[{
+
+                label:"Total Report",
+
+                data:data.monthly || Array(12).fill(0),
+
+                borderColor:"#2563EB",
+
+                backgroundColor:"rgba(37,99,235,0.15)",
+
+                fill:true,
+
+                tension:0.35,
+
+                pointRadius:4,
+
+                pointHoverRadius:6
+
+            }]
+
+        },
+
+        options:{
+
+            responsive:true,
+
+            maintainAspectRatio:false,
+
+            animation:{
+
+                duration:1200,
+
+                easing:"easeOutQuart"
+
+            },
+
+            plugins:{
+
+                legend:{
+                    display:false
+                }
+
+            },
+
+            scales:{
+
+                y:{
+                    beginAtZero:true,
+                    ticks:{
+                        precision:0
+                    }
+                }
+
+            }
+
+        }
+
+    });
+
+    Dashboard.setLineChart(chart);
+
+}
     // ==================================================
     // LAST REFRESH
     // ==================================================
@@ -429,15 +522,15 @@ animation: {
     // REFRESH ALL
     // ==================================================
 
-    async function refresh() {
+    async function refresh(){
+    App.log("Refreshing Dashboard...");
+    await Dashboard.loadSummary();
+    renderActivity();
+    renderChart();
+    renderLineChart();
+    updateLastRefresh();
 
-        App.log("Refreshing Dashboard...");
-
-        await Dashboard.loadSummary();
-
-        renderActivity();
-        renderChart();
-        updateLastRefresh();
+}
         
   //      renderDonutChart()
   //      renderLineChart()
@@ -449,11 +542,12 @@ animation: {
     // PUBLIC
     // ==================================================
 
-   return {
+return {
     animateCards,
     animateCounter,
     renderActivity,
     renderChart,
+    renderLineChart,
     updateLastRefresh,
     refresh
 };
@@ -617,15 +711,15 @@ await Dashboard.init();
 DashboardView.animateCards();
 DashboardView.renderActivity();
 DashboardView.renderChart();
+DashboardView.renderLineChart();
 DashboardView.updateLastRefresh();
-        updateFooter();
-        startClock();
-        bindRefreshButton();
-        bindLogoutButton();
-        bindVisibility();
-        bindUnload();
-        startAutoRefresh();
-
+updateFooter();
+startClock();
+bindRefreshButton();
+bindLogoutButton();
+bindVisibility();
+bindUnload();
+startAutoRefresh();
     }
 // =====================
 // Fuunction Start Clock

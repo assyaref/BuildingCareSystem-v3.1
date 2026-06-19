@@ -524,7 +524,7 @@ const DashboardModule = (() => {
     // AUTO REFRESH
     // ==================================================
 
- function startAutoRefresh() {
+function startAutoRefresh() {
 
     stopAutoRefresh();
 
@@ -534,19 +534,17 @@ const DashboardModule = (() => {
 
         try {
 
-            await Dashboard.loadSummary();
-            DashboardView.renderActivity();
-            DashboardView.renderChart();
             await DashboardView.refresh();
+
             updateFooter();
 
-        } catch(err){
+        } catch (err) {
 
             console.error(err);
 
         }
 
-    },30000);
+    }, 30000);
 
 }
     function stopAutoRefresh() {
@@ -616,6 +614,7 @@ const DashboardModule = (() => {
 
         if (!valid) return;
 await Dashboard.init();
+DashboardView.animateCards();
 DashboardView.renderActivity();
 DashboardView.renderChart();
 DashboardView.updateLastRefresh();

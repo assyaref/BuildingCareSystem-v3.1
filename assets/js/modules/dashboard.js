@@ -223,39 +223,67 @@ return {
 
 const DashboardView = (() => {
 
-    // ==================================================
-    // COUNTER ANIMATION
-    // ==================================================
+   // ==================================================
+// COUNTER ANIMATION
+// ==================================================
 
-    function animateCounter(id, endValue) {
+const counterTimers = {};
 
-        const element = document.getElementById(id);
+function animateCounter(id, endValue) {
 
-        if (!element) return;
+    const element = document.getElementById(id);
 
-        let start = Number(element.textContent) || 0;
+    if (!element) return;
 
-        const duration = 800;
-        const diff = endValue - start;
-const step = diff / 30;
+    // Validasi nilai
+    endValue = Number(endValue);
 
-const timer = setInterval(() => {
-
-    start += step;
-
-    if (
-        (step > 0 && start >= endValue) ||
-        (step < 0 && start <= endValue)
-    ) {
-        start = endValue;
-        clearInterval(timer);
+    if (isNaN(endValue)) {
+        endValue = 0;
     }
 
-    element.textContent = Math.round(start);
+    let start = Number(element.textContent) || 0;
 
-}, duration / 30);
+    // Jika nilai sama, tidak perlu animasi
+    if (start === endValue) {
+        element.textContent = endValue;
+        return;
     }
 
+    // Hentikan animasi sebelumnya jika ada
+    if (counterTimers[id]) {
+        clearInterval(counterTimers[id]);
+    }
+
+    const DURATION = 800;
+    const FRAMES = 30;
+
+    const diff = endValue - start;
+    const step = diff / FRAMES;
+
+    counterTimers[id] = setInterval(() => {
+
+        start += step;
+
+        const finished =
+            (step > 0 && start >= endValue) ||
+            (step < 0 && start <= endValue);
+
+        if (finished) {
+
+            start = endValue;
+
+            clearInterval(counterTimers[id]);
+
+            delete counterTimers[id];
+
+        }
+
+        element.textContent = Math.round(start);
+
+    }, DURATION / FRAMES);
+
+}
     // ==================================================
     // TREND INDICATOR
     // ==================================================

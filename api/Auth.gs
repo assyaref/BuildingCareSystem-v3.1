@@ -11,18 +11,25 @@ function login(data) {
 
   try {
 
-    const email = String(data.email || "").trim().toLowerCase();
+    const nik      = String(data.nik || "").trim();
     const password = String(data.password || "").trim();
 
-    if (!email || !password) {
-      return failed("Email dan Password wajib diisi.");
+    if (!nik || !password) {
+      return failed("NIK dan Password wajib diisi.");
     }
 
-    const user = findUser(email);
+    // Find user by NIK (column B)
+    const user = findUserByNik(nik);
 
     if (!user) {
-      saveActivity(email, "LOGIN_FAILED", "User tidak ditemukan");
-      return failed("Email atau Password salah.");
+      saveActivity(nik, "LOGIN_FAILED", "User tidak ditemukan");
+      return failed("NIK atau Password salah.");
+    }
+
+    // Cek status user ACTIVE
+    if (String(user.status).toUpperCase() !== "ACTIVE") {
+      saveActivity(nik, "LOGIN_FAILED", "Akun tidak aktif");
+      return failed("Akun Anda tidak aktif. Hubungi Administrator.");
     }
 
     // Support Plain Text + SHA256 (Auto Migration Ready)
@@ -33,19 +40,20 @@ function login(data) {
 
     if (!passwordMatch) {
 
-      saveActivity(email, "LOGIN_FAILED", "Password salah");
+      saveActivity(nik, "LOGIN_FAILED", "Password salah");
 
-      return failed("Email atau Password salah.");
+      return failed("NIK atau Password salah.");
 
     }
 
     // Auto migrate plain text ke SHA256
+    // Column D = index 4 (1-based)
 
     if (user.password === password) {
 
       const sheet = getSheet(SHEET.USERS);
 
-      sheet.getRange(user.row, 3).setValue(
+      sheet.getRange(user.row, 4).setValue(
         hashPassword(password)
       );
 
@@ -57,7 +65,7 @@ function login(data) {
 
     createSession(
 
-      email,
+      user.email,
 
       token
 
@@ -65,11 +73,11 @@ function login(data) {
 
     saveActivity(
 
-      email,
+      user.email,
 
       "LOGIN",
 
-      "Login berhasil"
+      "Login berhasil via NIK: " + nik
 
     );
 
@@ -77,9 +85,11 @@ function login(data) {
 
       email: user.email,
 
-      nama: user.nama,
+      nik:   user.nik,
 
-      role: user.role,
+      nama:  user.nama,
+
+      role:  user.role,
 
       token: token
 

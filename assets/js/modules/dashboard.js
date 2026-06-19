@@ -374,13 +374,17 @@ options:{
 
     cutout:"72%",
 
-    animation:{
+animation: {
 
-        animateRotate:true,
+    animateRotate: true,
 
-        duration:1000
+    animateScale: true,
 
-    },
+    duration: 1200,
+
+    easing: "easeOutQuart"
+
+},
 
     plugins:{
 
@@ -531,13 +535,9 @@ const DashboardModule = (() => {
         try {
 
             await Dashboard.loadSummary();
-
             DashboardView.renderActivity();
-
             DashboardView.renderChart();
-
-            DashboardView.updateLastRefresh();
-
+            await DashboardView.refresh();
             updateFooter();
 
         } catch(err){

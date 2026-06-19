@@ -1,15 +1,18 @@
+javascript
 // ======================================================
-// Building Care System Enterprise v3.2
+// Building Care System Enterprise v3.3 Stable
 // Dashboard.gs
+// Radiant Group Duri
 // ======================================================
 
 function getDashboard(data) {
 
   try {
 
-    // ==========================================
-    // REPORT SHEET
-    // ==========================================
+    const TIMEZONE =
+      (typeof CONFIG !== "undefined" && CONFIG.TIMEZONE)
+      || Session.getScriptTimeZone()
+      || "Asia/Jakarta";
 
     const sheet = getSheet("REPORT");
     const values = sheet.getDataRange().getValues();
@@ -27,6 +30,11 @@ function getDashboard(data) {
         progress: 0,
         done: 0,
 
+        totalTrend: 0,
+        acTrend: 0,
+        listrikTrend: 0,
+        gedungTrend: 0,
+
         todayReport: 0,
         onlineUser: 1,
         pendingApproval: 0,
@@ -34,49 +42,34 @@ function getDashboard(data) {
         activity: [],
         monthly: Array(12).fill(0),
 
+        serverTime: now(),
         lastUpdate: now()
 
       });
 
     }
 
-    // ==========================================
-    // HEADER
-    // ==========================================
-
-    const header = values.shift();
-
-    const headers = header.map(function (item) {
-
-      return String(item)
-        .trim()
-        .toLowerCase();
-
+    const headers = values.shift().map(function (item) {
+      return String(item).trim().toLowerCase();
     });
 
-    const indexId = headers.indexOf("id");
-    const indexTanggal = headers.indexOf("tanggal");
-    const indexLokasi = headers.indexOf("lokasi");
-    const indexKategori = headers.indexOf("kategori");
-    const indexStatus = headers.indexOf("status");
+    const idx = {
 
-    if (
+      id: headers.indexOf("id"),
+      tanggal: headers.indexOf("tanggal"),
+      lokasi: headers.indexOf("lokasi"),
+      kategori: headers.indexOf("kategori"),
+      status: headers.indexOf("status")
 
-      indexId < 0 ||
-      indexTanggal < 0 ||
-      indexLokasi < 0 ||
-      indexKategori < 0 ||
-      indexStatus < 0
+    };
 
-    ) {
+    if (Object.values(idx).some(function (v) {
+      return v < 0;
+    })) {
 
       return failed("Header REPORT tidak sesuai.");
 
     }
-
-    // ==========================================
-    // KPI
-    // ==========================================
 
     let total = 0;
     let ac = 0;
@@ -92,40 +85,33 @@ function getDashboard(data) {
     const monthly = Array(12).fill(0);
 
     const today = Utilities.formatDate(
-
       new Date(),
-
-      CONFIG.TIMEZONE,
-
+      TIMEZONE,
       "yyyy-MM-dd"
-
     );
 
     values.forEach(function (row) {
 
+      if (!row[idx.id]) return;
+
       total++;
 
-      const kategori = String(
+      const kategori =
+        String(row[idx.kategori] || "")
+          .trim()
+          .toUpperCase();
 
-        row[indexKategori] || ""
+      const status =
+        String(row[idx.status] || "")
+          .trim()
+          .toUpperCase();
 
-      ).trim().toUpperCase();
+      const tanggal =
+        new Date(row[idx.tanggal]);
 
-      const status = String(
-
-        row[indexStatus] || ""
-
-      ).trim().toUpperCase();
-
-      const tanggal = new Date(
-
-        row[indexTanggal]
-
-      );
-
-      // =======================
-      // KATEGORI
-      // =======================
+      // ======================
+      // CATEGORY
+      // ======================
 
       switch (kategori) {
 
@@ -137,49 +123,52 @@ function getDashboard(data) {
           listrik++;
           break;
 
-        default:
+        case "GEDUNG":
+        case "KONDISI GEDUNG":
           gedung++;
           break;
 
       }
 
-      // =======================
+      // ======================
       // STATUS
-      // =======================
+      // ======================
 
       switch (status) {
 
         case "OPEN":
+        case "WAITING":
           open++;
           break;
 
         case "PROGRESS":
+        case "ON PROGRESS":
           progress++;
           break;
 
         case "DONE":
+        case "COMPLETED":
+        case "CLOSED":
           done++;
           break;
 
       }
 
-      // =======================
-      // TODAY & MONTH
-      // =======================
+      // ======================
+      // DATE
+      // ======================
 
       if (!isNaN(tanggal.getTime())) {
 
-        const current = Utilities.formatDate(
+        if (
 
-          tanggal,
+          Utilities.formatDate(
+            tanggal,
+            TIMEZONE,
+            "yyyy-MM-dd"
+          ) === today
 
-          CONFIG.TIMEZONE,
-
-          "yyyy-MM-dd"
-
-        );
-
-        if (current === today) {
+        ) {
 
           todayReport++;
 
@@ -191,17 +180,22 @@ function getDashboard(data) {
 
     });
 
-    // ==========================================
+    // ======================
     // RECENT ACTIVITY
-    // ==========================================
+    // ======================
 
-    const activity = [...values]
+    const activity = values
+
+      .filter(function (row) {
+
+        return row[idx.id];
+
+      })
 
       .sort(function (a, b) {
 
-        return new Date(b[indexTanggal]) -
-
-               new Date(a[indexTanggal]);
+        return new Date(b[idx.tanggal]) -
+               new Date(a[idx.tanggal]);
 
       })
 
@@ -209,83 +203,71 @@ function getDashboard(data) {
 
       .map(function (row) {
 
-        const d = new Date(row[indexTanggal]);
+        const tgl = new Date(row[idx.tanggal]);
 
         return {
 
-          id: row[indexId],
+          id: row[idx.id],
 
           kategori: String(
-
-            row[indexKategori] || ""
-
-          ).toUpperCase(),
+            row[idx.kategori] || ""
+          ),
 
           lokasi: String(
-
-            row[indexLokasi] || "-"
-
+            row[idx.lokasi] || "-"
           ),
 
           status: String(
-
-            row[indexStatus] || "OPEN"
-
-          ).toUpperCase(),
+            row[idx.status] || ""
+          ),
 
           waktu: Utilities.formatDate(
-
-            d,
-
-            CONFIG.TIMEZONE,
-
+            tgl,
+            TIMEZONE,
             "HH:mm"
-
           ),
 
           tanggal: Utilities.formatDate(
-
-            d,
-
-            CONFIG.TIMEZONE,
-
-            "dd/MM/yyyy"
-
+            tgl,
+            TIMEZONE,
+            "yyyy-MM-dd"
           )
 
         };
 
       });
 
-    // ==========================================
+    // ======================
     // RESPONSE
-    // ==========================================
+    // ======================
 
     return success({
 
-      total: total,
+      total,
+      ac,
+      listrik,
+      gedung,
 
-      ac: ac,
+      open,
+      progress,
+      done,
 
-      listrik: listrik,
+      totalTrend: 0,
+      acTrend: 0,
+      listrikTrend: 0,
+      gedungTrend: 0,
 
-      gedung: gedung,
-
-      open: open,
-
-      progress: progress,
-
-      done: done,
-
-      todayReport: todayReport,
+      todayReport,
 
       onlineUser: 1,
 
       pendingApproval: open,
 
-      activity: activity,
+      activity,
 
-      monthly: monthly,
+      monthly,
+
+      serverTime: now(),
 
       lastUpdate: now()
 
@@ -296,19 +278,13 @@ function getDashboard(data) {
   catch (err) {
 
     saveError(
-
       "Dashboard.gs",
-
       err.toString()
-
     );
 
-    return failed(
-
-      err.toString()
-
-    );
+    return failed(err.toString());
 
   }
 
 }
+

@@ -7,12 +7,12 @@ function getDashboard(data) {
 
   try {
 
+    // ==========================================
+    // REPORT SHEET
+    // ==========================================
+
     const sheet = getSheet("REPORT");
     const values = sheet.getDataRange().getValues();
-
-    // ==========================================
-    // EMPTY DATA
-    // ==========================================
 
     if (values.length <= 1) {
 
@@ -28,13 +28,12 @@ function getDashboard(data) {
         done: 0,
 
         todayReport: 0,
-        onlineUser: 0,
+        onlineUser: 1,
         pendingApproval: 0,
 
         activity: [],
         monthly: Array(12).fill(0),
 
-        serverTime: now(),
         lastUpdate: now()
 
       });
@@ -47,33 +46,36 @@ function getDashboard(data) {
 
     const header = values.shift();
 
-    const headers = header.map(item =>
-      String(item).trim().toLowerCase()
-    );
+    const headers = header.map(function (item) {
+
+      return String(item)
+        .trim()
+        .toLowerCase();
+
+    });
 
     const indexId = headers.indexOf("id");
     const indexTanggal = headers.indexOf("tanggal");
-    const indexPelapor = headers.indexOf("pelapor");
     const indexLokasi = headers.indexOf("lokasi");
     const indexKategori = headers.indexOf("kategori");
     const indexStatus = headers.indexOf("status");
 
     if (
 
-      indexId === -1 ||
-      indexTanggal === -1 ||
-      indexKategori === -1 ||
-      indexStatus === -1 ||
-      indexLokasi === -1
+      indexId < 0 ||
+      indexTanggal < 0 ||
+      indexLokasi < 0 ||
+      indexKategori < 0 ||
+      indexStatus < 0
 
     ) {
 
-      return failure("Header REPORT tidak sesuai.");
+      return failed("Header REPORT tidak sesuai.");
 
     }
 
     // ==========================================
-    // SUMMARY
+    // KPI
     // ==========================================
 
     let total = 0;
@@ -90,72 +92,86 @@ function getDashboard(data) {
     const monthly = Array(12).fill(0);
 
     const today = Utilities.formatDate(
+
       new Date(),
+
       CONFIG.TIMEZONE,
+
       "yyyy-MM-dd"
+
     );
 
-    values.forEach(row => {
+    values.forEach(function (row) {
 
       total++;
 
       const kategori = String(
+
         row[indexKategori] || ""
+
       ).trim().toUpperCase();
 
       const status = String(
+
         row[indexStatus] || ""
+
       ).trim().toUpperCase();
 
-      const tanggalObj = new Date(
+      const tanggal = new Date(
+
         row[indexTanggal]
+
       );
 
-      // =========================
+      // =======================
       // KATEGORI
-      // =========================
+      // =======================
 
-      if (kategori === "AC") {
+      switch (kategori) {
 
-        ac++;
+        case "AC":
+          ac++;
+          break;
 
-      } else if (kategori === "LISTRIK") {
+        case "LISTRIK":
+          listrik++;
+          break;
 
-        listrik++;
-
-      } else {
-
-        gedung++;
+        default:
+          gedung++;
+          break;
 
       }
 
-      // =========================
+      // =======================
       // STATUS
-      // =========================
+      // =======================
 
-      if (status === "OPEN") {
+      switch (status) {
 
-        open++;
+        case "OPEN":
+          open++;
+          break;
 
-      } else if (status === "PROGRESS") {
+        case "PROGRESS":
+          progress++;
+          break;
 
-        progress++;
-
-      } else if (status === "DONE") {
-
-        done++;
+        case "DONE":
+          done++;
+          break;
 
       }
 
-      // =========================
-      // BULAN & TODAY
-      // =========================
+      // =======================
+      // TODAY & MONTH
+      // =======================
 
-      if (!isNaN(tanggalObj.getTime())) {
+      if (!isNaN(tanggal.getTime())) {
 
-        const tgl = Utilities.formatDate(
+        const current = Utilities.formatDate(
 
-          tanggalObj,
+          tanggal,
 
           CONFIG.TIMEZONE,
 
@@ -163,25 +179,25 @@ function getDashboard(data) {
 
         );
 
-        if (tgl === today) {
+        if (current === today) {
 
           todayReport++;
 
         }
 
-        monthly[tanggalObj.getMonth()]++;
+        monthly[tanggal.getMonth()]++;
 
       }
 
     });
 
     // ==========================================
-    // ACTIVITY
+    // RECENT ACTIVITY
     // ==========================================
 
-    const recent = [...values]
+    const activity = [...values]
 
-      .sort((a, b) => {
+      .sort(function (a, b) {
 
         return new Date(b[indexTanggal]) -
 
@@ -191,7 +207,7 @@ function getDashboard(data) {
 
       .slice(0, 5)
 
-      .map(row => {
+      .map(function (row) {
 
         const d = new Date(row[indexTanggal]);
 
@@ -200,13 +216,21 @@ function getDashboard(data) {
           id: row[indexId],
 
           kategori: String(
-            row[indexKategori]
+
+            row[indexKategori] || ""
+
           ).toUpperCase(),
 
-          lokasi: row[indexLokasi],
+          lokasi: String(
+
+            row[indexLokasi] || "-"
+
+          ),
 
           status: String(
-            row[indexStatus]
+
+            row[indexStatus] || "OPEN"
+
           ).toUpperCase(),
 
           waktu: Utilities.formatDate(
@@ -239,31 +263,29 @@ function getDashboard(data) {
 
     return success({
 
-      total,
+      total: total,
 
-      ac,
+      ac: ac,
 
-      listrik,
+      listrik: listrik,
 
-      gedung,
+      gedung: gedung,
 
-      open,
+      open: open,
 
-      progress,
+      progress: progress,
 
-      done,
+      done: done,
 
-      todayReport,
+      todayReport: todayReport,
 
       onlineUser: 1,
 
       pendingApproval: open,
 
-      activity: recent,
+      activity: activity,
 
-      monthly,
-
-      serverTime: now(),
+      monthly: monthly,
 
       lastUpdate: now()
 
@@ -281,7 +303,7 @@ function getDashboard(data) {
 
     );
 
-    return failure(
+    return failed(
 
       err.toString()
 

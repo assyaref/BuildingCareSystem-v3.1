@@ -28,38 +28,52 @@ const Dashboard = (() => {
 // INIT
 // ==================================================
 
+let initialized = false;
+let initializing = false;
+
 async function init() {
 
-    // Mencegah inisialisasi berulang
-    if (initialized) return;
+    // Sudah selesai atau sedang berjalan
+    if (initialized || initializing) {
+        return;
+    }
+
+    initializing = true;
 
     App.log("Dashboard Module Loaded");
 
     try {
 
-        // Validasi session/login
+        // Validasi session
         const valid = await AuthService.guard();
 
         if (!valid) {
             return;
         }
 
-        // Load data user
+        // Load user profile
         loadUser();
 
-        // Load data dashboard
+        // Load dashboard data
         await loadSummary();
 
-        // Tandai berhasil diinisialisasi
+        // Tandai berhasil
         initialized = true;
 
-        App.log("Dashboard Initialized");
+        App.log("Dashboard Initialized Successfully");
 
     } catch (err) {
 
         initialized = false;
 
+        console.error("Dashboard Init Error:", err);
+
         App.handleError(err);
+
+    } finally {
+
+        // Selalu reset lock
+        initializing = false;
 
     }
 

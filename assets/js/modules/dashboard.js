@@ -24,25 +24,44 @@ const Dashboard = (() => {
     let donutChart = null;
     let lineChart = null;
    
-    // ==================================================
-    // INIT
-    // ==================================================
+// ==================================================
+// INIT
+// ==================================================
 
-    async function init() {
+async function init() {
 
+    // Mencegah inisialisasi berulang
     if (initialized) return;
 
     App.log("Dashboard Module Loaded");
 
-    const valid = await AuthService.guard();
+    try {
 
-    if (!valid) return;
+        // Validasi session/login
+        const valid = await AuthService.guard();
 
-    initialized = true;
+        if (!valid) {
+            return;
+        }
 
-    loadUser();
+        // Load data user
+        loadUser();
 
-    await loadSummary();
+        // Load data dashboard
+        await loadSummary();
+
+        // Tandai berhasil diinisialisasi
+        initialized = true;
+
+        App.log("Dashboard Initialized");
+
+    } catch (err) {
+
+        initialized = false;
+
+        App.handleError(err);
+
+    }
 
 }
     // ==================================================

@@ -105,16 +105,44 @@ const Dashboard = (() => {
     // RENDER SUMMARY
     // ==================================================
 
-    function renderSummary() {
+function renderSummary(){
 
-setText("totalReport", dashboardData.total || 0);
-setText("acTotal", dashboardData.ac || 0);
-setText("listrikTotal", dashboardData.listrik || 0);
-setText("gedungTotal", dashboardData.gedung || 0);
-setText("totalOpen", dashboardData.open || 0);
-setText("totalProgress", dashboardData.progress || 0);
-setText("totalDone", dashboardData.done || 0);
-    }
+    DashboardView.animateCounter(
+        "totalReport",
+        dashboardData.total || 0
+    );
+
+    DashboardView.animateCounter(
+        "acTotal",
+        dashboardData.ac || 0
+    );
+
+    DashboardView.animateCounter(
+        "listrikTotal",
+        dashboardData.listrik || 0
+    );
+
+    DashboardView.animateCounter(
+        "gedungTotal",
+        dashboardData.gedung || 0
+    );
+
+    DashboardView.animateCounter(
+        "totalOpen",
+        dashboardData.open || 0
+    );
+
+    DashboardView.animateCounter(
+        "totalProgress",
+        dashboardData.progress || 0
+    );
+
+    DashboardView.animateCounter(
+        "totalDone",
+        dashboardData.done || 0
+    );
+
+}
 
     // ==================================================
     // HELPER
@@ -176,7 +204,35 @@ function setLineChart(instance) {
  */
 
 const DashboardView = (() => {
+function animateCounter(id,endValue){
 
+    const element = document.getElementById(id);
+
+    if(!element) return;
+
+    let start = Number(element.textContent) || 0;
+
+    const duration = 800;
+
+    const step = Math.max(1,Math.ceil(endValue/30));
+
+    const timer = setInterval(()=>{
+
+        start += step;
+
+        if(start>=endValue){
+
+            start=endValue;
+
+            clearInterval(timer);
+
+        }
+
+        element.textContent=start;
+
+    },duration/30);
+
+}
     // ==================================================
     // CARD ANIMATION
     // ==================================================
@@ -234,11 +290,11 @@ function renderActivity() {
    container.innerHTML = list.map(item => {
 const status = item.status || "OPEN";
     const icon =
-      status === "DONE"
-            ? "bi-check-circle-fill"
-            : item.status === "PROGRESS"
-            ? "bi-arrow-repeat"
-            : "bi-folder2-open";
+    status === "DONE"
+        ? "bi-check-circle-fill"
+        : status === "PROGRESS"
+        ? "bi-arrow-repeat"
+        : "bi-folder2-open";
 
     return `
 
@@ -389,13 +445,14 @@ options:{
     // PUBLIC
     // ==================================================
 
-    return {
-        animateCards,
-        renderActivity,
-        renderChart,
-        updateLastRefresh,
-        refresh
-    };
+   return {
+    animateCards,
+    animateCounter,
+    renderActivity,
+    renderChart,
+    updateLastRefresh,
+    refresh
+};
 
 })();
 

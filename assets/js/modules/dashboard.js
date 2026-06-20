@@ -1367,12 +1367,24 @@ function updateFooter() {
 
 }
      
-// Helper Lokal
-function setFooter(id, value){
-    const el = document.getElementById(id);
-    if(el){
-        el.textContent = value;
+// =====================================================
+// FOOTER HELPER
+// =====================================================
+
+function setFooter(id, value) {
+
+    const element = document.getElementById(id);
+
+    if (!element) {
+
+        console.warn("[Footer] Element tidak ditemukan :", id);
+
+        return;
+
     }
+
+    element.textContent = value ?? "-";
+
 }
     // ==================================================
     // PUBLIC

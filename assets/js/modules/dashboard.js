@@ -491,19 +491,19 @@ function setLineChart(instance) {
 // ==================================================
 
 return {
-    init,
-    loadUser,
-    loadSummary,
-    renderSummary,
-    getData,
-    getDonutChart,
-    setDonutChart,
-    getLineChart,
-    setLineChart
+
+    animateCards,
+    animateCounter,
+    setTrend,
+    renderActivity,
+    renderChart,
+    renderLineChart,
+    updateLastRefresh,
+    refresh
+
 };
 
 })();
-
 /**
  * =====================================================
  * DASHBOARD VIEW

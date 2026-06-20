@@ -1,1 +1,46 @@
+<form id="reportForm">
 
+    <input id="nama" class="form-control">
+
+    <input id="departemen" class="form-control">
+
+    <input id="lokasi" class="form-control">
+
+    <select id="kategori">
+        <option value="">Pilih</option>
+        <option>AC</option>
+        <option>LISTRIK</option>
+        <option>GEDUNG</option>
+    </select>
+
+    <select id="prioritas">
+        <option value="">Pilih</option>
+        <option>LOW</option>
+        <option>MEDIUM</option>
+        <option>HIGH</option>
+    </select>
+
+    <textarea id="deskripsi"></textarea>
+
+    <input
+        id="photo"
+        type="file"
+        accept="image/*">
+
+    <img
+        id="previewImage"
+        class="img-fluid d-none mt-3">
+
+    <button type="submit">
+        Kirim Report
+    </button>
+
+    <button
+        type="button"
+        id="resetReport">
+
+        Reset
+
+    </button>
+
+</form>

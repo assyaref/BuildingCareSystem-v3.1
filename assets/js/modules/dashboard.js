@@ -1280,26 +1280,68 @@ async function init() {
     }
 
 }
-// =====================
-// Fuunction Start Clock
-//======================
+// =====================================================
+// REALTIME CLOCK
+// =====================================================
+
 let clockInterval = null;
 
-function startClock(){
+/**
+ * Start Realtime Clock
+ */
+function startClock() {
 
-    if(clockInterval) return;
+    // Hindari multiple interval
+    if (clockInterval) return;
 
     updateClock();
 
-    clockInterval = setInterval(updateClock,1000);
+    clockInterval = setInterval(updateClock, 1000);
 
 }
 
-function updateClock(){
+/**
+ * Stop Clock
+ */
+function stopClock() {
+
+    if (!clockInterval) return;
+
+    clearInterval(clockInterval);
+
+    clockInterval = null;
+
+}
+
+/**
+ * Update Date & Time
+ */
+function updateClock() {
+
+    const now = new Date();
+
+    // =========================
+    // TIME
+    // =========================
 
     setFooter(
         "currentTime",
-        new Date().toLocaleTimeString("id-ID")
+        now.toLocaleTimeString("id-ID", {
+            hour12: false
+        })
+    );
+
+    // =========================
+    // DATE
+    // =========================
+
+    setFooter(
+        "currentDate",
+        now.toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        })
     );
 
 }

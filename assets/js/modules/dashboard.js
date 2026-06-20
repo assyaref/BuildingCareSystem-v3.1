@@ -1120,12 +1120,10 @@ async function refresh() {
             return false;
         }
 
-        [
-            renderActivity,
-            renderChart,
-            renderLineChart,
-            updateLastRefresh
-        ].forEach(fn => fn());
+        renderActivity();
+        renderChart();
+        renderLineChart();
+        updateLastRefresh();
 
         App.log("Dashboard Refresh Success");
 
@@ -1146,21 +1144,6 @@ async function refresh() {
     }
 
 }
-     // ... function lainnya ...
-
-    return {
-        animateCards,
-        animateCounter,
-        setTrend,
-        renderActivity,
-        renderChart,
-        renderLineChart,
-        updateLastRefresh,
-        refresh
-    };
-
-})();   
-    
 /**
  * =====================================================
  * DASHBOARD MODULE

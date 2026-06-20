@@ -1297,7 +1297,6 @@ let clockInterval = null;
  */
 function startClock() {
 
-    // Hindari multiple interval
     if (clockInterval) return;
 
     updateClock();
@@ -1307,7 +1306,7 @@ function startClock() {
 }
 
 /**
- * Stop Clock
+ * Stop Realtime Clock
  */
 function stopClock() {
 
@@ -1327,6 +1326,19 @@ function updateClock() {
     const now = new Date();
 
     // =========================
+    // DATE
+    // =========================
+
+    setFooter(
+        "todayDate",
+        now.toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        })
+    );
+
+    // =========================
     // TIME
     // =========================
 
@@ -1334,19 +1346,6 @@ function updateClock() {
         "currentTime",
         now.toLocaleTimeString("id-ID", {
             hour12: false
-        })
-    );
-
-    // =========================
-    // DATE
-    // =========================
-
-    setFooter(
-        "currentDate",
-        now.toLocaleDateString("id-ID", {
-            day: "numeric",
-            month: "long",
-            year: "numeric"
         })
     );
 

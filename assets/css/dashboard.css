@@ -683,6 +683,15 @@ canvas{
     max-height:320px;
 
 }
+.monthly-chart{
+
+    position:relative;
+
+    height:420px;
+
+    width:100%;
+
+}
 
 /* ==========================
 Scrollbar

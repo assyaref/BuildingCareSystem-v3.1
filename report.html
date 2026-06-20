@@ -1,46 +1,198 @@
-<form id="reportForm">
+<form id="reportForm" class="enterprise-form">
 
-    <input id="nama" class="form-control">
+    <div class="row g-4">
 
-    <input id="departemen" class="form-control">
+        <!-- Nama -->
+        <div class="col-md-4">
+            <label class="form-label">
+                <i class="bi bi-person"></i>
+                Nama Pelapor
+            </label>
 
-    <input id="lokasi" class="form-control">
+            <input
+                id="nama"
+                type="text"
+                class="form-control"
+                placeholder="Masukkan nama"
+                required>
+        </div>
 
-    <select id="kategori">
-        <option value="">Pilih</option>
-        <option>AC</option>
-        <option>LISTRIK</option>
-        <option>KONDISI GEDUNG</option>
-    </select>
+        <!-- Departemen -->
+        <div class="col-md-4">
+            <label class="form-label">
+                <i class="bi bi-building"></i>
+                Departemen
+            </label>
 
-    <select id="prioritas">
-        <option value="">Pilih</option>
-        <option>LOW</option>
-        <option>MEDIUM</option>
-        <option>HIGH</option>
-    </select>
+            <input
+                id="departemen"
+                type="text"
+                class="form-control"
+                placeholder="Departemen"
+                required>
+        </div>
 
-    <textarea id="deskripsi"></textarea>
+        <!-- Lokasi -->
+        <div class="col-md-4">
+            <label class="form-label">
+                <i class="bi bi-geo-alt"></i>
+                Lokasi
+            </label>
 
-    <input
-        id="photo"
-        type="file"
-        accept="image/*">
+            <input
+                id="lokasi"
+                type="text"
+                class="form-control"
+                placeholder="Lokasi Kerusakan"
+                required>
+        </div>
 
-    <img
-        id="previewImage"
-        class="img-fluid d-none mt-3">
+        <!-- Kategori -->
+        <div class="col-md-6">
 
-    <button type="submit">
-        Kirim Report
-    </button>
+            <label class="form-label">
+                <i class="bi bi-grid"></i>
+                Kategori
+            </label>
 
-    <button
-        type="button"
-        id="resetReport">
+            <select
+                id="kategori"
+                class="form-select"
+                required>
 
-        Reset
+                <option value="">Pilih Kategori</option>
 
-    </button>
+                <option value="AC">
+                    AC
+                </option>
+
+                <option value="LISTRIK">
+                    LISTRIK
+                </option>
+
+                <option value="GEDUNG">
+                    KONDISI GEDUNG
+                </option>
+
+            </select>
+
+        </div>
+
+        <!-- Prioritas -->
+        <div class="col-md-6">
+
+            <label class="form-label">
+                <i class="bi bi-exclamation-circle"></i>
+                Prioritas
+            </label>
+
+            <select
+                id="prioritas"
+                class="form-select"
+                required>
+
+                <option value="">Pilih Prioritas</option>
+
+                <option value="LOW">
+                    🟢 LOW
+                </option>
+
+                <option value="MEDIUM">
+                    🟠 MEDIUM
+                </option>
+
+                <option value="HIGH">
+                    🔴 HIGH
+                </option>
+
+            </select>
+
+        </div>
+
+        <!-- Deskripsi -->
+
+        <div class="col-12">
+
+            <label class="form-label">
+                <i class="bi bi-card-text"></i>
+                Deskripsi Kerusakan
+            </label>
+
+            <textarea
+                id="deskripsi"
+                class="form-control"
+                rows="5"
+                placeholder="Tuliskan detail kerusakan..."
+                required></textarea>
+
+        </div>
+
+        <!-- Upload -->
+
+        <div class="col-12">
+
+            <label class="form-label">
+
+                <i class="bi bi-camera"></i>
+
+                Upload Foto
+
+            </label>
+
+            <div class="upload-box">
+
+                <input
+                    id="photo"
+                    type="file"
+                    class="form-control"
+                    accept="image/*">
+
+            </div>
+
+        </div>
+
+        <!-- Preview -->
+
+        <div class="col-12 text-center">
+
+            <img
+                id="previewImage"
+                class="img-fluid rounded shadow-sm d-none"
+                style="max-height:300px;">
+
+        </div>
+
+        <!-- Button -->
+
+        <div class="col-12">
+
+            <div class="d-flex justify-content-end gap-3">
+
+                <button
+                    type="button"
+                    id="resetReport"
+                    class="btn btn-outline-secondary">
+
+                    <i class="bi bi-arrow-clockwise"></i>
+
+                    Reset
+
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+
+                    <i class="bi bi-send-fill"></i>
+
+                    Kirim Report
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </form>

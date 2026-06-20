@@ -1,311 +1,308 @@
 // ======================================================
 // Building Care System Enterprise v3.2
-// File : assets/js/modules/report.js
-// Radiant Group Duri
+// assets/js/modules/report.js
+// Sprint 4.3 - Part 1
 // ======================================================
 
 "use strict";
 
-const Report = (() => {
-
-    // ============================================
-    // PRIVATE STATE
-    // ============================================
-
-    let initialized = false;
-
-    let isSubmitting = false;
-
-    let photoFile = null;
+const ReportModule = (() => {
+    let loadingModal = null;
+    let successModal = null;
+    let toast = null;
+    const DRAFT_KEY = "BCS_REPORT_DRAFT";
 
     // ============================================
     // INIT
     // ============================================
-
     async function init() {
-
-        if (initialized) {
-            return true;
-        }
-
         App.log("Report Module Loaded");
 
-        bindEvents();
+        const valid = await AuthService.verifySession();
+        if (!valid) {
+            App.redirect("login.html");
+            return;
+        }
 
-        initialized = true;
-
-        return true;
-
+        initComponent();
+        loadUser();
+        loadDraft();
+        bindSubmit();
+        bindResetButton();
+        bindImagePreview();
+        bindDropArea();
+        bindCharacterCounter();
+        bindDraft();
     }
 
     // ============================================
-    // BIND EVENTS
+    // COMPONENT
     // ============================================
-
-    function bindEvents() {
-
-        const form = document.getElementById("reportForm");
-
-        if (form) {
-
-            form.addEventListener("submit", async (event) => {
-
-                event.preventDefault();
-
-                await submit();
-
-            });
-
-        }
-
-        const resetButton =
-            document.getElementById("resetReport");
-
-        if (resetButton) {
-
-            resetButton.addEventListener("click", reset);
-
-        }
-
-        const photoInput =
-            document.getElementById("photo");
-
-        if (photoInput) {
-
-            photoInput.addEventListener("change", previewImage);
-
-        }
-
+    function initComponent() {
+        loadingModal = new bootstrap.Modal(document.getElementById("loadingModal"));
+        successModal = new bootstrap.Modal(document.getElementById("successModal"));
+        toast = new bootstrap.Toast(document.getElementById("reportToast"));
     }
 
     // ============================================
-    // GET FORM DATA
+    // USER SESSION
     // ============================================
+    function loadUser() {
+        const session = App.getSession();
+        if (!session) return;
 
-    function getFormData() {
+        document.getElementById("userName").textContent = session.nama || "-";
+        document.getElementById("userRole").textContent = session.role || "-";
+        document.getElementById("nama").value = session.nama || "";
+        document.getElementById("departemen").value = session.departemen || "";
+    }
 
-        return {
+    // ============================================
+    // IMAGE PREVIEW & DROP AREA
+    // ============================================
+    function bindImagePreview() {
+        const input = document.getElementById("photo");
+        if (!input) return;
+        input.addEventListener("change", previewImage);
+    }
 
-            nama:
-                document.getElementById("nama")?.value.trim(),
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (!file) {
+            document.getElementById("previewImage").classList.add("d-none");
+            document.getElementById("previewPlaceholder").classList.remove("d-none");
+            return;
+        }
 
-            departemen:
-                document.getElementById("departemen")?.value.trim(),
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            document.getElementById("previewImage").src = e.target.result;
+            document.getElementById("previewImage").classList.remove("d-none");
+            document.getElementById("previewPlaceholder").classList.add("d-none");
+        };
+        reader.readAsDataURL(file);
+    }
 
-            lokasi:
-                document.getElementById("lokasi")?.value.trim(),
+    function bindDropArea() {
+        const wrapper = document.querySelector(".preview-wrapper");
+        const input = document.getElementById("photo");
+        if (!wrapper || !input) return;
 
-            kategori:
-                document.getElementById("kategori")?.value,
+        wrapper.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            wrapper.classList.add("dragging");
+        });
 
-            prioritas:
-                document.getElementById("prioritas")?.value,
+        wrapper.addEventListener("dragleave", () => {
+            wrapper.classList.remove("dragging");
+        });
 
-            deskripsi:
-                document.getElementById("deskripsi")?.value.trim()
+        wrapper.addEventListener("drop", (event) => {
+            event.preventDefault();
+            wrapper.classList.remove("dragging");
 
+            if (!event.dataTransfer.files.length) return;
+            input.files = event.dataTransfer.files;
+            previewImage({ target: input });
+        });
+    }
+
+    // ============================================
+    // CHARACTER COUNTER
+    // ============================================
+    function bindCharacterCounter() {
+        const textarea = document.getElementById("deskripsi");
+        if (!textarea) return;
+
+        let counter = document.getElementById("charCounter");
+        if (!counter) {
+            counter = document.createElement("small");
+            counter.id = "charCounter";
+            counter.className = "text-muted float-end mt-2";
+            textarea.parentNode.appendChild(counter);
+        }
+
+        const update = () => {
+            counter.textContent = textarea.value.length + " / 500 karakter";
         };
 
+        textarea.addEventListener("input", update);
+        update();
     }
+
+    // ============================================
+    // AUTO SAVE DRAFT
+    // ============================================
+    function saveDraft() {
+        const draft = {
+            nama: document.getElementById("nama").value,
+            departemen: document.getElementById("departemen").value,
+            lokasi: document.getElementById("lokasi").value,
+            kategori: document.getElementById("kategori").value,
+            prioritas: document.getElementById("prioritas").value,
+            deskripsi: document.getElementById("deskripsi").value
+        };
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    }
+
+    function loadDraft() {
+        const draft = localStorage.getItem(DRAFT_KEY);
+        if (!draft) return;
+
+        const data = JSON.parse(draft);
+        Object.keys(data).forEach((key) => {
+            const element = document.getElementById(key);
+            if (element) {
+                element.value = data[key];
+            }
+        });
+    }
+
+    function bindDraft() {
+        ["lokasi", "kategori", "prioritas", "deskripsi"].forEach((id) => {
+            const element = document.getElementById(id);
+            if (!element) return;
+            element.addEventListener("input", saveDraft);
+        });
+    }
+
+    // ============================================
+    // RESET BUTTON
+    // ============================================
+    function bindResetButton() {
+        const button = document.getElementById("resetReport");
+        if (!button) return;
+
+        button.addEventListener("click", () => {
+            localStorage.removeItem(DRAFT_KEY);
+            formReset();
+            showToast("Form berhasil direset", "success");
+        });
+    }
+
+    function formReset() {
+        document.getElementById("reportForm").reset();
+        document.getElementById("previewImage").classList.add("d-none");
+        document.getElementById("previewPlaceholder").classList.remove("d-none");
+        loadUser();
+    }
+
+    // ============================================
+    // TOAST & MODAL UTILITIES
+    // ============================================
+    function showToast(message) {
+        document.getElementById("toastMessage").textContent = message;
+        toast.show();
+    }
+
+    function showLoading() { loadingModal.show(); }
+    function hideLoading() { loadingModal.hide(); }
+    function showSuccess() { successModal.show(); }
 
     // ============================================
     // VALIDATION
     // ============================================
+    function validateForm() {
+        const required = ["nama", "departemen", "lokasi", "kategori", "prioritas", "deskripsi"];
 
-    function validate(data) {
-
-        if (!data.nama)
-            return "Nama wajib diisi.";
-
-        if (!data.departemen)
-            return "Departemen wajib diisi.";
-
-        if (!data.lokasi)
-            return "Lokasi wajib diisi.";
-
-        if (!data.kategori)
-            return "Kategori wajib dipilih.";
-
-        if (!data.prioritas)
-            return "Prioritas wajib dipilih.";
-
-        if (!data.deskripsi)
-            return "Deskripsi wajib diisi.";
-
-        if (data.deskripsi.length < 10)
-            return "Deskripsi minimal 10 karakter.";
-
-        return true;
-
-    }
-
-    // ============================================
-    // IMAGE PREVIEW
-    // ============================================
-
-    function previewImage(event) {
-
-        const file = event.target.files[0];
-
-        if (!file) return;
-
-        photoFile = file;
-
-        const reader = new FileReader();
-
-        reader.onload = function(e) {
-
-            const preview =
-                document.getElementById("previewImage");
-
-            if (preview) {
-
-                preview.src = e.target.result;
-
-                preview.classList.remove("d-none");
-
+        for (const id of required) {
+            const element = document.getElementById(id);
+            if (!element.value.trim()) {
+                App.toast("Mohon lengkapi seluruh form.", "warning");
+                element.focus();
+                return false;
             }
-
-        };
-
-        reader.readAsDataURL(file);
-
-    }
-
-    // ============================================
-    // SUBMIT
-    // ============================================
-
-    async function submit() {
-
-        if (isSubmitting) {
-
-            return;
-
         }
+        return true;
+    }
 
-        isSubmitting = true;
-
-        try {
-
-            const data = getFormData();
-
-            const validation = validate(data);
-
-            if (validation !== true) {
-
-                App.toast(validation, "warning");
-
+    // ============================================
+    // IMAGE TO BASE64
+    // ============================================
+    function imageToBase64(file) {
+        return new Promise((resolve, reject) => {
+            if (!file) {
+                resolve("");
                 return;
-
             }
+            const reader = new FileReader();
+            reader.onload = () => {
+                resolve(reader.result.split(",")[1]);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
 
-            App.showLoading();
+    // ============================================
+    // SUBMIT REPORT
+    // ============================================
+    function bindSubmit() {
+        const form = document.getElementById("reportForm");
+        if (!form) return;
 
-            const session = App.getSession();
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            await submitReport();
+        });
+    }
+
+    async function submitReport() {
+        try {
+            if (!validateForm()) return;
+
+            showLoading();
+
+            const photoFile = document.getElementById("photo").files[0];
+            const image = await imageToBase64(photoFile);
 
             const payload = {
-
-                token: session.token,
-
-                ...data,
-
-                photo: photoFile
-
+                token: App.getSession().token,
+                nama: document.getElementById("nama").value,
+                departemen: document.getElementById("departemen").value,
+                lokasi: document.getElementById("lokasi").value,
+                kategori: document.getElementById("kategori").value,
+                prioritas: document.getElementById("prioritas").value,
+                deskripsi: document.getElementById("deskripsi").value,
+                photo: image,
+                filename: photoFile ? photoFile.name : ""
             };
 
-            const result = await Api.post(
-                "saveReport",
-                payload
-            );
+            console.log("[REPORT]", payload);
 
-            if (!result.success) {
+            const response = await Api.post("saveReport", payload);
+            hideLoading();
 
-                App.toast(
-                    result.message ||
-                    "Gagal menyimpan laporan.",
-                    "error"
-                );
-
+            if (!response || response.success !== true) {
+                App.toast(response?.message || "Report gagal dikirim.", "error");
                 return;
-
             }
 
-            App.toast(
-                "Report berhasil dibuat.",
-                "success"
-            );
-
-            reset();
-
-            if (typeof DashboardView !== "undefined") {
-
-                DashboardView.refresh();
-
-            }
-
+            showSuccess();
+            localStorage.removeItem(DRAFT_KEY); // Hapus draft jika submit berhasil
+            formReset();
+            App.log("Report Success");
+        } catch (error) {
+            hideLoading();
+            console.error(error);
+            App.handleError(error);
         }
-
-        catch (err) {
-
-            console.error(err);
-
-            App.handleError(err);
-
-        }
-
-        finally {
-
-            App.hideLoading();
-
-            isSubmitting = false;
-
-        }
-
     }
 
     // ============================================
-    // RESET
+    // PUBLIC API
     // ============================================
-
-    function reset() {
-
-        const form =
-            document.getElementById("reportForm");
-
-        if (form) {
-
-            form.reset();
-
-        }
-
-        const preview =
-            document.getElementById("previewImage");
-
-        if (preview) {
-
-            preview.src = "";
-
-            preview.classList.add("d-none");
-
-        }
-
-        photoFile = null;
-
-    }
-
-    // ============================================
-    // PUBLIC
-    // ============================================
-
     return {
-
         init,
-
-        submit,
-
-        reset
-
+        previewImage,
+        submitReport,
+        formReset
     };
-
 })();
+
+// ======================================================
+// START
+// ======================================================
+document.addEventListener("DOMContentLoaded", async () => {
+    await ReportModule.init();
+});

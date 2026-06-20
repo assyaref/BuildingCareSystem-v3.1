@@ -1,640 +1,417 @@
-/* =====================================================
-   BUILDING CARE SYSTEM ENTERPRISE v3.2
-   REPORT PAGE
-===================================================== */
+```css
+/* ======================================================
+   Building Care System Enterprise v3.2
+   report.css
+====================================================== */
 
 :root{
 
---primary:#2563eb;
---primary-dark:#1d4ed8;
+    --primary:#2563EB;
+    --primary-light:#3B82F6;
 
---secondary:#64748b;
+    --success:#10B981;
+    --warning:#F59E0B;
+    --danger:#EF4444;
 
---success:#16a34a;
---warning:#f59e0b;
---danger:#dc2626;
+    --dark:#0F172A;
+    --gray:#64748B;
 
---background:#eef2f7;
+    --border:#E2E8F0;
 
---card:#ffffff;
+    --card:#FFFFFF;
 
---border:#e5e7eb;
+    --background:#F8FAFC;
 
---radius:18px;
+    --shadow:
 
---shadow:
-
-0 8px 24px rgba(15,23,42,.05);
-
---transition:.30s ease;
+        0 10px 30px rgba(15,23,42,.08);
 
 }
 
 *{
 
-margin:0;
-padding:0;
-box-sizing:border-box;
+    margin:0;
+    padding:0;
+
+    box-sizing:border-box;
+
+    font-family:
+
+        Inter,
+
+        sans-serif;
 
 }
 
 body{
 
-font-family:"Inter",sans-serif;
+    background:
 
-background:var(--background);
+        linear-gradient(
 
-color:#1f2937;
+            180deg,
+
+            #F8FAFC,
+
+            #EEF2FF
+
+        );
+
+    color:#1E293B;
 
 }
 
-
-/* =======================================
-Layout
-======================================= */
+/* =====================================================
+   Layout
+===================================================== */
 
 .layout-wrapper{
 
-display:flex;
+    display:flex;
 
-min-height:100vh;
+    min-height:100vh;
 
 }
 
-
-/* =======================================
-Sidebar
-======================================= */
+/* =====================================================
+   Sidebar
+===================================================== */
 
 .sidebar{
 
-width:260px;
+    width:270px;
 
-background:
+    background:#0F172A;
 
-linear-gradient(
-180deg,
-#0f4cc9,
-#1847aa
-);
+    color:white;
 
-color:white;
+    display:flex;
 
-display:flex;
+    flex-direction:column;
 
-flex-direction:column;
+    padding:30px;
 
-padding:25px;
+    position:fixed;
 
-position:fixed;
+    left:0;
+    top:0;
+    bottom:0;
 
-top:0;
-left:0;
-bottom:0;
-
-overflow:hidden;
+    z-index:100;
 
 }
 
 .sidebar-logo{
 
-text-align:center;
+    text-align:center;
 
-margin-bottom:50px;
+    margin-bottom:50px;
 
 }
 
 .sidebar-logo img{
 
-width:75px;
+    width:72px;
 
-height:75px;
-
-object-fit:contain;
-
-margin-bottom:15px;
+    margin-bottom:12px;
 
 }
 
 .sidebar-logo h5{
 
-font-weight:700;
-
-margin-bottom:4px;
+    font-weight:700;
 
 }
 
 .sidebar-logo small{
 
-opacity:.8;
+    opacity:.7;
 
 }
 
 .sidebar-menu{
 
-display:flex;
+    display:flex;
 
-flex-direction:column;
+    flex-direction:column;
 
-gap:10px;
+    gap:8px;
 
 }
 
 .sidebar-menu a{
 
-display:flex;
+    display:flex;
 
-align-items:center;
+    align-items:center;
 
-gap:12px;
+    gap:14px;
 
-padding:13px 16px;
+    text-decoration:none;
 
-border-radius:12px;
+    color:#CBD5E1;
 
-text-decoration:none;
+    padding:15px 18px;
 
-color:white;
+    border-radius:14px;
 
-transition:.30s;
+    transition:.30s;
 
-font-weight:500;
+}
+
+.sidebar-menu a i{
+
+    font-size:18px;
 
 }
 
 .sidebar-menu a:hover{
 
-background:rgba(255,255,255,.15);
+    background:rgba(255,255,255,.08);
+
+    color:white;
+
+    transform:translateX(6px);
 
 }
 
-.sidebar-menu a.active{
+.sidebar-menu .active{
 
-background:white;
+    background:var(--primary);
 
-color:#2563eb;
-
-font-weight:600;
+    color:white;
 
 }
 
-
-/* =======================================
-Main
-======================================= */
+/* =====================================================
+   Main
+===================================================== */
 
 .main-content{
 
-margin-left:260px;
+    flex:1;
 
-padding:35px;
+    margin-left:270px;
 
-width:100%;
+    padding:40px;
 
 }
 
-
-/* =======================================
-Header
-======================================= */
+/* =====================================================
+   Header
+===================================================== */
 
 .page-header{
 
-display:flex;
+    display:flex;
 
-justify-content:space-between;
+    justify-content:space-between;
 
-align-items:center;
+    align-items:center;
 
-margin-bottom:30px;
+    margin-bottom:25px;
 
 }
 
 .page-header h2{
 
-font-size:30px;
+    font-size:32px;
 
-font-weight:700;
+    font-weight:700;
 
 }
 
 .page-header small{
 
-color:#64748b;
+    color:var(--gray);
 
 }
 
-
-/* =======================================
-User
-======================================= */
-
 .user-profile{
 
-display:flex;
+    display:flex;
 
-align-items:center;
+    align-items:center;
 
-gap:15px;
-
-background:white;
-
-padding:15px 20px;
-
-border-radius:16px;
-
-box-shadow:var(--shadow);
+    gap:15px;
 
 }
 
 .avatar{
 
-width:52px;
+    width:54px;
 
-height:52px;
+    height:54px;
 
-border-radius:50%;
+    border-radius:50%;
 
-background:#2563eb;
+    background:var(--primary);
 
-display:flex;
+    color:white;
 
-align-items:center;
+    display:flex;
 
-justify-content:center;
+    justify-content:center;
 
-color:white;
+    align-items:center;
 
-font-size:22px;
+    font-size:22px;
 
 }
 
-
-/* =======================================
-Breadcrumb
-======================================= */
+/* =====================================================
+   Breadcrumb
+===================================================== */
 
 .page-breadcrumb{
 
-margin-bottom:25px;
+    display:flex;
 
-font-size:14px;
+    align-items:center;
 
-display:flex;
+    gap:10px;
 
-align-items:center;
+    color:var(--gray);
 
-gap:8px;
+    margin-bottom:30px;
 
-color:#64748b;
+    font-size:14px;
 
 }
 
+/* =====================================================
+   Summary Card
+===================================================== */
 
-/* =======================================
-Enterprise Card
-======================================= */
+.summary-card{
+
+    background:white;
+
+    border-radius:20px;
+
+    padding:24px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    box-shadow:var(--shadow);
+
+    transition:.30s;
+
+}
+
+.summary-card:hover{
+
+    transform:translateY(-6px);
+
+}
+
+.summary-icon{
+
+    width:62px;
+
+    height:62px;
+
+    border-radius:18px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    color:white;
+
+    font-size:26px;
+
+}
+
+.summary-icon.primary{
+
+    background:var(--primary);
+
+}
+
+.summary-icon.success{
+
+    background:var(--success);
+
+}
+
+.summary-icon.warning{
+
+    background:var(--warning);
+
+}
+
+.summary-icon.danger{
+
+    background:var(--danger);
+
+}
+
+.summary-card h3{
+
+    margin-top:8px;
+
+    font-weight:700;
+
+}
+
+/* =====================================================
+   Enterprise Card
+===================================================== */
 
 .enterprise-card{
 
-background:white;
+    background:white;
 
-border-radius:20px;
+    border-radius:24px;
 
-box-shadow:var(--shadow);
+    overflow:hidden;
 
-overflow:hidden;
+    box-shadow:var(--shadow);
 
-margin-bottom:25px;
+    margin-bottom:25px;
 
 }
 
 .card-header{
 
-padding:22px 28px;
+    display:flex;
 
-border-bottom:1px solid #edf2f7;
+    justify-content:space-between;
 
-background:#fafcff;
+    align-items:center;
+
+    padding:26px 32px;
+
+    border-bottom:1px solid var(--border);
 
 }
 
 .card-body{
 
-padding:30px;
+    padding:35px;
 
 }
 
+.status-badge{
 
-/* =======================================
-Input
-======================================= */
+    background:#DBEAFE;
 
-.form-label{
+    color:var(--primary);
 
-font-weight:600;
+    padding:8px 16px;
 
-margin-bottom:8px;
+    border-radius:30px;
 
-font-size:14px;
+    font-size:13px;
 
-}
-
-.form-control,
-
-.form-select{
-
-height:52px;
-
-border-radius:14px;
-
-border:1px solid #dbe2ea;
-
-transition:.25s;
-
-box-shadow:none;
+    font-weight:600;
 
 }
-
-textarea.form-control{
-
-height:auto;
-
-min-height:150px;
-
-padding-top:14px;
-
-}
-
-.form-control:focus,
-
-.form-select:focus{
-
-border-color:#2563eb;
-
-box-shadow:
-
-0 0 0 4px rgba(37,99,235,.10);
-
-}
-
-
-/* =======================================
-Preview
-======================================= */
-
-.preview-wrapper{
-
-height:220px;
-
-border:2px dashed #d6dce6;
-
-border-radius:18px;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-background:#fafafa;
-
-overflow:hidden;
-
-transition:.3s;
-
-}
-
-.preview-wrapper:hover{
-
-border-color:#2563eb;
-
-}
-
-.preview-image{
-
-width:100%;
-
-height:100%;
-
-object-fit:cover;
-
-}
-
-.preview-placeholder{
-
-display:flex;
-
-flex-direction:column;
-
-align-items:center;
-
-gap:12px;
-
-color:#94a3b8;
-
-font-size:15px;
-
-}
-
-
-/* =======================================
-Buttons
-======================================= */
-
-.btn{
-
-border-radius:12px;
-
-padding:12px 24px;
-
-font-weight:600;
-
-transition:.25s;
-
-}
-
-.btn-primary{
-
-background:#2563eb;
-
-border:none;
-
-}
-
-.btn-primary:hover{
-
-background:#1d4ed8;
-
-transform:translateY(-2px);
-
-}
-
-.btn-outline-secondary{
-
-border:1px solid #cbd5e1;
-
-}
-
-
-/* =======================================
-Feature Card
-======================================= */
-
-.enterprise-card .row .col-md-4{
-
-padding:25px;
-
-transition:.30s;
-
-border-radius:18px;
-
-}
-
-.enterprise-card .row .col-md-4:hover{
-
-background:#f8fafc;
-
-transform:translateY(-5px);
-
-}
-
-
-/* =======================================
-Modal
-======================================= */
-
-.modal-content{
-
-border-radius:22px;
-
-}
-
-
-/* =======================================
-Toast
-======================================= */
-
-.toast{
-
-border-radius:14px;
-
-box-shadow:var(--shadow);
-
-}
-
-
-/* =======================================
-Scrollbar
-======================================= */
-
-::-webkit-scrollbar{
-
-width:8px;
-
-}
-
-::-webkit-scrollbar-thumb{
-
-background:#cbd5e1;
-
-border-radius:20px;
-
-}
-
-
-/* =======================================
-Responsive
-======================================= */
-
-@media(max-width:992px){
-
-.sidebar{
-
-width:90px;
-
-padding:20px 10px;
-
-}
-
-.sidebar-logo h5,
-
-.sidebar-logo small{
-
-display:none;
-
-}
-
-.sidebar-menu a{
-
-justify-content:center;
-
-}
-
-.sidebar-menu span{
-
-display:none;
-
-}
-
-.main-content{
-
-margin-left:90px;
-
-padding:20px;
-
-}
-
-.page-header{
-
-flex-direction:column;
-
-align-items:flex-start;
-
-gap:20px;
-
-}
-
-}
-
-@media(max-width:768px){
-
-.main-content{
-
-margin-left:0;
-
-padding:15px;
-
-}
-
-.sidebar{
-
-display:none;
-
-}
-
-.page-header{
-
-gap:15px;
-
-}
-
-.user-profile{
-
-width:100%;
-
-}
-
-.card-body{
-
-padding:20px;
-
-}
-
-.preview-wrapper{
-
-height:180px;
-
-}
-
-}
+```

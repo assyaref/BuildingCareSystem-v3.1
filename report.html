@@ -1,932 +1,301 @@
-```html
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
-
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report | Building Care System Enterprise</title>
 
-    <title>
-        Report | Building Care System Enterprise
-    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Bootstrap Icons -->
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-        rel="stylesheet">
-
-    <!-- Google Font -->
-
-    <link rel="preconnect"
-        href="https://fonts.googleapis.com">
-
-    <link rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-
-    <!-- Custom CSS -->
-
-    <link rel="stylesheet"
-        href="assets/css/report.css">
-
-    <link rel="icon"
-        href="assets/img/logo.png">
-
+    <link rel="stylesheet" href="assets/css/report.css">
+    <link rel="icon" href="assets/img/logo.png">
 </head>
 
 <body>
 
-<div class="layout-wrapper">
+    <div class="layout-wrapper">
 
-    <!-- ========================================= -->
-    <!-- SIDEBAR -->
-    <!-- ========================================= -->
-
-    <aside class="sidebar">
-
-        <div class="sidebar-logo">
-
-            <img
-                src="assets/img/logo.png"
-                alt="Logo">
-
-            <h5>
-                Building Care
-            </h5>
-
-            <small>
-                Enterprise v3.2
-            </small>
-
-        </div>
-
-        <nav class="sidebar-menu">
-
-            <a href="dashboard.html">
-
-                <i class="bi bi-grid-1x2-fill"></i>
-
-                Dashboard
-
-            </a>
-
-            <a
-                href="report.html"
-                class="active">
-
-                <i class="bi bi-clipboard-plus-fill"></i>
-
-                Report
-
-            </a>
-
-            <a href="monitoring.html">
-
-                <i class="bi bi-display-fill"></i>
-
-                Monitoring
-
-            </a>
-
-            <a href="history.html">
-
-                <i class="bi bi-clock-history"></i>
-
-                History
-
-            </a>
-
-        </nav>
-
-    </aside>
-
-    <!-- ========================================= -->
-    <!-- MAIN -->
-    <!-- ========================================= -->
-
-    <main class="main-content">
-
-        <!-- =============================== -->
-        <!-- HEADER -->
-        <!-- =============================== -->
-
-        <div class="page-header">
-
-            <div>
-
-                <h2>
-
-                    Report Kerusakan
-
-                </h2>
-
-                <small>
-
-                    Building Care System Enterprise
-
-                </small>
-
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="assets/img/logo.png" alt="Logo">
+                <h5>Building Care</h5>
+                <small>Enterprise v3.2</small>
             </div>
 
-            <div class="user-profile">
+            <nav class="sidebar-menu">
+                <a href="dashboard.html">
+                    <i class="bi bi-grid-1x2-fill"></i> Dashboard
+                </a>
+                <a href="report.html" class="active">
+                    <i class="bi bi-clipboard-plus-fill"></i> Report
+                </a>
+                <a href="monitoring.html">
+                    <i class="bi bi-display-fill"></i> Monitoring
+                </a>
+                <a href="history.html">
+                    <i class="bi bi-clock-history"></i> History
+                </a>
+            </nav>
+        </aside>
 
-                <div class="avatar">
+        <main class="main-content">
 
-                    <i class="bi bi-person-fill"></i>
-
-                </div>
-
+            <div class="page-header">
                 <div>
-
-                    <strong id="userName">
-
-                        -
-
-                    </strong>
-
-                    <small id="userRole">
-
-                        -
-
-                    </small>
-
+                    <h2>Report Kerusakan</h2>
+                    <small>Building Care System Enterprise</small>
                 </div>
 
-            </div>
-
-        </div>
-
-        <!-- =============================== -->
-        <!-- BREADCRUMB -->
-        <!-- =============================== -->
-
-        <div class="page-breadcrumb">
-
-            <i class="bi bi-house-fill"></i>
-
-            Dashboard
-
-            <i class="bi bi-chevron-right"></i>
-
-            Report
-
-        </div>
-
-        <!-- =============================== -->
-        <!-- SUMMARY -->
-        <!-- =============================== -->
-
-        <div class="row g-4 mb-4">
-
-            <div class="col-lg-3">
-
-                <div class="summary-card">
-
-                    <div class="summary-icon primary">
-
-                        <i class="bi bi-clipboard-data-fill"></i>
-
+                <div class="user-profile">
+                    <div class="avatar">
+                        <i class="bi bi-person-fill"></i>
                     </div>
-
                     <div>
-
-                        <small>
-
-                            Total Report
-
-                        </small>
-
-                        <h3 id="todayReport">
-
-                            0
-
-                        </h3>
-
+                        <strong id="userName">-</strong>
+                        <small id="userRole">-</small>
                     </div>
-
                 </div>
-
             </div>
 
-            <div class="col-lg-3">
+            <div class="page-breadcrumb">
+                <i class="bi bi-house-fill"></i> Dashboard
+                <i class="bi bi-chevron-right"></i> Report
+            </div>
 
-                <div class="summary-card">
-
-                    <div class="summary-icon success">
-
-                        <i class="bi bi-check-circle-fill"></i>
-
+            <div class="row g-4 mb-4">
+                <div class="col-lg-3">
+                    <div class="summary-card">
+                        <div class="summary-icon primary">
+                            <i class="bi bi-clipboard-data-fill"></i>
+                        </div>
+                        <div>
+                            <small>Total Report</small>
+                            <h3 id="todayReport">0</h3>
+                        </div>
                     </div>
+                </div>
 
+                <div class="col-lg-3">
+                    <div class="summary-card">
+                        <div class="summary-icon success">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <div>
+                            <small>Completed</small>
+                            <h3 id="doneReport">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3">
+                    <div class="summary-card">
+                        <div class="summary-icon warning">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div>
+                            <small>Progress</small>
+                            <h3 id="progressReport">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3">
+                    <div class="summary-card">
+                        <div class="summary-icon danger">
+                            <i class="bi bi-exclamation-circle-fill"></i>
+                        </div>
+                        <div>
+                            <small>Pending</small>
+                            <h3 id="pendingReport">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="enterprise-card">
+                <div class="card-header">
                     <div>
-
-                        <small>
-
-                            Completed
-
-                        </small>
-
-                        <h3 id="doneReport">
-
-                            0
-
-                        </h3>
-
+                        <h5>
+                            <i class="bi bi-clipboard-plus-fill"></i> Create New Report
+                        </h5>
+                        <small>Laporkan kerusakan fasilitas secara realtime</small>
                     </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-3">
-
-                <div class="summary-card">
-
-                    <div class="summary-icon warning">
-
-                        <i class="bi bi-hourglass-split"></i>
-
-                    </div>
-
                     <div>
-
-                        <small>
-
-                            Progress
-
-                        </small>
-
-                        <h3 id="progressReport">
-
-                            0
-
-                        </h3>
-
+                        <span class="status-badge">Enterprise Mode</span>
                     </div>
-
                 </div>
 
-            </div>
+                <div class="card-body">
+                    <form id="reportForm">
+                        <div class="row g-4">
+                            <div class="col-lg-6">
+                                <label class="form-label">Nama Pelapor</label>
+                                <input id="nama" type="text" class="form-control" placeholder="Masukkan nama pelapor">
+                            </div>
 
-            <div class="col-lg-3">
+                            <div class="col-lg-6">
+                                <label class="form-label">Departemen</label>
+                                <input id="departemen" type="text" class="form-control" placeholder="Departemen">
+                            </div>
 
-                <div class="summary-card">
+                            <div class="col-lg-12">
+                                <label class="form-label">Lokasi Kerusakan</label>
+                                <input id="lokasi" type="text" class="form-control" placeholder="Contoh : Ruang Server Lt.2">
+                            </div>
 
-                    <div class="summary-icon danger">
+                            <div class="col-lg-6">
+                                <label class="form-label">Kategori</label>
+                                <select id="kategori" class="form-select">
+                                    <option value="">Pilih Kategori</option>
+                                    <option value="AC">AC</option>
+                                    <option value="LISTRIK">LISTRIK</option>
+                                    <option value="GEDUNG">KONDISI GEDUNG</option>
+                                </select>
+                            </div>
 
-                        <i class="bi bi-exclamation-circle-fill"></i>
+                            <div class="col-lg-6">
+                                <label class="form-label">Prioritas</label>
+                                <select id="prioritas" class="form-select">
+                                    <option value="">Pilih Prioritas</option>
+                                    <option value="LOW">🟢 LOW</option>
+                                    <option value="MEDIUM">🟠 MEDIUM</option>
+                                    <option value="HIGH">🔴 HIGH</option>
+                                </select>
+                            </div>
 
-                    </div>
+                            <div class="col-lg-12">
+                                <label class="form-label">Deskripsi Kerusakan</label>
+                                <textarea id="deskripsi" rows="6" class="form-control" placeholder="Jelaskan kerusakan secara detail..."></textarea>
+                            </div>
 
-                    <div>
+                            <div class="col-lg-6">
+                                <label class="form-label">Upload Foto</label>
+                                <div class="upload-card">
+                                    <input id="photo" type="file" accept="image/*" class="form-control">
+                                    <div class="upload-info">
+                                        <i class="bi bi-cloud-arrow-up-fill"></i>
+                                        <p>Drag & Drop atau Klik untuk Upload</p>
+                                        <small>JPG / PNG Maksimal 5 MB</small>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <small>
+                            <div class="col-lg-6">
+                                <label class="form-label">Preview Foto</label>
+                                <div class="preview-wrapper">
+                                    <img id="previewImage" class="preview-image d-none" alt="Preview Image">
+                                    <div id="previewPlaceholder" class="preview-placeholder">
+                                        <i class="bi bi-image"></i>
+                                        <span>Preview akan tampil di sini</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                            Pending
-
-                        </small>
-
-                        <h3 id="pendingReport">
-
-                            0
-
-                        </h3>
-
-                    </div>
-
+                        <div class="enterprise-action mt-5">
+                            <button id="resetReport" type="button" class="btn btn-light btn-lg">
+                                <i class="bi bi-arrow-clockwise"></i> Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="bi bi-send-fill"></i> Kirim Report
+                            </button>
+                        </div>
+                    </form>
                 </div>
+            </section>
 
-            </div>
-
-        </div>
-
-        <!-- ====================================== -->
-        <!-- ENTERPRISE REPORT CARD -->
-        <!-- ====================================== -->
-
-        <section class="enterprise-card">
-
-            <div class="card-header">
-
-                <div>
-
-                    <h5>
-
-                        <i class="bi bi-clipboard-plus-fill"></i>
-
-                        Create New Report
-
-                    </h5>
-
-                    <small>
-
-                        Laporkan kerusakan fasilitas secara realtime
-
-                    </small>
-
-                </div>
-
-                <div>
-
-                    <span class="status-badge">
-
-                        Enterprise Mode
-
-                    </span>
-
-                </div>
-
-            </div>
-
-            <div class="card-body">
-
-                <form
-                    id="reportForm">
-
+            <section class="enterprise-card mt-4">
+                <div class="card-body">
                     <div class="row g-4">
-```
-```html
-                        <!-- ========================= -->
-                        <!-- NAMA -->
-                        <!-- ========================= -->
-
-                        <div class="col-lg-6">
-
-                            <label class="form-label">
-
-                                Nama Pelapor
-
-                            </label>
-
-                            <input
-                                id="nama"
-                                type="text"
-                                class="form-control"
-
-                                placeholder="Masukkan nama pelapor">
-
-                        </div>
-
-                        <!-- ========================= -->
-                        <!-- DEPARTEMEN -->
-                        <!-- ========================= -->
-
-                        <div class="col-lg-6">
-
-                            <label class="form-label">
-
-                                Departemen
-
-                            </label>
-
-                            <input
-                                id="departemen"
-                                type="text"
-                                class="form-control"
-
-                                placeholder="Departemen">
-
-                        </div>
-
-                        <!-- ========================= -->
-                        <!-- LOKASI -->
-                        <!-- ========================= -->
-
-                        <div class="col-lg-12">
-
-                            <label class="form-label">
-
-                                Lokasi Kerusakan
-
-                            </label>
-
-                            <input
-                                id="lokasi"
-                                type="text"
-                                class="form-control"
-
-                                placeholder="Contoh : Ruang Server Lt.2">
-
-                        </div>
-
-                        <!-- ========================= -->
-                        <!-- KATEGORI -->
-                        <!-- ========================= -->
-
-                        <div class="col-lg-6">
-
-                            <label class="form-label">
-
-                                Kategori
-
-                            </label>
-
-                            <select
-                                id="kategori"
-                                class="form-select">
-
-                                <option value="">
-
-                                    Pilih Kategori
-
-                                </option>
-
-                                <option value="AC">
-
-                                    AC
-
-                                </option>
-
-                                <option value="LISTRIK">
-
-                                    LISTRIK
-
-                                </option>
-
-                                <option value="GEDUNG">
-
-                                    KONDISI GEDUNG
-
-                                </option>
-
-                            </select>
-
-                        </div>
-
-                        <!-- ========================= -->
-                        <!-- PRIORITAS -->
-                        <!-- ========================= -->
-
-                        <div class="col-lg-6">
-
-                            <label class="form-label">
-
-                                Prioritas
-
-                            </label>
-
-                            <select
-                                id="prioritas"
-                                class="form-select">
-
-                                <option value="">
-
-                                    Pilih Prioritas
-
-                                </option>
-
-                                <option value="LOW">
-
-                                    🟢 LOW
-
-                                </option>
-
-                                <option value="MEDIUM">
-
-                                    🟠 MEDIUM
-
-                                </option>
-
-                                <option value="HIGH">
-
-                                    🔴 HIGH
-
-                                </option>
-
-                            </select>
-
-                        </div>
-
-                        <!-- ========================= -->
-                        <!-- DESKRIPSI -->
-                        <!-- ========================= -->
-
-                        <div class="col-lg-12">
-
-                            <label class="form-label">
-
-                                Deskripsi Kerusakan
-
-                            </label>
-
-                            <textarea
-
-                                id="deskripsi"
-
-                                rows="6"
-
-                                class="form-control"
-
-                                placeholder="Jelaskan kerusakan secara detail..."></textarea>
-
-                        </div>
-
-                        <!-- ========================= -->
-                        <!-- UPLOAD -->
-                        <!-- ========================= -->
-
-                        <div class="col-lg-6">
-
-                            <label class="form-label">
-
-                                Upload Foto
-
-                            </label>
-
-                            <div class="upload-card">
-
-                                <input
-
-                                    id="photo"
-
-                                    type="file"
-
-                                    accept="image/*"
-
-                                    class="form-control">
-
-                                <div class="upload-info">
-
-                                    <i class="bi bi-cloud-arrow-up-fill"></i>
-
-                                    <p>
-
-                                        Drag & Drop atau Klik untuk Upload
-
-                                    </p>
-
-                                    <small>
-
-                                        JPG / PNG Maksimal 5 MB
-
-                                    </small>
-
-                                </div>
-
+                        <div class="col-lg-4">
+                            <div class="info-box">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                                <h6>Fast Response</h6>
+                                <p>Report langsung masuk Dashboard Monitoring secara realtime.</p>
                             </div>
-
                         </div>
-
-                        <!-- ========================= -->
-                        <!-- PREVIEW -->
-                        <!-- ========================= -->
-
-                        <div class="col-lg-6">
-
-                            <label class="form-label">
-
-                                Preview Foto
-
-                            </label>
-
-                            <div class="preview-wrapper">
-
-                                <img
-
-                                    id="previewImage"
-
-                                    class="preview-image d-none"
-
-                                    alt="Preview Image">
-
-                                <div
-
-                                    id="previewPlaceholder"
-
-                                    class="preview-placeholder">
-
-                                    <i class="bi bi-image"></i>
-
-                                    <span>
-
-                                        Preview akan tampil di sini
-
-                                    </span>
-
-                                </div>
-
+                        <div class="col-lg-4">
+                            <div class="info-box">
+                                <i class="bi bi-camera-fill"></i>
+                                <h6>Visual Evidence</h6>
+                                <p>Lampirkan foto agar identifikasi kerusakan lebih cepat.</p>
                             </div>
-
                         </div>
-
-                    </div>
-
-                    <!-- ========================= -->
-                    <!-- BUTTON -->
-                    <!-- ========================= -->
-
-                    <div class="enterprise-action mt-5">
-
-                        <button
-
-                            id="resetReport"
-
-                            type="button"
-
-                            class="btn btn-light btn-lg">
-
-                            <i class="bi bi-arrow-clockwise"></i>
-
-                            Reset
-
-                        </button>
-
-                        <button
-
-                            type="submit"
-
-                            class="btn btn-primary btn-lg px-5">
-
-                            <i class="bi bi-send-fill"></i>
-
-                            Kirim Report
-
-                        </button>
-
-                    </div>
-
-                </form>
-
-            </div>
-
-        </section>
-
-        <!-- ========================= -->
-        <!-- INFORMATION PANEL -->
-        <!-- ========================= -->
-
-        <section class="enterprise-card mt-4">
-
-            <div class="card-body">
-
-                <div class="row g-4">
-
-                    <div class="col-lg-4">
-
-                        <div class="info-box">
-
-                            <i class="bi bi-lightning-charge-fill"></i>
-
-                            <h6>
-
-                                Fast Response
-
-                            </h6>
-
-                            <p>
-
-                                Report langsung masuk Dashboard Monitoring secara realtime.
-
-                            </p>
-
+                        <div class="col-lg-4">
+                            <div class="info-box">
+                                <i class="bi bi-shield-check"></i>
+                                <h6>Enterprise Security</h6>
+                                <p>Seluruh data tersimpan aman di Building Care System Enterprise.</p>
+                            </div>
                         </div>
-
                     </div>
-
-                    <div class="col-lg-4">
-
-                        <div class="info-box">
-
-                            <i class="bi bi-camera-fill"></i>
-
-                            <h6>
-
-                                Visual Evidence
-
-                            </h6>
-
-                            <p>
-
-                                Lampirkan foto agar identifikasi kerusakan lebih cepat.
-
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                    <div class="col-lg-4">
-
-                        <div class="info-box">
-
-                            <i class="bi bi-shield-check"></i>
-
-                            <h6>
-
-                                Enterprise Security
-
-                            </h6>
-
-                            <p>
-
-                                Seluruh data tersimpan aman di Building Care System Enterprise.
-
-                            </p>
-
-                        </div>
-
-                    </div>
-
                 </div>
+            </section>
 
-            </div>
-
-        </section>
-```
-```html
-
-        <!-- ========================================= -->
-        <!-- LOADING MODAL -->
-        <!-- ========================================= -->
-
-        <div
-            class="modal fade"
-            id="loadingModal"
-            data-bs-backdrop="static"
-            data-bs-keyboard="false"
-            tabindex="-1">
-
-            <div class="modal-dialog modal-dialog-centered">
-
-                <div class="modal-content border-0 shadow-lg">
-
-                    <div class="modal-body text-center py-5">
-
-                        <div
-                            class="spinner-border text-primary mb-4"
-                            role="status">
-
-                            <span class="visually-hidden">
-                                Loading...
-                            </span>
-
+            <div class="modal fade" id="loadingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-body text-center py-5">
+                            <div class="spinner-border text-primary mb-4" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h4>Mengirim Report...</h4>
+                            <p class="text-muted mb-0">Mohon tunggu beberapa saat</p>
                         </div>
-
-                        <h4>
-
-                            Mengirim Report...
-
-                        </h4>
-
-                        <p class="text-muted mb-0">
-
-                            Mohon tunggu beberapa saat
-
-                        </p>
-
                     </div>
-
                 </div>
-
             </div>
 
-        </div>
-
-        <!-- ========================================= -->
-        <!-- SUCCESS MODAL -->
-        <!-- ========================================= -->
-
-        <div
-            class="modal fade"
-            id="successModal"
-            tabindex="-1">
-
-            <div class="modal-dialog modal-dialog-centered">
-
-                <div class="modal-content border-0 shadow-lg">
-
-                    <div class="modal-body text-center py-5">
-
-                        <div class="mb-4">
-
-                            <i
-                                class="bi bi-check-circle-fill text-success display-1">
-                            </i>
-
+            <div class="modal fade" id="successModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-body text-center py-5">
+                            <div class="mb-4">
+                                <i class="bi bi-check-circle-fill text-success display-1"></i>
+                            </div>
+                            <h3>Report Berhasil Dikirim</h3>
+                            <p class="text-muted">Terima kasih. Laporan Anda telah berhasil masuk ke Building Care System Enterprise.</p>
+                            <button class="btn btn-primary px-5" data-bs-dismiss="modal">Tutup</button>
                         </div>
-
-                        <h3>
-
-                            Report Berhasil Dikirim
-
-                        </h3>
-
-                        <p class="text-muted">
-
-                            Terima kasih.
-
-                            Laporan Anda telah berhasil masuk ke
-                            Building Care System Enterprise.
-
-                        </p>
-
-                        <button
-                            class="btn btn-primary px-5"
-                            data-bs-dismiss="modal">
-
-                            Tutup
-
-                        </button>
-
                     </div>
-
                 </div>
-
             </div>
 
-        </div>
-
-        <!-- ========================================= -->
-        <!-- TOAST -->
-        <!-- ========================================= -->
-
-        <div
-            class="toast-container position-fixed top-0 end-0 p-4">
-
-            <div
-
-                id="reportToast"
-
-                class="toast border-0 shadow-lg"
-
-                role="alert"
-
-                aria-live="assertive"
-
-                aria-atomic="true">
-
-                <div class="d-flex align-items-center">
-
-                    <div
-                        class="toast-body fw-semibold"
-                        id="toastMessage">
-
-                        Report berhasil dikirim.
-
+            <div class="toast-container position-fixed top-0 end-0 p-4">
+                <div id="reportToast" class="toast border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex align-items-center">
+                        <div class="toast-body fw-semibold" id="toastMessage">
+                            Report berhasil dikirim.
+                        </div>
+                        <button type="button" class="btn-close me-3" data-bs-dismiss="toast"></button>
                     </div>
-
-                    <button
-
-                        type="button"
-
-                        class="btn-close me-3"
-
-                        data-bs-dismiss="toast">
-
-                    </button>
-
                 </div>
-
             </div>
 
-        </div>
+        </main>
+    </div>
 
-    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/modules/report.js"></script>
 
-</div>
-
-<!-- ========================================= -->
-<!-- JAVASCRIPT -->
-<!-- ========================================= -->
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script src="assets/js/config.js"></script>
-
-<script src="assets/js/app.js"></script>
-
-<script src="assets/js/api.js"></script>
-
-<script src="assets/js/auth.js"></script>
-
-<script src="assets/js/modules/report.js"></script>
-
-<script>
-
-document.addEventListener("DOMContentLoaded",()=>{
-
-    if(window.ReportModule){
-
-        ReportModule.init();
-
-    }
-
-});
-
-</script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.ReportModule) {
+                ReportModule.init();
+            }
+        });
+    </script>
 
 </body>
-
 </html>
-
-```

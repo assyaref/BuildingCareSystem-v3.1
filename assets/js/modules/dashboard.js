@@ -1284,16 +1284,24 @@ async function init() {
 // Fuunction Start Clock
 //======================
 let clockInterval = null;
+
 function startClock(){
+
     if(clockInterval) return;
+
     updateClock();
+
     clockInterval = setInterval(updateClock,1000);
+
 }
+
 function updateClock(){
+
     setFooter(
         "currentTime",
         new Date().toLocaleTimeString("id-ID")
     );
+
 }
 // =================
 //   Footer KPI

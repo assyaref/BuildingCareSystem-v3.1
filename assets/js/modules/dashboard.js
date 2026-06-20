@@ -1193,17 +1193,23 @@ document.addEventListener("visibilitychange", async () => {
 
 });
 }
-    // ==================================================
-    // BEFORE UNLOAD — cleanup
-    // ==================================================
+// ==================================================
+// BEFORE UNLOAD — cleanup
+// ==================================================
 
-    function bindUnload() {
+function bindUnload() {
 
-        window.addEventListener("beforeunload", () => {
-            stopAutoRefresh();
-        });
+    window.addEventListener("beforeunload", () => {
 
-    }
+        // Stop Auto Refresh Dashboard
+        stopAutoRefresh();
+
+        // Stop Realtime Clock
+        stopClock();
+
+    });
+
+}
 
     // ==================================================
     // SESSION CHECK

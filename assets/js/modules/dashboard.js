@@ -850,17 +850,34 @@ function renderLineChart() {
 
     const data = Dashboard.getData() || {};
 
-    // Validasi data bulanan
+    // =============================================
+    // Monthly Data
+    // =============================================
+
     const monthlyData = Array.isArray(data.monthly)
         ? [...data.monthly]
         : [];
 
-    // Pastikan selalu 12 bulan
     while (monthlyData.length < 12) {
         monthlyData.push(0);
     }
 
-    const chart = new Chart(canvas, {
+    // =============================================
+    // Gradient Background
+    // =============================================
+
+    const ctx = canvas.getContext("2d");
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+
+    gradient.addColorStop(0, "rgba(37,99,235,0.35)");
+    gradient.addColorStop(1, "rgba(37,99,235,0.03)");
+
+    // =============================================
+    // Create Chart
+    // =============================================
+
+    const chart = new Chart(ctx, {
 
         type: "line",
 
@@ -872,29 +889,41 @@ function renderLineChart() {
                 "Sep", "Okt", "Nov", "Des"
             ],
 
-            datasets: [{
+            datasets: [
 
-                label: "Total Report",
+                {
 
-                data: monthlyData.slice(0, 12),
+                    label: "Total Report",
 
-                borderColor: "#2563EB",
+                    data: monthlyData.slice(0, 12),
 
-                backgroundColor: "rgba(37,99,235,0.15)",
+                    borderColor: "#2563EB",
 
-                borderWidth: 3,
+                    backgroundColor: gradient,
 
-                fill: true,
+                    borderWidth: 3,
 
-                tension: 0.35,
+                    fill: true,
 
-                pointRadius: 4,
+                    tension: 0.45,
 
-                pointHoverRadius: 7,
+                    pointRadius: 4,
 
-                pointHitRadius: 15
+                    pointHoverRadius: 7,
 
-            }]
+                    pointBorderWidth: 2,
+
+                    pointBackgroundColor: "#2563EB",
+
+                    pointBorderColor: "#FFFFFF",
+
+                    pointHoverBackgroundColor: "#FFFFFF",
+
+                    pointHoverBorderColor: "#2563EB"
+
+                }
+
+            ]
 
         },
 
@@ -906,7 +935,7 @@ function renderLineChart() {
 
             animation: {
 
-                duration: 1000,
+                duration: 1200,
 
                 easing: "easeOutQuart"
 
@@ -930,13 +959,21 @@ function renderLineChart() {
 
                 tooltip: {
 
+                    backgroundColor: "#1F2937",
+
+                    titleColor: "#FFFFFF",
+
+                    bodyColor: "#FFFFFF",
+
+                    padding: 12,
+
                     displayColors: false,
 
                     callbacks: {
 
                         label(context) {
 
-                            return `Total Report : ${context.parsed.y}`;
+                            return "Total Report : " + context.parsed.y;
 
                         }
 
@@ -954,6 +991,12 @@ function renderLineChart() {
 
                         display: false
 
+                    },
+
+                    ticks: {
+
+                        color: "#64748B"
+
                     }
 
                 },
@@ -962,17 +1005,23 @@ function renderLineChart() {
 
                     beginAtZero: true,
 
+                    suggestedMax: Math.max(...monthlyData) + 5,
+
                     ticks: {
 
                         precision: 0,
 
-                        stepSize: 1
+                        stepSize: 5,
+
+                        color: "#64748B"
 
                     },
 
                     grid: {
 
-                        color: "rgba(0,0,0,0.05)"
+                        color: "rgba(148,163,184,0.12)",
+
+                        drawBorder: false
 
                     }
 

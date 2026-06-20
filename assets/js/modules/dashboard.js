@@ -492,14 +492,18 @@ function setLineChart(instance) {
 
 return {
 
-    animateCards,
-    animateCounter,
-    setTrend,
-    renderActivity,
-    renderChart,
-    renderLineChart,
-    updateLastRefresh,
-    refresh
+    init,
+    loadUser,
+    loadSummary,
+    renderSummary,
+
+    getData,
+
+    getDonutChart,
+    setDonutChart,
+
+    getLineChart,
+    setLineChart
 
 };
 

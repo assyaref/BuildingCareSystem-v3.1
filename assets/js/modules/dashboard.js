@@ -831,6 +831,7 @@ animation: {
         Dashboard.setDonutChart(chart);
 
     }
+
 // ==================================================
 // MONTHLY LINE CHART
 // ==================================================
@@ -874,158 +875,132 @@ function renderLineChart() {
     gradient.addColorStop(1, "rgba(37,99,235,0.03)");
 
     // =============================================
-// Create Chart
-// =============================================
+    // Create Chart
+    // =============================================
 
-const chart = new Chart(ctx, {
+    const chart = new Chart(ctx, {
 
-    type: "line",
+        type: "line",
 
-    data: {
+        data: {
 
-        labels: [
-            "Jan", "Feb", "Mar", "Apr",
-            "Mei", "Jun", "Jul", "Agu",
-            "Sep", "Okt", "Nov", "Des"
-        ],
+            labels: [
+                "Jan", "Feb", "Mar", "Apr",
+                "Mei", "Jun", "Jul", "Agu",
+                "Sep", "Okt", "Nov", "Des"
+            ],
 
-        datasets: [
+            datasets: [
 
-            {
+                {
 
-                label: "Total Report",
+                    label: "Total Report",
 
-                data: monthlyData.slice(0, 12),
+                    data: monthlyData.slice(0, 12),
 
-                borderColor: "#2563EB",
+                    borderColor: "#2563EB",
 
-                backgroundColor: gradient,
+                    backgroundColor: gradient,
 
-                borderWidth: 3,
+                    borderWidth: 3,
 
-                fill: true,
+                    fill: true,
 
-                tension: 0.45,
+                    tension: 0.45,
 
-                pointRadius: 4,
+                    pointRadius: 4,
 
-                pointHoverRadius: 8,
+                    pointHoverRadius: 8,
 
-                pointHitRadius: 15,
+                    pointHitRadius: 15,
 
-                pointBorderWidth: 2,
+                    pointBorderWidth: 2,
 
-                pointBackgroundColor: "#2563EB",
+                    pointBackgroundColor: "#2563EB",
 
-                pointBorderColor: "#FFFFFF",
+                    pointBorderColor: "#FFFFFF",
 
-                pointHoverBackgroundColor: "#FFFFFF",
+                    pointHoverBackgroundColor: "#FFFFFF",
 
-                pointHoverBorderColor: "#2563EB"
-
-            }
-
-        ]
-
-    },
-
-    options: {
-
-        responsive: true,
-
-        maintainAspectRatio: false,
-
-        animation: {
-
-            duration: 1200,
-
-            easing: "easeOutQuart"
-
-        },
-
-        interaction: {
-
-            intersect: false,
-
-            mode: "index"
-
-        },
-
-        elements: {
-
-            line: {
-
-                borderJoinStyle: "round",
-
-                borderCapStyle: "round"
-
-            },
-
-            point: {
-
-                hitRadius: 15,
-
-                hoverRadius: 8
-
-            }
-
-        },
-
-        plugins: {
-
-            legend: {
-
-                display: false
-
-            },
-
-            tooltip: {
-
-                backgroundColor: "#1F2937",
-
-                titleColor: "#FFFFFF",
-
-                bodyColor: "#FFFFFF",
-
-                displayColors: false,
-
-                padding: 12,
-
-                cornerRadius: 10,
-
-                callbacks: {
-
-                    label(context) {
-
-                        return "Total Report : " + context.parsed.y;
-
-                    }
+                    pointHoverBorderColor: "#2563EB"
 
                 }
 
-            }
+            ]
 
         },
 
-        scales: {
+        options: {
 
-            x: {
+            responsive: true,
 
-                grid: {
+            maintainAspectRatio: false,
 
-                    display: false,
+            animation: {
 
-                    drawBorder: false
+                duration: 1200,
+
+                easing: "easeOutQuart"
+
+            },
+
+            interaction: {
+
+                intersect: false,
+
+                mode: "index"
+
+            },
+
+            elements: {
+
+                line: {
+
+                    borderJoinStyle: "round",
+
+                    borderCapStyle: "round"
 
                 },
 
-                ticks: {
+                point: {
 
-                    color: "#64748B",
+                    hitRadius: 15,
 
-                    font: {
+                    hoverRadius: 8
 
-                        size: 12
+                }
+
+            },
+
+            plugins: {
+
+                legend: {
+
+                    display: false
+
+                },
+
+                tooltip: {
+
+                    backgroundColor: "#1F2937",
+
+                    titleColor: "#FFFFFF",
+
+                    bodyColor: "#FFFFFF",
+
+                    displayColors: false,
+
+                    padding: 12,
+
+                    cornerRadius: 10,
+
+                    callbacks: {
+
+                        label(context) {
+
+                            return "Total Report : " + context.parsed.y;
+
+                        }
 
                     }
 
@@ -1033,33 +1008,61 @@ const chart = new Chart(ctx, {
 
             },
 
-            y: {
+            scales: {
 
-                beginAtZero: true,
+                x: {
 
-                suggestedMax: Math.max(...monthlyData) + 5,
+                    grid: {
 
-                ticks: {
+                        display: false,
 
-                    precision: 0,
+                        drawBorder: false
 
-                    stepSize: 5,
+                    },
 
-                    color: "#64748B",
+                    ticks: {
 
-                    font: {
+                        color: "#64748B",
 
-                        size: 12
+                        font: {
+
+                            size: 12
+
+                        }
 
                     }
 
                 },
 
-                grid: {
+                y: {
 
-                    color: "rgba(148,163,184,0.10)",
+                    beginAtZero: true,
 
-                    drawBorder: false
+                    suggestedMax: Math.max(...monthlyData, 5) + 5,
+
+                    ticks: {
+
+                        precision: 0,
+
+                        stepSize: 5,
+
+                        color: "#64748B",
+
+                        font: {
+
+                            size: 12
+
+                        }
+
+                    },
+
+                    grid: {
+
+                        color: "rgba(148,163,184,0.10)",
+
+                        drawBorder: false
+
+                    }
 
                 }
 
@@ -1067,23 +1070,31 @@ const chart = new Chart(ctx, {
 
         }
 
-    }
+    });
 
-});
+    Dashboard.setLineChart(chart);
 
-Dashboard.setLineChart(chart);
-    // ==================================================
-    // LAST REFRESH
-    // ==================================================
-
-   function updateLastRefresh(){
-    const target = document.getElementById("lastUpdate");
-    if(!target) return;
-    const data = Dashboard.getData() || {};
-target.textContent =
-    data.lastUpdate ??
-    new Date().toLocaleString("id-ID");
 }
+
+// ==================================================
+// LAST REFRESH
+// ==================================================
+
+function updateLastRefresh() {
+
+    const target = document.getElementById("lastUpdate");
+
+    if (!target) return;
+
+    const data = Dashboard.getData() || {};
+
+    target.textContent =
+        data.lastUpdate ??
+        new Date().toLocaleString("id-ID");
+
+}
+
+
 
 // ==================================================
 // REFRESH ALL

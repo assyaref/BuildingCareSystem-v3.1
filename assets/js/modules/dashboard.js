@@ -874,154 +874,130 @@ function renderLineChart() {
     gradient.addColorStop(1, "rgba(37,99,235,0.03)");
 
     // =============================================
-    // Create Chart
-    // =============================================
+// Create Chart
+// =============================================
 
-    const chart = new Chart(ctx, {
+const chart = new Chart(ctx, {
 
-        type: "line",
+    type: "line",
 
-        data: {
+    data: {
 
-            labels: [
-                "Jan", "Feb", "Mar", "Apr",
-                "Mei", "Jun", "Jul", "Agu",
-                "Sep", "Okt", "Nov", "Des"
-            ],
+        labels: [
+            "Jan", "Feb", "Mar", "Apr",
+            "Mei", "Jun", "Jul", "Agu",
+            "Sep", "Okt", "Nov", "Des"
+        ],
 
-            datasets: [
+        datasets: [
 
-                {
+            {
 
-                    label: "Total Report",
+                label: "Total Report",
 
-                    data: monthlyData.slice(0, 12),
+                data: monthlyData.slice(0, 12),
 
-                    borderColor: "#2563EB",
+                borderColor: "#2563EB",
 
-                    backgroundColor: gradient,
+                backgroundColor: gradient,
 
-                    borderWidth: 3,
+                borderWidth: 3,
 
-                    fill: true,
+                fill: true,
 
-                    tension: 0.45,
+                tension: 0.45,
 
-                    pointRadius: 4,
+                pointRadius: 4,
 
-                    pointHoverRadius: 7,
+                pointHoverRadius: 8,
 
-                    pointBorderWidth: 2,
+                pointHitRadius: 15,
 
-                    pointBackgroundColor: "#2563EB",
+                pointBorderWidth: 2,
 
-                    pointBorderColor: "#FFFFFF",
+                pointBackgroundColor: "#2563EB",
 
-                    pointHoverBackgroundColor: "#FFFFFF",
+                pointBorderColor: "#FFFFFF",
 
-                    pointHoverBorderColor: "#2563EB"
+                pointHoverBackgroundColor: "#FFFFFF",
 
-                }
+                pointHoverBorderColor: "#2563EB"
 
-            ]
+            }
+
+        ]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        maintainAspectRatio: false,
+
+        animation: {
+
+            duration: 1200,
+
+            easing: "easeOutQuart"
 
         },
 
-        options: {
+        interaction: {
 
-            responsive: true,
+            intersect: false,
 
-            maintainAspectRatio: false,
+            mode: "index"
 
-            animation: {
+        },
 
-                duration: 1200,
+        elements: {
 
-                easing: "easeOutQuart"
+            line: {
 
-            },
+                borderJoinStyle: "round",
 
-            interaction: {
-
-                intersect: false,
-
-                mode: "index"
+                borderCapStyle: "round"
 
             },
 
-            plugins: {
+            point: {
 
-                legend: {
+                hitRadius: 15,
 
-                    display: false
+                hoverRadius: 8
 
-                },
+            }
 
-                tooltip: {
+        },
 
-                    backgroundColor: "#1F2937",
+        plugins: {
 
-                    titleColor: "#FFFFFF",
+            legend: {
 
-                    bodyColor: "#FFFFFF",
-
-                    padding: 12,
-
-                    displayColors: false,
-
-                    callbacks: {
-
-                        label(context) {
-
-                            return "Total Report : " + context.parsed.y;
-
-                        }
-
-                    }
-
-                }
+                display: false
 
             },
 
-            scales: {
+            tooltip: {
 
-                x: {
+                backgroundColor: "#1F2937",
 
-                    grid: {
+                titleColor: "#FFFFFF",
 
-                        display: false
+                bodyColor: "#FFFFFF",
 
-                    },
+                displayColors: false,
 
-                    ticks: {
+                padding: 12,
 
-                        color: "#64748B"
+                cornerRadius: 10,
 
-                    }
+                callbacks: {
 
-                },
+                    label(context) {
 
-                y: {
-
-                    beginAtZero: true,
-
-                    suggestedMax: Math.max(...monthlyData) + 5,
-
-                    ticks: {
-
-                        precision: 0,
-
-                        stepSize: 5,
-
-                        color: "#64748B"
-
-                    },
-
-                    grid: {
-
-                        color: "rgba(148,163,184,0.12)",
-
-                        drawBorder: false
+                        return "Total Report : " + context.parsed.y;
 
                     }
 
@@ -1029,13 +1005,73 @@ function renderLineChart() {
 
             }
 
+        },
+
+        scales: {
+
+            x: {
+
+                grid: {
+
+                    display: false,
+
+                    drawBorder: false
+
+                },
+
+                ticks: {
+
+                    color: "#64748B",
+
+                    font: {
+
+                        size: 12
+
+                    }
+
+                }
+
+            },
+
+            y: {
+
+                beginAtZero: true,
+
+                suggestedMax: Math.max(...monthlyData) + 5,
+
+                ticks: {
+
+                    precision: 0,
+
+                    stepSize: 5,
+
+                    color: "#64748B",
+
+                    font: {
+
+                        size: 12
+
+                    }
+
+                },
+
+                grid: {
+
+                    color: "rgba(148,163,184,0.10)",
+
+                    drawBorder: false
+
+                }
+
+            }
+
         }
 
-    });
+    }
 
-    Dashboard.setLineChart(chart);
+});
 
-}
+Dashboard.setLineChart(chart);
     // ==================================================
     // LAST REFRESH
     // ==================================================

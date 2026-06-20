@@ -14,7 +14,7 @@ const CONFIG = {
 
     API: {
         // URL Google Apps Script Web App
-        URL: "https://script.google.com/macros/s/AKfycbzGoePKbe9l91G823KJukRYrzNwN-kIaB-5qyN2zsr8AK1DTbApl5yE2O1iW5vPwX1V/exec"
+        URL: "https://script.google.com/macros/s/AKfycbxSiaCCG_AOEhnvelWHZeQJmV5x-6zHLeHu2waOLanTmHIZJrOVPDGfPO2SPLqKPfjs/exec"
     },
 
     STORAGE: {

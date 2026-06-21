@@ -167,34 +167,5 @@
 <!-- Modules -->
 <script src="assets/js/modules/auth.js"></script>
 
-<!-- Page Script -->
-<script>
-"use strict";
-
-document.addEventListener("DOMContentLoaded", function () {
-
-    // Toggle Password Visibility
-    const toggleButton  = document.getElementById("togglePassword");
-    const passwordInput = document.getElementById("password");
-    const toggleIcon    = document.getElementById("togglePasswordIcon");
-
-    if (toggleButton && passwordInput && toggleIcon) {
-
-        toggleButton.addEventListener("click", function () {
-
-            const isPassword = passwordInput.type === "password";
-
-            passwordInput.type = isPassword ? "text" : "password";
-
-            toggleIcon.classList.toggle("fa-eye",      !isPassword);
-            toggleIcon.classList.toggle("fa-eye-slash",  isPassword);
-
-        });
-
-    }
-
-});
-</script>
-
 </body>
 </html>

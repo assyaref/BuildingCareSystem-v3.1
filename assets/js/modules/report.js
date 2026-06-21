@@ -15,26 +15,22 @@ const ReportModule = (() => {
     // ============================================
     // INIT
     // ============================================
-    async function init() {
-        App.log("Report Module Loaded");
+   async function init() {
 
-        const valid = await AuthService.verifySession();
-        if (!valid) {
-            App.redirect("login.html");
-            return;
-        }
+    App.log("Report Module Loaded");
 
-        initComponent();
-        loadUser();
-        loadDraft();
-        bindSubmit();
-        bindResetButton();
-        bindImagePreview();
-        bindDropArea();
-        bindCharacterCounter();
-        bindDraft();
-    }
+    initComponent();
+    loadUser();
+    loadDraft();
 
+    bindSubmit();
+    bindResetButton();
+    bindImagePreview();
+    bindDropArea();
+    bindCharacterCounter();
+    bindDraft();
+
+}
     // ============================================
     // COMPONENT
     // ============================================

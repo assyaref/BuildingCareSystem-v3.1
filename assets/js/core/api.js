@@ -68,48 +68,26 @@ const Api = (() => {
 
     }
 
-    // ==========================================
+// ==========================================
 // POST
 // ==========================================
-
 async function post(action, data = {}) {
 
     try {
 
         const response = await fetch(BASE_URL, {
-
             method: "POST",
 
-            mode: "cors",
-
-            redirect: "follow",
-
-            cache: "no-store",
-
             headers: {
-
-                // Hindari preflight OPTIONS
                 "Content-Type": "text/plain;charset=utf-8"
-
             },
 
             body: JSON.stringify({
-
-                action: action,
-
-                data: data
-
+                action,
+                data
             })
 
         });
-
-        if (!response.ok) {
-
-            throw new Error(
-                "HTTP Error : " + response.status
-            );
-
-        }
 
         const result = await parse(response);
 
@@ -122,24 +100,18 @@ async function post(action, data = {}) {
 
         return result;
 
-    }
-
-    catch (err) {
+    } catch (err) {
 
         console.error("[API ERROR]", err);
 
         return {
-
             success: false,
-
             message: err.message || "Failed to fetch"
-
         };
 
     }
 
 }
-
     // ==========================================
     // GET
     // ==========================================

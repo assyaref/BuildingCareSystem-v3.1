@@ -266,7 +266,7 @@ const ReportModule = (() => {
 
             console.log("[REPORT]", payload);
 
-            const response = await Api.post("saveReport", payload);
+            const response = await Api.post("createReport", payload);
             hideLoading();
 
             if (!response || response.success !== true) {

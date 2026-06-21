@@ -1,28 +1,64 @@
 // =====================================================
-// Building Care System Enterprise v3.2
+// Building Care System Enterprise v3.3 Stable
+// Code.gs
 // Main Router API
+// Radiant Group Duri
 // =====================================================
 
+/**
+ * =====================================================
+ * GET ROUTER
+ * =====================================================
+ */
 function doGet(e) {
 
   try {
 
-    const action = e.parameter.action || "health";
+    e = e || {};
+    e.parameter = e.parameter || {};
+
+    const action = String(e.parameter.action || "health");
 
     switch (action) {
 
+      case "version":
+
+        return success({
+
+          build: "20-06-2026-09:30",
+
+          app: CONFIG.APP.NAME,
+
+          version: CONFIG.APP.VERSION,
+
+          company: CONFIG.APP.COMPANY,
+
+          sheet: SHEET,
+
+          timezone: CONFIG.TIMEZONE,
+
+          serverTime: now()
+
+        });
+
       case "getDashboard":
+
         return getDashboard({});
 
       case "health":
+
       default:
 
         return success({
 
           app: CONFIG.APP.NAME,
+
           version: CONFIG.APP.VERSION,
+
           company: CONFIG.APP.COMPANY,
+
           status: "ONLINE",
+
           serverTime: now()
 
         });
@@ -31,7 +67,9 @@ function doGet(e) {
 
   } catch (err) {
 
-    saveError("Code.gs", err.toString());
+    try {
+      saveError("Code.gs", err.toString());
+    } catch (e) {}
 
     return failed(err.toString());
 
@@ -39,6 +77,11 @@ function doGet(e) {
 
 }
 
+/**
+ * =====================================================
+ * POST ROUTER
+ * =====================================================
+ */
 function doPost(e) {
 
   try {
@@ -54,56 +97,137 @@ function doPost(e) {
     try {
 
       request = JSON.parse(
+
         e.postData.contents || "{}"
+
       );
 
-    } catch (jsonError) {
+    } catch (err) {
 
       return failed("Format JSON tidak valid.");
 
     }
 
-    const action = request.action || "";
+    const action = String(request.action || "");
 
     const data = request.data || {};
 
     switch (action) {
 
       case "login":
+
         return login(data);
 
       case "logout":
+
         return logout(data);
 
       case "verifySession":
+
         return verifySession(data);
 
       case "getDashboard":
+
         return getDashboard(data);
 
-      case "createReport":
-        return createReport(data);
+      case "saveReport":
+
+        return saveReport(data);
 
       case "getReport":
+
         return getReport(data);
 
       case "updateReport":
+
         return updateReport(data);
 
       case "uploadPhoto":
+
         return uploadPhoto(data);
 
+      case "version":
+
+        return version();
+
       default:
-        return failed("Action tidak ditemukan : " + action);
+
+        return failed(
+
+          "Action tidak ditemukan : " + action
+
+        );
 
     }
 
   } catch (err) {
 
-    saveError("Code.gs", err.toString());
+    try {
+      saveError("Code.gs", err.toString());
+    } catch (e) {}
 
     return failed(err.toString());
 
   }
+
+}
+
+/**
+ * =====================================================
+ * VERSION API
+ * =====================================================
+ */
+function version() {
+
+  return success({
+
+    build: "20-06-2026-09:30",
+
+    app: CONFIG.APP.NAME,
+
+    version: CONFIG.APP.VERSION,
+
+    company: CONFIG.APP.COMPANY,
+
+    sheet: SHEET,
+
+    timezone: CONFIG.TIMEZONE,
+
+    serverTime: now()
+
+  });
+
+}
+
+/**
+ * =====================================================
+ * TEST ROUTER
+ * =====================================================
+ */
+function testVersion() {
+
+  Logger.log(
+
+    version().getContent()
+
+  );
+
+}
+
+function testHealth() {
+
+  Logger.log(
+
+    doGet({
+
+      parameter: {
+
+        action: "health"
+
+      }
+
+    }).getContent()
+
+  );
 
 }

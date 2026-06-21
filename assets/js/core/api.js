@@ -69,73 +69,76 @@ const Api = (() => {
     }
 
     // ==========================================
-    // POST
-    // ==========================================
+// POST
+// ==========================================
 
-    async function post(action, data = {}) {
+async function post(action, data = {}) {
 
-        try {
+    try {
 
-            const response = await fetch(
+        const response = await fetch(BASE_URL, {
 
-                BASE_URL,
+            method: "POST",
 
-                {
+            mode: "cors",
 
-                    method: "POST",
+            redirect: "follow",
 
-                    /*
-                     * Jangan gunakan application/json
-                     * supaya tidak terkena CORS preflight
-                     */
+            cache: "no-store",
 
-                    headers: {
+            headers: {
 
-                        "Content-Type": "text/plain;charset=utf-8"
+                // Hindari preflight OPTIONS
+                "Content-Type": "text/plain;charset=utf-8"
 
-                    },
+            },
 
-                    body: JSON.stringify({
+            body: JSON.stringify({
 
-                        action,
+                action: action,
 
-                        data
+                data: data
 
-                    }),
+            })
 
-                    cache: "no-store"
+        });
 
-                }
+        if (!response.ok) {
 
+            throw new Error(
+                "HTTP Error : " + response.status
             );
 
-            const result = await parse(response);
-
-console.log("================================");
-console.log("API URL :", BASE_URL);
-console.log("ACTION  :", action);
-console.log("RESULT  :", result);
-console.log("================================");
-
-return result;
-
         }
 
-        catch (err) {
+        const result = await parse(response);
 
-            error(err);
+        console.log("================================");
+        console.log("API URL :", BASE_URL);
+        console.log("ACTION  :", action);
+        console.log("DATA    :", data);
+        console.log("RESULT  :", result);
+        console.log("================================");
 
-            return {
-
-                success: false,
-
-                message: err.message || "Failed to fetch"
-
-            };
-
-        }
+        return result;
 
     }
+
+    catch (err) {
+
+        console.error("[API ERROR]", err);
+
+        return {
+
+            success: false,
+
+            message: err.message || "Failed to fetch"
+
+        };
+
+    }
+
+}
 
     // ==========================================
     // GET

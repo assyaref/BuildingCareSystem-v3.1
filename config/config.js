@@ -14,9 +14,9 @@ const CONFIG = {
 
     API: {
         // URL Google Apps Script Web App
-        // => URL: "https://script.google.com/macros/s/AKfycbzN3jSKv-RywufMhzub5SAbReV0ES31_4AMZP7Us4UxhskijtydQYpOWmPgCKQ9GmzH2w/exec"
+        URL: "https://script.google.com/macros/s/AKfycbzN3jSKv-RywufMhzub5SAbReV0ES31_4AMZP7Us4UxhskijtydQYpOWmPgCKQ9GmzH2w/exec"
         // URL JSON GAP Web APP 
-        URL: "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnQ2vURCVxiFhBH_FwzA9bVEr5M4Af78G6Oe4sr3zV6a56CLVO8mPAaR44I3nXbZzUaaHzkUtYeSS-lspsj3yTgpP7tXLKGwLQ9ykIiEviLJcpOqnW5VyrXAAjwCubJd21TUGf33CYXJKFAGKKsZsBW9dhGdJf-TBUTNHp66WmiX1SYrmG9Z5gCh2e5ERSE2qjNu6acOFv2f13J_rDHP-oqq1K6GsnDHYT7iY--fpx0Bkkq7mQaKMMfSrtKXsuq9NNqBYtaViOpLoYKwuS_THoNiwI3FXA&lib=MKqR-V9leY7lrvGHe17EG_klE6dqiQEwa"
+        // URL: "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnQ2vURCVxiFhBH_FwzA9bVEr5M4Af78G6Oe4sr3zV6a56CLVO8mPAaR44I3nXbZzUaaHzkUtYeSS-lspsj3yTgpP7tXLKGwLQ9ykIiEviLJcpOqnW5VyrXAAjwCubJd21TUGf33CYXJKFAGKKsZsBW9dhGdJf-TBUTNHp66WmiX1SYrmG9Z5gCh2e5ERSE2qjNu6acOFv2f13J_rDHP-oqq1K6GsnDHYT7iY--fpx0Bkkq7mQaKMMfSrtKXsuq9NNqBYtaViOpLoYKwuS_THoNiwI3FXA&lib=MKqR-V9leY7lrvGHe17EG_klE6dqiQEwa"
     },
 
     STORAGE: {

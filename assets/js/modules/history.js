@@ -1,5 +1,5 @@
 // ======================================================
-// Building Care System Enterprise v3.5
+// Building Care System Enterprise v3.6
 // assets/js/modules/history.js
 // ======================================================
 
@@ -22,7 +22,7 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // LOAD REPORTS
+    // LOAD REPORT
     // ==========================================
     async function loadReports() {
         try {
@@ -52,15 +52,13 @@ const HistoryModule = (() => {
     function updateSummary() {
         const setCardValue = (id, value) => {
             const element = document.getElementById(id);
-            if (element) {
-                element.replaceChildren(document.createTextNode(value));
-            }
+            if (element) element.textContent = value;
         };
 
         setCardValue("cardTotal", reports.length);
-        setCardValue("cardOpen", reports.filter(r => r.status === "OPEN").length);
-        setCardValue("cardProgress", reports.filter(r => r.status === "PROGRESS").length);
-        setCardValue("cardDone", reports.filter(r => r.status === "DONE").length);
+        setCardValue("cardOpen", reports.filter(x => x.status === "OPEN").length);
+        setCardValue("cardProgress", reports.filter(x => x.status === "PROGRESS").length);
+        setCardValue("cardDone", reports.filter(x => x.status === "DONE").length);
     }
 
     // ==========================================
@@ -79,7 +77,7 @@ const HistoryModule = (() => {
         if (!pageData.length) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">
+                    <td colspan="8" class="text-center py-5 text-muted">
                         <i class="bi bi-inbox fs-1"></i>
                         <br>Tidak ada data
                     </td>
@@ -98,8 +96,13 @@ const HistoryModule = (() => {
                 <tr>
                     <td><strong>${report.id}</strong></td>
                     <td>${report.tanggal}</td>
+                    <td>
+                        <div class="fw-semibold">${report.nama || "-"}</div>
+                        <small class="text-muted">${report.departemen || ""}</small>
+                    </td>
                     <td>${report.kategori}</td>
                     <td>${report.lokasi}</td>
+                    <td style="max-width:300px"><small>${report.deskripsi || "-"}</small></td>
                     <td>${badge(report.status)}</td>
                     <td class="text-center">${photoContent}</td>
                 </tr>
@@ -115,7 +118,7 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // BADGE STATUS
+    // BADGE
     // ==========================================
     function badge(status) {
         switch (status) {
@@ -131,24 +134,24 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // SEARCH
+    // SEARCH + FILTER
     // ==========================================
     function bindSearch() {
         document.getElementById("searchReport")?.addEventListener("keyup", filterData);
         document.getElementById("filterStatus")?.addEventListener("change", filterData);
     }
 
-    // ==========================================
-    // FILTER DATA
-    // ==========================================
     function filterData() {
         const keyword = document.getElementById("searchReport")?.value.toLowerCase() || "";
         const status = document.getElementById("filterStatus")?.value || "";
 
         filteredReports = reports.filter(r => {
-            const matchKeyword = (r.id?.toLowerCase().includes(keyword) || false)
-                || (r.kategori?.toLowerCase().includes(keyword) || false)
-                || (r.lokasi?.toLowerCase().includes(keyword) || false);
+            const matchKeyword = 
+                (r.id || "").toLowerCase().includes(keyword) ||
+                (r.nama || "").toLowerCase().includes(keyword) ||
+                (r.kategori || "").toLowerCase().includes(keyword) ||
+                (r.lokasi || "").toLowerCase().includes(keyword) ||
+                (r.deskripsi || "").toLowerCase().includes(keyword);
 
             const matchStatus = status === "" || r.status === status;
 
@@ -164,14 +167,11 @@ const HistoryModule = (() => {
     // ==========================================
     function bindSort() {
         document.getElementById("sortReport")?.addEventListener("change", e => {
-            const mode = e.target.value;
-
-            if (mode === "desc") {
+            if (e.target.value === "desc") {
                 filteredReports.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
             } else {
                 filteredReports.sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
             }
-
             renderTable();
         });
     }
@@ -191,13 +191,12 @@ const HistoryModule = (() => {
             const activeClass = i === currentPage ? "active" : "";
             pages.push(`
                 <li class="page-item ${activeClass}">
-                    <a href="#" class="page-link" onclick="HistoryModule.goPage(${i}); return false;">
+                    <a href="#" class="page-link" onclick="HistoryModule.goPage(${i});return false">
                         ${i}
                     </a>
                 </li>
             `);
         }
-
         pagination.innerHTML = pages.join("");
     }
 
@@ -207,7 +206,7 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // PHOTO MODAL
+    // PREVIEW FOTO
     // ==========================================
     function showPhoto(url) {
         const modalPhoto = document.getElementById("modalPhoto");

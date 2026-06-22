@@ -223,7 +223,7 @@ const ReportModule = (() => {
             }
             const reader = new FileReader();
             reader.onload = () => {
-                resolve(reader.result.split(",")[1]);
+                resolve(reader.result);
             };
             reader.onerror = reject;
             reader.readAsDataURL(file);

@@ -203,8 +203,20 @@ const HistoryModule = (() => {
   // PHOTO
   // ==========================================
   function showPhoto(url) {
-    document.getElementById("modalPhoto").src = url;
-    bootstrap.Modal.getOrCreateInstance(document.getElementById("photoModal")).show();
+    const modalPhoto = document.getElementById("modalPhoto");
+    const photoModal = document.getElementById("photoModal");
+
+    if (!modalPhoto || !photoModal) {
+      App.toast("Photo modal tidak ditemukan", "error");
+      return;
+    }
+
+    modalPhoto.src = url || "";
+    modalPhoto.onerror = function () {
+      this.src = "https://placehold.co/1200x800?text=Image+Not+Available";
+    };
+
+    bootstrap.Modal.getOrCreateInstance(photoModal).show();
   }
 
   // ==========================================
@@ -214,15 +226,23 @@ const HistoryModule = (() => {
     const report = reports.find(x => x.id === id);
     if (!report) return;
 
-    document.getElementById("detailContent").innerHTML = `
+    const detailContent = document.getElementById("detailContent");
+    const detailModal = document.getElementById("detailModal");
+
+    if (!detailContent || !detailModal) {
+      App.toast("Detail modal tidak ditemukan", "error");
+      return;
+    }
+
+    detailContent.innerHTML = `
       <table class="table table-bordered">
-        <tr><th>ID</th><td>${report.id}</td></tr>
-        <tr><th>Tanggal</th><td>${report.tanggal}</td></tr>
-        <tr><th>Pelapor</th><td>${report.nama}</td></tr>
-        <tr><th>Departemen</th><td>${report.departemen}</td></tr>
-        <tr><th>Kategori</th><td>${report.kategori}</td></tr>
-        <tr><th>Lokasi</th><td>${report.lokasi}</td></tr>
-        <tr><th>Deskripsi</th><td>${report.deskripsi}</td></tr>
+        <tr><th width="30%">ID</th><td>${report.id || "-"}</td></tr>
+        <tr><th>Tanggal</th><td>${report.tanggal || "-"}</td></tr>
+        <tr><th>Pelapor</th><td>${report.nama || "-"}</td></tr>
+        <tr><th>Departemen</th><td>${report.departemen || "-"}</td></tr>
+        <tr><th>Kategori</th><td>${report.kategori || "-"}</td></tr>
+        <tr><th>Lokasi</th><td>${report.lokasi || "-"}</td></tr>
+        <tr><th>Deskripsi</th><td>${report.deskripsi || "-"}</td></tr>
         <tr><th>Status</th><td>${badge(report.status)}</td></tr>
         <tr><th>Teknisi</th><td>${report.teknisi || "-"}</td></tr>
         <tr><th>Tgl Selesai</th><td>${report.tglSelesai || "-"}</td></tr>
@@ -230,7 +250,7 @@ const HistoryModule = (() => {
       </table>
     `;
 
-    bootstrap.Modal.getOrCreateInstance(document.getElementById("detailModal")).show();
+    bootstrap.Modal.getOrCreateInstance(detailModal).show();
   }
 
   // ==========================================
@@ -240,26 +260,48 @@ const HistoryModule = (() => {
     const report = reports.find(x => x.id === id);
     if (!report) return;
 
-    document.getElementById("updateId").value = report.id;
-    document.getElementById("updateStatus").value = report.status;
-    document.getElementById("updateTeknisi").value = report.teknisi || "";
-    document.getElementById("updateCatatan").value = report.catatanTeknisi || "";
+    const updateId = document.getElementById("updateId");
+    const updateStatus = document.getElementById("updateStatus");
+    const updateTeknisi = document.getElementById("updateTeknisi");
+    const updateCatatan = document.getElementById("updateCatatan");
+    const updateModal = document.getElementById("updateModal");
 
-    bootstrap.Modal.getOrCreateInstance(document.getElementById("updateModal")).show();
+    if (!updateId || !updateStatus || !updateTeknisi || !updateCatatan || !updateModal) {
+      App.toast("Update modal tidak ditemukan", "error");
+      return;
+    }
+
+    updateId.value = report.id || "";
+    updateStatus.value = report.status || "OPEN";
+    updateTeknisi.value = report.teknisi || "";
+    updateCatatan.value = report.catatanTeknisi || "";
+
+    bootstrap.Modal.getOrCreateInstance(updateModal).show();
   }
 
+  // ==========================================
+  // SAVE UPDATE
+  // ==========================================
   async function saveUpdate() {
-    const response = await Api.post("updateReport", {
-      id: document.getElementById("updateId").value,
-      status: document.getElementById("updateStatus").value,
-      teknisi: document.getElementById("updateTeknisi").value,
-      catatan: document.getElementById("updateCatatan").value
-    });
+    try {
+      const response = await Api.post("updateReport", {
+        id: document.getElementById("updateId")?.value,
+        status: document.getElementById("updateStatus")?.value,
+        teknisi: document.getElementById("updateTeknisi")?.value,
+        catatan: document.getElementById("updateCatatan")?.value
+      });
 
-    if (response.success) {
+      if (!response.success) {
+        App.toast(response.message, "error");
+        return;
+      }
+
       App.toast("Status berhasil diperbarui", "success");
-      bootstrap.Modal.getInstance(document.getElementById("updateModal")).hide();
+      bootstrap.Modal.getInstance(document.getElementById("updateModal"))?.hide();
       await loadReports();
+    } catch (err) {
+      console.error(err);
+      App.handleError(err);
     }
   }
 
@@ -273,4 +315,6 @@ const HistoryModule = (() => {
   };
 })();
 
-document.addEventListener("DOMContentLoaded", HistoryModule.init);
+document.addEventListener("DOMContentLoaded", () => {
+  HistoryModule.init();
+});

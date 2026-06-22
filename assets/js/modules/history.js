@@ -1,6 +1,7 @@
 // ======================================================
-// Building Care System Enterprise v3.9
+// Building Care System Enterprise v4.0 Stable
 // assets/js/modules/history.js
+// Sprint 6.1
 // ======================================================
 
 "use strict";
@@ -86,13 +87,13 @@ const HistoryModule = (() => {
       return;
     }
 
-    const rows = [];
+    let html = "";
     pageData.forEach(report => {
       const photoContent = report.foto
-        ? `<img src="${report.foto}" width="55" height="55" loading="lazy" class="rounded shadow-sm border" style="object-fit:cover;cursor:pointer" onclick="HistoryModule.showPhoto('${report.foto}')" onerror="this.onerror=null;this.src='https://placehold.co/55x55?text=No+Image';">`
+        ? `<img src="${report.foto}" width="55" height="55" loading="lazy" class="rounded shadow-sm border" style="object-fit:cover;cursor:pointer" onclick="HistoryModule.showPhoto('${report.foto}')">`
         : `<div class="bg-light border rounded d-flex align-items-center justify-content-center mx-auto" style="width:55px;height:55px"><i class="bi bi-image text-secondary"></i></div>`;
 
-      rows.push(`
+      html += `
         <tr>
           <td><strong>${report.id || "-"}</strong></td>
           <td>${report.tanggal || "-"}</td>
@@ -113,10 +114,10 @@ const HistoryModule = (() => {
             <button class="btn btn-sm btn-outline-warning" onclick="HistoryModule.showUpdate('${report.id}')"><i class="bi bi-pencil"></i></button>
           </td>
         </tr>
-      `);
+      `;
     });
 
-    tbody.innerHTML = rows.join("");
+    tbody.innerHTML = html;
     setText("totalReport", filteredReports.length);
     renderPagination();
   }
@@ -138,7 +139,7 @@ const HistoryModule = (() => {
   }
 
   // ==========================================
-  // SEARCH & FILTER
+  // SEARCH
   // ==========================================
   function bindSearch() {
     document.getElementById("searchReport")?.addEventListener("keyup", filterData);
@@ -187,7 +188,8 @@ const HistoryModule = (() => {
       html += `
         <li class="page-item ${i === currentPage ? "active" : ""}">
           <a href="#" class="page-link" onclick="HistoryModule.goPage(${i});return false">${i}</a>
-        </li>`;
+        </li>
+      `;
     }
     pagination.innerHTML = html;
   }
@@ -198,7 +200,7 @@ const HistoryModule = (() => {
   }
 
   // ==========================================
-  // PHOTO MODAL
+  // PHOTO
   // ==========================================
   function showPhoto(url) {
     document.getElementById("modalPhoto").src = url;
@@ -206,7 +208,7 @@ const HistoryModule = (() => {
   }
 
   // ==========================================
-  // DETAIL MODAL
+  // DETAIL
   // ==========================================
   function showDetail(id) {
     const report = reports.find(x => x.id === id);
@@ -223,13 +225,16 @@ const HistoryModule = (() => {
         <tr><th>Deskripsi</th><td>${report.deskripsi}</td></tr>
         <tr><th>Status</th><td>${badge(report.status)}</td></tr>
         <tr><th>Teknisi</th><td>${report.teknisi || "-"}</td></tr>
+        <tr><th>Tgl Selesai</th><td>${report.tglSelesai || "-"}</td></tr>
+        <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || "-"}</td></tr>
       </table>
     `;
+
     bootstrap.Modal.getOrCreateInstance(document.getElementById("detailModal")).show();
   }
 
   // ==========================================
-  // UPDATE STATUS MODAL
+  // UPDATE MODAL
   // ==========================================
   function showUpdate(id) {
     const report = reports.find(x => x.id === id);
@@ -238,24 +243,23 @@ const HistoryModule = (() => {
     document.getElementById("updateId").value = report.id;
     document.getElementById("updateStatus").value = report.status;
     document.getElementById("updateTeknisi").value = report.teknisi || "";
+    document.getElementById("updateCatatan").value = report.catatanTeknisi || "";
+
     bootstrap.Modal.getOrCreateInstance(document.getElementById("updateModal")).show();
   }
 
   async function saveUpdate() {
-    try {
-      const response = await Api.post("updateReport", {
-        id: document.getElementById("updateId").value,
-        status: document.getElementById("updateStatus").value,
-        teknisi: document.getElementById("updateTeknisi").value
-      });
+    const response = await Api.post("updateReport", {
+      id: document.getElementById("updateId").value,
+      status: document.getElementById("updateStatus").value,
+      teknisi: document.getElementById("updateTeknisi").value,
+      catatan: document.getElementById("updateCatatan").value
+    });
 
-      if (response.success) {
-        App.toast("Status berhasil diperbarui", "success");
-        bootstrap.Modal.getInstance(document.getElementById("updateModal")).hide();
-        await loadReports();
-      }
-    } catch (err) {
-      App.handleError(err);
+    if (response.success) {
+      App.toast("Status berhasil diperbarui", "success");
+      bootstrap.Modal.getInstance(document.getElementById("updateModal")).hide();
+      await loadReports();
     }
   }
 
@@ -269,4 +273,4 @@ const HistoryModule = (() => {
   };
 })();
 
-document.addEventListener("DOMContentLoaded", () => HistoryModule.init());
+document.addEventListener("DOMContentLoaded", HistoryModule.init);

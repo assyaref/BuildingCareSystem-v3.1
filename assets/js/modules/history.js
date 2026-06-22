@@ -1,5 +1,5 @@
 // ======================================================
-// Building Care System Enterprise v3.6
+// Building Care System Enterprise v3.6.1
 // assets/js/modules/history.js
 // ======================================================
 
@@ -22,7 +22,7 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // LOAD REPORT
+    // LOAD REPORTS
     // ==========================================
     async function loadReports() {
         try {
@@ -47,18 +47,18 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // SUMMARY CARD
+    // SUMMARY
     // ==========================================
     function updateSummary() {
-        const setCardValue = (id, value) => {
-            const element = document.getElementById(id);
-            if (element) element.textContent = value;
+        const setCardText = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
         };
 
-        setCardValue("cardTotal", reports.length);
-        setCardValue("cardOpen", reports.filter(x => x.status === "OPEN").length);
-        setCardValue("cardProgress", reports.filter(x => x.status === "PROGRESS").length);
-        setCardValue("cardDone", reports.filter(x => x.status === "DONE").length);
+        setCardText("cardTotal", reports.length);
+        setCardText("cardOpen", reports.filter(x => x.status === "OPEN").length);
+        setCardText("cardProgress", reports.filter(x => x.status === "PROGRESS").length);
+        setCardText("cardDone", reports.filter(x => x.status === "DONE").length);
     }
 
     // ==========================================
@@ -89,7 +89,7 @@ const HistoryModule = (() => {
         const rows = [];
         pageData.forEach(report => {
             const photoContent = report.foto
-                ? `<img src="${report.foto}" width="55" height="55" class="rounded shadow-sm" style="object-fit:cover; cursor:pointer" onclick="HistoryModule.showPhoto('${report.foto}')">`
+                ? `<img src="${report.foto}" width="55" height="55" loading="lazy" class="rounded shadow-sm border" style="object-fit:cover; cursor:pointer;" onclick="HistoryModule.showPhoto('${report.foto}')" onerror="this.onerror=null; this.src='https://placehold.co/55x55?text=No+Image';">`
                 : `<i class="bi bi-image text-secondary"></i>`;
 
             rows.push(`
@@ -118,7 +118,7 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // BADGE
+    // BADGE STATUS
     // ==========================================
     function badge(status) {
         switch (status) {
@@ -210,17 +210,19 @@ const HistoryModule = (() => {
     // ==========================================
     function showPhoto(url) {
         const modalPhoto = document.getElementById("modalPhoto");
-        const photoModalEl = document.getElementById("photoModal");
+        const photoModal = document.getElementById("photoModal");
 
-        if (modalPhoto) modalPhoto.src = url;
-        if (photoModalEl) {
-            new bootstrap.Modal(photoModalEl).show();
-        }
+        if (!modalPhoto || !photoModal) return;
+
+        modalPhoto.src = "";
+        modalPhoto.src = url;
+        modalPhoto.onerror = function () {
+            this.src = "https://placehold.co/1200x800?text=Image+Not+Available";
+        };
+
+        new bootstrap.Modal(photoModal).show();
     }
 
-    // ==========================================
-    // EXPORT
-    // ==========================================
     return {
         init,
         showPhoto,

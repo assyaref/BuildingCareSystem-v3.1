@@ -1,5 +1,5 @@
 // ======================================================
-// Building Care System Enterprise v3.7
+// Building Care System Enterprise v3.8
 // assets/js/modules/history.js
 // ======================================================
 
@@ -62,7 +62,7 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // RENDER TABLE
+    // TABLE
     // ==========================================
     function renderTable() {
         const tbody = document.getElementById("historyTable");
@@ -76,7 +76,7 @@ const HistoryModule = (() => {
         if (!pageData.length) {
             tbody.innerHTML = `
             <tr>
-                <td colspan="8" class="text-center py-5 text-muted">
+                <td colspan="9" class="text-center py-5 text-muted">
                     <i class="bi bi-inbox fs-1"></i>
                     <br>Tidak ada data
                 </td>
@@ -87,8 +87,8 @@ const HistoryModule = (() => {
         const rows = [];
         pageData.forEach(report => {
             const photoContent = report.foto
-                ? `<img src="${report.foto}" loading="lazy" width="55" height="55" class="rounded shadow-sm border" style="object-fit:cover; cursor:pointer;" onclick="HistoryModule.showPhoto('${report.foto}')" onerror="this.onerror=null; this.src='https://placehold.co/55x55?text=No+Image';">`
-                : `<div class="bg-light border rounded d-flex align-items-center justify-content-center mx-auto" style="width:55px; height:55px;"><i class="bi bi-image text-secondary"></i></div>`;
+                ? `<img src="${report.foto}" width="55" height="55" loading="lazy" class="rounded shadow-sm border" style="object-fit:cover; cursor:pointer;" onclick="HistoryModule.showPhoto('${report.foto}')" onerror="this.onerror=null; this.src='https://placehold.co/55x55?text=No+Image';">`
+                : `<div class="bg-light border rounded d-flex align-items-center justify-content-center mx-auto" style="width:55px;height:55px"><i class="bi bi-image text-secondary"></i></div>`;
 
             rows.push(`
             <tr>
@@ -100,13 +100,18 @@ const HistoryModule = (() => {
                 </td>
                 <td>${report.kategori || "-"}</td>
                 <td>${report.lokasi || "-"}</td>
-                <td style="max-width:300px;">
+                <td style="max-width:300px">
                     <div class="text-truncate" title="${report.deskripsi || "-"}">
                         ${report.deskripsi || "-"}
                     </div>
                 </td>
                 <td>${badge(report.status)}</td>
                 <td class="text-center">${photoContent}</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary" onclick="HistoryModule.showDetail('${report.id}')">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </td>
             </tr>`);
         });
 
@@ -132,14 +137,14 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // SEARCH & FILTER
+    // SEARCH
     // ==========================================
     function bindSearch() {
         document.getElementById("searchReport")?.addEventListener("keyup", filterData);
         document.getElementById("filterStatus")?.addEventListener("change", filterData);
     }
 
-    function filterData() {
+        function filterData() {
         const keyword = document.getElementById("searchReport")?.value.toLowerCase() || "";
         const status = document.getElementById("filterStatus")?.value || "";
 
@@ -192,13 +197,14 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // PHOTO MODAL
+    // PHOTO PREVIEW
     // ==========================================
     function showPhoto(url) {
         const modalPhoto = document.getElementById("modalPhoto");
         const photoModal = document.getElementById("photoModal");
         if (!modalPhoto || !photoModal) return;
 
+        modalPhoto.src = "";
         modalPhoto.src = url;
         modalPhoto.onerror = function () {
             this.src = "https://placehold.co/1200x800?text=Image+Not+Available";
@@ -207,7 +213,29 @@ const HistoryModule = (() => {
         bootstrap.Modal.getOrCreateInstance(photoModal).show();
     }
 
-    return { init, showPhoto, goPage };
+    // ==========================================
+    // DETAIL REPORT
+    // ==========================================
+    function showDetail(id) {
+        const report = reports.find(x => x.id === id);
+        if (!report) return;
+
+        document.getElementById("detailContent").innerHTML = `
+        <table class="table table-bordered mb-0">
+            <tr><th width="30%">ID</th><td>${report.id || "-"}</td></tr>
+            <tr><th>Tanggal</th><td>${report.tanggal || "-"}</td></tr>
+            <tr><th>Pelapor</th><td>${report.nama || "-"}</td></tr>
+            <tr><th>Departemen</th><td>${report.departemen || "-"}</td></tr>
+            <tr><th>Kategori</th><td>${report.kategori || "-"}</td></tr>
+            <tr><th>Lokasi</th><td>${report.lokasi || "-"}</td></tr>
+            <tr><th>Deskripsi</th><td>${report.deskripsi || "-"}</td></tr>
+            <tr><th>Status</th><td>${badge(report.status)}</td></tr>
+        </table>`;
+
+        bootstrap.Modal.getOrCreateInstance(document.getElementById("detailModal")).show();
+    }
+
+    return { init, showPhoto, showDetail, goPage };
 })();
 
 document.addEventListener("DOMContentLoaded", () => HistoryModule.init());

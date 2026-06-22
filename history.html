@@ -61,15 +61,15 @@
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white">
             <div class="row g-2 align-items-center">
-                <div class="col-md-5">
+                <div class="col-lg-4">
                     <div class="input-group">
                         <span class="input-group-text">
                             <i class="bi bi-search"></i>
                         </span>
-                        <input type="text" class="form-control" id="searchReport" placeholder="Cari ID, kategori atau lokasi">
+                        <input type="text" class="form-control" id="searchReport" placeholder="Cari ID, pelapor, kategori, lokasi...">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-lg-2">
                     <select class="form-select" id="filterStatus">
                         <option value="">Semua Status</option>
                         <option value="OPEN">OPEN</option>
@@ -77,20 +77,20 @@
                         <option value="DONE">DONE</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-lg-2">
                     <select class="form-select" id="sortReport">
                         <option value="desc">Terbaru</option>
                         <option value="asc">Terlama</option>
                     </select>
                 </div>
-                <div class="col-md-2 text-end">
+                <div class="col-lg-4 text-lg-end">
                     <small class="text-muted">
                         Total : <strong id="totalReport">0</strong>
                     </small>
                 </div>
             </div>
         </div>
-        
+
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
@@ -98,16 +98,19 @@
                         <tr>
                             <th>ID</th>
                             <th>Tanggal</th>
+                            <th>Pelapor</th>
                             <th>Kategori</th>
                             <th>Lokasi</th>
+                            <th style="min-width: 300px;">Deskripsi</th>
                             <th>Status</th>
                             <th class="text-center">Foto</th>
                         </tr>
                     </thead>
                     <tbody id="historyTable">
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                Memuat data...
+                            <td colspan="8" class="text-center text-muted py-5">
+                                <div class="spinner-border spinner-border-sm mb-2"></div>
+                                <br>Memuat data...
                             </td>
                         </tr>
                     </tbody>

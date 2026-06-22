@@ -1,5 +1,5 @@
 // ======================================================
-// Building Care System Enterprise v3.6.1
+// Building Care System Enterprise v3.7
 // assets/js/modules/history.js
 // ======================================================
 
@@ -50,15 +50,15 @@ const HistoryModule = (() => {
     // SUMMARY
     // ==========================================
     function updateSummary() {
-        const setCardText = (id, value) => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = value;
-        };
+        setText("cardTotal", reports.length);
+        setText("cardOpen", reports.filter(x => x.status === "OPEN").length);
+        setText("cardProgress", reports.filter(x => x.status === "PROGRESS").length);
+        setText("cardDone", reports.filter(x => x.status === "DONE").length);
+    }
 
-        setCardText("cardTotal", reports.length);
-        setCardText("cardOpen", reports.filter(x => x.status === "OPEN").length);
-        setCardText("cardProgress", reports.filter(x => x.status === "PROGRESS").length);
-        setCardText("cardDone", reports.filter(x => x.status === "DONE").length);
+    function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
     }
 
     // ==========================================
@@ -69,72 +69,70 @@ const HistoryModule = (() => {
         if (!tbody) return;
 
         tbody.innerHTML = "";
-
         const start = (currentPage - 1) * PER_PAGE;
         const end = start + PER_PAGE;
         const pageData = filteredReports.slice(start, end);
 
         if (!pageData.length) {
             tbody.innerHTML = `
-                <tr>
-                    <td colspan="8" class="text-center py-5 text-muted">
-                        <i class="bi bi-inbox fs-1"></i>
-                        <br>Tidak ada data
-                    </td>
-                </tr>
-            `;
+            <tr>
+                <td colspan="8" class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox fs-1"></i>
+                    <br>Tidak ada data
+                </td>
+            </tr>`;
             return;
         }
 
         const rows = [];
         pageData.forEach(report => {
             const photoContent = report.foto
-                ? `<img src="${report.foto}" width="55" height="55" loading="lazy" class="rounded shadow-sm border" style="object-fit:cover; cursor:pointer;" onclick="HistoryModule.showPhoto('${report.foto}')" onerror="this.onerror=null; this.src='https://placehold.co/55x55?text=No+Image';">`
-                : `<i class="bi bi-image text-secondary"></i>`;
+                ? `<img src="${report.foto}" loading="lazy" width="55" height="55" class="rounded shadow-sm border" style="object-fit:cover; cursor:pointer;" onclick="HistoryModule.showPhoto('${report.foto}')" onerror="this.onerror=null; this.src='https://placehold.co/55x55?text=No+Image';">`
+                : `<div class="bg-light border rounded d-flex align-items-center justify-content-center mx-auto" style="width:55px; height:55px;"><i class="bi bi-image text-secondary"></i></div>`;
 
             rows.push(`
-                <tr>
-                    <td><strong>${report.id}</strong></td>
-                    <td>${report.tanggal}</td>
-                    <td>
-                        <div class="fw-semibold">${report.nama || "-"}</div>
-                        <small class="text-muted">${report.departemen || ""}</small>
-                    </td>
-                    <td>${report.kategori}</td>
-                    <td>${report.lokasi}</td>
-                    <td style="max-width:300px"><small>${report.deskripsi || "-"}</small></td>
-                    <td>${badge(report.status)}</td>
-                    <td class="text-center">${photoContent}</td>
-                </tr>
-            `);
+            <tr>
+                <td><strong>${report.id || "-"}</strong></td>
+                <td>${report.tanggal || "-"}</td>
+                <td>
+                    <div class="fw-semibold">${report.nama || "-"}</div>
+                    <small class="text-muted">${report.departemen || ""}</small>
+                </td>
+                <td>${report.kategori || "-"}</td>
+                <td>${report.lokasi || "-"}</td>
+                <td style="max-width:300px;">
+                    <div class="text-truncate" title="${report.deskripsi || "-"}">
+                        ${report.deskripsi || "-"}
+                    </div>
+                </td>
+                <td>${badge(report.status)}</td>
+                <td class="text-center">${photoContent}</td>
+            </tr>`);
         });
 
         tbody.innerHTML = rows.join("");
-
-        const totalReportEl = document.getElementById("totalReport");
-        if (totalReportEl) totalReportEl.textContent = filteredReports.length;
-
+        setText("totalReport", filteredReports.length);
         renderPagination();
     }
 
     // ==========================================
-    // BADGE STATUS
+    // BADGE
     // ==========================================
     function badge(status) {
         switch (status) {
             case "OPEN":
-                return `<span class="badge bg-warning">OPEN</span>`;
+                return `<span class="badge rounded-pill bg-warning text-dark">OPEN</span>`;
             case "PROGRESS":
-                return `<span class="badge bg-primary">PROGRESS</span>`;
+                return `<span class="badge rounded-pill bg-primary">PROGRESS</span>`;
             case "DONE":
-                return `<span class="badge bg-success">DONE</span>`;
+                return `<span class="badge rounded-pill bg-success">DONE</span>`;
             default:
-                return status;
+                return `<span class="badge bg-secondary">${status || "-"}</span>`;
         }
     }
 
     // ==========================================
-    // SEARCH + FILTER
+    // SEARCH & FILTER
     // ==========================================
     function bindSearch() {
         document.getElementById("searchReport")?.addEventListener("keyup", filterData);
@@ -146,16 +144,8 @@ const HistoryModule = (() => {
         const status = document.getElementById("filterStatus")?.value || "";
 
         filteredReports = reports.filter(r => {
-            const matchKeyword = 
-                (r.id || "").toLowerCase().includes(keyword) ||
-                (r.nama || "").toLowerCase().includes(keyword) ||
-                (r.kategori || "").toLowerCase().includes(keyword) ||
-                (r.lokasi || "").toLowerCase().includes(keyword) ||
-                (r.deskripsi || "").toLowerCase().includes(keyword);
-
-            const matchStatus = status === "" || r.status === status;
-
-            return matchKeyword && matchStatus;
+            const text = [r.id, r.nama, r.departemen, r.kategori, r.lokasi, r.deskripsi].join(" ").toLowerCase();
+            return text.includes(keyword) && (status === "" || r.status === status);
         });
 
         currentPage = 1;
@@ -185,19 +175,15 @@ const HistoryModule = (() => {
 
         pagination.innerHTML = "";
         const totalPages = Math.ceil(filteredReports.length / PER_PAGE);
+        let html = "";
 
-        const pages = [];
         for (let i = 1; i <= totalPages; i++) {
-            const activeClass = i === currentPage ? "active" : "";
-            pages.push(`
-                <li class="page-item ${activeClass}">
-                    <a href="#" class="page-link" onclick="HistoryModule.goPage(${i});return false">
-                        ${i}
-                    </a>
-                </li>
-            `);
+            html += `
+            <li class="page-item ${i === currentPage ? "active" : ""}">
+                <a href="#" class="page-link" onclick="HistoryModule.goPage(${i});return false">${i}</a>
+            </li>`;
         }
-        pagination.innerHTML = pages.join("");
+        pagination.innerHTML = html;
     }
 
     function goPage(page) {
@@ -206,33 +192,22 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // PREVIEW FOTO
+    // PHOTO MODAL
     // ==========================================
     function showPhoto(url) {
         const modalPhoto = document.getElementById("modalPhoto");
         const photoModal = document.getElementById("photoModal");
-
         if (!modalPhoto || !photoModal) return;
 
-        modalPhoto.src = "";
         modalPhoto.src = url;
         modalPhoto.onerror = function () {
             this.src = "https://placehold.co/1200x800?text=Image+Not+Available";
         };
 
-        new bootstrap.Modal(photoModal).show();
+        bootstrap.Modal.getOrCreateInstance(photoModal).show();
     }
 
-    return {
-        init,
-        showPhoto,
-        goPage
-    };
+    return { init, showPhoto, goPage };
 })();
 
-// ==========================================
-// START
-// ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-    HistoryModule.init();
-});
+document.addEventListener("DOMContentLoaded", () => HistoryModule.init());

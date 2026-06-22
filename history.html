@@ -107,11 +107,12 @@
                             <th style="min-width:300px">Deskripsi</th>
                             <th>Status</th>
                             <th class="text-center">Foto</th>
+                            <th class="text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody id="historyTable">
                         <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">
+                            <td colspan="9" class="text-center py-5 text-muted">
                                 <div class="spinner-border spinner-border-sm mb-2"></div>
                                 <br>Memuat data...
                             </td>
@@ -139,6 +140,22 @@
             </div>
             <div class="modal-body text-center bg-light">
                 <img id="modalPhoto" class="img-fluid rounded shadow" alt="Preview" style="max-width:100%; max-height:80vh; object-fit:contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-earmark-text"></i> Detail Laporan
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="detailContent"></div>
             </div>
         </div>
     </div>

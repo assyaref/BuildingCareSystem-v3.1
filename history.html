@@ -16,18 +16,16 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="fw-bold mb-1">
+            <h2 class="fw-bold mb-1">
                 <i class="bi bi-clock-history"></i> Riwayat Laporan
-            </h3>
+            </h2>
             <small class="text-muted">
                 Monitoring seluruh laporan Building Care System Enterprise
             </small>
         </div>
-        <div>
-            <a href="dashboard.html" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
-                <i class="bi bi-arrow-left-circle"></i> Dashboard
-            </a>
-        </div>
+        <a href="dashboard.html" class="btn btn-outline-primary rounded-pill shadow-sm px-4">
+            <i class="bi bi-house-door"></i> Dashboard
+        </a>
     </div>
 
     <div class="row g-3 mb-4">
@@ -106,14 +104,14 @@
                             <th>Pelapor</th>
                             <th>Kategori</th>
                             <th>Lokasi</th>
-                            <th style="min-width: 300px;">Deskripsi</th>
+                            <th style="min-width:300px">Deskripsi</th>
                             <th>Status</th>
                             <th class="text-center">Foto</th>
                         </tr>
                     </thead>
                     <tbody id="historyTable">
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-5">
+                            <td colspan="8" class="text-center py-5 text-muted">
                                 <div class="spinner-border spinner-border-sm mb-2"></div>
                                 <br>Memuat data...
                             </td>
@@ -140,7 +138,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center bg-light">
-                <img id="modalPhoto" class="img-fluid rounded shadow" style="max-width: 100%; max-height: 80vh; object-fit: contain;" alt="Preview">
+                <img id="modalPhoto" class="img-fluid rounded shadow" alt="Preview" style="max-width:100%; max-height:80vh; object-fit:contain;">
             </div>
         </div>
     </div>

@@ -1,186 +1,193 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>History | Building Care System Enterprise</title>
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="assets/css/style.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>History | Building Care System Enterprise</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
 </head>
 
 <body class="bg-light">
 
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-1">
-                <i class="bi bi-clock-history"></i> Riwayat Laporan
-            </h2>
-            <small class="text-muted">
-                Monitoring seluruh laporan Building Care System Enterprise
-            </small>
-        </div>
-        <a href="dashboard.html" class="btn btn-outline-primary rounded-pill shadow-sm px-4">
-            <i class="bi bi-house-door"></i> Dashboard
-        </a>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="bi bi-clock-history"></i> Riwayat Laporan
+      </h2>
+      <small class="text-muted">
+        Monitoring seluruh laporan Building Care System Enterprise
+      </small>
     </div>
+    <a href="dashboard.html" class="btn btn-outline-primary rounded-pill shadow-sm px-4">
+      <i class="bi bi-house-door"></i> Dashboard
+    </a>
+  </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <h6 class="text-muted">Total Laporan</h6>
-                    <h2 class="fw-bold" id="cardTotal">0</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <h6 class="text-warning">OPEN</h6>
-                    <h2 class="fw-bold text-warning" id="cardOpen">0</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <h6 class="text-primary">PROGRESS</h6>
-                    <h2 class="fw-bold text-primary" id="cardProgress">0</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <h6 class="text-success">DONE</h6>
-                    <h2 class="fw-bold text-success" id="cardDone">0</h2>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white">
-            <div class="row g-2 align-items-center">
-                <div class="col-lg-4">
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control" id="searchReport" placeholder="Cari ID, pelapor, kategori atau lokasi">
-                    </div>
-                </div>
-                <div class="col-lg-2">
-                    <select class="form-select" id="filterStatus">
-                        <option value="">Semua Status</option>
-                        <option value="OPEN">OPEN</option>
-                        <option value="PROGRESS">PROGRESS</option>
-                        <option value="DONE">DONE</option>
-                    </select>
-                </div>
-                <div class="col-lg-2">
-                    <select class="form-select" id="sortReport">
-                        <option value="desc">Terbaru</option>
-                        <option value="asc">Terlama</option>
-                    </select>
-                </div>
-                <div class="col-lg-4 text-lg-end">
-                    <small class="text-muted">Total : <strong id="totalReport">0</strong></small>
-                </div>
-            </div>
-        </div>
-
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Tanggal</th>
-                            <th>Pelapor</th>
-                            <th>Kategori</th>
-                            <th>Lokasi</th>
-                            <th style="min-width:300px">Deskripsi</th>
-                            <th>Status</th>
-                            <th class="text-center">Foto</th>
-                            <th class="text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyTable">
-                        <tr>
-                            <td colspan="9" class="text-center py-5 text-muted">
-                                <div class="spinner-border spinner-border-sm mb-2"></div>
-                                <br>Memuat data...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center" id="pagination"></ul>
-            </nav>
+          <h6 class="text-muted">Total Laporan</h6>
+          <h2 class="fw-bold" id="cardTotal">0</h2>
         </div>
+      </div>
     </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-warning">OPEN</h6>
+          <h2 class="fw-bold text-warning" id="cardOpen">0</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-primary">PROGRESS</h6>
+          <h2 class="fw-bold text-primary" id="cardProgress">0</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-success">DONE</h6>
+          <h2 class="fw-bold text-success" id="cardDone">0</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+      <div class="row g-2 align-items-center">
+        <div class="col-lg-4">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="searchReport" placeholder="Cari ID, pelapor, kategori atau lokasi">
+          </div>
+        </div>
+        <div class="col-lg-2">
+          <select class="form-select" id="filterStatus">
+            <option value="">Semua Status</option>
+            <option value="OPEN">OPEN</option>
+            <option value="PROGRESS">PROGRESS</option>
+            <option value="DONE">DONE</option>
+          </select>
+        </div>
+        <div class="col-lg-2">
+          <select class="form-select" id="sortReport">
+            <option value="desc">Terbaru</option>
+            <option value="asc">Terlama</option>
+          </select>
+        </div>
+        <div class="col-lg-4 text-end">
+          <small class="text-muted">Total : <strong id="totalReport">0</strong></small>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Tanggal</th>
+              <th>Pelapor</th>
+              <th>Kategori</th>
+              <th>Lokasi</th>
+              <th style="min-width:300px">Deskripsi</th>
+              <th>Status</th>
+              <th class="text-center">Foto</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="historyTable">
+            <tr>
+              <td colspan="9" class="text-center py-5 text-muted">
+                <div class="spinner-border spinner-border-sm mb-2"></div><br>
+                Memuat data...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <nav class="mt-4">
+        <ul class="pagination justify-content-center" id="pagination"></ul>
+      </nav>
+    </div>
+  </div>
+
 </div>
 
 <div class="modal fade" id="photoModal" tabindex="-1">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-image"></i> Preview Foto</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center bg-light">
-                <img id="modalPhoto" class="img-fluid rounded shadow" style="max-width:100%; max-height:80vh; object-fit:contain;">
-            </div>
-        </div>
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-image"></i> Preview Foto</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center bg-light">
+        <img id="modalPhoto" class="img-fluid rounded shadow" style="max-width:100%; max-height:80vh; object-fit:contain">
+      </div>
     </div>
+  </div>
 </div>
 
 <div class="modal fade" id="detailModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-file-earmark-text"></i> Detail Laporan</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div id="detailContent"></div>
-            </div>
-        </div>
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-file-earmark-text"></i> Detail Laporan</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="detailContent"></div>
+      </div>
     </div>
+  </div>
 </div>
 
 <div class="modal fade" id="updateModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Update Status Laporan</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="updateId">
-                
-                <label class="form-label">Status</label>
-                <select class="form-select mb-3" id="updateStatus">
-                    <option value="OPEN">OPEN</option>
-                    <option value="PROGRESS">PROGRESS</option>
-                    <option value="DONE">DONE</option>
-                </select>
-
-                <label class="form-label">Teknisi</label>
-                <input type="text" class="form-control" id="updateTeknisi" placeholder="Nama Teknisi">
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button class="btn btn-primary" onclick="HistoryModule.saveUpdate()">
-                    <i class="bi bi-check-circle"></i> Simpan
-                </button>
-            </div>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Update Status Laporan</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="updateId">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Status</label>
+          <select class="form-select" id="updateStatus">
+            <option value="OPEN">OPEN</option>
+            <option value="PROGRESS">PROGRESS</option>
+            <option value="DONE">DONE</option>
+          </select>
         </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Teknisi</label>
+          <input type="text" class="form-control" id="updateTeknisi" placeholder="Nama Teknisi">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Catatan Teknisi</label>
+          <textarea class="form-control" id="updateCatatan" rows="4" placeholder="Masukkan catatan pekerjaan"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary" onclick="HistoryModule.saveUpdate()">
+          <i class="bi bi-check-circle"></i> Simpan
+        </button>
+      </div>
     </div>
+  </div>
 </div>
 
 <script src="config/config.js"></script>

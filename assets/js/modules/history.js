@@ -1,5 +1,5 @@
 // ======================================================
-// Building Care System Enterprise v3.4
+// Building Care System Enterprise v3.5
 // assets/js/modules/history.js
 // ======================================================
 
@@ -38,11 +38,29 @@ const HistoryModule = (() => {
             reports.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
             filteredReports = [...reports];
 
+            updateSummary();
             renderTable();
         } catch (err) {
             console.error(err);
             App.handleError(err);
         }
+    }
+
+    // ==========================================
+    // SUMMARY CARD
+    // ==========================================
+    function updateSummary() {
+        const setCardValue = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.replaceChildren(document.createTextNode(value));
+            }
+        };
+
+        setCardValue("cardTotal", reports.length);
+        setCardValue("cardOpen", reports.filter(r => r.status === "OPEN").length);
+        setCardValue("cardProgress", reports.filter(r => r.status === "PROGRESS").length);
+        setCardValue("cardDone", reports.filter(r => r.status === "DONE").length);
     }
 
     // ==========================================
@@ -58,27 +76,27 @@ const HistoryModule = (() => {
         const end = start + PER_PAGE;
         const pageData = filteredReports.slice(start, end);
 
-        if (pageData.length === 0) {
+        if (!pageData.length) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center text-muted">
-                        Tidak ada data
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1"></i>
+                        <br>Tidak ada data
                     </td>
                 </tr>
             `;
             return;
         }
 
-        // Menggunakan array untuk menghindari overhead berulang pada innerHTML +=
         const rows = [];
         pageData.forEach(report => {
             const photoContent = report.foto
-                ? `<img src="${report.foto}" width="50" height="50" class="rounded shadow-sm" style="object-fit:cover; cursor:pointer" onclick="HistoryModule.showPhoto('${report.foto}')">`
+                ? `<img src="${report.foto}" width="55" height="55" class="rounded shadow-sm" style="object-fit:cover; cursor:pointer" onclick="HistoryModule.showPhoto('${report.foto}')">`
                 : `<i class="bi bi-image text-secondary"></i>`;
 
             rows.push(`
                 <tr>
-                    <td>${report.id}</td>
+                    <td><strong>${report.id}</strong></td>
                     <td>${report.tanggal}</td>
                     <td>${report.kategori}</td>
                     <td>${report.lokasi}</td>
@@ -89,7 +107,7 @@ const HistoryModule = (() => {
         });
 
         tbody.innerHTML = rows.join("");
-        
+
         const totalReportEl = document.getElementById("totalReport");
         if (totalReportEl) totalReportEl.textContent = filteredReports.length;
 
@@ -97,7 +115,7 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // BADGE
+    // BADGE STATUS
     // ==========================================
     function badge(status) {
         switch (status) {
@@ -113,7 +131,7 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // SEARCH + FILTER
+    // SEARCH
     // ==========================================
     function bindSearch() {
         document.getElementById("searchReport")?.addEventListener("keyup", filterData);
@@ -145,7 +163,7 @@ const HistoryModule = (() => {
     // SORT
     // ==========================================
     function bindSort() {
-        document.getElementById("sortReport")?.addEventListener("change", (e) => {
+        document.getElementById("sortReport")?.addEventListener("change", e => {
             const mode = e.target.value;
 
             if (mode === "desc") {
@@ -189,7 +207,7 @@ const HistoryModule = (() => {
     }
 
     // ==========================================
-    // PHOTO PREVIEW
+    // PHOTO MODAL
     // ==========================================
     function showPhoto(url) {
         const modalPhoto = document.getElementById("modalPhoto");

@@ -135,13 +135,11 @@
         </h5>
         <button class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-
       <div class="modal-body">
         <div class="mb-3">
           <label class="form-label fw-semibold">ID Laporan</label>
           <input type="text" class="form-control fw-bold bg-light" id="updateId" readonly>
         </div>
-
         <div class="mb-3">
           <label class="form-label fw-semibold">Status</label>
           <select class="form-select" id="updateStatus">
@@ -150,23 +148,48 @@
             <option value="DONE">DONE</option>
           </select>
         </div>
-
         <div class="mb-3">
           <label class="form-label fw-semibold">Teknisi</label>
           <input type="text" class="form-control" id="updateTeknisi" placeholder="Nama Teknisi">
         </div>
-
         <div class="mb-3">
           <label class="form-label fw-semibold">Catatan Teknisi</label>
           <textarea class="form-control" id="updateCatatan" rows="5" placeholder="Masukkan catatan pekerjaan"></textarea>
         </div>
       </div>
-
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
         <button class="btn btn-primary" onclick="HistoryModule.saveUpdate()">
           <i class="bi bi-check-circle"></i> Simpan
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="photoModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-image"></i> Preview Foto</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center bg-light">
+        <img id="modalPhoto" class="img-fluid rounded shadow" style="max-width:100%; max-height:80vh; object-fit:contain">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-file-earmark-text"></i> Detail Laporan</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="detailContent"></div>
       </div>
     </div>
   </div>

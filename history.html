@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,102 +10,139 @@
     <link href="assets/css/style.css" rel="stylesheet">
 </head>
 
-<body>
+<body class="bg-light">
 
-    <div class="container mt-4">
-        <div class="card shadow-sm border-0">
+<div class="container-fluid py-4">
 
-            <div class="card-header bg-white">
-                <h5 class="mb-0">
-                    <i class="bi bi-clock-history"></i> Riwayat Laporan
+    <div class="mb-4">
+        <h3 class="fw-bold">
+            <i class="bi bi-clock-history"></i> Riwayat Laporan
+        </h3>
+        <small class="text-muted">
+            Monitoring seluruh laporan Building Care System Enterprise
+        </small>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Laporan</h6>
+                    <h3 class="fw-bold" id="cardTotal">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-warning">OPEN</h6>
+                    <h3 class="fw-bold text-warning" id="cardOpen">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-primary">PROGRESS</h6>
+                    <h3 class="fw-bold text-primary" id="cardProgress">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-success">DONE</h6>
+                    <h3 class="fw-bold text-success" id="cardDone">0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="searchReport" placeholder="Cari ID, kategori atau lokasi">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="filterStatus">
+                        <option value="">Semua Status</option>
+                        <option value="OPEN">OPEN</option>
+                        <option value="PROGRESS">PROGRESS</option>
+                        <option value="DONE">DONE</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="sortReport">
+                        <option value="desc">Terbaru</option>
+                        <option value="asc">Terlama</option>
+                    </select>
+                </div>
+                <div class="col-md-2 text-end">
+                    <small class="text-muted">
+                        Total : <strong id="totalReport">0</strong>
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Tanggal</th>
+                            <th>Kategori</th>
+                            <th>Lokasi</th>
+                            <th>Status</th>
+                            <th class="text-center">Foto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTable">
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                Memuat data...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center" id="pagination"></ul>
+            </nav>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="photoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-image"></i> Preview Foto
                 </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-md-8 mb-2">
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" class="form-control" id="searchReport" placeholder="Cari ID, kategori atau lokasi...">
-                        </div>
-                    </div>
-
-                    <div class="col-md-4 mb-2">
-                        <select class="form-select" id="filterStatus">
-                            <option value="">Semua Status</option>
-                            <option value="OPEN">OPEN</option>
-                            <option value="PROGRESS">PROGRESS</option>
-                            <option value="DONE">DONE</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <small class="text-muted">
-                            <i class="bi bi-file-earmark-text"></i> Total Laporan : 
-                            <strong id="totalReport">0</strong>
-                        </small>
-                    </div>
-                    <div class="col-md-6 text-md-end">
-                        <select class="form-select form-select-sm w-auto d-inline" id="sortReport">
-                            <option value="desc">Terbaru</option>
-                            <option value="asc">Terlama</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>Tanggal</th>
-                                <th>Kategori</th>
-                                <th>Lokasi</th>
-                                <th>Status</th>
-                                <th class="text-center">Foto</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historyTable">
-                            <tr>
-                                <td colspan="6" class="text-center text-muted">Memuat data...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <nav class="mt-4">
-                    <ul class="pagination justify-content-center" id="pagination"></ul>
-                </nav>
-
+            <div class="modal-body text-center">
+                <img id="modalPhoto" class="img-fluid rounded shadow" alt="Preview">
             </div>
         </div>
     </div>
+</div>
 
-    <div class="modal fade" id="photoModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-image"></i> Preview Foto
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <img id="modalPhoto" class="img-fluid rounded shadow" alt="Preview">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="config/config.js"></script>
-    <script src="assets/js/core/app.js"></script>
-    <script src="assets/js/core/api.js"></script>
-    <script src="assets/js/modules/history.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="config/config.js"></script>
+<script src="assets/js/core/app.js"></script>
+<script src="assets/js/core/api.js"></script>
+<script src="assets/js/modules/history.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

@@ -1,107 +1,308 @@
+// ======================================================
+// Building Care System Enterprise v3.3
+// assets/js/modules/history.js
+// ======================================================
+
 "use strict";
 
-const HistoryModule = (()=>{
+const HistoryModule = (() => {
 
-async function init(){
+    let reports = [];
 
-    await loadReports();
+    // ==========================================
+    // INIT
+    // ==========================================
+    async function init() {
 
-}
+        App.log("History Module Loaded");
 
-async function loadReports(){
+        await loadReports();
 
-    try{
+        bindSearch();
 
-        const response = await Api.post(
-            "getReport"
-        );
+    }
 
-        if(!response.success){
+    // ==========================================
+    // LOAD REPORT
+    // ==========================================
+    async function loadReports() {
 
-            App.toast(
-                response.message,
-                "error"
+        try {
+
+            const response = await Api.post(
+                "getReport"
             );
 
-            return;
+            console.log("[HISTORY]", response);
+
+            if (!response.success) {
+
+                App.toast(
+                    response.message,
+                    "error"
+                );
+
+                return;
+
+            }
+
+            reports =
+                response.data.reports || [];
+
+            renderTable(reports);
+
         }
 
-        render(
-            response.data.reports
-        );
+        catch (err) {
+
+            console.error(err);
+
+            App.handleError(err);
+
+        }
 
     }
 
-    catch(err){
+    // ==========================================
+    // RENDER TABLE
+    // ==========================================
+    function renderTable(data) {
 
-        App.handleError(err);
+        const tbody =
+            document.getElementById(
+                "historyTable"
+            );
+
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+
+        data.forEach(report => {
+
+            tbody.innerHTML += `
+
+            <tr>
+
+                <td>${report.id}</td>
+
+                <td>${report.tanggal}</td>
+
+                <td>${report.kategori}</td>
+
+                <td>${report.lokasi}</td>
+
+                <td>
+                    ${badge(report.status)}
+                </td>
+
+                <td class="text-center">
+
+                    ${
+                        report.foto
+
+                        ?
+
+                        `<img
+                            src="${report.foto}"
+                            width="50"
+                            height="50"
+                            class="rounded shadow-sm"
+                            style="
+                                object-fit:cover;
+                                cursor:pointer;
+                            "
+                            onclick="HistoryModule.showPhoto('${report.foto}')"
+                        >`
+
+                        :
+
+                        `<i class="bi bi-image text-secondary"></i>`
+
+                    }
+
+                </td>
+
+            </tr>
+
+            `;
+
+        });
 
     }
 
-}
+    // ==========================================
+    // BADGE STATUS
+    // ==========================================
+    function badge(status) {
 
-function render(reports){
+        switch (status) {
 
-    let html="";
+            case "OPEN":
 
-    reports.reverse().forEach(r=>{
+                return `
+                <span class="badge bg-warning">
+                    OPEN
+                </span>`;
 
-        html+=`
+            case "PROGRESS":
 
-<tr>
+                return `
+                <span class="badge bg-primary">
+                    PROGRESS
+                </span>`;
 
-<td>${r.id}</td>
+            case "DONE":
 
-<td>${r.tanggal}</td>
+                return `
+                <span class="badge bg-success">
+                    DONE
+                </span>`;
 
-<td>${r.kategori}</td>
+            default:
 
-<td>${r.lokasi}</td>
+                return status;
 
-<td>
+        }
 
-<span class="badge bg-warning">
+    }
 
-${r.status}
+    // ==========================================
+    // SEARCH + FILTER
+    // ==========================================
+    function bindSearch() {
 
-</span>
+        const search =
+            document.getElementById(
+                "searchReport"
+            );
 
-</td>
+        const filter =
+            document.getElementById(
+                "filterStatus"
+            );
 
-<td>
+        if (search) {
 
-<a href="${r.foto}"
-target="_blank">
+            search.addEventListener(
+                "keyup",
+                filterData
+            );
 
-<i class="bi bi-image"></i>
+        }
 
-</a>
+        if (filter) {
 
-</td>
+            filter.addEventListener(
+                "change",
+                filterData
+            );
 
-</tr>
+        }
 
-`;
+    }
 
-    });
+    // ==========================================
+    // FILTER DATA
+    // ==========================================
+    function filterData() {
 
-    document
-    .getElementById(
-        "historyTable"
-    )
-    .innerHTML=html;
+        const keyword =
+            document
+            .getElementById(
+                "searchReport"
+            )
+            .value
+            .toLowerCase();
 
-}
+        const status =
+            document
+            .getElementById(
+                "filterStatus"
+            )
+            .value;
 
-return{
+        const filtered =
+            reports.filter(r => {
 
-    init
+                const matchKeyword =
 
-};
+                    r.id
+                    .toLowerCase()
+                    .includes(keyword)
+
+                    ||
+
+                    r.kategori
+                    .toLowerCase()
+                    .includes(keyword)
+
+                    ||
+
+                    r.lokasi
+                    .toLowerCase()
+                    .includes(keyword);
+
+                const matchStatus =
+
+                    status === ""
+
+                    ||
+
+                    r.status === status;
+
+                return (
+                    matchKeyword
+                    &&
+                    matchStatus
+                );
+
+            });
+
+        renderTable(filtered);
+
+    }
+
+    // ==========================================
+    // PREVIEW FOTO
+    // ==========================================
+    function showPhoto(url) {
+
+        document.getElementById(
+            "modalPhoto"
+        ).src = url;
+
+        new bootstrap.Modal(
+            document.getElementById(
+                "photoModal"
+            )
+        ).show();
+
+    }
+
+    // ==========================================
+    // EXPORT
+    // ==========================================
+    return {
+
+        init,
+
+        showPhoto
+
+    };
 
 })();
 
+// ==========================================
+// START
+// ==========================================
 document.addEventListener(
-"DOMContentLoaded",
-HistoryModule.init
+
+    "DOMContentLoaded",
+
+    async () => {
+
+        await HistoryModule.init();
+
+    }
+
 );

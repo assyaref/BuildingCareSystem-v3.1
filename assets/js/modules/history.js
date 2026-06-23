@@ -138,6 +138,25 @@ const HistoryModule = (() => {
     }
   }
 
+  // BADGE SLA
+  function badgeSLA(sla) {
+
+  switch (sla) {
+
+    case "FAST":
+      return `<span class="badge bg-success rounded-pill">🟢 Cepat</span>`;
+
+    case "NORMAL":
+      return `<span class="badge bg-warning text-dark rounded-pill">🟡 Normal</span>`;
+
+    case "LATE":
+      return `<span class="badge bg-danger rounded-pill">🔴 Lambat</span>`;
+
+    default:
+      return `<span class="badge bg-secondary rounded-pill">-</span>`;
+  }
+
+}
   // ==========================================
   // SEARCH
   // ==========================================
@@ -247,6 +266,7 @@ const HistoryModule = (() => {
         <tr><th>Teknisi</th><td>${report.teknisi || "-"}</td></tr>
         <tr><th>Tgl Selesai</th><td>${report.tglSelesai || "-"}</td></tr>
         <tr><th>Durasi Penyelesaian</th><td>${report.durasi || "-"}</td></tr>
+        <tr><th>SLA</th><td>${badgeSLA(report.sla)}</td></tr>
         <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || "-"}</td></tr>
       </table>
     `;

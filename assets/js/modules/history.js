@@ -246,6 +246,7 @@ const HistoryModule = (() => {
         <tr><th>Status</th><td>${badge(report.status)}</td></tr>
         <tr><th>Teknisi</th><td>${report.teknisi || "-"}</td></tr>
         <tr><th>Tgl Selesai</th><td>${report.tglSelesai || "-"}</td></tr>
+        <tr><th>Durasi Penyelesaian</th><td>${report.durasi || "-"}</td></tr>
         <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || "-"}</td></tr>
       </table>
     `;

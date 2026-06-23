@@ -1,206 +1,415 @@
 <div class="container-fluid">
 
-  <div class="row mb-4">
-    <div class="col-md-12">
-      <h3 class="fw-bold">
-        <i class="bi bi-display"></i> Monitoring Center
-      </h3>
-      <p class="text-muted">Real Time Enterprise Monitoring Dashboard</p>
-    </div>
-  </div>
+    <!-- HEADER -->
+    <div class="row mb-4">
+        <div class="col-md-12">
 
-  <div class="row g-4">
-    <div class="col-xl-3 col-md-6">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <h6>Total Report</h6>
-          <h2 id="monitorTotal">0</h2>
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <h6>Open</h6>
-          <h2 id="monitorOpen">0</h2>
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <h6>Progress</h6>
-          <h2 id="monitorProgress">0</h2>
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <h6>Done</h6>
-          <h2 id="monitorDone">0</h2>
-        </div>
-      </div>
-    </div>
-  </div>
+            <h3 class="fw-bold">
+                <i class="bi bi-display"></i>
+                Monitoring Center
+            </h3>
 
-  <div class="row mt-4">
-    <div class="col-md-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-header">
-          <h5>SLA Analytics</h5>
+            <p class="text-muted mb-0">
+                Real Time Enterprise Monitoring Dashboard
+            </p>
+
         </div>
-        <div class="card-body">
-          <div class="row text-center">
-            <div class="col-md-4">
-              <h3 class="text-success"><span id="fastPercent">0</span>%</h3>
-              FAST
+    </div>
+
+    <!-- REPORT KPI -->
+    <div class="row g-4">
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Total Report
+                    </small>
+
+                    <h2 class="fw-bold mt-2 text-primary"
+                        id="monitorTotal">
+                        0
+                    </h2>
+
+                </div>
             </div>
-            <div class="col-md-4">
-              <h3 class="text-warning"><span id="normalPercent">0</span>%</h3>
-              NORMAL
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Open
+                    </small>
+
+                    <h2 class="fw-bold mt-2 text-danger"
+                        id="monitorOpen">
+                        0
+                    </h2>
+
+                </div>
             </div>
-            <div class="col-md-4">
-              <h3 class="text-danger"><span id="latePercent">0</span>%</h3>
-              LATE
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Progress
+                    </small>
+
+                    <h2 class="fw-bold mt-2 text-warning"
+                        id="monitorProgress">
+                        0
+                    </h2>
+
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="row mt-4">
-    <div class="col-lg-6">
-      <div class="card shadow-sm border-0">
-        <div class="card-header">PM Dashboard</div>
-        <div class="card-body">
-          <table class="table">
-            <tr>
-              <td>Total PM</td>
-              <td id="pmTotal">0</td>
-            </tr>
-            <tr>
-              <td>Open PM</td>
-              <td id="pmOpen">0</td>
-            </tr>
-            <tr>
-              <td>Done PM</td>
-              <td id="pmDone">0</td>
-            </tr>
-          </table>
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Completed
+                    </small>
+
+                    <h2 class="fw-bold mt-2 text-success"
+                        id="monitorDone">
+                        0
+                    </h2>
+
+                </div>
+            </div>
         </div>
-      </div>
+
     </div>
 
-    <div class="col-lg-6">
-      <div class="card shadow-sm border-0">
-        <div class="card-header">Asset Dashboard</div>
-        <div class="card-body">
-          <table class="table">
-            <tr>
-              <td>Total Asset</td>
-              <td id="assetTotal">0</td>
-            </tr>
-            <tr>
-              <td>Active Asset</td>
-              <td id="assetActive">0</td>
-            </tr>
-            <tr>
-              <td>Inactive Asset</td>
-              <td id="assetInactive">0</td>
-            </tr>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="row mt-4">
-    <div class="col-lg-6">
-      <div class="card shadow-sm border-0">
-        <div class="card-header">Top Technician</div>
-        <div class="card-body">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>Nama</th>
-                <th>Total</th>
-                <th>Score</th>
-              </tr>
-            </thead>
-            <tbody id="topTechnicianTable"></tbody>
-          </table>
+    <!-- SLA -->
+    <div class="row mt-4">
+
+        <div class="col-md-12">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header">
+
+                    <i class="bi bi-speedometer2"></i>
+                    SLA Analytics
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row text-center">
+
+                        <div class="col-md-4">
+
+                            <h2 class="text-success fw-bold">
+                                <span id="fastPercent">0</span>%
+                            </h2>
+
+                            FAST
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <h2 class="text-warning fw-bold">
+                                <span id="normalPercent">0</span>%
+                            </h2>
+
+                            NORMAL
+
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <h2 class="text-danger fw-bold">
+                                <span id="latePercent">0</span>%
+                            </h2>
+
+                            LATE
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
-      </div>
+
     </div>
 
-    <div class="col-lg-6">
-      <div class="card shadow-sm border-0">
-        <div class="card-header">System Health</div>
-        <div class="card-body">
-          <table class="table">
-            <tr>
-              <td>API</td>
-              <td id="healthApi">🟢 ONLINE</td>
-            </tr>
-            <tr>
-              <td>Database</td>
-              <td id="healthDatabase">🟢 ONLINE</td>
-            </tr>
-            <tr>
-              <td>Drive</td>
-              <td id="healthDrive">🟢 ONLINE</td>
-            </tr>
-            <tr>
-              <td>Version</td>
-              <td id="healthVersion"></td>
-            </tr>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="row mt-4">
-    <div class="col-md-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-header">Recent Activity</div>
-        <div class="card-body">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Action</th>
-                <th>Description</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-            <tbody id="activityTable"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
+    <!-- PM + ASSET -->
+    <div class="row mt-4">
 
-  <div class="row mt-4 mb-5">
-    <div class="col-md-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-danger text-white">Error Monitoring</div>
-        <div class="card-body">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>Module</th>
-                <th>Error Message</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-            <tbody id="errorTable"></tbody>
-          </table>
+        <div class="col-lg-6">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header">
+
+                    <i class="bi bi-tools"></i>
+                    PM Dashboard
+
+                </div>
+
+                <div class="card-body">
+
+                    <table class="table">
+
+                        <tr>
+                            <td>Total PM</td>
+                            <td class="fw-bold" id="pmTotal">0</td>
+                        </tr>
+
+                        <tr>
+                            <td>Open PM</td>
+                            <td class="fw-bold text-warning" id="pmOpen">0</td>
+                        </tr>
+
+                        <tr>
+                            <td>Done PM</td>
+                            <td class="fw-bold text-success" id="pmDone">0</td>
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
+
         </div>
-      </div>
+
+        <div class="col-lg-6">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header">
+
+                    <i class="bi bi-pc-display"></i>
+                    Asset Dashboard
+
+                </div>
+
+                <div class="card-body">
+
+                    <table class="table">
+
+                        <tr>
+                            <td>Total Asset</td>
+                            <td class="fw-bold" id="assetTotal">0</td>
+                        </tr>
+
+                        <tr>
+                            <td>Active Asset</td>
+                            <td class="fw-bold text-success"
+                                id="assetActive">
+                                0
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Inactive Asset</td>
+                            <td class="fw-bold text-danger"
+                                id="assetInactive">
+                                0
+                            </td>
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
+
+
+    <!-- TOP TECHNICIAN + HEALTH -->
+    <div class="row mt-4">
+
+        <div class="col-lg-6">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header">
+
+                    <i class="bi bi-award"></i>
+                    Top Technician
+
+                </div>
+
+                <div class="card-body table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+
+                        <tr>
+                            <th>Nama</th>
+                            <th>Total</th>
+                            <th>Score</th>
+                        </tr>
+
+                        </thead>
+
+                        <tbody id="topTechnicianTable">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-6">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header">
+
+                    <i class="bi bi-heart-pulse"></i>
+                    System Health
+
+                </div>
+
+                <div class="card-body">
+
+                    <table class="table">
+
+                        <tr>
+                            <td>API</td>
+                            <td id="healthApi">
+                                🟢 ONLINE
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Database</td>
+                            <td id="healthDatabase">
+                                🟢 ONLINE
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Drive</td>
+                            <td id="healthDrive">
+                                🟢 ONLINE
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Version</td>
+                            <td id="healthVersion">
+                                v4.3
+                            </td>
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- RECENT ACTIVITY -->
+    <div class="row mt-4">
+
+        <div class="col-md-12">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header">
+
+                    <i class="bi bi-clock-history"></i>
+                    Recent Activity
+
+                </div>
+
+                <div class="card-body table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+
+                        <tr>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Description</th>
+                            <th>Time</th>
+                        </tr>
+
+                        </thead>
+
+                        <tbody id="activityTable"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ERROR LOG -->
+    <div class="row mt-4 mb-5">
+
+        <div class="col-md-12">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header bg-danger text-white">
+
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Error Monitoring
+
+                </div>
+
+                <div class="card-body table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+
+                        <tr>
+                            <th>Module</th>
+                            <th>Error Message</th>
+                            <th>Time</th>
+                        </tr>
+
+                        </thead>
+
+                        <tbody id="errorTable"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </div>

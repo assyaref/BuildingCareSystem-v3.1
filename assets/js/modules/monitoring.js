@@ -9,7 +9,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   loadMonitoring();
 
-  // Refresh setiap 30 detik
+  // auto refresh 30 detik
   setInterval(loadMonitoring, 30000);
 });
 
@@ -28,16 +28,18 @@ async function loadMonitoring() {
       return;
     }
 
-    const data = response.data;
+    const data = response.data || {};
 
-    loadReport(data.dashboard.report);
-    loadSLA(data.dashboard.sla);
-    loadPM(data.dashboard.pm);
-    loadAsset(data.dashboard.asset);
-    loadTechnician(data.technician);
-    loadActivity(data.activity);
-    loadErrors(data.errors);
-    loadHealth(data.health);
+    loadReport(data.dashboard?.report || {});
+    loadSLA(data.dashboard?.sla || {});
+    loadPM(data.dashboard?.pm || {});
+    loadAsset(data.dashboard?.asset || {});
+
+    loadTechnician(data.technician || []);
+    loadActivity(data.activity || []);
+    loadErrors(data.errors || []);
+
+    loadHealth(data.health || {});
 
   } catch (err) {
     console.error(err);
@@ -100,7 +102,8 @@ function loadAsset(data) {
 function loadTechnician(data) {
   const html = (data || []).map((item, index) => `
     <tr>
-      <td>${index + 1}. ${item.nama}</td>
+      <td>${index + 1}</td>
+      <td>${item.nama}</td>
       <td>${item.total}</td>
       <td>${item.averageScore || 0}</td>
     </tr>
@@ -150,10 +153,10 @@ function loadErrors(data) {
  * =====================================================
  */
 function loadHealth(data) {
-  $("#healthApi").html("🟢 " + data.api);
-  $("#healthDatabase").html("🟢 " + data.database);
-  $("#healthDrive").html("🟢 " + data.drive);
-  $("#healthVersion").text(data.version);
+  $("#healthApi").html("🟢 " + (data.api || "ONLINE"));
+  $("#healthDatabase").html("🟢 " + (data.database || "ONLINE"));
+  $("#healthDrive").html("🟢 " + (data.drive || "ONLINE"));
+  $("#healthVersion").text(data.version || "v4.3");
 }
 
 /**

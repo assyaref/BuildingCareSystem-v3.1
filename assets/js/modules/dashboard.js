@@ -249,7 +249,7 @@ async function loadSLAAnalytics() {
 
             const summaryLoaded = await loadSummary();
             if (!summaryLoaded) throw new Error("Dashboard data gagal dimuat.");
-
+            await loadSLAAnalytics();
             initialized = true;
             App.log("Dashboard Initialized Successfully");
             return true;
@@ -287,6 +287,7 @@ async function loadSLAAnalytics() {
         init,
         loadUser,
         loadSummary,
+        loadSLAAnalytics,
         renderSummary,
         getData,
         getDonutChart,
@@ -589,7 +590,7 @@ const DashboardView = (() => {
         try {
             const loaded = await Dashboard.loadSummary();
             if (!loaded) return false;
-
+            await Dashboard.loadSLAAnalytics();
             renderActivity();
             renderChart();
             renderLineChart();
@@ -790,5 +791,4 @@ const DashboardModule = (() => {
 // ======================================================
 document.addEventListener("DOMContentLoaded", async () => {
     await DashboardModule.init();
-    await loadSLAAnalytics();
     });

@@ -157,7 +157,45 @@ const Dashboard = (() => {
             App.hideLoading();
         }
     }
+// ========================================
+// SLA ANALYTICS
+// Sprint 10.2
+// ========================================
+async function loadSLAAnalytics() {
 
+    try {
+
+        const response = await Api.post("getSLAAnalytics");
+
+        if (!response.success) return;
+
+        const data = response.data;
+
+        document.getElementById("fastCount").textContent =
+            data.fast;
+
+        document.getElementById("normalCount").textContent =
+            data.normal;
+
+        document.getElementById("lateCount").textContent =
+            data.late;
+
+        document.getElementById("fastPercent").textContent =
+            data.fastPercent + "%";
+
+        document.getElementById("normalPercent").textContent =
+            data.normalPercent + "%";
+
+        document.getElementById("latePercent").textContent =
+            data.latePercent + "%";
+
+    } catch (err) {
+
+        console.error(err);
+
+    }
+
+}
     // ==================================================
     // RENDER SUMMARY
     // ==================================================
@@ -752,4 +790,5 @@ const DashboardModule = (() => {
 // ======================================================
 document.addEventListener("DOMContentLoaded", async () => {
     await DashboardModule.init();
-});
+    await loadSLAAnalytics();
+    });

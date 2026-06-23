@@ -3,7 +3,7 @@
 // assets/js/modules/history.js
 // Sprint 6.1
 // ======================================================
-
+console.log("History.js v4.0 Stable Loaded");
 "use strict";
 
 const HistoryModule = (() => {

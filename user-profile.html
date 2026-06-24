@@ -1,1 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Profile</title>
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="./assets/css/user.css">
+</head>
+<body>
+
+<div class="user-header">
+    <h4>Profile</h4>
+    <small>Informasi pengguna</small>
+</div>
+
+<div class="container">
+    <div class="user-card text-center">
+        <div class="avatar mx-auto mb-3">
+            <i class="bi bi-person-fill"></i>
+        </div>
+        <h5 id="profileName"></h5>
+        <small id="profileDept"></small>
+    </div>
+
+    <div class="user-card">
+        <h6><i class="bi bi-clock-history"></i> Last Login</h6>
+        <div id="lastLogin">-</div>
+    </div>
+
+    <div class="user-card">
+        <button class="btn btn-light w-100">
+            <i class="bi bi-key"></i> Ubah Password
+        </button>
+    </div>
+
+    <div class="user-card">
+        <h6><i class="bi bi-phone"></i> Versi Aplikasi</h6>
+        <small>Building Care System Enterprise v3.4</small>
+    </div>
+
+    <div class="user-card">
+        <button id="logoutBtn" class="btn btn-danger w-100">
+            <i class="bi bi-box-arrow-right"></i> Logout
+        </button>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <a href="user-report.html">
+        <i class="bi bi-house"></i> Report
+    </a>
+    <a href="user-history.html">
+        <i class="bi bi-clock-history"></i> History
+    </a>
+    <a href="user-profile.html" class="active">
+        <i class="bi bi-person"></i> Profile
+    </a>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="./config/config.js"></script>
+<script src="./assets/js/core/app.js"></script>
+<script src="./assets/js/core/session.js"></script>
+<script src="./assets/js/modules/userProfile.js"></script>
+
+</body>
+</html>

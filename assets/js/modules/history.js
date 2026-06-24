@@ -3,8 +3,10 @@
 // assets/js/modules/history.js
 // Sprint 6.1
 // ======================================================
-console.log("History.js v4.0 Stable Loaded");
+
 "use strict";
+
+console.log("History.js v4.0 Stable Loaded");
 
 const HistoryModule = (() => {
   let reports = [];
@@ -48,7 +50,7 @@ const HistoryModule = (() => {
   }
 
   // ==========================================
-  // SUMMARY
+  // SUMMARY & UTILITIES
   // ==========================================
   function updateSummary() {
     setText("cardTotal", reports.length);
@@ -59,9 +61,7 @@ const HistoryModule = (() => {
 
   function setText(id, value) {
     const el = document.getElementById(id);
-    if (el) {
-      el.textContent = value;
-    }
+    if (el) el.textContent = value;
   }
 
   // ==========================================
@@ -123,7 +123,7 @@ const HistoryModule = (() => {
   }
 
   // ==========================================
-  // BADGE
+  // BADGE UI BUILDERS
   // ==========================================
   function badge(status) {
     switch (status) {
@@ -138,27 +138,21 @@ const HistoryModule = (() => {
     }
   }
 
-  // BADGE SLA
   function badgeSLA(sla) {
-
-  switch (sla) {
-
-    case "FAST":
-      return `<span class="badge bg-success rounded-pill">🟢 Cepat</span>`;
-
-    case "NORMAL":
-      return `<span class="badge bg-warning text-dark rounded-pill">🟡 Normal</span>`;
-
-    case "LATE":
-      return `<span class="badge bg-danger rounded-pill">🔴 Lambat</span>`;
-
-    default:
-      return `<span class="badge bg-secondary rounded-pill">-</span>`;
+    switch (sla) {
+      case "FAST":
+        return `<span class="badge bg-success rounded-pill">🟢 Cepat</span>`;
+      case "NORMAL":
+        return `<span class="badge bg-warning text-dark rounded-pill">🟡 Normal</span>`;
+      case "LATE":
+        return `<span class="badge bg-danger rounded-pill">🔴 Lambat</span>`;
+      default:
+        return `<span class="badge bg-secondary rounded-pill">-</span>`;
+    }
   }
 
-}
   // ==========================================
-  // SEARCH
+  // SEARCH & FILTER
   // ==========================================
   function bindSearch() {
     document.getElementById("searchReport")?.addEventListener("keyup", filterData);
@@ -219,9 +213,10 @@ const HistoryModule = (() => {
   }
 
   // ==========================================
-  // PHOTO
+  // MODAL VIEWERS (PHOTO & DETAIL)
   // ==========================================
   function showPhoto(url) {
+    console.log("PHOTO URL =", url);
     const modalPhoto = document.getElementById("modalPhoto");
     const photoModal = document.getElementById("photoModal");
 
@@ -238,9 +233,6 @@ const HistoryModule = (() => {
     bootstrap.Modal.getOrCreateInstance(photoModal).show();
   }
 
-  // ==========================================
-  // DETAIL
-  // ==========================================
   function showDetail(id) {
     const report = reports.find(x => x.id === id);
     if (!report) return;
@@ -275,7 +267,7 @@ const HistoryModule = (() => {
   }
 
   // ==========================================
-  // UPDATE MODAL
+  // UPDATE MODAL & ACTION
   // ==========================================
   function showUpdate(id) {
     const report = reports.find(x => x.id === id);
@@ -300,9 +292,6 @@ const HistoryModule = (() => {
     bootstrap.Modal.getOrCreateInstance(updateModal).show();
   }
 
-  // ==========================================
-  // SAVE UPDATE
-  // ==========================================
   async function saveUpdate() {
     try {
       const response = await Api.post("updateReport", {
@@ -336,6 +325,9 @@ const HistoryModule = (() => {
   };
 })();
 
+// ======================================================
+// START
+// ======================================================
 document.addEventListener("DOMContentLoaded", () => {
   HistoryModule.init();
 });

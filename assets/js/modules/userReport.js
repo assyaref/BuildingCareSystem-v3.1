@@ -28,12 +28,11 @@ const UserReportModule = (() => {
     // USER INFO
     // ==========================================
     function loadUser() {
-        const user = Session.getUser();
-        if (!user) {
-            window.location.href = "index.html";
-            return;
-        }
+        const user = AuthStore.user();
+        if (!user) return;
 
+        // Kombinasi pemanggilan DOM murni dan jQuery disatukan dengan rapi
+        document.getElementById("userName").innerText = user.nama || "User";
         $("#userName").html(`Halo ${user.nama} 👋`);
         $("#userDept").text(user.departemen || "");
     }
@@ -107,7 +106,7 @@ const UserReportModule = (() => {
     // ==========================================
     async function submitReport() {
         try {
-            const user = Session.getUser();
+            const user = AuthStore.user();
             const payload = {
                 nama: user.nama,
                 departemen: user.departemen,
@@ -164,6 +163,24 @@ const UserReportModule = (() => {
 
     return { init };
 })();
+
+// ======================================================
+// Legacy Session Compatibility (Ditempatkan di luar modul)
+// ======================================================
+const Session = {
+    getUser() {
+        return AuthStore.user();
+    },
+    getToken() {
+        return AuthStore.token();
+    },
+    get() {
+        return AuthStore.get();
+    },
+    clear() {
+        AuthStore.clear();
+    }
+};
 
 // ==========================================
 // START

@@ -488,98 +488,60 @@ function redirectByRole(session) {
 
     console.log("REDIRECT USER =", session);
 
-    // ==========================================
-    // SESSION VALIDATION
-    // ==========================================
     if (!session) {
-
-        console.warn("[AUTH] Session kosong");
-
         App.redirect("login.html");
+        return;
+    }
+
+    // support berbagai struktur session
+    let role = "";
+
+    if (session.user && session.user.role) {
+        role = session.user.role;
+    }
+    else if (session.role) {
+        role = session.role;
+    }
+
+    role = String(role).trim().toUpperCase();
+
+    console.log("ROLE =", role);
+
+    const ROLE_ROUTE = {
+
+        USER: "user-report.html",
+
+        "GENERAL AFFAIR": "user-report.html",
+
+        TECHNICIAN: "workorder.html",
+
+        ADMIN: "dashboard.html",
+
+        ADMINISTRATOR: "dashboard.html",
+
+        "LEAD BRANCH SUPPORT": "dashboard.html"
+
+    };
+
+    if (ROLE_ROUTE[role]) {
+
+        App.log("[REDIRECT] " + role);
+
+        window.location.href = ROLE_ROUTE[role];
 
         return;
     }
 
-    // ==========================================
-    // SUPPORT:
-    // session.role
-    // session.user.role
-    // ==========================================
-    const user = session.user || session;
+    console.warn("ROLE UNKNOWN :", role);
 
-    const role = String(user.role || "")
-        .trim()
-        .toUpperCase();
+    App.removeSession();
 
-    console.log("ROLE =", role);
+    App.toast(
+        "Role tidak dikenali : " + role,
+        "warning"
+    );
 
-    App.log("[ROLE]", role);
-
-    // ==========================================
-    // ROLE ROUTER
-    // ==========================================
-    switch (role) {
-
-        // ======================================
-        // REPORTER
-        // ======================================
-        case "USER":
-
-        case "GENERAL AFFAIR":
-
-            App.log("[REDIRECT] USER REPORT");
-
-            App.redirect("user-report.html");
-
-            break;
-
-
-        // ======================================
-        // TECHNICIAN
-        // ======================================
-        case "TECHNICIAN":
-
-            App.log("[REDIRECT] WORK ORDER");
-
-            App.redirect("workorder.html");
-
-            break;
-
-
-        // ======================================
-        // ADMIN
-        // ======================================
-        case "ADMIN":
-
-        case "ADMINISTRATOR":
-
-        case "LEAD BRANCH SUPPORT":
-
-            App.log("[REDIRECT] DASHBOARD");
-
-            App.redirect("dashboard.html");
-
-            break;
-
-
-        // ======================================
-        // UNKNOWN ROLE
-        // ======================================
-        default:
-
-            console.warn("[AUTH] ROLE UNKNOWN :", role);
-
-            App.toast(
-                "Role tidak dikenali : " + role,
-                "warning"
-            );
-
-            App.removeSession();
-
-            App.redirect("login.html");
-
-    }
-
+    window.location.href = "login.html";
 }
 
 /**

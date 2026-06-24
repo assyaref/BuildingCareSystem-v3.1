@@ -1,25 +1,26 @@
 // ======================================================
-// Building Care System Enterprise v3.3.1
+// Building Care System Enterprise v3.3.2 Enterprise Stable
 // File : assets/js/modules/auth.js
-// PART 1 : AUTH UI
 // Radiant Group Duri
 // ======================================================
 
 "use strict";
 
+// ======================================================
+// STORE
+// ======================================================
 const AuthStore = (() => {
     let cache = null;
 
     function get() {
         if (cache) return cache;
-        cache = App.getSession();
+        cache = App.getSession() || {};
         return cache;
     }
 
     function set(session) {
-        cache = session;
-        App.setSession(session);
-        return cache;
+        cache = session || {};
+        App.setSession(cache);
     }
 
     function clear() {
@@ -38,6 +39,9 @@ const AuthStore = (() => {
     return { get, set, clear, token, user };
 })();
 
+// ======================================================
+// ROLE ROUTE
+// ======================================================
 const ROLE_ROUTE = {
     USER: "user-report.html",
     "GENERAL AFFAIR": "user-report.html",
@@ -47,31 +51,44 @@ const ROLE_ROUTE = {
     "LEAD BRANCH SUPPORT": "dashboard.html"
 };
 
+// ======================================================
+// ROUTER
+// ======================================================
 const AuthRouter = (() => {
     function byRole() {
-        const role = String(AuthStore.user().role || "").trim().toUpperCase();
+        const user = AuthStore.user();
+        const role = String(user.role || "").trim().toUpperCase();
         App.log("[ROLE]", role);
 
-        const target = ROLE_ROUTE[role];
-        if (!target) {
+        const page = ROLE_ROUTE[role];
+        if (!page) {
             App.toast("Role tidak dikenali", "warning");
             AuthStore.clear();
             location.replace("login.html");
             return;
         }
-        location.replace(target);
+
+        location.replace(page);
     }
 
     return { byRole };
 })();
 
+// ======================================================
+// API
+// ======================================================
 const AuthApi = (() => {
     async function login(payload) {
-        const result = await Api.post("login", payload);
-        if (!result.success) return result;
-
-        AuthStore.set(result.data);
-        return result;
+        App.loading(true);
+        try {
+            const res = await Api.post("login", payload);
+            if (res.success) {
+                AuthStore.set(res.data);
+            }
+            return res;
+        } finally {
+            App.loading(false);
+        }
     }
 
     async function logout() {
@@ -87,9 +104,9 @@ const AuthApi = (() => {
 
     async function verify() {
         try {
-            const result = await Api.post("verifySession", { token: AuthStore.token() });
-            return result.success;
-        } catch {
+            const res = await Api.post("verifySession", { token: AuthStore.token() });
+            return res.success;
+        } catch (err) {
             return true;
         }
     }
@@ -97,19 +114,25 @@ const AuthApi = (() => {
     return { login, logout, verify };
 })();
 
+// ======================================================
+// GUARD
+// ======================================================
 const AuthGuard = (() => {
     async function check() {
         const page = location.pathname.split("/").pop();
+        const hasToken = AuthStore.token();
 
+        // login page
         if (page === "login.html") {
-            if (AuthStore.token()) {
+            if (hasToken) {
                 AuthRouter.byRole();
                 return false;
             }
             return true;
         }
 
-        if (!AuthStore.token()) {
+        // other page
+        if (!hasToken) {
             location.replace("login.html");
             return false;
         }
@@ -120,6 +143,9 @@ const AuthGuard = (() => {
     return { check };
 })();
 
+// ======================================================
+// HEARTBEAT
+// ======================================================
 const AuthHeartbeat = (() => {
     let timer = null;
 
@@ -143,6 +169,9 @@ const AuthHeartbeat = (() => {
     return { start, stop };
 })();
 
+// ======================================================
+// LOGIN FORM
+// ======================================================
 function bindLoginForm() {
     const form = document.getElementById("loginForm");
     if (!form) return;
@@ -150,26 +179,31 @@ function bindLoginForm() {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const nik = document.getElementById("nik").value;
-        const password = document.getElementById("password").value;
+        const nik = document.getElementById("nik").value.trim();
+        const password = document.getElementById("password").value.trim();
 
-        const result = await AuthApi.login({ nik, password });
-        if (!result.success) {
-            App.toast(result.message, "error");
+        if (!nik || !password) {
+            App.toast("NIK dan Password wajib diisi", "warning");
             return;
         }
 
+        const res = await AuthApi.login({ nik, password });
+        if (!res.success) {
+            App.toast(res.message, "danger");
+            return;
+        }
+
+        App.toast("Login berhasil", "success");
         AuthRouter.byRole();
     });
 }
 
+// ======================================================
+// MODULE
+// ======================================================
 const AuthModule = (() => {
     async function init() {
-        // Catatan: Pastikan object 'Auth' sudah dideklarasikan di file lain 
-        // karena tidak ada modul internal 'Auth' di dalam potongan skrip ini.
-        if (typeof Auth !== "undefined" && Auth.init) {
-            Auth.init();
-        }
+        App.log("Authentication Bootstrap");
 
         const valid = await AuthGuard.check();
         if (!valid) return;
@@ -182,3 +216,10 @@ const AuthModule = (() => {
 
     return { init };
 })();
+
+// ======================================================
+// AUTO START
+// ======================================================
+document.addEventListener("DOMContentLoaded", () => {
+    AuthModule.init();
+});

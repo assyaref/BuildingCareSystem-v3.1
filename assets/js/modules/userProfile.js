@@ -2,11 +2,13 @@
 
 const UserProfileModule = (() => {
     function init() {
-        const user = Session.getUser();
-        if (!user) {
-            window.location.href = "index.html";
-            return;
-        }
+        const session = App.getSession();
+const user = session?.user;
+
+if (!user) {
+    location.replace("login.html");
+    return;
+}
 
         $("#profileName").text(user.nama);
         $("#profileDept").text(user.departemen);
@@ -15,7 +17,7 @@ const UserProfileModule = (() => {
     }
 
     function logout() {
-        Session.clear();
+        App.removeSession();
         window.location.href = "index.html";
     }
 

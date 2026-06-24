@@ -228,9 +228,8 @@ const AuthService = (() => {
         const result = await Api.post("login", payload);
         if (!result?.success) return result;
 
-        const token = result.data?.token;
-        const user = result.data?.user || {};
-        const session = { ...user, token };
+        // Langsung ambil data dari GAS respons
+        const session = result.data;
 
         AuthStorage.set(session);
         Auth.setSession(session);
@@ -462,6 +461,10 @@ function redirectByRole(user) {
         App.redirect("login.html");
         return;
     }
+
+    // Menampilkan log sebelum proses redirect dieksekusi
+    console.log("SESSION :", user);
+    console.log("ROLE :", user.role);
 
     const role = String(user.role || "").trim().toUpperCase();
     App.log("[ROLE]", role);

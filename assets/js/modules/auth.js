@@ -150,6 +150,9 @@ const Auth = (() => {
         button.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Signing In...`;
     }
 
+    // ==================================================
+    // PAGE HELPER
+    // ==================================================
     function enableButton() {
         const button = document.getElementById("loginButton");
         if (!button) return;
@@ -157,9 +160,6 @@ const Auth = (() => {
         button.innerHTML = `<i class="fa-solid fa-right-to-bracket me-2"></i> LOGIN`;
     }
 
-    // ==================================================
-    // PAGE HELPER
-    // ==================================================
     function currentPage() {
         return window.location.pathname.split("/").pop();
     }
@@ -226,15 +226,24 @@ const AuthService = (() => {
     // ================================================
     async function login(payload) {
         const result = await Api.post("login", payload);
-        if (!result?.success) return result;
 
-        // Langsung ambil data dari GAS respons
+        console.log("LOGIN RESULT =", result);
+
+        if (!result?.success) {
+            return result;
+        }
+
         const session = result.data;
+
+        console.log("SESSION =", session);
 
         AuthStorage.set(session);
         Auth.setSession(session);
 
-        return { success: true, data: session };
+        return {
+            success: true,
+            data: session
+        };
     }
 
     // ================================================
@@ -457,16 +466,15 @@ const AuthHeartbeat = (() => {
 // ROUTER HELPER (Redirect By Role)
 // ======================================================
 function redirectByRole(user) {
+    console.log("REDIRECT USER =", user);
+
     if (!user) {
         App.redirect("login.html");
         return;
     }
 
-    // Menampilkan log sebelum proses redirect dieksekusi
-    console.log("SESSION :", user);
-    console.log("ROLE :", user.role);
-
     const role = String(user.role || "").trim().toUpperCase();
+    console.log("ROLE =", role);
     App.log("[ROLE]", role);
 
     switch (role) {
@@ -490,6 +498,7 @@ function redirectByRole(user) {
 
         // UNKNOWN ROLE
         default:
+            console.log("ROLE UNKNOWN");
             App.toast("Role tidak dikenali", "warning");
             App.redirect("login.html");
     }

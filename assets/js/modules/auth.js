@@ -461,7 +461,25 @@ const AuthHeartbeat = (() => {
 
     return { init, start, stop, verify };
 })();
+// ======================================================
+// ROLE ROUTE MAP
+// Enterprise v3.3.2
+// ======================================================
+const ROLE_ROUTE = {
 
+    USER: "user-report.html",
+
+    "GENERAL AFFAIR": "user-report.html",
+
+    TECHNICIAN: "workorder.html",
+
+    ADMIN: "dashboard.html",
+
+    ADMINISTRATOR: "dashboard.html",
+
+    "LEAD BRANCH SUPPORT": "dashboard.html"
+
+};
 // ======================================================
 // ROUTER HELPER (Redirect By Role)
 // Enterprise v3.3.2 Stable

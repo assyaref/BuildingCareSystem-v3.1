@@ -464,44 +464,104 @@ const AuthHeartbeat = (() => {
 
 // ======================================================
 // ROUTER HELPER (Redirect By Role)
+// Enterprise v3.3.2 Stable
 // ======================================================
-function redirectByRole(user) {
-    console.log("REDIRECT USER =", user);
+function redirectByRole(session) {
 
-    if (!user) {
+    console.log("REDIRECT USER =", session);
+
+    // ==========================================
+    // SESSION VALIDATION
+    // ==========================================
+    if (!session) {
+
+        console.warn("[AUTH] Session kosong");
+
         App.redirect("login.html");
+
         return;
     }
 
-    const role = String(user.role || "").trim().toUpperCase();
+    // ==========================================
+    // SUPPORT:
+    // session.role
+    // session.user.role
+    // ==========================================
+    const user = session.user || session;
+
+    const role = String(user.role || "")
+        .trim()
+        .toUpperCase();
+
     console.log("ROLE =", role);
+
     App.log("[ROLE]", role);
 
+    // ==========================================
+    // ROLE ROUTER
+    // ==========================================
     switch (role) {
+
+        // ======================================
         // REPORTER
+        // ======================================
         case "USER":
+
         case "GENERAL AFFAIR":
+
+            App.log("[REDIRECT] USER REPORT");
+
             App.redirect("user-report.html");
+
             break;
 
+
+        // ======================================
         // TECHNICIAN
+        // ======================================
         case "TECHNICIAN":
+
+            App.log("[REDIRECT] WORK ORDER");
+
             App.redirect("workorder.html");
+
             break;
 
+
+        // ======================================
         // ADMIN
+        // ======================================
         case "ADMIN":
+
         case "ADMINISTRATOR":
+
         case "LEAD BRANCH SUPPORT":
+
+            App.log("[REDIRECT] DASHBOARD");
+
             App.redirect("dashboard.html");
+
             break;
 
+
+        // ======================================
         // UNKNOWN ROLE
+        // ======================================
         default:
-            console.log("ROLE UNKNOWN");
-            App.toast("Role tidak dikenali", "warning");
+
+            console.warn("[AUTH] ROLE UNKNOWN :", role);
+
+            App.toast(
+                "Role tidak dikenali : " + role,
+                "warning"
+            );
+
+            App.removeSession();
+
             App.redirect("login.html");
+
     }
+
 }
 
 /**

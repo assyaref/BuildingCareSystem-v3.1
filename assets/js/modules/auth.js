@@ -7,688 +7,178 @@
 
 "use strict";
 
-/**
- * =====================================================
- * AUTH UI
- * Handles : Remember Me, Auto Login, Session Cache,
- * Login Button State, Password Toggle, Loading State
- * =====================================================
- */
-const Auth = (() => {
-    // ==================================================
-    // PRIVATE STATE
-    // ==================================================
-    let loginProcess = false;
-    let sessionCache = null;
-
-    // ==================================================
-    // INIT
-    // ==================================================
-    function init() {
-        App.log("Authentication UI Loaded");
-        loadRemember();
-        autoLogin();
-        bindRemember();
-        bindPasswordToggle();
-    }
-
-    // ==================================================
-    // SESSION CACHE
-    // ==================================================
-    function getSession() {
-        if (sessionCache) {
-            return sessionCache;
-        }
-        const session = App.getSession();
-        if (session) {
-            sessionCache = session;
-        }
-        return session;
-    }
-
-    function setSession(data) {
-        sessionCache = data;
-    }
-
-    function clearSession() {
-        sessionCache = null;
-    }
-
-    function refreshSession() {
-        sessionCache = App.getSession();
-        return sessionCache;
-    }
-
-    // ==================================================
-    // AUTO LOGIN
-    // ==================================================
-    function autoLogin() {
-        const page = currentPage();
-        if (page !== "login.html") return;
-
-        const session = getSession();
-        if (!session) return;
-
-        if (!session.token) {
-            App.removeSession();
-            clearSession();
-            return;
-        }
-        
-        App.log("Auto Login Success");
-        redirectByRole(session);
-    }
-
-    // ==================================================
-    // REMEMBER ME
-    // ==================================================
-    function loadRemember() {
-        const remember = document.getElementById("remember");
-        const nik = document.getElementById("nik");
-        if (!remember || !nik) return;
-
-        const saved = App.getRemember();
-        if (!saved) return;
-
-        remember.checked = true;
-        nik.value = saved;
-    }
-
-    function saveRemember() {
-        const remember = document.getElementById("remember");
-        const nik = document.getElementById("nik");
-        if (!remember || !nik) return;
-
-        if (remember.checked) {
-            App.remember(nik.value.trim());
-            return;
-        }
-        App.clearRemember();
-    }
-
-    function bindRemember() {
-        const remember = document.getElementById("remember");
-        if (!remember) return;
-        remember.addEventListener("change", saveRemember);
-    }
-
-    // ==================================================
-    // PASSWORD TOGGLE
-    // ==================================================
-    function bindPasswordToggle() {
-        const password = document.getElementById("password");
-        const toggle = document.getElementById("togglePassword");
-        if (!password || !toggle) return;
-
-        toggle.addEventListener("click", () => {
-            if (password.type === "password") {
-                password.type = "text";
-                toggle.classList.remove("bi-eye");
-                toggle.classList.add("bi-eye-slash");
-            } else {
-                password.type = "password";
-                toggle.classList.remove("bi-eye-slash");
-                toggle.classList.add("bi-eye");
-            }
-        });
-    }
-
-    // ==================================================
-    // LOGIN PROCESS LOCK
-    // ==================================================
-    function isLoading() { return loginProcess; }
-    function lock() { loginProcess = true; }
-    function unlock() { loginProcess = false; }
-
-    // ==================================================
-    // BUTTON STATE
-    // ==================================================
-    function disableButton() {
-        const button = document.getElementById("loginButton");
-        if (!button) return;
-        button.disabled = true;
-        button.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Signing In...`;
-    }
-
-    // ==================================================
-    // PAGE HELPER
-    // ==================================================
-    function enableButton() {
-        const button = document.getElementById("loginButton");
-        if (!button) return;
-        button.disabled = false;
-        button.innerHTML = `<i class="fa-solid fa-right-to-bracket me-2"></i> LOGIN`;
-    }
-
-    function currentPage() {
-        return window.location.pathname.split("/").pop();
-    }
-
-    return {
-        init, autoLogin, loadRemember, saveRemember, bindRemember, bindPasswordToggle,
-        getSession, setSession, clearSession, refreshSession, isLoading, lock, unlock,
-        disableButton, enableButton, currentPage
-    };
-})();
-
-/**
- * =====================================================
- * AUTH STORAGE
- * Enterprise v3.3.1
- * =====================================================
- */
-const AuthStorage = (() => {
-    let memory = null;
+const AuthStore = (() => {
+    let cache = null;
 
     function get() {
-        if (memory) return memory;
-        const session = App.getSession();
-        if (session) memory = session;
-        return session;
+        if (cache) return cache;
+        cache = App.getSession();
+        return cache;
     }
 
     function set(session) {
-        memory = session;
+        cache = session;
         App.setSession(session);
-        return session;
-    }
-
-    function refresh() {
-        memory = App.getSession();
-        return memory;
+        return cache;
     }
 
     function clear() {
-        memory = null;
+        cache = null;
         App.removeSession();
     }
 
     function token() {
-        return get()?.token || null;
+        return get()?.token || "";
     }
 
     function user() {
-        return get() || null;
+        return get()?.user || {};
     }
 
-    return { get, set, refresh, clear, token, user };
+    return { get, set, clear, token, user };
 })();
 
-/**
- * =====================================================
- * AUTH SERVICE
- * Enterprise v3.3.1
- * =====================================================
- */
-const AuthService = (() => {
-    // ================================================
-    // LOGIN
-    // ================================================
+const ROLE_ROUTE = {
+    USER: "user-report.html",
+    "GENERAL AFFAIR": "user-report.html",
+    TECHNICIAN: "workorder.html",
+    ADMIN: "dashboard.html",
+    ADMINISTRATOR: "dashboard.html",
+    "LEAD BRANCH SUPPORT": "dashboard.html"
+};
+
+const AuthRouter = (() => {
+    function byRole() {
+        const role = String(AuthStore.user().role || "").trim().toUpperCase();
+        App.log("[ROLE]", role);
+
+        const target = ROLE_ROUTE[role];
+        if (!target) {
+            App.toast("Role tidak dikenali", "warning");
+            AuthStore.clear();
+            location.replace("login.html");
+            return;
+        }
+        location.replace(target);
+    }
+
+    return { byRole };
+})();
+
+const AuthApi = (() => {
     async function login(payload) {
         const result = await Api.post("login", payload);
+        if (!result.success) return result;
 
-        console.log("LOGIN RESULT =", result);
-
-        if (!result?.success) {
-            return result;
-        }
-
-        const session = result.data;
-
-        console.log("SESSION =", session);
-
-        AuthStorage.set(session);
-        Auth.setSession(session);
-
-        return {
-            success: true,
-            data: session
-        };
+        AuthStore.set(result.data);
+        return result;
     }
 
-    // ================================================
-    // VERIFY SESSION
-    // ================================================
-    async function verifySession() {
-        const session = AuthStorage.get();
-        if (!session) return false;
-        
-        if (!session.token) {
-            AuthStorage.clear();
-            Auth.clearSession();
-            return false;
-        }
-
-        try {
-            const result = await Api.post("verifySession", { token: session.token });
-            if (result?.success) return true;
-            console.warn("[AUTH] API VERIFY FAILED");
-            return true;
-        } catch (err) {
-            console.warn("[AUTH] LOCAL FALLBACK", err);
-            return true;
-        }
-    }
-
-    // ================================================
-    // SESSION GUARD
-    // ================================================
-    async function guard() {
-        const valid = await verifySession();
-        if (valid) return true;
-        AuthStorage.clear();
-        Auth.clearSession();
-        return false;
-    }
-
-    // ================================================
-    // LOGOUT
-    // ================================================
     async function logout() {
-        const token = AuthStorage.token();
         try {
-            if (token) await Api.post("logout", { token });
+            await Api.post("logout", { token: AuthStore.token() });
         } catch (err) {
             console.warn(err);
-        } finally {
-            AuthStorage.clear();
-            Auth.clearSession();
-            App.redirect("login.html");
-        }
-    }
-
-    function currentUser() { return AuthStorage.user(); }
-    function currentToken() { return AuthStorage.token(); }
-    function isLoggedIn() { return !!currentToken(); }
-
-    return { login, logout, verifySession, guard, currentUser, currentToken, isLoggedIn };
-})();
-
-/**
- * =====================================================
- * AUTH GUARD
- * Enterprise v3.3.1
- * =====================================================
- */
-const AuthGuard = (() => {
-    const PUBLIC_PAGES = ["login.html", "index.html"];
-    const PRIVATE_PAGES = [
-        "dashboard.html", "report.html", "monitoring.html", "history.html", "setting.html",
-        "user-report.html", "user-history.html", "user-profile.html", "workorder.html"
-    ];
-
-    function currentPage() {
-        return window.location.pathname.split("/").pop().toLowerCase() || "index.html";
-    }
-
-    const isPublic = () => PUBLIC_PAGES.includes(currentPage());
-    const isPrivate = () => PRIVATE_PAGES.includes(currentPage());
-    const isLoginPage = () => currentPage() === "login.html";
-    const isDashboardPage = () => currentPage() === "dashboard.html";
-
-    function hasSession() {
-        const session = AuthStorage.get();
-        return !!session?.token;
-    }
-
-    async function check() {
-        const page = currentPage();
-        App.log("[AUTH]", page);
-
-        if (isLoginPage()) {
-            if (hasSession()) {
-                App.log("Already Login");
-                redirectByRole(AuthStorage.user());
-                return false;
-            }
-            return true;
         }
 
-        if (isPrivate()) {
-            if (!hasSession()) {
-                App.log("No Session");
-                App.redirect("login.html");
-                return false;
-            }
-
-            const valid = await AuthService.verifySession();
-            if (!valid) {
-                AuthStorage.clear();
-                Auth.clearSession();
-                App.redirect("login.html");
-                return false;
-            }
-            return true;
-        }
-        return true;
-    }
-
-    async function safe() {
-        try {
-            return await check();
-        } catch (err) {
-            console.error("[AUTH GUARD]", err);
-            return true;
-        }
-    }
-
-    return { check, safe, hasSession, currentPage, isPublic, isPrivate, isLoginPage, isDashboardPage };
-})();
-
-/**
- * =====================================================
- * AUTH HEARTBEAT
- * Enterprise v3.3.1
- * =====================================================
- */
-const AuthHeartbeat = (() => {
-    let heartbeat = null;
-    let running = false;
-    let verifying = false;
-    const INTERVAL = 5 * 60 * 1000;
-
-    function start() {
-        stop();
-        running = true;
-        App.log("[Heartbeat] Started");
-        heartbeat = setInterval(async () => { await verify(); }, INTERVAL);
-    }
-
-    function stop() {
-        if (!heartbeat) return;
-        clearInterval(heartbeat);
-        heartbeat = null;
-        running = false;
-        App.log("[Heartbeat] Stopped");
+        AuthStore.clear();
+        location.replace("login.html");
     }
 
     async function verify() {
-        if (verifying) return true;
-        verifying = true;
-
         try {
-            const session = AuthStorage.get();
-            if (!session || !session.token) {
-                AuthStorage.clear();
-                Auth.clearSession();
-                verifying = false;
-                return false;
-            }
-
-            const valid = await AuthService.verifySession();
-            if (!valid) {
-                App.toast("Session telah berakhir.", "warning");
-                await AuthService.logout();
-                verifying = false;
-                return false;
-            }
+            const result = await Api.post("verifySession", { token: AuthStore.token() });
+            return result.success;
+        } catch {
             return true;
-        } catch (err) {
-            console.warn("[Heartbeat]", err);
-            return true;
-        } finally {
-            verifying = false;
         }
     }
 
-    function bindVisibility() {
-        document.addEventListener("visibilitychange", async () => {
-            if (document.hidden) {
-                App.log("[Heartbeat] Pause");
-                stop();
-                return;
-            }
-            App.log("[Heartbeat] Resume");
-            await verify();
-            start();
-        });
-    }
-
-    function bindFocus() {
-        window.addEventListener("focus", async () => { await verify(); });
-    }
-
-    function bindUnload() {
-        window.addEventListener("beforeunload", () => { stop(); });
-    }
-
-    function init() {
-        bindVisibility();
-        bindFocus();
-        bindUnload();
-        start();
-    }
-
-    return { init, start, stop, verify };
+    return { login, logout, verify };
 })();
-// ======================================================
-// ROLE ROUTE MAP
-// Enterprise v3.3.2
-// ======================================================
-const ROLE_ROUTE = {
 
-    USER: "user-report.html",
+const AuthGuard = (() => {
+    async function check() {
+        const page = location.pathname.split("/").pop();
 
-    "GENERAL AFFAIR": "user-report.html",
-
-    TECHNICIAN: "workorder.html",
-
-    ADMIN: "dashboard.html",
-
-    ADMINISTRATOR: "dashboard.html",
-
-    "LEAD BRANCH SUPPORT": "dashboard.html"
-
-};
-// ======================================================
-// ROUTER HELPER (Redirect By Role)
-// Enterprise v3.3.2 Stable
-// ======================================================
-function redirectByRole(session) {
-
-    console.log("REDIRECT USER =", session);
-
-    if (!session) {
-        App.redirect("login.html");
-        return;
-    }
-
-    // support berbagai struktur session
-    let role = "";
-
-    if (session.user && session.user.role) {
-        role = session.user.role;
-    }
-    else if (session.role) {
-        role = session.role;
-    }
-
-    role = String(role).trim().toUpperCase();
-
-    console.log("ROLE =", role);
-
-    const ROLE_ROUTE = {
-
-        USER: "user-report.html",
-
-        "GENERAL AFFAIR": "user-report.html",
-
-        TECHNICIAN: "workorder.html",
-
-        ADMIN: "dashboard.html",
-
-        ADMINISTRATOR: "dashboard.html",
-
-        "LEAD BRANCH SUPPORT": "dashboard.html"
-
-    };
-
-    if (ROLE_ROUTE[role]) {
-
-        App.log("[REDIRECT] " + role);
-
-        window.location.href = ROLE_ROUTE[role];
-
-        return;
-    }
-
-    console.warn("ROLE UNKNOWN :", role);
-
-    App.removeSession();
-
-    App.toast(
-        "Role tidak dikenali : " + role,
-        "warning"
-    );
-
-    window.location.href = "login.html";
-}
-
-/**
- * =====================================================
- * AUTH BOOTSTRAP
- * Enterprise v3.3.1
- * =====================================================
- */
-const AuthModule = (() => {
-    let initialized = false;
-
-    function bindLoginForm() {
-        const form = document.getElementById("loginForm");
-        if (!form) return;
-
-        form.addEventListener("submit", async (event) => {
-            event.preventDefault();
-            if (Auth.isLoading()) return;
-
-            const nik = document.getElementById("nik")?.value?.trim();
-            const password = document.getElementById("password")?.value;
-
-            if (!nik || !password) {
-                App.toast("NIK dan Password wajib diisi.", "warning");
-                return;
+        if (page === "login.html") {
+            if (AuthStore.token()) {
+                AuthRouter.byRole();
+                return false;
             }
+            return true;
+        }
 
-            try {
-                Auth.lock();
-                Auth.disableButton();
-                App.showLoading();
+        if (!AuthStore.token()) {
+            location.replace("login.html");
+            return false;
+        }
 
-                const result = await AuthService.login({ nik, password });
-                if (!result.success) {
-                    App.toast(result.message || "Login gagal.", "error");
-                    return;
-                }
-
-                Auth.saveRemember();
-                App.toast("Login berhasil.", "success");
-                setTimeout(() => { redirectByRole(result.data); }, 400);
-            } catch (err) {
-                console.error(err);
-                App.handleError(err);
-            } finally {
-                Auth.unlock();
-                Auth.enableButton();
-                App.hideLoading();
-            }
-        });
-    }
-
-    function bindLogout() {
-        const button = document.getElementById("logoutBtn");
-        if (!button) return;
-
-        button.addEventListener("click", async (event) => {
-            event.preventDefault();
-            const confirmLogout = await App.confirm("Logout", "Keluar dari aplikasi?");
-            if (!confirmLogout || !confirmLogout.isConfirmed) return;
-            await AuthService.logout();
-        });
-    }
-
-    async function init() {
-        if (initialized) return true;
-        initialized = true;
-
-        App.log("=================================");
-        App.log("Building Care Enterprise");
-        App.log("Authentication Bootstrap");
-        App.log("=================================");
-
-        Auth.init();
-        const valid = await AuthGuard.safe();
-        if (!valid) return false;
-
-        bindLoginForm();
-        bindLogout();
-        AuthHeartbeat.init();
-
-        App.log("Authentication Ready");
         return true;
     }
 
-    return { init, bindLoginForm, bindLogout };
+    return { check };
 })();
 
-/**
- * =====================================================
- * APPLICATION START
- * =====================================================
- */
-(() => {
-    async function bootstrap() {
-        try {
-            await AuthModule.init();
-        } catch (err) {
-            console.error("[BOOTSTRAP]", err);
-            App.handleError(err);
+const AuthHeartbeat = (() => {
+    let timer = null;
+
+    function start() {
+        stop();
+        timer = setInterval(verify, 300000);
+    }
+
+    function stop() {
+        clearInterval(timer);
+    }
+
+    async function verify() {
+        const valid = await AuthApi.verify();
+        if (!valid) {
+            App.toast("Session expired", "warning");
+            AuthApi.logout();
         }
     }
 
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", bootstrap);
-    } else {
-        bootstrap();
-    }
+    return { start, stop };
 })();
 
-/**
- * =====================================================
- * ENTERPRISE COMPATIBILITY LAYER
- * Enterprise v3.3.1
- * =====================================================
- */
-const EnterpriseAuth = (() => {
-    function session() {
-        return AuthStorage.get() || Auth.getSession() || App.getSession() || null;
-    }
+function bindLoginForm() {
+    const form = document.getElementById("loginForm");
+    if (!form) return;
 
-    const token = () => session()?.token || "";
-    const user = () => session() || {};
-    const isLogin = () => !!token();
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    function refresh() {
-        AuthStorage.refresh();
-        Auth.refreshSession();
-        return session();
-    }
+        const nik = document.getElementById("nik").value;
+        const password = document.getElementById("password").value;
 
-    function clear() {
-        AuthStorage.clear();
-        Auth.clearSession();
-        App.removeSession();
-    }
-
-    function sync() {
-        const appSession = App.getSession();
-        const authSession = Auth.getSession();
-
-        if (!authSession && appSession) {
-            Auth.setSession(appSession);
-            AuthStorage.set(appSession);
+        const result = await AuthApi.login({ nik, password });
+        if (!result.success) {
+            App.toast(result.message, "error");
+            return;
         }
-        return session();
+
+        AuthRouter.byRole();
+    });
+}
+
+const AuthModule = (() => {
+    async function init() {
+        // Catatan: Pastikan object 'Auth' sudah dideklarasikan di file lain 
+        // karena tidak ada modul internal 'Auth' di dalam potongan skrip ini.
+        if (typeof Auth !== "undefined" && Auth.init) {
+            Auth.init();
+        }
+
+        const valid = await AuthGuard.check();
+        if (!valid) return;
+
+        bindLoginForm();
+        AuthHeartbeat.start();
+
+        App.log("Authentication Ready");
     }
 
-    return { session, token, user, refresh, sync, clear, isLogin };
+    return { init };
 })();

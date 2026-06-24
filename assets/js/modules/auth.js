@@ -304,7 +304,27 @@ const AuthService = (() => {
  */
 const AuthGuard = (() => {
     const PUBLIC_PAGES = ["login.html", "index.html"];
-    const PRIVATE_PAGES = ["dashboard.html", "report.html", "monitoring.html", "history.html", "setting.html"];
+    const PRIVATE_PAGES = [
+
+    "dashboard.html",
+
+    "report.html",
+
+    "monitoring.html",
+
+    "history.html",
+
+    "setting.html",
+
+    "user-report.html",
+
+    "user-history.html",
+
+    "user-profile.html",
+
+    "workorder.html"
+
+];
 
     function currentPage() {
         return window.location.pathname.split("/").pop().toLowerCase() || "index.html";
@@ -376,13 +396,27 @@ const AuthHeartbeat = (() => {
     let verifying = false;
     const INTERVAL = 5 * 60 * 1000;
 
-    function start() {
-        if (running) return;
-        running = true;
-        App.log("[Heartbeat] Started");
-        stop();
-        heartbeat = setInterval(async () => { await verify(); }, INTERVAL);
-    }
+   function start() {
+
+    stop();
+
+    running = true;
+
+    App.log("[Heartbeat] Started");
+
+    heartbeat = setInterval(
+
+        async () => {
+
+            await verify();
+
+        },
+
+        INTERVAL
+
+    );
+
+}
 
     function stop() {
         if (!heartbeat) return;
@@ -416,7 +450,7 @@ const AuthHeartbeat = (() => {
         } catch (err) {
             console.warn("[Heartbeat]", err);
             return true;
-        } finaly {
+        } finally {
             verifying = false;
         }
     }

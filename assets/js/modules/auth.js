@@ -463,81 +463,32 @@ function redirectByRole(user) {
         return;
     }
 
-    const role = String(user.role || "").toUpperCase();
-    switch (role) {
-        function redirectByRole(user) {
-
-    if (!user) {
-
-        App.redirect("login.html");
-
-        return;
-
-    }
-
-    const role =
-        String(user.role || "")
-        .trim()
-        .toUpperCase();
-
-    App.log(
-        "[ROLE]",
-        role
-    );
+    const role = String(user.role || "").trim().toUpperCase();
+    App.log("[ROLE]", role);
 
     switch (role) {
-
         // REPORTER
         case "USER":
-
         case "GENERAL AFFAIR":
-
-            App.redirect(
-                "user-report.html"
-            );
-
+            App.redirect("user-report.html");
             break;
-
 
         // TECHNICIAN
         case "TECHNICIAN":
-
-            App.redirect(
-                "workorder.html"
-            );
-
+            App.redirect("workorder.html");
             break;
-
 
         // ADMIN
         case "ADMIN":
-
         case "ADMINISTRATOR":
-
         case "LEAD BRANCH SUPPORT":
-
-            App.redirect(
-                "dashboard.html"
-            );
-
+            App.redirect("dashboard.html");
             break;
-
 
         // UNKNOWN ROLE
         default:
-
-            App.toast(
-                "Role tidak dikenali",
-                "warning"
-            );
-
-            App.redirect(
-                "login.html"
-            );
-
-    }
-
-}
+            App.toast("Role tidak dikenali", "warning");
+            App.redirect("login.html");
     }
 }
 

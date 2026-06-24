@@ -205,7 +205,65 @@ textarea.form-control {
 .bottom-nav .active {
     color: var(--primary);
 }
+.history-card{
 
+    background:white;
+
+    border-radius:24px;
+
+    padding:20px;
+
+    margin-bottom:20px;
+
+    box-shadow:var(--shadow);
+
+}
+
+.history-id{
+
+    font-size:14px;
+
+    color:#64748B;
+
+}
+
+.history-status{
+
+    display:inline-block;
+
+    padding:6px 14px;
+
+    border-radius:20px;
+
+    font-size:12px;
+
+    font-weight:600;
+
+}
+
+.status-open{
+
+    background:#DCFCE7;
+
+    color:#16A34A;
+
+}
+
+.status-progress{
+
+    background:#FEF3C7;
+
+    color:#D97706;
+
+}
+
+.status-done{
+
+    background:#DBEAFE;
+
+    color:#2563EB;
+
+}
 /* RESPONSIVE */
 @media (min-width: 992px) {
     body {

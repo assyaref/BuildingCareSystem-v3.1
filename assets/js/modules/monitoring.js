@@ -9,8 +9,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   loadMonitoring();
 
-  // auto refresh 30 detik
-  setInterval(loadMonitoring, 30000);
+  // auto refresh 5 detik
+  setInterval(loadMonitoring, 50000);
 });
 
 /**

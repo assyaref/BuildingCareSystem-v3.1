@@ -9,21 +9,27 @@
 
 BCS.Modules.register("user-report", (() => {
 
-    // 6. CONSTANTS & CONFIGURATIONS (Anti-Magic String)
+    // CONFIGURATIONS & CONSTANTS
+    const TAG = "UserReport";
     const DEFAULT_PRIORITY = "NORMAL";
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    const ALLOWED_MIMES = ["image/jpeg", "image/png", "image/webp"];
 
-    // 1. REFACTORED STATE ENGINE (Single Source of Truth)
-    const state = {
-        user: null,
-        kategori: "",
-        prioritas: DEFAULT_PRIORITY,
-        photo: "",
-        filename: "",
-        submitting: false
+    // 1. SCALABLE STATE ENGINE (Divided Categories)
+    let state = {
+        user: {},
+        form: {
+            kategori: "",
+            prioritas: DEFAULT_PRIORITY,
+            photo: "",
+            filename: ""
+        },
+        ui: {
+            submitting: false
+        }
     };
 
-    // 7. CENTRALIZED DOM CACHE ENGINE (High-Performance Selector)
+    // DOM CACHE CONTAINER
     let DOM = {};
     function initDOMCache() {
         DOM = {
@@ -42,21 +48,26 @@ BCS.Modules.register("user-report", (() => {
     }
 
     // ==========================================
-    // 3. INITIALIZATION LIFECYCLE
+    // INITIALIZATION LIFECYCLE
     // ==========================================
     async function init() {
+        BCS.Logger.debug(TAG, "Memulai inisialisasi modul.");
         initDOMCache();
         
-        // 1. Auth Dipanggil Sekali & Disimpan ke State
         state.user = BCS.Auth?.user() || BCS.Store.get("BCS_USER");
         if (!checkAuth()) return;
 
         bindEvents();
         render();
+        BCS.Logger.info(TAG, "Lifecycle Init selesai dijalankan.");
     }
 
+    // ==========================================
+    // AUTHENTICATION GUARD
+    // ==========================================
     function checkAuth() {
         if (!state.user || !state.user.nama) {
+            BCS.Logger.warn(TAG, "Autentikasi gagal: Sesi kedaluwarsa.");
             BCS.App.Toast.warning("Session Expired");
             BCS.App.Navigate.go("login.html");
             return false;
@@ -65,17 +76,19 @@ BCS.Modules.register("user-report", (() => {
     }
 
     // ==========================================
-    // 4. CENTRALIZED EVENT BINDING
+    // CENTRALIZED EVENT BINDING
     // ==========================================
     function bindEvents() {
+        BCS.Logger.trace(TAG, "Melakukan binding event listener.");
+
         DOM.categoryItems.on("click", function () {
-            state.kategori = $(this).data("value");
-            renderCategory();
+            state.form.kategori = $(this).data("value");
+            renderForm();
         });
 
         DOM.priorityItems.on("click", function () {
-            state.prioritas = $(this).data("priority");
-            renderPriority();
+            state.form.prioritas = $(this).data("priority");
+            renderForm();
         });
 
         DOM.deskripsi.on("input", function () {
@@ -87,50 +100,59 @@ BCS.Modules.register("user-report", (() => {
     }
 
     // ==========================================
-    // HANDLERS & 4. PHOTO PROCESSING LAYER
+    // HANDLERS & PHOTO PROCESSING
     // ==========================================
     function handlePhotoChange(e) {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validasi Ukuran Menggunakan Core Validator
-        const sizeValidation = BCS.Validator?.validate(file.size, [`max:${MAX_FILE_SIZE}`]);
-        if (sizeValidation && !sizeValidation.valid) {
+        // 4. Multi-Criteria Photo Validation (Size & Mime)
+        if (file.size > MAX_FILE_SIZE) {
+            BCS.Logger.warn(TAG, `File ditolak: Ukuran ${file.size} melebihi batas.`);
             BCS.App.Toast.warning("Ukuran foto maksimal 5 MB");
             DOM.photo.val("");
             return;
         }
 
-        state.filename = file.name;
+        if (!ALLOWED_MIMES.includes(file.type)) {
+            BCS.Logger.warn(TAG, `File ditolak: Format MIME '${file.type}' tidak diizinkan.`);
+            BCS.App.Toast.warning("Format file harus JPEG, PNG, atau WEBP");
+            DOM.photo.val("");
+            return;
+        }
+
+        state.form.filename = file.name;
         processPhoto(file);
     }
 
-    // Pintu Utama Pemrosesan Foto (PWA / Offline Optimization-ready)
     function processPhoto(file) {
+        BCS.Logger.trace(TAG, `Memproses file foto: ${file.name}`);
         const reader = new FileReader();
         reader.onload = function (ev) {
-            // Tempat kompresi, resize, rotate, atau EXIF parser di masa depan
-            state.photo = ev.target.result; 
-            renderPreview();
+            state.form.photo = ev.target.result; 
+            renderForm();
         };
         reader.readAsDataURL(file);
     }
 
     // ==========================================
-    // 2. CENTRALIZED FORM VALIDATION ENGINE
+    // FORM VALIDATION ENGINE
     // ==========================================
     function validateForm() {
         const lokasi = DOM.lokasi.val().trim();
         const deskripsi = DOM.deskripsi.val().trim();
 
-        if (!BCS.Validator) return true; // Fallback jika validator core absen
+        if (!BCS.Validator) {
+            BCS.Logger.warn(TAG, "Core Validator tidak ditemukan, melewati validasi.");
+            return true;
+        }
 
         if (!BCS.Validator.validate(lokasi, ["required"]).valid) {
             BCS.App.Toast.warning("Lokasi wajib diisi");
             return false;
         }
 
-        if (!BCS.Validator.validate(state.kategori, ["required"]).valid) {
+        if (!BCS.Validator.validate(state.form.kategori, ["required"]).valid) {
             BCS.App.Toast.warning("Pilih kategori kerusakan");
             return false;
         }
@@ -146,27 +168,33 @@ BCS.Modules.register("user-report", (() => {
     }
 
     // ==========================================
-    // 3. ENTERPRISE PAYLOAD BUILDER
+    // PAYLOAD BUILDER LAYER
     // ==========================================
     function buildPayload() {
-        return {
+        const payload = {
             nama: state.user.nama,
             departemen: state.user.departemen || "-",
             lokasi: DOM.lokasi.val().trim(),
-            kategori: state.kategori,
-            prioritas: state.prioritas,
+            kategori: state.form.kategori,
+            prioritas: state.form.prioritas,
             deskripsi: DOM.deskripsi.val().trim(),
-            photo: state.photo,
-            filename: state.filename,
-            timestamp: new Date().toISOString(),
-            
-            // Scalable metadata expansion slots
-            telemetry: {
-                appVersion: BCS.manifest?.version || BCS.version?.framework || "7.0",
-                device: navigator.userAgent,
-                gps: null, // Siap diisi GeoLocation API
-                battery: null
-            }
+            photo: state.form.photo,
+            filename: state.form.filename,
+            timestamp: new Date().toISOString()
+        };
+
+        // 2. Telemetry Isolation
+        payload.telemetry = buildTelemetry();
+
+        return payload;
+    }
+
+    function buildTelemetry() {
+        return {
+            appVersion: BCS.manifest?.version || BCS.version?.framework || "7.0",
+            device: navigator.userAgent,
+            gps: null,
+            battery: null
         };
     }
 
@@ -174,22 +202,18 @@ BCS.Modules.register("user-report", (() => {
     // API EXECUTION SUBMIT
     // ==========================================
     async function submitReport() {
-        if (state.submitting) return;
+        if (state.ui.submitting) return;
         if (!checkAuth()) return;
-        
-        // 2. Encapsulated Form Validation
         if (!validateForm()) return;
 
-        state.submitting = true;
-        renderButton(); // Ubah ke state loading
+        BCS.Logger.info(TAG, "Memulai pengiriman submit report form.");
+        state.ui.submitting = true;
+        Button.render();
 
         try {
             BCS.App.Loading.show();
 
-            // 3. Payload Builder Isolation Call
             const payload = buildPayload();
-            
-            // Pemanggilan Action Terkapsul penuh tanpa string acak
             const res = await BCS.Api.report(payload);
 
             if (!res) {
@@ -202,47 +226,52 @@ BCS.Modules.register("user-report", (() => {
                 return;
             }
 
+            BCS.Logger.info(TAG, "Laporan sukses terkirim ke server API.");
             BCS.App.Toast.success("Report berhasil dikirim");
+
+            // 8. Event Bus Broadcast Trigger
+            BCS.Events.emit("report:created", payload);
+
             clearState();
 
         } catch (err) {
-            console.error(err);
-            BCS.App.Toast.danger(err.toString());
+            // 3. Centralized One-Door Error Handler
+            BCS.Error.handle(err);
         } finally {
-            state.submitting = false;
+            state.ui.submitting = false;
             BCS.App.Loading.hide();
-            renderButton(); // Mengembalikan tombol ke keadaan normal
+            Button.render();
         }
     }
 
     // ==========================================
-    // 8. DATA STATE CLEARING ENGINE
+    // DATA STATE CLEARING ENGINE
     // ==========================================
     function clearState() {
-        state.kategori = "";
-        state.prioritas = DEFAULT_PRIORITY;
-        state.photo = "";
-        state.filename = "";
-        state.submitting = false;
+        state.form.kategori = "";
+        state.form.prioritas = DEFAULT_PRIORITY;
+        state.form.photo = "";
+        state.form.filename = "";
+        state.ui.submitting = false;
 
-        // Reset elemen nilai teks murni
         DOM.lokasi.val("");
         DOM.deskripsi.val("");
         DOM.charCount.text("0");
         DOM.photo.val("");
 
-        render(); // Sinkronisasi ulang antarmuka grafis
+        render();
     }
 
     // ==========================================
     // 5. PIPELINE UNIFIED RENDER LAYER
     // ==========================================
     function render() {
-        renderUser();
+        renderHeader();
         renderForm();
+        renderFooter();
     }
 
-    function renderUser() {
+    function renderHeader() {
         if (state.user) {
             DOM.userName.html(`Halo ${state.user.nama} 👋`);
             DOM.userDept.text(state.user.departemen || "-");
@@ -250,63 +279,70 @@ BCS.Modules.register("user-report", (() => {
     }
 
     function renderForm() {
-        renderPreview();
-        renderPriority();
-        renderCategory();
-        renderButton();
-    }
-
-    function renderPreview() {
-        if (state.photo) {
-            DOM.previewImage.removeClass("d-none").attr("src", state.photo);
+        // Render Preview Photo
+        if (state.form.photo) {
+            DOM.previewImage.removeClass("d-none").attr("src", state.form.photo);
             DOM.previewPlaceholder.hide();
         } else {
             DOM.previewImage.attr("src", "").addClass("d-none");
             DOM.previewPlaceholder.show();
         }
-    }
 
-    function renderPriority() {
+        // Render Priority Active Items
         DOM.priorityItems.removeClass("active");
-        $(`.priority-item[data-priority='${state.prioritas}']`).addClass("active");
-    }
+        $(`.priority-item[data-priority='${state.form.prioritas}']`).addClass("active");
 
-    function renderCategory() {
+        // Render Category Active Items
         DOM.categoryItems.removeClass("active");
-        if (state.kategori) {
-            $(`.category-item[data-value='${state.kategori}']`).addClass("active");
+        if (state.form.kategori) {
+            $(`.category-item[data-value='${state.form.kategori}']`).addClass("active");
         }
+
+        // Render Component Button State
+        Button.render();
     }
 
-    // 9. State-Driven Button Component Renderer
-    function renderButton() {
-        if (state.submitting) {
-            DOM.submitReport.prop("disabled", true).html(`
-                <i class="bi bi-hourglass-split"></i> Mengirim...
-            `);
-        } else {
-            DOM.submitReport.prop("disabled", false).html(`
-                <i class="bi bi-send-fill"></i> Kirim Report
-            `);
-        }
+    function renderFooter() {
+        // Slot untuk render metadata status, badge, last login, atau copyright footer di masa mendatang
     }
+
+    // ==========================================
+    // 6. GLOBAL BUTTON COMPONENT OBJECT
+    // ==========================================
+    const Button = {
+        render() {
+            if (state.ui.submitting) {
+                DOM.submitReport.prop("disabled", true).html(`
+                    <i class="bi bi-hourglass-split"></i> Mengirim...
+                `);
+            } else {
+                DOM.submitReport.prop("disabled", false).html(`
+                    <i class="bi bi-send-fill"></i> Kirim Report
+                `);
+            }
+        }
+    };
 
     // ==========================================
     // CLEANUP GARBAGE COLLECTOR
     // ==========================================
     function destroy() {
-        // Melakukan unbind semua event listener saat modul dibongkar oleh Core System
+        BCS.Logger.debug(TAG, "Mengeksekusi rutin pembongkaran modul destroy().");
+        
+        // Unbind event listeners
         DOM.categoryItems.off("click");
         DOM.priorityItems.off("click");
         DOM.deskripsi.off("input");
         DOM.photo.off("change");
         DOM.submitReport.off("click");
         
-        state.user = null;
-        BCS.Logger.debug("UserReport", "Modul dihancurkan dengan bersih dari memori.");
+        // 9. Nullify DOM cache container to force Garbage Collection
+        DOM = {};
+        state = null;
+        
+        BCS.Logger.info(TAG, "Modul berhasil dihancurkan & memori dibersihkan.");
     }
 
-    // Return antarmuka publik yang dikenali oleh BCS.Modules Lifecycle Engine
     return {
         init,
         destroy
@@ -318,6 +354,6 @@ BCS.Modules.register("user-report", (() => {
 // AUTOMATIC TRIGGER VIA BCS CORE SYSTEM
 // ==========================================
 $(document).ready(() => {
-    // Dipanggil melalui Registry Modul Framework BCS Enterprise v7.0
+    // 10. Dipanggil otomatis oleh Registry Engine Utama tanpa merubah struktur berkas proyek
     BCS.Modules.init("user-report");
 });

@@ -131,10 +131,10 @@ const PWAUpdate = (() => {
     });
 
     // ==========================================
-    // 4. STATE
+    // 4. STATE (immutable reference)
     // ==========================================
 
-    let state = createState();
+    const state = createState();
 
     // ==========================================
     // 5. EVENT REGISTRY
@@ -338,8 +338,9 @@ const PWAUpdate = (() => {
         _setupLifecycleListeners() {
 
             // Service worker registration event
+            eventRegistry.add(
 
-            navigator.serviceWorker.addEventListener(
+                navigator.serviceWorker,
 
                 'controllerchange',
 
@@ -348,8 +349,9 @@ const PWAUpdate = (() => {
             );
 
             // Service worker message events
+            eventRegistry.add(
 
-            navigator.serviceWorker.addEventListener(
+                navigator.serviceWorker,
 
                 'message',
 
@@ -402,9 +404,10 @@ const PWAUpdate = (() => {
 
             }
 
-            // Listen for update found
+            // Listen for update found - register with eventRegistry
+            eventRegistry.add(
 
-            registration.addEventListener(
+                registration,
 
                 'updatefound',
 
@@ -465,16 +468,23 @@ const PWAUpdate = (() => {
             });
 
             // Listen for state changes on installing worker
+            eventRegistry.add(
 
-            worker.addEventListener('statechange', () => {
+                worker,
 
-                if (worker.state === 'installed') {
+                'statechange',
 
-                    this._handleInstalled(worker);
+                () => {
+
+                    if (worker.state === 'installed') {
+
+                        this._handleInstalled(worker);
+
+                    }
 
                 }
 
-            });
+            );
 
         },
 
@@ -970,25 +980,44 @@ const PWAUpdate = (() => {
 
         /**
          * Listen to update events
+         * @returns {Function} Unsubscribe function
          */
         on(event, callback) {
 
             if (typeof BCS !== 'undefined' && BCS.Events) {
 
-                BCS.Events.on(event, callback);
+                // If BCS.Events.on returns unsubscribe function
+                const unsubscribe = BCS.Events.on(event, callback);
 
-            } else {
+                if (typeof unsubscribe === 'function') {
 
-                document.addEventListener(event, callback);
+                    return unsubscribe;
+
+                }
+
+                // Fallback: return a function that calls off
+                return () => {
+
+                    BCS.Events.off(event, callback);
+
+                };
 
             }
 
-            return this;
+            // Fallback to DOM events
+            document.addEventListener(event, callback);
+
+            // Return unsubscribe function
+            return () => {
+
+                document.removeEventListener(event, callback);
+
+            };
 
         },
 
         /**
-         * Remove event listener
+         * Remove event listener (legacy method)
          */
         off(event, callback) {
 
@@ -1044,15 +1073,21 @@ const PWAUpdate = (() => {
         },
 
         /**
-         * Reset state to initial
+         * Reset state to initial (preserves object reference)
          */
         reset() {
 
             // Remove all event listeners
             eventRegistry.removeAll();
 
-            // Reset state to factory defaults
-            state = createState();
+            // Reset state to factory defaults (same object reference)
+            Object.assign(
+
+                state,
+
+                createState()
+
+            );
 
             Logger.info('Update manager state reset');
 
@@ -1061,13 +1096,20 @@ const PWAUpdate = (() => {
         },
 
         /**
-         * Destroy update manager
+         * Destroy update manager (preserves object reference)
          */
         destroy() {
 
             eventRegistry.removeAll();
 
-            state = createState();
+            // Reset state to factory defaults (same object reference)
+            Object.assign(
+
+                state,
+
+                createState()
+
+            );
 
             Logger.info('PWA Update Manager destroyed');
 

@@ -1,5 +1,5 @@
 // ======================================================
-// Building Care System Enterprise v3.6 Stable (Refactored)
+// Building Care System Enterprise v3.7 Stable
 // File : assets/js/modules/auth.js
 // Radiant Group Duri
 // ======================================================
@@ -8,7 +8,7 @@
 
 /**
  * ======================================================
- * REKOMENDASI 13: LOGGER SYSTEM (DEBUG CONTROL)
+ * LOGGER SYSTEM (DEBUG CONTROL)
  * ======================================================
  */
 const Logger = (() => {
@@ -23,19 +23,19 @@ const Logger = (() => {
 
 /**
  * ======================================================
- * PERBAIKAN 1: AUTH_CONFIG IMMUTABLE (OBJECT.FREEZE)
+ * AUTH_CONFIG IMMUTABLE
  * ======================================================
  */
 const AUTH_CONFIG = Object.freeze({
     HEARTBEAT_INTERVAL: window.CONFIG?.AUTH?.HEARTBEAT || 300000,
     LOGIN_PAGE: window.CONFIG?.AUTH?.LOGIN || "login.html",
-    DEFAULT_ROUTE: window.CONFIG?.AUTH?.DEFAULT || "dashboard.html",
+    DEFAULT_ROUTE: window.CONFIG?.AUTH?.DEFAULT || "user-report.html",
     STORAGE_KEY: "BCS_SESSION"
 });
 
 /**
  * ======================================================
- * REKOMENDASI 7: DYNAMIC ROLE ROUTE FROM CONFIG
+ * DYNAMIC ROLE ROUTE FROM CONFIG
  * ======================================================
  */
 const ROLE_ROUTE = window.CONFIG?.ROUTES || {
@@ -94,7 +94,7 @@ const AuthHelper = (() => {
 
 /**
  * ======================================================
- * REKOMENDASI 2 & 8: AUTH STORE & PERBAIKAN 3: SAFE STORAGE PROVIDER
+ * AUTH STORE - FIXED
  * ======================================================
  */
 const AuthStore = (() => {
@@ -138,23 +138,117 @@ const AuthStore = (() => {
 
     function get() {
         if (cache) return cache;
-        if (window.App && typeof App.getSession === "function") {
-            cache = App.getSession() ?? structuredClone(EMPTY_SESSION);
-        } else {
-            const stored = storageProvider().getItem(AUTH_CONFIG.STORAGE_KEY);
-            cache = stored ? JSON.parse(stored) : structuredClone(EMPTY_SESSION);
+        
+        try {
+            let stored = null;
+            
+            // Coba dari App dulu
+            if (window.App && typeof App.getSession === "function") {
+                stored = App.getSession();
+                if (stored && stored.token) {
+                    cache = stored;
+                    return cache;
+                }
+            }
+            
+            // Coba dari BCS_SESSION
+            const raw = storageProvider().getItem(AUTH_CONFIG.STORAGE_KEY);
+            if (raw) {
+                stored = JSON.parse(raw);
+                if (stored && stored.token) {
+                    cache = stored;
+                    return cache;
+                }
+            }
+            
+            // Fallback ke key legacy
+            const token = localStorage.getItem("token");
+            const userStr = localStorage.getItem("user");
+            const nik = localStorage.getItem("nik");
+            const role = localStorage.getItem("role");
+            
+            if (token) {
+                const user = userStr ? JSON.parse(userStr) : {};
+                stored = {
+                    token: token,
+                    user: user,
+                    nik: nik || user?.nik || "",
+                    role: role || user?.role || ""
+                };
+                // Sync ke BCS_SESSION
+                storageProvider().setItem(AUTH_CONFIG.STORAGE_KEY, JSON.stringify(stored));
+                cache = stored;
+                return cache;
+            }
+            
+            cache = structuredClone(EMPTY_SESSION);
+            return cache;
+        } catch (e) {
+            console.error("[AuthStore] Gagal get session:", e);
+            cache = structuredClone(EMPTY_SESSION);
+            return cache;
         }
-        return cache;
     }
 
     function set(session) {
-        cache = session || structuredClone(EMPTY_SESSION);
-        if (window.App && typeof App.setSession === "function") {
-            App.setSession(cache);
-        } else {
-            storageProvider().setItem(AUTH_CONFIG.STORAGE_KEY, JSON.stringify(cache));
+        // Validasi
+        if (!session || !session.token) {
+            console.warn("[AuthStore] Session tidak valid:", session);
+            return null;
         }
-        return cache;
+
+        // Normalisasi
+        const normalized = {
+            token: session.token || "",
+            user: session.user || {},
+            nik: session.nik || session.user?.nik || "",
+            role: session.role || session.user?.role || ""
+        };
+
+        // Pastikan nik dan role ada di user
+        if (normalized.nik && !normalized.user.nik) {
+            normalized.user.nik = normalized.nik;
+        }
+        if (normalized.role && !normalized.user.role) {
+            normalized.user.role = normalized.role;
+        }
+
+        cache = normalized;
+
+        try {
+            const storage = storageProvider();
+            const jsonData = JSON.stringify(normalized);
+            
+            // Simpan ke BCS_SESSION
+            storage.setItem(AUTH_CONFIG.STORAGE_KEY, jsonData);
+            
+            // Simpan ke key legacy
+            storage.setItem("token", normalized.token);
+            storage.setItem("user", JSON.stringify(normalized.user));
+            if (normalized.nik) {
+                storage.setItem("nik", normalized.nik);
+            }
+            if (normalized.role) {
+                storage.setItem("role", normalized.role);
+            }
+
+            // Juga simpan via Session jika ada
+            if (window.Session && typeof Session.set === "function") {
+                Session.set(normalized);
+            }
+
+            console.log("✅ [AuthStore] Session tersimpan:", {
+                key: AUTH_CONFIG.STORAGE_KEY,
+                token: normalized.token.substring(0, 20) + "...",
+                nik: normalized.nik,
+                role: normalized.role
+            });
+
+            return normalized;
+        } catch (e) {
+            console.error("❌ [AuthStore] Gagal menyimpan:", e);
+            return null;
+        }
     }
 
     function clear() {
@@ -163,12 +257,21 @@ const AuthStore = (() => {
             App.removeSession();
         } else {
             storageProvider().removeItem(AUTH_CONFIG.STORAGE_KEY);
+            // Hapus juga key legacy
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            localStorage.removeItem("nik");
+            localStorage.removeItem("role");
+        }
+        // Clear via Session
+        if (window.Session && typeof Session.clear === "function") {
+            Session.clear();
         }
     }
 
     function token() { return get()?.token || ""; }
     function user() { return get()?.user || {}; }
-    function role() { return String(user().role || "").trim().toUpperCase(); }
+    function role() { return String(user().role || get()?.role || "").trim().toUpperCase(); }
     function isLogin() { return token() !== ""; }
 
     function hasRole(...roles) { return roles.includes(role()); }
@@ -194,22 +297,17 @@ Logger.info("Auth Phase 1 Loaded");
 
 /**
  * ======================================================
- * REKOMENDASI 5 & 6: AUTH API WITH RETRY LOGIC & SAFE VERIFY
+ * AUTH API - FIXED
  * ======================================================
- * FIX: Gunakan BCS.Api, bukan Api langsung
  */
 const AuthApi = (() => {
-    // Helper untuk mendapatkan Api instance
     function getApi() {
-        // Coba ambil dari BCS.Api terlebih dahulu
         if (window.BCS && window.BCS.Api) {
             return window.BCS.Api;
         }
-        // Fallback ke window.Api
         if (window.Api) {
             return window.Api;
         }
-        // Terakhir coba BCS.Api dari global
         return window.BCS?.Api;
     }
 
@@ -224,14 +322,47 @@ const AuthApi = (() => {
             const response = await api.post("login", payload);
             Logger.info("Login Response", response);
 
+            // Debug log
+            console.log("🔍 [LOGIN] Response:", response);
+            console.log("🔍 [LOGIN] Response.data:", response?.data);
+            console.log("🔍 [LOGIN] Response.success:", response?.success);
+
             if (!response || !response.success) {
+                console.error("❌ [LOGIN] Login gagal:", response?.message);
                 return response || { success: false, message: "Login gagal." };
             }
 
-            AuthStore.set(response.data);
+            // Normalisasi data session
+            let rawData = response.data || {};
+            let sessionData = {
+                token: rawData.token || response.token || "",
+                user: rawData.user || response.user || {},
+                nik: rawData.nik || response.nik || rawData.user?.nik || "",
+                role: rawData.role || response.role || rawData.user?.role || ""
+            };
+
+            // Pastikan user punya nik dan role
+            if (sessionData.nik && !sessionData.user.nik) {
+                sessionData.user.nik = sessionData.nik;
+            }
+            if (sessionData.role && !sessionData.user.role) {
+                sessionData.user.role = sessionData.role;
+            }
+
+            console.log("✅ [LOGIN] Session data:", sessionData);
+
+            // Simpan session via AuthStore
+            const saved = AuthStore.set(sessionData);
+            console.log("✅ [LOGIN] Session tersimpan:", saved);
+            
+            // Verifikasi storage
+            const stored = localStorage.getItem("BCS_SESSION");
+            console.log("✅ [LOGIN] localStorage BCS_SESSION:", stored ? "ADA" : "TIDAK ADA");
+
             return response;
         } catch (err) {
             Logger.error("Login Error:", err);
+            console.error("❌ [LOGIN] Error:", err);
             return { success: false, message: err.message || "Server tidak dapat dihubungi." };
         } finally {
             AuthHelper.loading(false);
@@ -331,7 +462,7 @@ Logger.info("Auth Phase 3 Loaded");
 
 /**
  * ======================================================
- * AUTH GUARD - MOVED BEFORE AuthUI and AuthHeartbeat
+ * AUTH GUARD
  * ======================================================
  */
 const AuthGuard = (() => {
@@ -388,7 +519,7 @@ Logger.info("Auth Phase 4 Loaded");
 
 /**
  * ======================================================
- * REKOMENDASI 9 & 10: AUTH UI (DUPLICATION GUARD & TOGGLE ICON)
+ * AUTH UI
  * ======================================================
  */
 const AuthUI = (() => {
@@ -398,8 +529,8 @@ const AuthUI = (() => {
     function form() { return document.getElementById("loginForm"); }
     function nik() { return document.getElementById("nik"); }
     function password() { return document.getElementById("password"); }
-    function button() { return document.getElementById("btnLogin"); }
-    function remember() { return document.getElementById("rememberMe"); }
+    function button() { return document.getElementById("btnLogin") || document.getElementById("loginButton"); }
+    function remember() { return document.getElementById("remember") || document.getElementById("rememberMe"); }
     function togglePassword() { return document.getElementById("togglePassword"); }
 
     function validate() {
@@ -422,7 +553,8 @@ const AuthUI = (() => {
         if (!validate()) return;
 
         submitting = true;
-        button()?.setAttribute("disabled", "true");
+        const btn = button();
+        if (btn) btn.setAttribute("disabled", "true");
 
         try {
             const result = await AuthApi.login({
@@ -447,7 +579,7 @@ const AuthUI = (() => {
             AuthHelper.toast("Terjadi kesalahan sistem.", "danger");
         } finally {
             submitting = false;
-            button()?.removeAttribute("disabled");
+            if (btn) btn.removeAttribute("disabled");
         }
     }
 
@@ -514,7 +646,7 @@ Logger.info("Auth Phase 5 Loaded");
 
 /**
  * ======================================================
- * REKOMENDASI 11: AUTH HEARTBEAT WITH ACTIVITY REFRESH
+ * AUTH HEARTBEAT
  * ======================================================
  */
 const AuthHeartbeat = (() => {
@@ -556,7 +688,7 @@ Logger.info("Auth Phase 6 Loaded");
 
 /**
  * ======================================================
- * AUTH FACADE (REKOMENDASI 15: OBJECT FREEZE)
+ * AUTH FACADE
  * ======================================================
  */
 const Auth = (() => {
@@ -576,14 +708,13 @@ const Auth = (() => {
         stopHeartbeat: AuthHeartbeat.stop
     };
 
-    // FIX: Assign ke window.Auth agar bisa diakses global
     window.Auth = instance;
     return Object.freeze(instance);
 })();
 
 /**
  * ======================================================
- * REKOMENDASI 14: BACKWARD COMPATIBILITY FOR OLD SCRIPTS
+ * BACKWARD COMPATIBILITY
  * ======================================================
  */
 if (!window.Session) {
@@ -591,7 +722,18 @@ if (!window.Session) {
         getUser: () => Auth.user(),
         getToken: () => Auth.token(),
         getRole: () => Auth.role(),
-        isLoggedIn: () => Auth.isLogin()
+        isLoggedIn: () => Auth.isLogin(),
+        get: () => Auth.session(),
+        set: (data) => {
+            const session = Auth.session();
+            Object.assign(session, data);
+            // Re-save
+            const store = window.Auth;
+            if (store && store.session) {
+                // AuthStore.set sudah handle save
+            }
+        },
+        clear: () => Auth.clear()
     };
     Logger.info("Legacy window.Session polyfill attached.");
 }
@@ -600,7 +742,7 @@ Logger.info("Auth Phase 7 Loaded");
 
 /**
  * ======================================================
- * AUTH BOOTSTRAP (REKOMENDASI 12: WINDOW LOAD BIND)
+ * AUTH BOOTSTRAP
  * ======================================================
  */
 const AuthBootstrap = (() => {
@@ -612,7 +754,6 @@ const AuthBootstrap = (() => {
 
         Logger.info("Initializing Authentication Architecture...");
 
-        // Tunggu sedikit agar API siap
         await new Promise(resolve => setTimeout(resolve, 100));
 
         AuthGuard.autoRedirect();
@@ -633,7 +774,7 @@ const AuthBootstrap = (() => {
     return { init };
 })();
 
-// FIX: Gunakan DOMContentLoaded untuk memastikan DOM siap
+// Bootstrap
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', AuthBootstrap.init);
 } else {

@@ -82,9 +82,9 @@ const PWA = (() => {
     // MODULE LOADER & INITIALIZER
     // ==========================================
     function loadModules() {
-        // Mencari di BCS.PWA terlebih dahulu, fallback ke window jika diperlukan
-        modules.install = BCS.PWA?.Install ?? window.PWAInstall ?? null;
-        modules.update = BCS.PWA?.Update ?? window.PWAUpdate ?? null;
+        // Hanya menggunakan BCS.PWA, tanpa fallback window
+        modules.install = BCS.PWA?.Install ?? null;
+        modules.update = BCS.PWA?.Update ?? null;
 
         if (!modules.install) {
             Logger.warn("Install module belum terdaftar.");
@@ -113,6 +113,14 @@ const PWA = (() => {
             await modules.update.init();
             setState("update", true);
         }
+
+        // Validasi ready state berdasarkan status modul
+        const ready = state.install && state.update;
+        setState("ready", ready);
+        
+        if (!ready) {
+            Logger.warn("PWA tidak sepenuhnya ready - salah satu modul gagal init");
+        }
     }
 
     // ==========================================
@@ -120,7 +128,13 @@ const PWA = (() => {
     // ==========================================
     async function init(config = {}) {
         if (state.initialized) {
+            Logger.warn("PWA sudah diinisialisasi");
             return;
+        }
+
+        // Validasi EventBus
+        if (!BCS.Events) {
+            Logger.warn("BCS.Events belum tersedia. Event akan tidak berfungsi.");
         }
 
         runtimeConfig = {
@@ -136,10 +150,9 @@ const PWA = (() => {
             }
 
             setState("initialized", true);
-            setState("ready", true);
 
             BCS.Events?.emit?.("pwa:ready");
-            Logger.info("PWA Ready");
+            Logger.info("PWA Ready", getState());
         } catch (err) {
             Logger.error(err);
             BCS.Events?.emit?.("pwa:error", err);
@@ -148,11 +161,76 @@ const PWA = (() => {
     }
 
     // ==========================================
-    // EXPORT PUBLIC API
+    // DESTROY
     // ==========================================
-    return {
+    function destroy() {
+        Logger.info("Destroying PWA...");
+
+        // Destroy modules jika memiliki method destroy
+        if (modules.install?.destroy) {
+            modules.install.destroy();
+        }
+        if (modules.update?.destroy) {
+            modules.update.destroy();
+        }
+
+        // Reset state
+        Object.assign(state, createState());
+
+        // Clear module references
+        modules.install = null;
+        modules.update = null;
+
+        BCS.Events?.emit?.("pwa:destroy");
+        Logger.info("PWA destroyed");
+    }
+
+    // ==========================================
+    // FACADE API
+    // ==========================================
+    function install() {
+        if (!modules.install) {
+            Logger.warn("Install module tidak tersedia");
+            return Promise.reject(new Error("Install module not available"));
+        }
+        return modules.install.install?.() ?? Promise.resolve();
+    }
+
+    function checkUpdate() {
+        if (!modules.update) {
+            Logger.warn("Update module tidak tersedia");
+            return Promise.reject(new Error("Update module not available"));
+        }
+        return modules.update.check?.() ?? Promise.resolve();
+    }
+
+    function reload() {
+        if (!modules.update) {
+            Logger.warn("Update module tidak tersedia");
+            return;
+        }
+        return modules.update.reload?.();
+    }
+
+    function skipWaiting() {
+        if (!modules.update) {
+            Logger.warn("Update module tidak tersedia");
+            return Promise.reject(new Error("Update module not available"));
+        }
+        return modules.update.skipWaiting?.() ?? Promise.resolve();
+    }
+
+    // ==========================================
+    // EXPORT PUBLIC API (FROZEN)
+    // ==========================================
+    return Object.freeze({
         init,
-        getState
-    };
+        destroy,
+        getState,
+        install,
+        checkUpdate,
+        reload,
+        skipWaiting
+    });
 
 })();

@@ -1,6 +1,6 @@
 // ======================================================
-// Building Care System Enterprise v6.3 FINAL
-// Core API Framework - CORS FIXED
+// Building Care System Enterprise v6.4 FINAL
+// Core API Framework - Direct Google Script Integration
 // Radiant Group Duri
 // ======================================================
 
@@ -32,7 +32,7 @@ const API_URL = (typeof CONFIG !== 'undefined' && CONFIG.API?.URL) ||
                 "https://script.google.com/macros/s/AKfycbzN3jSKv-RywufMhzub5SAbReV0ES31_4AMZP7Us4UxhskijtydQYpOWmPgCKQ9GmzH2w/exec";
 
 // ======================================================
-// API ENGINE - CORS FIXED
+// API ENGINE - DIRECT GOOGLE SCRIPT
 // ======================================================
 const Api = (() => {
     let loadingCounter = 0;
@@ -86,7 +86,8 @@ const Api = (() => {
     }
 
     /**
-     * Main request function - CORS FIXED
+     * 🔥 Main request - Direct to Google Script
+     * Google Script menerima request dengan method POST dan body JSON
      */
     async function request(method, action, data = {}) {
         showLoading();
@@ -94,29 +95,32 @@ const Api = (() => {
         try {
             const token = getToken();
             
-            // 🔥 FIX: Gunakan GET dengan parameter URL (cara paling aman untuk Google Script)
-            const params = new URLSearchParams();
-            params.append('action', action);
-            params.append('data', JSON.stringify(data));
+            // 🔥 Buat payload untuk Google Script
+            const payload = {
+                action: action,
+                data: data
+            };
+            
+            // Tambahkan token jika ada
             if (token) {
-                params.append('token', token);
+                payload.token = token;
             }
 
-            const url = `${API_URL}?${params.toString()}`;
-            console.log(`[API] ${method} ${action}`, url);
+            console.log(`[API] ${method} ${action}`, payload);
 
-            // 🔥 FIX: Gunakan mode cors dengan header yang benar
+            // 🔥 Google Script menerima POST dengan Content-Type: text/plain
             const options = {
-                method: 'GET',
+                method: 'POST',
                 mode: 'cors',
                 cache: 'no-cache',
                 headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
+                    'Content-Type': 'text/plain;charset=utf-8',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
             };
 
-            const response = await fetch(url, options);
+            const response = await fetch(API_URL, options);
             
             // Cek response
             if (!response.ok) {
@@ -125,14 +129,18 @@ const Api = (() => {
 
             // Parse response
             const text = await response.text();
-            console.log('[API] Response text:', text);
+            console.log('[API] Response:', text);
             
             let result;
             try {
                 result = JSON.parse(text);
             } catch (e) {
-                // Jika response bukan JSON, coba parse dari URL
-                result = { success: true, message: text || "Request sent" };
+                // Jika response bukan JSON, coba parse
+                result = { 
+                    success: true, 
+                    message: text || "Request sent",
+                    data: {}
+                };
             }
 
             // Handle session expired
@@ -154,10 +162,10 @@ const Api = (() => {
         } catch (error) {
             console.error("[API] Request failed:", error);
             
-            // 🔥 Jika CORS error, coba alternatif dengan mode no-cors
+            // 🔥 Jika CORS error, coba alternatif
             if (error.message.includes('CORS') || error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                console.warn("[API] CORS detected, trying alternative method...");
-                return await requestNoCors(action, data);
+                console.warn("[API] CORS detected, trying JSONP fallback...");
+                return await requestJsonp(action, data);
             }
             
             return {
@@ -170,70 +178,8 @@ const Api = (() => {
     }
 
     /**
-     * 🔥 Alternative request tanpa CORS (menggunakan mode no-cors)
-     */
-    async function requestNoCors(action, data = {}) {
-        try {
-            const token = getToken();
-            
-            // Buat URL dengan parameter
-            const params = new URLSearchParams();
-            params.append('action', action);
-            params.append('data', JSON.stringify(data));
-            if (token) {
-                params.append('token', token);
-            }
-
-            const url = `${API_URL}?${params.toString()}`;
-            console.log('[API] No-CORS request:', url);
-
-            // 🔥 Gunakan fetch dengan mode no-cors
-            const response = await fetch(url, {
-                method: 'GET',
-                mode: 'no-cors',
-                cache: 'no-cache',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-
-            // Karena no-cors, kita tidak bisa membaca response
-            // Tapi kita bisa coba baca sebagai text
-            try {
-                const text = await response.text();
-                if (text) {
-                    try {
-                        return JSON.parse(text);
-                    } catch (e) {
-                        return {
-                            success: true,
-                            message: text || "Request sent (no-cors mode)",
-                            data: {}
-                        };
-                    }
-                }
-            } catch (e) {
-                // Jika tidak bisa baca response, asumsikan sukses
-                console.log('[API] No-CORS response tidak bisa dibaca, asumsikan sukses');
-            }
-
-            // Asumsikan sukses
-            return {
-                success: true,
-                message: "Request sent (no-cors mode)",
-                data: {}
-            };
-
-        } catch (error) {
-            console.error("[API] No-CORS request failed:", error);
-            
-            // 🔥 LAST RESORT: Gunakan JSONP dengan image tag
-            return await requestJsonp(action, data);
-        }
-    }
-
-    /**
-     * 🔥 LAST RESORT: JSONP menggunakan image atau script tag
+     * 🔥 Fallback: JSONP menggunakan script tag
+     * Google Script mendukung JSONP dengan parameter ?callback=
      */
     function requestJsonp(action, data = {}) {
         return new Promise((resolve) => {
@@ -241,6 +187,7 @@ const Api = (() => {
                 const token = getToken();
                 const callbackName = 'callback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
                 
+                // 🔥 Buat URL dengan parameter untuk Google Script
                 const params = new URLSearchParams();
                 params.append('action', action);
                 params.append('data', JSON.stringify(data));
@@ -265,13 +212,15 @@ const Api = (() => {
                         success: false,
                         message: "JSONP request timeout"
                     });
-                }, 10000);
+                }, 15000);
 
                 // Callback function
                 window[callbackName] = function(response) {
                     clearTimeout(timeout);
                     document.body.removeChild(script);
                     delete window[callbackName];
+                    
+                    console.log('[API] JSONP response:', response);
                     resolve(response || { success: true, data: {} });
                 };
 
@@ -289,7 +238,7 @@ const Api = (() => {
                 document.body.appendChild(script);
 
             } catch (error) {
-                console.error("[API] JSONP request error:", error);
+                console.error("[API] JSONP error:", error);
                 resolve({
                     success: false,
                     message: error.message || "JSONP request failed"
@@ -309,4 +258,4 @@ const Api = (() => {
 window.BCS.Api = Api;
 window.Api = Api;
 
-console.log("✅ [API] Core API loaded (CORS Fixed v6.3)");
+console.log("✅ [API] Core API loaded (Direct Google Script v6.4)");

@@ -1,9 +1,9 @@
 // ======================================================
-// Building Care System Enterprise v8.0
+// Building Care System Enterprise v8.1
 // File : assets/js/modules/workorder.js
 // ROLE : ADMIN | GENERAL AFFAIR | TECHNICIAN
 // Radiant Group Duri
-// Target Specification: Unified Store v2, Adaptive Polling, Performance Panels
+// Refactored to Internal Architectural Sections Blueprint v2
 // ======================================================
 
 "use strict";
@@ -11,12 +11,13 @@
 const WorkOrderModule = (() => {
 
     // =====================================================
-    // 1. CONSTANTS & SYSTEM CONFIG
+    // 1. SECTION: SYSTEM CONFIG & CONSTANTS
     // =====================================================
     const TAG = "WorkOrder";
     const IDLE_THRESHOLD = 300000; // 5 Menit Idle Activity Interceptor
 
     const CONFIG = Object.freeze({
+        DEBUG: true, // Set ke false di Production untuk mematikan Performance HUD & Debug Log
         PER_PAGE: 10,
         DEFAULT_STATUS: "ALL",
         DEFAULT_PRIORITY: "ALL",
@@ -52,11 +53,22 @@ const WorkOrderModule = (() => {
     });
 
     // =====================================================
-    // 2. UNIFIED STORE ENGINE (BCS Enterprise v2 Integration)
+    // 2. SECTION: CORE STANDARDIZED LOGGER
     // =====================================================
-    if (typeof BCS === "undefined") window.BCS = {};
-    if (!BCS.Store) BCS.Store = {};
+    const Logger = {
+        info: (tag, msg) => BCS.Logger?.info?.(tag, msg) || console.log(`[INFO][${tag}] ${msg}`),
+        warn: (tag, msg) => BCS.Logger?.warn?.(tag, msg) || console.warn(`[WARN][${tag}] ${msg}`),
+        error: (tag, msg) => BCS.Logger?.error?.(tag, msg) || console.error(`[ERROR][${tag}] ${msg}`),
+        performance: (tag, metric, time) => {
+            if (CONFIG.DEBUG) {
+                console.log(`%c[PERF][${tag}] ${metric}: ${time.toFixed(2)} ms`, "color: #10B981; font-weight: bold;");
+            }
+        }
+    };
 
+    // =====================================================
+    // 3. SECTION: STORE INITIALIZER & UNIFIED REGISTRY
+    // =====================================================
     const createInitialState = () => ({
         user: {},
         workorders: [],
@@ -78,10 +90,10 @@ const WorkOrderModule = (() => {
             autoRefresh: null,
             idleTimeout: null,
             isIdle: false,
-            initialized: false
+            initialized: false,
+            eventUnsubscribers: [] // Kolektor fungsi unbind event listener
         },
         metrics: {
-            openCount: 0,
             refreshCount: 0,
             apiTime: 0,
             renderTime: 0,
@@ -89,23 +101,24 @@ const WorkOrderModule = (() => {
         }
     });
 
-    // Binding local reference langsung ke namespace global Store BCS v2
-    BCS.Store.workorder = createInitialState();
-    const state = BCS.Store.workorder;
-
-    // Analytics Stub Telemetry Fallback
-    if (!BCS.Analytics) {
-        BCS.Analytics = {
-            track(eventName, payload = {}) {
-                console.groupCollapsed(`[BCS Analytics v2 Telemetry: ${eventName}]`);
-                console.log("Payload:", payload);
-                console.groupEnd();
-            }
-        };
+    // Registrasi Store melalui Unified Service Registry Pattern
+    if (BCS.Store && typeof BCS.Store.register === "function") {
+        BCS.Store.register("workorder", createInitialState());
+    } else {
+        if (!BCS.Store) BCS.Store = {};
+        BCS.Store.workorder = createInitialState();
+        BCS.Store.reset = (key) => { if (BCS.Store[key]) BCS.Store[key] = createInitialState(); };
     }
 
+    const state = BCS.Store.workorder;
+
+    // Core Analytics Core-Abstraction Safe Guard (Bukan lagi internal WorkOrder)
+    const Analytics = {
+        track: (eventName, payload = {}) => BCS.Analytics?.track?.(eventName, payload) || console.log(`[Analytics Stub] ${eventName}`, payload)
+    };
+
     // =====================================================
-    // 3. DOM CACHE
+    // 4. SECTION: DOM CACHE MAPPING
     // =====================================================
     const DOM = {
         summary: {
@@ -126,8 +139,10 @@ const WorkOrderModule = (() => {
     };
 
     // =====================================================
-    // 4. SECURITY & ROLE GUARD SYSTEM
+    // 5. SECTION: UI HELPERS & SECURITY GUARD
     // =====================================================
+    const escapeHtml = (val) => { const d = document.createElement("div"); d.textContent = val ?? ""; return d.innerHTML; };
+
     function checkAuth() {
         const user = BCS.Auth?.user?.() || BCS.Store?.get?.("BCS_USER");
         if (!user) {
@@ -139,9 +154,7 @@ const WorkOrderModule = (() => {
     }
 
     const RoleGuard = {
-        isAdmin() {
-            return [ROLE.ADMIN, ROLE.ADMINISTRATOR, ROLE.LEAD_BRANCH_SUPPORT].includes(state.user.role);
-        },
+        isAdmin() { return [ROLE.ADMIN, ROLE.ADMINISTRATOR, ROLE.LEAD_BRANCH_SUPPORT].includes(state.user.role); },
         isGA() { return state.user.role === ROLE.GENERAL_AFFAIR; },
         isTechnician() { return state.user.role === ROLE.TECHNICIAN; },
         canAssign() { return this.isAdmin() || this.isGA(); },
@@ -150,9 +163,9 @@ const WorkOrderModule = (() => {
     };
 
     // =====================================================
-    // 5. WORKFLOW & TRANSACTION ENGINE
+    // 6. SECTION: ENGINE (WORKFLOW, FILTER, PAGINATION CALCULATOR)
     // =====================================================
-    const Workflow = (() => {
+    const WorkflowEngine = (() => {
         const FLOW = Object.freeze({
             [STATUS.OPEN]: [STATUS.ASSIGNED],
             [STATUS.ASSIGNED]: [STATUS.PROGRESS, STATUS.OPEN],
@@ -167,166 +180,158 @@ const WorkOrderModule = (() => {
         };
     })();
 
-    // =====================================================
-    // 6. SERVICES & REMOTE DATA ACCESSORS
-    // =====================================================
-    async function loadTechnicians() {
-        try {
-            const res = await BCS.Api.user({ role: "TECHNICIAN" });
-            if (res?.success) state.technicians = res.data || [];
-        } catch (err) {
-            BCS.Error?.handle(err);
+    const DataProcessingEngine = {
+        process() {
+            this.applyFilters();
+            this.buildSummaryMetrics();
+            this.buildPagination();
+        },
+        applyFilters() {
+            const keyword = state.filters.keyword.toLowerCase();
+            state.filtered = state.workorders.filter(item => {
+                const matchKeyword = !keyword ||
+                    item.id.toLowerCase().includes(keyword) ||
+                    item.lokasi.toLowerCase().includes(keyword) ||
+                    item.kategori.toLowerCase().includes(keyword);
+
+                const matchStatus = state.filters.status === "ALL" || item.status === state.filters.status;
+                const matchPriority = state.filters.priority === "ALL" || item.prioritas === state.filters.priority;
+                const matchTechnician = state.filters.technician === "ALL" || item.technician === state.filters.technician;
+
+                return matchKeyword && matchStatus && matchPriority && matchTechnician;
+            });
+        },
+        buildSummaryMetrics() {
+            state.summary = { total: state.filtered.length, open: 0, assigned: 0, progress: 0, waiting: 0, done: 0, archived: 0 };
+            state.filtered.forEach(item => {
+                switch (item.status) {
+                    case STATUS.OPEN: state.summary.open++; break;
+                    case STATUS.ASSIGNED: state.summary.assigned++; break;
+                    case STATUS.PROGRESS: state.summary.progress++; break;
+                    case STATUS.WAITING_APPROVAL: state.summary.waiting++; break;
+                    case STATUS.DONE: state.summary.done++; break;
+                    case STATUS.ARCHIVED: state.summary.archived++; break;
+                }
+            });
+        },
+        buildPagination() {
+            state.pagination.totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pagination.perPage));
+            if (state.pagination.page > state.pagination.totalPages) {
+                state.pagination.page = 1;
+            }
+        },
+        getCurrentPageData() {
+            const start = (state.pagination.page - 1) * state.pagination.perPage;
+            return state.filtered.slice(start, start + state.pagination.perPage);
         }
-    }
+    };
 
-    async function loadWorkOrders(force = false) {
-        if (state.ui.isIdle) {
-            console.warn(`[${TAG}] Request Aborted: Engine in IDLE state.`);
-            return;
-        }
-        if (state.ui.loading) return;
-        
-        state.ui.loading = true;
-        BCS.App?.Loading?.show();
-        const tStart = performance.now();
-
-        try {
-            const res = await BCS.Api.workorder({ force });
-            state.metrics.apiTime = performance.now() - tStart;
-
-            if (!res?.success) {
-                BCS.App?.Toast?.error(res?.message || "Gagal memuat data Work Order.");
+    // =====================================================
+    // 7. SECTION: SERVICES (REMOTE API ACCESSORS)
+    // =====================================================
+    const WorkOrderService = {
+        async loadTechnicians() {
+            try {
+                const res = await BCS.Api.user({ role: "TECHNICIAN" });
+                if (res?.success) state.technicians = res.data || [];
+            } catch (err) {
+                BCS.Error?.handle(err);
+            }
+        },
+        async loadWorkOrders(force = false) {
+            if (state.ui.isIdle) {
+                Logger.warn(TAG, "Request Aborted: Engine berada dalam status IDLE.");
                 return;
             }
-            state.workorders = res.data || [];
-            state.metrics.refreshCount++;
-
-            BCS.Analytics.track("workorder_refresh", { runNumber: state.metrics.refreshCount });
-            processDataPipeline();
-        } catch (err) {
-            BCS.Error?.handle(err);
-        } finally {
-            state.ui.loading = false;
-            BCS.App?.Loading?.hide();
-        }
-    }
-
-    async function assignTechnician(id, technicianId) {
-        if (!RoleGuard.canAssign()) {
-            BCS.App?.Toast?.warning("Anda tidak memiliki hak melakukan assignment.");
-            return;
-        }
-        try {
+            if (state.ui.loading) return;
+            
+            state.ui.loading = true;
             BCS.App?.Loading?.show();
-            const res = await BCS.Api.assign({ id, technician: technicianId });
-            if (!res?.success) {
-                BCS.App?.Toast?.error(res?.message);
+            const tStart = performance.now();
+
+            try {
+                const res = await BCS.Api.workorder({ force });
+                state.metrics.apiTime = performance.now() - tStart;
+                Logger.performance(TAG, "API Latency WorkOrder", state.metrics.apiTime);
+
+                if (!res?.success) {
+                    BCS.App?.Toast?.error(res?.message || "Gagal mengambil data Work Order.");
+                    return;
+                }
+                state.workorders = res.data || [];
+                state.metrics.refreshCount++;
+
+                Analytics.track("workorder_refresh", { runNumber: state.metrics.refreshCount });
+                DataProcessingEngine.process();
+                UIPipelineComponent.render();
+            } catch (err) {
+                BCS.Error?.handle(err);
+            } finally {
+                state.ui.loading = false;
+                BCS.App?.Loading?.hide();
+            }
+        },
+        async assignTechnician(id, technicianId) {
+            if (!RoleGuard.canAssign()) {
+                BCS.App?.Toast?.warning("Anda tidak memiliki hak melakukan assignment.");
                 return;
             }
-            BCS.App?.Toast?.success("Teknisi berhasil ditugaskan.");
-            BCS.Events?.emit("workorder:assigned", res.data);
-            await loadWorkOrders(true);
-        } catch (err) {
-            BCS.Error?.handle(err);
-        } finally {
-            BCS.App?.Loading?.hide();
-        }
-    }
-
-    async function updateStatus(id, currentStatus, nextStatus) {
-        if (!RoleGuard.canUpdateStatus()) {
-            BCS.App?.Toast?.warning("Akses ditolak.");
-            return;
-        }
-        if (!Workflow.canTransition(currentStatus, nextStatus)) {
-            BCS.App?.Toast?.warning("Perubahan status tidak diperbolehkan.");
-            return;
-        }
-        try {
-            BCS.App?.Loading?.show();
-            const res = await BCS.Api.updateStatus({ id, status: nextStatus });
-            if (!res?.success) {
-                BCS.App?.Toast?.error(res?.message);
+            try {
+                BCS.App?.Loading?.show();
+                const res = await BCS.Api.assign({ id, technician: technicianId });
+                if (!res?.success) {
+                    BCS.App?.Toast?.error(res?.message);
+                    return;
+                }
+                BCS.App?.Toast?.success("Teknisi berhasil ditugaskan.");
+                BCS.Events?.emit("workorder:assigned", res.data);
+                await this.loadWorkOrders(true);
+            } catch (err) {
+                BCS.Error?.handle(err);
+            } finally {
+                BCS.App?.Loading?.hide();
+            }
+        },
+        async updateStatus(id, currentStatus, nextStatus) {
+            if (!RoleGuard.canUpdateStatus()) {
+                BCS.App?.Toast?.warning("Akses ditolak.");
                 return;
             }
-            BCS.App?.Toast?.success("Status berhasil diperbarui.");
-            BCS.Events?.emit("report:updated", res.data);
-            await loadWorkOrders(true);
-        } catch (err) {
-            BCS.Error?.handle(err);
-        } finally {
-            BCS.App?.Loading?.hide();
-        }
-    }
-
-    async function loadTimeline(id) {
-        try {
-            const res = await BCS.Api.timeline({ id });
-            return res?.success ? (res.data || []) : [];
-        } catch (err) {
-            BCS.Error?.handle(err);
-            return [];
-        }
-    }
-
-    // =====================================================
-    // 7. COMPUTE PIPELINES (DATA PROCESSING)
-    // =====================================================
-    function processDataPipeline() {
-        applyFilters();
-        buildSummaryMetrics();
-        buildPaginationEngine();
-        renderPipeline();
-    }
-
-    function applyFilters() {
-        const keyword = state.filters.keyword.toLowerCase();
-        state.filtered = state.workorders.filter(item => {
-            const matchKeyword = !keyword ||
-                item.id.toLowerCase().includes(keyword) ||
-                item.lokasi.toLowerCase().includes(keyword) ||
-                item.kategori.toLowerCase().includes(keyword);
-
-            const matchStatus = state.filters.status === "ALL" || item.status === state.filters.status;
-            const matchPriority = state.filters.priority === "ALL" || item.prioritas === state.filters.priority;
-            const matchTechnician = state.filters.technician === "ALL" || item.technician === state.filters.technician;
-
-            return matchKeyword && matchStatus && matchPriority && matchTechnician;
-        });
-    }
-
-    function buildSummaryMetrics() {
-        state.summary = { total: state.filtered.length, open: 0, assigned: 0, progress: 0, waiting: 0, done: 0, archived: 0 };
-        state.filtered.forEach(item => {
-            switch (item.status) {
-                case STATUS.OPEN: state.summary.open++; break;
-                case STATUS.ASSIGNED: state.summary.assigned++; break;
-                case STATUS.PROGRESS: state.summary.progress++; break;
-                case STATUS.WAITING_APPROVAL: state.summary.waiting++; break;
-                case STATUS.DONE: state.summary.done++; break;
-                case STATUS.ARCHIVED: state.summary.archived++; break;
+            if (!WorkflowEngine.canTransition(currentStatus, nextStatus)) {
+                BCS.App?.Toast?.warning("Perubahan status tidak diperbolehkan.");
+                return;
             }
-        });
-    }
-
-    function buildPaginationEngine() {
-        state.pagination.totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pagination.perPage));
-        if (state.pagination.page > state.pagination.totalPages) {
-            state.pagination.page = 1;
+            try {
+                BCS.App?.Loading?.show();
+                const res = await BCS.Api.updateStatus({ id, status: nextStatus });
+                if (!res?.success) {
+                    BCS.App?.Toast?.error(res?.message);
+                    return;
+                }
+                BCS.App?.Toast?.success("Status berhasil diperbarui.");
+                BCS.Events?.emit("report:updated", res.data);
+                await this.loadWorkOrders(true);
+            } catch (err) {
+                BCS.Error?.handle(err);
+            } finally {
+                BCS.App?.Loading?.hide();
+            }
+        },
+        async loadTimeline(id) {
+            try {
+                const res = await BCS.Api.timeline({ id });
+                return res?.success ? (res.data || []) : [];
+            } catch (err) {
+                BCS.Error?.handle(err);
+                return [];
+            }
         }
-    }
-
-    function getCurrentPageData() {
-        const start = (state.pagination.page - 1) * state.pagination.perPage;
-        return state.filtered.slice(start, start + state.pagination.perPage);
-    }
+    };
 
     // =====================================================
-    // 8. INTERFACE COMPONENT PAINTERS (RENDERING)
+    // 8. SECTION: COMPONENTS (MODALS, BADGES & INTERFACE ELEMENTS)
     // =====================================================
-    const escapeHtml = (val) => { const d = document.createElement("div"); d.textContent = val ?? ""; return d.innerHTML; };
-
-    const Badges = {
+    const BadgesComponent = {
         status(status) {
             const color = { OPEN: "primary", ASSIGNED: "secondary", PROGRESS: "warning", "WAITING APPROVAL": "info", DONE: "success", ARCHIVED: "dark" };
             return `<span class="badge bg-${color[status] || "secondary"}">${status}</span>`;
@@ -337,7 +342,7 @@ const WorkOrderModule = (() => {
         }
     };
 
-    const ActionButtons = {
+    const ActionButtonsComponent = {
         render(item) {
             let html = `<button class="btn btn-primary btn-sm btn-detail" data-id="${item.id}"><i class="bi bi-eye"></i></button>`;
             if (RoleGuard.canAssign() && item.status === STATUS.OPEN) {
@@ -350,105 +355,53 @@ const WorkOrderModule = (() => {
         }
     };
 
-    const WorkOrderSummary = {
-        render() {
-            DOM.summary.total.text(state.summary.total);
-            DOM.summary.open.text(state.summary.open);
-            DOM.summary.assigned.text(state.summary.assigned);
-            DOM.summary.progress.text(state.summary.progress);
-            DOM.summary.waiting.text(state.summary.waiting);
-            DOM.summary.done.text(state.summary.done);
-        }
-    };
-
-    const WorkOrderTable = {
-        render() {
-            DOM.table.empty();
-            getCurrentPageData().forEach(item => {
-                DOM.table.append(`
-                    <tr>
-                        <td>${escapeHtml(item.id)}</td>
-                        <td>${escapeHtml(item.lokasi)}</td>
-                        <td>${escapeHtml(item.kategori)}</td>
-                        <td>${Badges.priority(item.prioritas)}</td>
-                        <td>${escapeHtml(item.technician || "-")}</td>
-                        <td>${Badges.status(item.status)}</td>
-                        <td>${ActionButtons.render(item)}</td>
-                    </tr>
-                `);
+    // Penyempurnaan Object Terisolasi Sesuai Rekomendasi 2
+    const AssignmentComponent = {
+        selectedId: null,
+        open(workorderId) {
+            this.selectedId = workorderId;
+            const select = $("#assignTechnicianSelect");
+            if (!select.length) {
+                Logger.warn(TAG, "assignTechnicianSelect DOM tidak ditemukan, beralih ke prompt fallback.");
+                const fallbackTech = prompt("Masukkan ID Teknisi:");
+                if (fallbackTech) WorkOrderService.assignTechnician(workorderId, fallbackTech);
+                return;
+            }
+            this.reset();
+            state.technicians.forEach(tech => {
+                select.append(`<option value="${tech.id}">${escapeHtml(tech.nama)}</option>`);
             });
+            BCS.App?.Modal?.open("#assignModal");
+        },
+        submit() {
+            const technician = $("#assignTechnicianSelect").val();
+            if (!technician) {
+                BCS.App?.Toast?.warning("Pilih teknisi terlebih dahulu.");
+                return;
+            }
+            WorkOrderService.assignTechnician(this.selectedId, technician);
+            this.close();
+        },
+        close() {
+            this.selectedId = null;
+            BCS.App?.Modal?.close("#assignModal");
+        },
+        reset() {
+            $("#assignTechnicianSelect").empty().append('<option value="">-- Pilih Teknisi --</option>');
         }
     };
 
-    const WorkOrderCard = {
-        render() {
-            if (!DOM.mobileContainer.length) return;
-            DOM.mobileContainer.empty();
-            getCurrentPageData().forEach(item => {
-                DOM.mobileContainer.append(`
-                    <div class="wo-card shadow-sm border p-3 rounded mb-2 bg-white">
-                        <div class="d-flex justify-content-between">
-                            ${Badges.status(item.status)}
-                            ${Badges.priority(item.prioritas)}
-                        </div>
-                        <h6 class="mt-3">${escapeHtml(item.lokasi)}</h6>
-                        <div class="text-muted small">${escapeHtml(item.kategori)}</div>
-                        <div class="small mt-2"><i class="bi bi-person"></i> ${escapeHtml(item.technician || "Belum Assigned")}</div>
-                        <div class="mt-3 d-flex gap-1">${ActionButtons.render(item)}</div>
-                    </div>
-                `);
-            });
-        }
-    };
-
-    const WorkOrderTimeline = {
-        render() {
-            if (!DOM.timeline.length) return;
-            DOM.timeline.empty();
-            if (!state.selected?.timeline) return;
-
-            state.selected.timeline.forEach(item => {
-                DOM.timeline.append(`
-                    <div class="timeline-item d-flex gap-3 mb-2">
-                        <div class="timeline-dot border bg-primary rounded-circle" style="width:12px; height:12px; margin-top:5px;"></div>
-                        <div class="timeline-content">
-                            <div class="fw-bold">${escapeHtml(item.status)}</div>
-                            <div class="small">${escapeHtml(item.user)}</div>
-                            <div class="small text-muted">${escapeHtml(item.datetime)}</div>
-                        </div>
-                    </div>
-                `);
-            });
-        }
-    };
-
-    function renderPagination() {
-        DOM.pagination.empty();
-        const total = state.pagination.totalPages;
-        for (let i = 1; i <= total; i++) {
-            DOM.pagination.append(`
-                <button class="btn btn-sm ${i === state.pagination.page ? "btn-primary" : "btn-light"} page-number" data-page="${i}">
-                    ${i}
-                </button>
-            `);
-        }
-    }
-
-    function renderEmptyState() {
-        if (!DOM.empty.length) return;
-        if (state.filtered.length === 0) {
-            DOM.empty.removeClass("d-none");
-            DOM.table.closest("table").hide();
-        } else {
-            DOM.empty.addClass("d-none");
-            DOM.table.closest("table").show();
-        }
-    }
-
-    // Embedded Dev-hud realtime metrics panel node (v5 Core System Spec)
+    // =====================================================
+    // 9. SECTION: METRICS (PERFORMANCE HUD MONITOR PANEL)
+    // =====================================================
     const PerformancePanel = {
         containerId: "bcs-wo-perf-panel",
         render() {
+            if (!CONFIG.DEBUG) {
+                this.destroy();
+                return;
+            }
+
             if (window.performance && window.performance.memory) {
                 state.metrics.memoryEstimate = `${Math.round(window.performance.memory.usedJSHeapSize / (1024 * 1024))} MB`;
             } else {
@@ -471,29 +424,126 @@ const WorkOrderModule = (() => {
                 <div>Memory Heap   : <span style="color:#FFF">${state.metrics.memoryEstimate}</span></div>
                 <div style="margin-top:4px;font-size:10px;color:${state.ui.isIdle ? '#EF4444' : '#6EE7B7'}">Status: ${state.ui.isIdle ? 'IDLE (PAUSED)' : 'ACTIVE'}</div>
             `;
+        },
+        destroy() {
+            const panel = document.getElementById(this.containerId);
+            if (panel) panel.remove();
         }
     };
 
-    function renderPipeline() {
-        const tStart = performance.now();
-        WorkOrderSummary.render();
-        WorkOrderTable.render();
-        WorkOrderCard.render();
-        WorkOrderTimeline.render();
-        renderPagination();
-        renderEmptyState();
-        
-        state.metrics.renderTime = performance.now() - tStart;
-        PerformancePanel.render();
-    }
+    // =====================================================
+    // 10. SECTION: UI PIPELINE RENDER ENGINE
+    // =====================================================
+    const UIPipelineComponent = {
+        render() {
+            const tStart = performance.now();
+            
+            this.renderSummary();
+            this.renderTable();
+            this.renderMobileCards();
+            this.renderTimeline();
+            this.renderPagination();
+            this.renderEmptyState();
+            
+            state.metrics.renderTime = performance.now() - tStart;
+            Logger.performance(TAG, "Interface Repaint Pipeline", state.metrics.renderTime);
+
+            // Kondisional Render Berdasarkan CONFIG.DEBUG (Rekomendasi 3)
+            if (CONFIG.DEBUG) {
+                PerformancePanel.render();
+            }
+        },
+        renderSummary() {
+            DOM.summary.total.text(state.summary.total);
+            DOM.summary.open.text(state.summary.open);
+            DOM.summary.assigned.text(state.summary.assigned);
+            DOM.summary.progress.text(state.summary.progress);
+            DOM.summary.waiting.text(state.summary.waiting);
+            DOM.summary.done.text(state.summary.done);
+        },
+        renderTable() {
+            DOM.table.empty();
+            DataProcessingEngine.getCurrentPageData().forEach(item => {
+                DOM.table.append(`
+                    <tr>
+                        <td>${escapeHtml(item.id)}</td>
+                        <td>${escapeHtml(item.lokasi)}</td>
+                        <td>${escapeHtml(item.kategori)}</td>
+                        <td>${BadgesComponent.priority(item.prioritas)}</td>
+                        <td>${escapeHtml(item.technician || "-")}</td>
+                        <td>${BadgesComponent.status(item.status)}</td>
+                        <td>${ActionButtonsComponent.render(item)}</td>
+                    </tr>
+                `);
+            });
+        },
+        renderMobileCards() {
+            if (!DOM.mobileContainer.length) return;
+            DOM.mobileContainer.empty();
+            DataProcessingEngine.getCurrentPageData().forEach(item => {
+                DOM.mobileContainer.append(`
+                    <div class="wo-card shadow-sm border p-3 rounded mb-2 bg-white">
+                        <div class="d-flex justify-content-between">
+                            ${BadgesComponent.status(item.status)}
+                            ${BadgesComponent.priority(item.prioritas)}
+                        </div>
+                        <h6 class="mt-3">${escapeHtml(item.lokasi)}</h6>
+                        <div class="text-muted small">${escapeHtml(item.kategori)}</div>
+                        <div class="small mt-2"><i class="bi bi-person"></i> ${escapeHtml(item.technician || "Belum Assigned")}</div>
+                        <div class="mt-3 d-flex gap-1">${ActionButtonsComponent.render(item)}</div>
+                    </div>
+                `);
+            });
+        },
+        renderTimeline() {
+            if (!DOM.timeline.length) return;
+            DOM.timeline.empty();
+            if (!state.selected?.timeline) return;
+
+            state.selected.timeline.forEach(item => {
+                DOM.timeline.append(`
+                    <div class="timeline-item d-flex gap-3 mb-2">
+                        <div class="timeline-dot border bg-primary rounded-circle" style="width:12px; height:12px; margin-top:5px;"></div>
+                        <div class="timeline-content">
+                            <div class="fw-bold">${escapeHtml(item.status)}</div>
+                            <div class="small">${escapeHtml(item.user)}</div>
+                            <div class="small text-muted">${escapeHtml(item.datetime)}</div>
+                        </div>
+                    </div>
+                `);
+            });
+        },
+        renderPagination() {
+            DOM.pagination.empty();
+            const total = state.pagination.totalPages;
+            for (let i = 1; i <= total; i++) {
+                DOM.pagination.append(`
+                    <button class="btn btn-sm ${i === state.pagination.page ? "btn-primary" : "btn-light"} page-number" data-page="${i}">
+                        ${i}
+                    </button>
+                `);
+            }
+        },
+        renderEmptyState() {
+            if (!DOM.empty.length) return;
+            if (state.filtered.length === 0) {
+                DOM.empty.removeClass("d-none");
+                DOM.table.closest("table").hide();
+            } else {
+                DOM.empty.addClass("d-none");
+                DOM.table.closest("table").show();
+            }
+        }
+    };
 
     // =====================================================
-    // 9. REACTION HANDLERS & INTERNAL CONTROLLERS
+    // 11. SECTION: REACTION HANDLERS (CONTROLLERS)
     // =====================================================
     function handleSearch(e) {
         state.filters.keyword = e.target.value;
         state.pagination.page = 1;
-        processDataPipeline();
+        DataProcessingEngine.process();
+        UIPipelineComponent.render();
     }
 
     function handleFilter() {
@@ -501,7 +551,8 @@ const WorkOrderModule = (() => {
         state.filters.priority = DOM.filters.priority.val();
         state.filters.technician = DOM.filters.technician.val();
         state.pagination.page = 1;
-        processDataPipeline();
+        DataProcessingEngine.process();
+        UIPipelineComponent.render();
     }
 
     async function handleDetail(e) {
@@ -509,63 +560,30 @@ const WorkOrderModule = (() => {
         state.selected = state.workorders.find(item => item.id === id);
         if (!state.selected) return;
 
-        state.selected.timeline = await loadTimeline(id);
-        renderPipeline();
+        state.selected.timeline = await WorkOrderService.loadTimeline(id);
+        UIPipelineComponent.render();
         BCS.App?.Modal?.open("#workorderModal");
     }
-
-    // Modal Builder untuk Teknisi Assignment (v8 Assignment Object)
-    const AssignmentModal = {
-        open(workorderId) {
-            this.selectedId = workorderId;
-            const select = $("#assignTechnicianSelect");
-            if (!select.length) {
-                // Fallback prompt jika komponen Modal UI belum siap sepenuhnya
-                const fallbackTech = prompt("Masukkan ID Teknisi:");
-                if (fallbackTech) assignTechnician(workorderId, fallbackTech);
-                return;
-            }
-            select.empty().append('<option value="">-- Pilih Teknisi --</option>');
-            state.technicians.forEach(tech => {
-                select.append(`<option value="${tech.id}">${escapeHtml(tech.nama)}</option>`);
-            });
-            BCS.App?.Modal?.open("#assignModal");
-        },
-        submit() {
-            const technician = $("#assignTechnicianSelect").val();
-            if (!technician) {
-                BCS.App?.Toast?.warning("Pilih teknisi terlebih dahulu.");
-                return;
-            }
-            assignTechnician(this.selectedId, technician);
-            this.close();
-        },
-        close() {
-            this.selectedId = null;
-            BCS.App?.Modal?.close("#assignModal");
-        }
-    };
 
     function handleStatusUpdateEvent(e) {
         const id = $(e.currentTarget).data("id");
         const current = $(e.currentTarget).data("status");
-        const nextPossibleStates = Workflow.next(current);
+        const nextPossibleStates = WorkflowEngine.next(current);
 
         if (!nextPossibleStates.length) {
-            BCS.App?.Toast?.warning("Work Order telah mencapai siklus status akhir.");
+            BCS.App?.Toast?.warning("Work Order telah berada pada ujung siklus status.");
             return;
         }
-        // Maju otomatis ke transisi ideal sekuensial terdekat
-        updateStatus(id, current, nextPossibleStates[0]);
+        WorkOrderService.updateStatus(id, current, nextPossibleStates[0]);
     }
 
     // =====================================================
-    // 10. TIME CONTEXT & INTERCEPTOR CONTROLLERS
+    // 12. SECTION: POLLING & ADAPTIVE IDLE INTERCEPTOR
     // =====================================================
     function startAutoRefresh() {
         stopAutoRefresh();
         const intervalTime = document.hidden ? CONFIG.REFRESH_HIDDEN : CONFIG.REFRESH_ACTIVE;
-        state.ui.autoRefresh = setInterval(() => loadWorkOrders(), intervalTime);
+        state.ui.autoRefresh = setInterval(() => WorkOrderService.loadWorkOrders(), intervalTime);
     }
 
     function stopAutoRefresh() {
@@ -578,24 +596,23 @@ const WorkOrderModule = (() => {
     function resetIdleTimer() {
         if (state.ui.isIdle) {
             state.ui.isIdle = false;
-            BCS.Analytics.track("user_active_workorder");
-            loadWorkOrders(true);
+            Analytics.track("user_active_workorder");
+            WorkOrderService.loadWorkOrders(true);
         }
         clearTimeout(state.ui.idleTimeout);
         state.ui.idleTimeout = setTimeout(() => {
             state.ui.isIdle = true;
-            BCS.Analytics.track("user_idle_workorder_paused");
-            PerformancePanel.render();
+            Analytics.track("user_idle_workorder_paused");
+            if (CONFIG.DEBUG) PerformancePanel.render();
         }, IDLE_THRESHOLD);
     }
 
-    // Utilities Debouncer
     function debounce(fn, delay) {
         let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
     }
 
     // =====================================================
-    // 11. BINDING & ECO-SYSTEM WIRES
+    // 13. SECTION: EVENT WIRE & CLEAN SUBSCRIPTION LOGIC
     // =====================================================
     function bindEvents() {
         DOM.filters.search.on("input", debounce(handleSearch, 300));
@@ -603,58 +620,64 @@ const WorkOrderModule = (() => {
         DOM.filters.priority.on("change", handleFilter);
         DOM.filters.technician.on("change", handleFilter);
 
-        DOM.buttons.refresh.on("click", () => { resetIdleTimer(); loadWorkOrders(true); });
+        DOM.buttons.refresh.on("click", () => { resetIdleTimer(); WorkOrderService.loadWorkOrders(true); });
         
         DOM.table.on("click", ".btn-detail", handleDetail);
-        DOM.table.on("click", ".btn-assign", (e) => AssignmentModal.open($(e.currentTarget).data("id")));
+        DOM.table.on("click", ".btn-assign", (e) => AssignmentComponent.open($(e.currentTarget).data("id")));
         DOM.table.on("click", ".btn-status", handleStatusUpdateEvent);
 
         DOM.pagination.on("click", ".page-number", (e) => {
             state.pagination.page = $(e.currentTarget).data("page");
-            processDataPipeline();
+            DataProcessingEngine.process();
+            UIPipelineComponent.render();
         });
 
-        // Trigger Submit pada penugasan teknisi modal
-        $("#btnSubmitAssign").on("click", () => AssignmentModal.submit());
+        $("#btnSubmitAssign").on("click", () => AssignmentComponent.submit());
 
-        // Adaptive document lifecycle tab listener
-        document.addEventListener("visibilitychange", () => startAutoRefresh());
+        // Adaptive document visibility event listener
+        const onVisibilityChange = () => startAutoRefresh();
+        document.addEventListener("visibilitychange", onVisibilityChange);
+        state.ui.eventUnsubscribers.push(() => document.removeEventListener("visibilitychange", onVisibilityChange));
 
-        // User Input Interceptors (Anti-idle system)
+        // Anti-idle event listener register
+        const onUserActivity = () => resetIdleTimer();
         ["mousemove", "keydown", "click", "touchstart", "scroll"].forEach(ev => {
-            document.addEventListener(ev, resetIdleTimer, { passive: true });
+            document.addEventListener(ev, onUserActivity, { passive: true });
+            state.ui.eventUnsubscribers.push(() => document.removeEventListener(ev, onUserActivity));
         });
 
-        // Global Event Bus Synchronizer
+        // Global Event Bus Safe Multi-listener Avoidance Mechanism (Rekomendasi 8)
         if (typeof BCS !== "undefined" && BCS.Events) {
-            BCS.Events.on("report:created", () => loadWorkOrders(true));
-            BCS.Events.on("report:updated", () => loadWorkOrders(true));
-            BCS.Events.on("workorder:assigned", () => loadWorkOrders(true));
-            BCS.Events.on("workorder:completed", () => loadWorkOrders(true));
+            const eventsToBind = ["report:created", "report:updated", "workorder:assigned", "workorder:completed"];
+            eventsToBind.forEach(evt => {
+                const unsubscribe = BCS.Events.on(evt, () => WorkOrderService.loadWorkOrders(true));
+                if (typeof unsubscribe === "function") {
+                    state.ui.eventUnsubscribers.push(unsubscribe);
+                }
+            });
         }
     }
 
     // =====================================================
-    // 12. LIFECYCLE INITIALIZER & EXPOSURE
+    // 14. SECTION: MODULAR SYSTEM LIFECYCLE (INIT & DESTROY)
     // =====================================================
     return {
         async init() {
-            BCS.Logger?.info?.(TAG, "Initializing WorkOrder Module v8.0");
+            Logger.info(TAG, "Memuat Section Modul WorkOrder...");
             try {
                 state.user = checkAuth();
                 if (!state.user) return;
 
                 bindEvents();
-                await loadTechnicians();
-                await loadWorkOrders();
+                await WorkOrderService.loadTechnicians();
+                await WorkOrderService.loadWorkOrders();
 
                 state.ui.initialized = true;
-                state.metrics.openCount = 1;
                 resetIdleTimer();
                 startAutoRefresh();
 
-                BCS.Analytics.track("workorder_module_open", { initNodeTime: performance.now() });
-                BCS.Logger?.success?.(TAG, "WorkOrder System Matrix Deployment Complete");
+                Analytics.track("workorder_module_open", { nodeBootstrapTime: performance.now() });
+                Logger.info(TAG, "Siklus Pemuatan Modul WorkOrder Selesai.");
             } catch (err) {
                 BCS.Error?.handle(err);
             }
@@ -662,9 +685,30 @@ const WorkOrderModule = (() => {
         destroy() {
             stopAutoRefresh();
             clearTimeout(state.ui.idleTimeout);
-            const panel = document.getElementById(PerformancePanel.containerId);
-            if (panel) panel.remove();
-            console.log(`[${TAG}] Pipeline unmounted clean.`);
+            
+            // 1. Eksekusi Pencabutan Seluruh Event Listener Global (Mencegah Listener Ganda - Rekomendasi 8)
+            while (state.ui.eventUnsubscribers.length > 0) {
+                const unsubscribe = state.ui.eventUnsubscribers.pop();
+                if (typeof unsubscribe === "function") {
+                    unsubscribe();
+                }
+            }
+
+            PerformancePanel.destroy();
+
+            // 2. Reset Total State via Unified Store Registry (Rekomendasi 7)
+            if (BCS.Store && typeof BCS.Store.reset === "function") {
+                BCS.Store.reset("workorder");
+            } else {
+                state.workorders = [];
+                state.filtered = [];
+                state.technicians = [];
+                state.selected = null;
+                state.summary = { total: 0, open: 0, assigned: 0, progress: 0, waiting: 0, done: 0, archived: 0 };
+                state.ui.initialized = false;
+            }
+
+            console.log(`[${TAG}] Pipeline Module Unmounted & Memory Cleared Clean.`);
         }
     };
 })();

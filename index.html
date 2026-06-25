@@ -9,7 +9,7 @@
     
     <meta name="color-scheme" content="light">
     
-    <!-- Cek apakah manifest.json ada, jika tidak jangan load -->
+    <!-- Hapus manifest.json jika tidak ada -->
     <!-- <link rel="manifest" href="assets/pwa/manifest.json"> -->
     <meta name="application-name" content="Building Care System Enterprise">
     <meta name="theme-color" content="#0D6EFD">
@@ -23,11 +23,6 @@
     <link rel="icon" type="image/png" sizes="32x32" href="assets/pwa/icons/icon-32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/pwa/icons/icon-16.png">
 
-    <!-- Bootstrap & Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
     <style>
         * {
             margin: 0;
@@ -37,175 +32,24 @@
         
         html, body {
             width: 100%;
-            min-height: 100vh;
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #F5F7FA;
         }
         
-        /* Login Page Style */
-        .login-page {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-        }
-        
-        .login-container {
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 420px;
-            animation: fadeInUp 0.5s ease;
-        }
-        
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .login-header .logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 16px;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        .login-header .logo i {
-            font-size: 40px;
-            color: white;
-        }
-        
-        .login-header h2 {
-            font-weight: 700;
-            color: #1a1a2e;
-            font-size: 24px;
-        }
-        
-        .login-header p {
-            color: #6c757d;
-            font-size: 14px;
-            margin-top: 4px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            font-weight: 500;
-            color: #333;
-            font-size: 14px;
-            margin-bottom: 6px;
-        }
-        
-        .form-group .input-group {
-            border-radius: 8px;
-            overflow: hidden;
-            border: 2px solid #e0e0e0;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            background: white;
-        }
-        
-        .form-group .input-group:focus-within {
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-        }
-        
-        .form-group .input-group-text {
-            background: transparent;
-            border: none;
-            color: #6c757d;
-            padding: 0 0 0 14px;
-        }
-        
-        .form-group .form-control {
-            border: none;
-            padding: 12px 14px;
-            font-size: 14px;
-            background: transparent;
-        }
-        
-        .form-group .form-control:focus {
-            box-shadow: none;
-        }
-        
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-            position: relative;
-        }
-        
-        .btn-login:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-login:active:not(:disabled) {
-            transform: translateY(0);
-        }
-        
-        .btn-login:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-        
-        .login-footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #6c757d;
-        }
-        
-        .alert-custom {
-            border-radius: 8px;
-            font-size: 14px;
-            padding: 10px 14px;
-            display: none;
-        }
-        
-        .alert-custom.show {
-            display: block;
-        }
-        
-        /* Loader Style (untuk bootstrap) */
+        /* Loader Style */
         #app-loader {
-            display: none;
+            display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             height: 100vh;
             color: #333333;
+            transition: opacity 0.3s ease;
         }
         
-        #app-loader.active {
-            display: flex;
+        #app-loader.hidden {
+            opacity: 0;
         }
         
         .loader {
@@ -218,82 +62,96 @@
             margin-bottom: 20px;
         }
         
+        h2 {
+            margin: 0 0 8px 0;
+            font-size: 22px;
+            font-weight: 600;
+            color: #0D6EFD;
+        }
+        
+        small {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
         
-        /* Responsive */
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 30px 20px;
-            }
+        /* Error page */
+        .error-page {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #F5F7FA;
+        }
+        
+        .error-page.active {
+            display: flex;
+        }
+        
+        .error-container {
+            padding: 40px;
+            text-align: center;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .error-container h2 {
+            color: #DC3545;
+            margin-bottom: 12px;
+        }
+        
+        .error-container p {
+            color: #6c757d;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            word-break: break-word;
+        }
+        
+        .error-container .btn-reload {
+            background: #0D6EFD;
+            color: #ffffff;
+            border: none;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .error-container .btn-reload:hover {
+            background: #0b5ed7;
         }
     </style>
 </head>
 
 <body>
 
-    <!-- ============================================
-    LOGIN FORM (Default tampil)
-    ============================================ -->
-    <div id="loginPage" class="login-page">
-        <div class="login-container">
-            <div class="login-header">
-                <div class="logo">
-                    <i class="bi bi-building"></i>
-                </div>
-                <h2>Building Care System</h2>
-                <p>Enterprise v3.2 — Radiant Group Duri</p>
-            </div>
-            
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-person"></i></span>
-                        <input type="text" class="form-control" id="username" placeholder="Masukkan username" required autofocus>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        <input type="password" class="form-control" id="password" placeholder="Masukkan password" required>
-                    </div>
-                </div>
-                
-                <div id="loginAlert" class="alert-custom alert alert-danger">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <span id="loginMessage">Username atau password salah!</span>
-                </div>
-                
-                <button type="submit" class="btn-login" id="loginBtn">
-                    <span id="loginText">Login</span>
-                    <span id="loginSpinner" style="display: none;" class="spinner-border spinner-border-sm" role="status"></span>
-                </button>
-            </form>
-            
-            <div class="login-footer">
-                &copy; 2024 Radiant Group Duri — All Rights Reserved
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================
-    LOADER (Untuk bootstrap setelah login)
-    ============================================ -->
+    <!-- LOADER -->
     <div id="app-loader" role="status" aria-live="polite">
         <div class="loader"></div>
-        <h2 style="color: #0D6EFD;">Building Care System</h2>
-        <small>Loading Enterprise Platform...</small>
+        <h2>Building Care System</h2>
+        <small>Redirecting to login page...</small>
     </div>
 
-    <!-- ============================================
-    SCRIPTS
-    ============================================ -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ERROR PAGE -->
+    <div id="errorPage" class="error-page">
+        <div class="error-container">
+            <h2>Building Care System</h2>
+            <p id="errorMessage">Gagal memuat sistem atau koneksi terputus.</p>
+            <button class="btn-reload" onclick="location.reload()">
+                Muat Ulang
+            </button>
+        </div>
+    </div>
 
     <script>
     (function() {
@@ -303,205 +161,43 @@
         // KONFIGURASI
         // ============================================
         const CONFIG = {
-            // Ganti dengan API endpoint login yang sebenarnya
-            LOGIN_API: '/api/auth/login',
+            DEBUG: true,
+            LOGIN_URL: 'login.html',
             DASHBOARD_URL: 'dashboard.html',
-            // Debug mode
-            DEBUG: true
+            REDIRECT_DELAY: 1000 // ms
         };
 
         // ============================================
         // DOM REFS
         // ============================================
-        const loginPage = document.getElementById('loginPage');
-        const appLoader = document.getElementById('app-loader');
-        const loginForm = document.getElementById('loginForm');
-        const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
-        const loginBtn = document.getElementById('loginBtn');
-        const loginText = document.getElementById('loginText');
-        const loginSpinner = document.getElementById('loginSpinner');
-        const loginAlert = document.getElementById('loginAlert');
-        const loginMessage = document.getElementById('loginMessage');
+        const loader = document.getElementById('app-loader');
+        const errorPage = document.getElementById('errorPage');
+        const errorMessage = document.getElementById('errorMessage');
 
         // ============================================
-        // UTILITY FUNCTIONS
+        // UTILITY
         // ============================================
         function log(message, data) {
             if (CONFIG.DEBUG) {
-                console.log('[BCS]', message, data || '');
+                console.log('[BCS-Index]', message, data || '');
             }
         }
 
-        function showAlert(message, type) {
-            loginAlert.className = 'alert-custom alert alert-' + (type || 'danger') + ' show';
-            loginMessage.textContent = message;
+        function showError(msg) {
+            loader.classList.add('hidden');
+            errorPage.classList.add('active');
+            errorMessage.textContent = msg || 'Gagal memuat sistem atau koneksi terputus.';
         }
 
-        function hideAlert() {
-            loginAlert.className = 'alert-custom';
-        }
-
-        function setLoading(loading) {
-            loginBtn.disabled = loading;
-            if (loading) {
-                loginText.style.display = 'none';
-                loginSpinner.style.display = 'inline-block';
-            } else {
-                loginText.style.display = 'inline';
-                loginSpinner.style.display = 'none';
-            }
+        function redirectTo(url) {
+            log('Redirecting to:', url);
+            setTimeout(function() {
+                window.location.replace(url);
+            }, CONFIG.REDIRECT_DELAY);
         }
 
         // ============================================
-        // LOGIN HANDLER
-        // ============================================
-        async function handleLogin(e) {
-            e.preventDefault();
-            hideAlert();
-
-            const username = usernameInput.value.trim();
-            const password = passwordInput.value.trim();
-
-            if (!username || !password) {
-                showAlert('Username dan password wajib diisi!', 'warning');
-                return;
-            }
-
-            setLoading(true);
-
-            try {
-                log('Login attempt for user:', username);
-
-                // ========================================
-                // SIMULASI API CALL (Ganti dengan asli)
-                // ========================================
-                // await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                // Simulasi validasi
-                // Ganti dengan API call sebenarnya:
-                /*
-                const response = await fetch(CONFIG.LOGIN_API, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username, password })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Login gagal');
-                }
-                
-                const data = await response.json();
-                */
-                
-                // ========================================
-                // SEMENTARA: Validasi sederhana untuk demo
-                // ========================================
-                if (username === 'admin' && password === 'admin') {
-                    const userData = {
-                        username: username,
-                        name: 'Administrator',
-                        role: 'Admin',
-                        nik: 'ADM-001',
-                        loginTime: new Date().toISOString()
-                    };
-                    
-                    // Simpan session
-                    localStorage.setItem('user', JSON.stringify(userData));
-                    localStorage.setItem('token', 'dummy-token-' + Date.now());
-                    localStorage.setItem('loginTime', new Date().toISOString());
-                    
-                    log('Login successful, redirecting...');
-                    
-                    // Tampilkan loader sebelum redirect
-                    loginPage.style.display = 'none';
-                    appLoader.className = 'active';
-                    
-                    // Coba bootstrap aplikasi
-                    await bootstrapApp();
-                    
-                } else {
-                    showAlert('Username atau password salah!', 'danger');
-                    setLoading(false);
-                }
-                
-            } catch (error) {
-                log('Login error:', error);
-                showAlert(error.message || 'Terjadi kesalahan, silakan coba lagi!', 'danger');
-                setLoading(false);
-            }
-        }
-
-        // ============================================
-        // BOOTSTRAP APP
-        // ============================================
-        async function bootstrapApp() {
-            try {
-                // Load bootstrap.js jika ada
-                if (typeof BCS !== 'undefined' && typeof BCS.bootstrap === 'function') {
-                    log('Running BCS bootstrap...');
-                    await BCS.bootstrap();
-                    log('BCS bootstrap completed');
-                } else {
-                    log('BCS not found, loading fallback...');
-                    
-                    // Fallback: load bootstrap.js dynamically
-                    const script = document.createElement('script');
-                    script.src = 'assets/js/core/bootstrap.js';
-                    script.async = true;
-                    
-                    await new Promise((resolve, reject) => {
-                        script.onload = resolve;
-                        script.onerror = () => reject(new Error('Failed to load bootstrap.js'));
-                        document.head.appendChild(script);
-                    });
-                    
-                    log('bootstrap.js loaded, checking BCS...');
-                    
-                    // Tunggu BCS siap
-                    await new Promise(resolve => {
-                        if (typeof BCS !== 'undefined' && typeof BCS.bootstrap === 'function') {
-                            resolve();
-                        } else {
-                            const checkInterval = setInterval(() => {
-                                if (typeof BCS !== 'undefined' && typeof BCS.bootstrap === 'function') {
-                                    clearInterval(checkInterval);
-                                    resolve();
-                                }
-                            }, 100);
-                            
-                            // Timeout setelah 5 detik
-                            setTimeout(() => {
-                                clearInterval(checkInterval);
-                                resolve();
-                            }, 5000);
-                        }
-                    });
-                    
-                    if (typeof BCS !== 'undefined' && typeof BCS.bootstrap === 'function') {
-                        await BCS.bootstrap();
-                        log('BCS bootstrap completed via fallback');
-                    }
-                }
-                
-                // Redirect ke dashboard
-                window.location.replace(CONFIG.DASHBOARD_URL);
-                
-            } catch (error) {
-                log('Bootstrap error:', error);
-                // Kembali ke login page dengan error
-                appLoader.className = '';
-                loginPage.style.display = 'flex';
-                showAlert('Gagal memuat sistem: ' + (error.message || 'Unknown error'), 'danger');
-                setLoading(false);
-            }
-        }
-
-        // ============================================
-        // CHECK SESSION (Auto-login jika sudah login)
+        // CHECK SESSION
         // ============================================
         function checkSession() {
             try {
@@ -509,11 +205,8 @@
                 const token = localStorage.getItem('token');
                 
                 if (user && token) {
-                    log('Session found, attempting auto-login...');
-                    // Coba bootstrap langsung
-                    loginPage.style.display = 'none';
-                    appLoader.className = 'active';
-                    bootstrapApp();
+                    log('Session found, redirecting to dashboard...');
+                    redirectTo(CONFIG.DASHBOARD_URL);
                     return true;
                 }
             } catch (error) {
@@ -523,45 +216,55 @@
         }
 
         // ============================================
-        // EVENT BINDING
+        // CHECK LOGIN PAGE
         // ============================================
-        loginForm.addEventListener('submit', handleLogin);
-
-        // Enter key support
-        passwordInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                loginForm.dispatchEvent(new Event('submit'));
-            }
-        });
-
-        // ============================================
-        // INIT
-        // ============================================
-        log('Initializing...');
-        
-        // Cek session dulu
-        const hasSession = checkSession();
-        
-        if (!hasSession) {
-            // Tampilkan login page
-            loginPage.style.display = 'flex';
-            appLoader.className = '';
-            
-            // Auto-focus ke username
-            usernameInput.focus();
+        function checkLoginPage() {
+            // Cek apakah login.html bisa diakses
+            fetch(CONFIG.LOGIN_URL, { method: 'HEAD' })
+                .then(function(response) {
+                    if (response.ok) {
+                        log('Login page found, redirecting...');
+                        redirectTo(CONFIG.LOGIN_URL);
+                    } else {
+                        log('Login page not found (status: ' + response.status + ')');
+                        // Coba fallback ke index.html sebagai login
+                        redirectTo('index.html?mode=login');
+                    }
+                })
+                .catch(function(error) {
+                    log('Error checking login page:', error);
+                    // Coba fallback
+                    showError('Halaman login tidak ditemukan. Pastikan file login.html tersedia.');
+                });
         }
 
-        // Ekspos fungsi ke global
-        window.BCSLogin = {
-            login: handleLogin,
-            logout: function() {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.reload();
+        // ============================================
+        // MAIN
+        // ============================================
+        log('Initializing...');
+
+        // Cek session dulu
+        const hasSession = checkSession();
+
+        if (!hasSession) {
+            log('No session found, redirecting to login page...');
+            
+            // Tampilkan loader dengan pesan
+            loader.querySelector('small').textContent = 'Mengarahkan ke halaman login...';
+            
+            // Cek dan redirect ke login.html
+            checkLoginPage();
+        }
+
+        // Ekspos ke global
+        window.BCSIndex = {
+            redirectToLogin: function() {
+                redirectTo(CONFIG.LOGIN_URL);
+            },
+            redirectToDashboard: function() {
+                redirectTo(CONFIG.DASHBOARD_URL);
             }
         };
-
-        log('Ready');
 
     })();
     </script>

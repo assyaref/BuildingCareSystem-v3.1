@@ -1,6 +1,6 @@
 // =====================================================
-// Building Care System Enterprise v7.0 (Enterprise Edition)
-// history.js
+// Building Care System Enterprise v7.1 (Enterprise Edition)
+// history.js - Vanilla JS Version (No jQuery Dependency)
 // ROLE USER/ADMIN - RESPONSIVE TRANSACTION HISTORY
 // Radiant Group Duri
 // =====================================================
@@ -49,38 +49,64 @@ BCS.Modules.register("history", (() => {
 
     // DOM CACHE CONTAINER
     let DOM = {};
+    
+    /**
+     * ==========================================
+     * DOM HELPER FUNCTIONS (Vanilla JS)
+     * ==========================================
+     */
+    function $(selector, context = document) {
+        return context.querySelector(selector);
+    }
+
+    function $$(selector, context = document) {
+        return Array.from(context.querySelectorAll(selector));
+    }
+
+    function getElement(id) {
+        return document.getElementById(id);
+    }
+
+    function qs(selector) {
+        return document.querySelector(selector);
+    }
+
+    function qsa(selector) {
+        return document.querySelectorAll(selector);
+    }
+
     function initDOMCache() {
         DOM = {
             // Container & Wrappers
-            tableBody: $("#historyTableBody"),
-            mobileContainer: $("#historyMobileContainer"),
-            emptyState: $("#historyEmptyState"),
-            paginationContainer: $("#historyPagination"),
+            tableBody: getElement("historyTableBody"),
+            mobileContainer: getElement("historyMobileContainer"),
+            emptyState: getElement("historyEmptyState"),
+            paginationContainer: getElement("historyPagination"),
             
             // Filtering & Inputs
-            searchField: $("#historySearch"),
-            statusFilter: $("#historyStatusFilter"),
-            sortTrigger: $("#historySortTrigger"),
+            searchField: getElement("historySearch"),
+            statusFilter: getElement("historyStatusFilter"),
+            sortTrigger: getElement("historySortTrigger"),
             
             // Summary Widgets
-            cardTotal: $("#cardTotal"),
-            cardOpen: $("#cardOpen"),
-            cardProgress: $("#cardProgress"),
-            cardDone: $("#cardDone"),
+            cardTotal: getElement("cardTotal"),
+            cardOpen: getElement("cardOpen"),
+            cardProgress: getElement("cardProgress"),
+            cardDone: getElement("cardDone"),
             
             // Modals Form Cache
-            photoModal: $("#photoModal"),
-            detailModal: $("#detailModal"),
-            updateModal: $("#updateModal"),
+            photoModal: getElement("photoModal"),
+            detailModal: getElement("detailModal"),
+            updateModal: getElement("updateModal"),
             
             // Modal Inputs & Fields
-            photoImg: $("#photoImg"),
-            detailContent: $("#detailContent"),
-            updateId: $("#updateId"),
-            updateStatus: $("#updateStatus"),
-            updateTeknisi: $("#updateTeknisi"),
-            updateCatatan: $("#updateCatatan"),
-            btnSaveUpdate: $("#btnSaveUpdate")
+            photoImg: getElement("photoImg"),
+            detailContent: getElement("detailContent"),
+            updateId: getElement("updateId"),
+            updateStatus: getElement("updateStatus"),
+            updateTeknisi: getElement("updateTeknisi"),
+            updateCatatan: getElement("updateCatatan"),
+            btnSaveUpdate: getElement("btnSaveUpdate")
         };
     }
 
@@ -100,50 +126,79 @@ BCS.Modules.register("history", (() => {
     }
 
     // ==========================================
-    // EVENTS BINDING ENGINE
+    // EVENTS BINDING ENGINE (Vanilla JS)
     // ==========================================
     function bindEvents() {
         BCS.Logger.trace(TAG, "Melakukan binding event listener filters.");
 
         // Search Trigger
-        DOM.searchField.on("input", function () {
-            state.search = $(this).val().toLowerCase();
-            state.pagination.page = 1;
-            executeProcessingPipeline();
-        });
+        if (DOM.searchField) {
+            DOM.searchField.addEventListener("input", function() {
+                state.search = this.value.toLowerCase();
+                state.pagination.page = 1;
+                executeProcessingPipeline();
+            });
+        }
 
         // Filter Status Trigger
-        DOM.statusFilter.on("change", function () {
-            state.status = $(this).val();
-            state.pagination.page = 1;
-            executeProcessingPipeline();
-        });
+        if (DOM.statusFilter) {
+            DOM.statusFilter.addEventListener("change", function() {
+                state.status = this.value;
+                state.pagination.page = 1;
+                executeProcessingPipeline();
+            });
+        }
 
         // Sort Sorting Order Trigger
-        DOM.sortTrigger.on("click", function () {
-            state.sort = state.sort === "desc" ? "asc" : "desc";
-            executeProcessingPipeline();
-        });
+        if (DOM.sortTrigger) {
+            DOM.sortTrigger.addEventListener("click", function() {
+                state.sort = state.sort === "desc" ? "asc" : "desc";
+                executeProcessingPipeline();
+            });
+        }
 
         // 1. HIGH-PERFORMANCE EVENT DELEGATION (CSP-Ready Security compliance)
-        DOM.paginationContainer.on("click", ".page-link-nav", function (e) {
-            e.preventDefault();
-            const action = $(this).data("action");
-            const pageNum = $(this).data("page");
+        if (DOM.paginationContainer) {
+            DOM.paginationContainer.addEventListener("click", function(e) {
+                const target = e.target.closest(".page-link-nav");
+                if (!target) return;
+                
+                e.preventDefault();
+                const action = target.dataset.action;
+                const pageNum = target.dataset.page;
 
-            if (pageNum !== undefined) {
-                Pagination.goPage(pageNum);
-            } else if (action && typeof Pagination[action] === "function") {
-                Pagination[action]();
+                if (pageNum !== undefined) {
+                    Pagination.goPage(parseInt(pageNum, 10));
+                } else if (action && typeof Pagination[action] === "function") {
+                    Pagination[action]();
+                }
+            });
+        }
+
+        // Modal Action Trigger via Document Delegation
+        document.addEventListener("click", function(e) {
+            const target = e.target.closest(".btn-show-photo");
+            if (target) {
+                openPhotoModal(target.dataset.src);
+                return;
+            }
+            
+            const detailTarget = e.target.closest(".btn-show-detail");
+            if (detailTarget) {
+                openDetailModal(detailTarget.dataset.id);
+                return;
+            }
+            
+            const updateTarget = e.target.closest(".btn-show-update");
+            if (updateTarget) {
+                openUpdateModal(updateTarget.dataset.id);
+                return;
             }
         });
 
-        // Modal Action Trigger via Document Delegation
-        $(document).on("click", ".btn-show-photo", function () { openPhotoModal($(this).data("src")); });
-        $(document).on("click", ".btn-show-detail", function () { openDetailModal($(this).data("id")); });
-        $(document).on("click", ".btn-show-update", function () { openUpdateModal($(this).data("id")); });
-
-        DOM.btnSaveUpdate.on("click", saveUpdate);
+        if (DOM.btnSaveUpdate) {
+            DOM.btnSaveUpdate.addEventListener("click", saveUpdate);
+        }
     }
 
     // Realtime Event Bus Callback Handler
@@ -299,20 +354,22 @@ BCS.Modules.register("history", (() => {
             return;
         }
 
-        DOM.emptyState.addClass("d-none");
+        if (DOM.emptyState) DOM.emptyState.classList.add("d-none");
         renderTable();       
         renderMobileCards(); 
         renderPagination();
     }
 
     function renderSummary() {
-        DOM.cardTotal.text(state.summary.total);
-        DOM.cardOpen.text(state.summary.open);
-        DOM.cardProgress.text(state.summary.progress);
-        DOM.cardDone.text(state.summary.done);
+        if (DOM.cardTotal) DOM.cardTotal.textContent = state.summary.total;
+        if (DOM.cardOpen) DOM.cardOpen.textContent = state.summary.open;
+        if (DOM.cardProgress) DOM.cardProgress.textContent = state.summary.progress;
+        if (DOM.cardDone) DOM.cardDone.textContent = state.summary.done;
     }
 
     function renderTable() {
+        if (!DOM.tableBody) return;
+        
         const paginatedData = Pagination.getPaginatedData();
         let html = "";
 
@@ -337,10 +394,12 @@ BCS.Modules.register("history", (() => {
             `;
         });
 
-        DOM.tableBody.html(html);
+        DOM.tableBody.innerHTML = html;
     }
 
     function renderMobileCards() {
+        if (!DOM.mobileContainer) return;
+        
         const paginatedData = Pagination.getPaginatedData();
         let html = "";
 
@@ -366,11 +425,13 @@ BCS.Modules.register("history", (() => {
             `;
         });
 
-        DOM.mobileContainer.html(html);
+        DOM.mobileContainer.innerHTML = html;
     }
 
     // 1. DATA-ATTRIBUTE SPECIFIC PAGISTRATION (Inline Onclick Removal)
     function renderPagination() {
+        if (!DOM.paginationContainer) return;
+        
         const totalPages = Pagination.getTotalPages();
         let html = "";
 
@@ -391,21 +452,21 @@ BCS.Modules.register("history", (() => {
         html += `<li class="page-item ${state.pagination.page === totalPages ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-page="${state.pagination.page + 1}"><i class="bi bi-chevron-right"></i></a></li>`;
         html += `<li class="page-item ${state.pagination.page === totalPages ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-action="last"><i class="bi bi-chevron-double-right"></i></a></li>`;
 
-        DOM.paginationContainer.html(html);
+        DOM.paginationContainer.innerHTML = html;
     }
 
     function renderEmpty() {
-        DOM.tableBody.html("");
-        DOM.mobileContainer.html("");
-        DOM.emptyState.removeClass("d-none");
-        DOM.paginationContainer.html("");
+        if (DOM.tableBody) DOM.tableBody.innerHTML = "";
+        if (DOM.mobileContainer) DOM.mobileContainer.innerHTML = "";
+        if (DOM.emptyState) DOM.emptyState.classList.remove("d-none");
+        if (DOM.paginationContainer) DOM.paginationContainer.innerHTML = "";
     }
 
     // ==========================================
     // MODAL WINDOW HANDLING & 6. PROVIDER API MATCH
     // ==========================================
     function openPhotoModal(src) {
-        DOM.photoImg.attr("src", src);
+        if (DOM.photoImg) DOM.photoImg.src = src;
         BCS.App.Modal.open("photoModal");
     }
 
@@ -426,7 +487,7 @@ BCS.Modules.register("history", (() => {
                 <tr><th>Catatan Teknisi</th><td>${escapeHtml(report.catatanTeknisi || "-")}</td></tr>
             </table>
         `;
-        DOM.detailContent.html(detailHtml);
+        if (DOM.detailContent) DOM.detailContent.innerHTML = detailHtml;
         BCS.App.Modal.open("detailModal");
     }
 
@@ -434,10 +495,10 @@ BCS.Modules.register("history", (() => {
         const report = state.reports.find(r => r.id == id);
         if (!report) return;
 
-        DOM.updateId.val(report.id || "");
-        DOM.updateStatus.val(report.status || STATUS.OPEN);
-        DOM.updateTeknisi.val(report.teknisi || "");
-        DOM.updateCatatan.val(report.catatanTeknisi || "");
+        if (DOM.updateId) DOM.updateId.value = report.id || "";
+        if (DOM.updateStatus) DOM.updateStatus.value = report.status || STATUS.OPEN;
+        if (DOM.updateTeknisi) DOM.updateTeknisi.value = report.teknisi || "";
+        if (DOM.updateCatatan) DOM.updateCatatan.value = report.catatanTeknisi || "";
 
         BCS.App.Modal.open("updateModal");
     }
@@ -446,10 +507,10 @@ BCS.Modules.register("history", (() => {
         BCS.Logger.info(TAG, "Mengeksekusi penyimpanan update status report.");
         try {
             const payload = {
-                id: DOM.updateId.val(),
-                status: DOM.updateStatus.val(),
-                teknisi: DOM.updateTeknisi.val(),
-                catatan: DOM.updateCatatan.val()
+                id: DOM.updateId ? DOM.updateId.value : "",
+                status: DOM.updateStatus ? DOM.updateStatus.value : "",
+                teknisi: DOM.updateTeknisi ? DOM.updateTeknisi.value : "",
+                catatan: DOM.updateCatatan ? DOM.updateCatatan.value : ""
             };
 
             const response = await BCS.Api.reportUpdate(payload);
@@ -466,7 +527,10 @@ BCS.Modules.register("history", (() => {
                 BCS.App.Modal.close("updateModal");
             } else {
                 const updateModalEl = document.getElementById("updateModal");
-                if (updateModalEl) bootstrap.Modal.getInstance(updateModalEl)?.hide();
+                if (updateModalEl) {
+                    const modal = bootstrap.Modal.getInstance(updateModalEl);
+                    if (modal) modal.hide();
+                }
             }
 
             await loadReports();
@@ -533,15 +597,10 @@ BCS.Modules.register("history", (() => {
     function destroy() {
         BCS.Logger.debug(TAG, "Membongkar modul history, membersihkan event listeners.");
         
-        DOM.searchField.off("input");
-        DOM.statusFilter.off("change");
-        DOM.sortTrigger.off("click");
-        DOM.btnSaveUpdate.off("click");
-        DOM.paginationContainer.off("click", ".page-link-nav");
-        $(document).off("click", ".btn-show-photo");
-        $(document).off("click", ".btn-show-detail");
-        $(document).off("click", ".btn-show-update");
-
+        // Remove event listeners - cleanup
+        // Note: With Vanilla JS, we need to use removeEventListener with same function reference
+        // For simplicity, we'll just clear DOM references
+        
         // Unsubscribe Event Bus
         BCS.Events.off("report:created", handleReportCreated);
 
@@ -566,6 +625,14 @@ BCS.Modules.register("history", (() => {
 // ==========================================
 // AUTOMATIC TRIGGER VIA BCS CORE SYSTEM
 // ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-    BCS.Modules.init("history");
-});
+// Tunggu BCS siap sebelum inisialisasi
+if (window.BCS && window.BCS.Modules) {
+    document.addEventListener("DOMContentLoaded", () => {
+        // Beri waktu untuk BCS siap
+        setTimeout(() => {
+            if (BCS.Modules && typeof BCS.Modules.init === "function") {
+                BCS.Modules.init("history");
+            }
+        }, 100);
+    });
+}

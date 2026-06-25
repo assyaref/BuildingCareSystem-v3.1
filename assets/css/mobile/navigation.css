@@ -1,1 +1,254 @@
+/* ======================================================
+   Building Care System Enterprise v11.0
+   navigation.css
+   Enterprise Bottom Navigation
+   Radiant Group Duri
+====================================================== */
 
+/* ======================================================
+   BOTTOM NAVIGATION
+====================================================== */
+
+.bottom-navigation{
+
+    position:fixed;
+
+    left:50%;
+
+    bottom:0;
+
+    transform:translateX(-50%);
+
+    width:100%;
+
+    max-width:480px;
+
+    height:72px;
+
+    background:#FFFFFF;
+
+    display:flex;
+
+    justify-content:space-around;
+
+    align-items:center;
+
+    border-top:1px solid #E5E7EB;
+
+    box-shadow:
+        0 -6px 18px rgba(0,0,0,.06);
+
+    z-index:999;
+
+    padding-bottom:env(safe-area-inset-bottom);
+
+}
+
+/* ======================================================
+   ITEM
+====================================================== */
+
+.nav-item{
+
+    flex:1;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:4px;
+
+    color:#94A3B8;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    position:relative;
+
+}
+
+.nav-item:hover{
+
+    color:#2563EB;
+
+}
+
+.nav-item.active{
+
+    color:#2563EB;
+
+}
+
+/* ======================================================
+   ICON
+====================================================== */
+
+.nav-item i{
+
+    font-size:22px;
+
+}
+
+/* ======================================================
+   LABEL
+====================================================== */
+
+.nav-label{
+
+    font-size:11px;
+
+    font-weight:600;
+
+}
+
+/* ======================================================
+   ACTIVE INDICATOR
+====================================================== */
+
+.nav-item.active::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    width:34px;
+
+    height:4px;
+
+    border-radius:20px;
+
+    background:#2563EB;
+
+}
+
+/* ======================================================
+   BADGE
+====================================================== */
+
+.nav-badge{
+
+    position:absolute;
+
+    top:8px;
+
+    right:30%;
+
+    min-width:18px;
+
+    height:18px;
+
+    padding:0 5px;
+
+    border-radius:20px;
+
+    background:#EF4444;
+
+    color:#FFFFFF;
+
+    font-size:10px;
+
+    font-weight:700;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+/* ======================================================
+   FLOAT BUTTON
+====================================================== */
+
+.nav-center{
+
+    position:relative;
+
+    margin-top:-30px;
+
+}
+
+.nav-fab{
+
+    width:62px;
+
+    height:62px;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:linear-gradient(
+        135deg,
+        #2563EB,
+        #1D4ED8
+    );
+
+    color:#FFFFFF;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:26px;
+
+    box-shadow:
+        0 10px 24px rgba(37,99,235,.35);
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.nav-fab:hover{
+
+    transform:translateY(-3px);
+
+}
+
+.nav-fab:active{
+
+    transform:scale(.94);
+
+}
+
+/* ======================================================
+   SAFE SPACE
+====================================================== */
+
+.mobile-content{
+
+    padding-bottom:95px;
+
+}
+
+/* ======================================================
+   RESPONSIVE
+====================================================== */
+
+@media(max-width:360px){
+
+    .bottom-navigation{
+
+        height:66px;
+
+    }
+
+    .nav-item i{
+
+        font-size:20px;
+
+    }
+
+}

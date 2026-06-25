@@ -6,9 +6,13 @@
     <meta charset="UTF-8">
 
     <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+          content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
     <title>Building Care System Enterprise</title>
+
+    <!-- ==========================================
+         PWA
+    =========================================== -->
 
     <link rel="manifest" href="assets/pwa/manifest.json">
 
@@ -20,21 +24,177 @@
 
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-    <meta name="apple-mobile-web-app-title" content="Building Care">
+    <meta name="apple-mobile-web-app-title"
+          content="Building Care System">
 
-    <link rel="apple-touch-icon" href="assets/pwa/icons/icon-192.png">
+    <link rel="apple-touch-icon"
+          href="assets/pwa/icons/icon-192.png">
 
-    <script>
+    <!-- ==========================================
+         Favicon
+    =========================================== -->
 
-        window.location.replace("login.html");
+    <link rel="icon"
+          type="image/png"
+          href="assets/pwa/icons/icon-192.png">
 
-    </script>
+    <!-- ==========================================
+         PRECONNECT
+    =========================================== -->
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <!-- ==========================================
+         LOADING STYLE
+    =========================================== -->
+
+    <style>
+
+        html,
+        body{
+
+            margin:0;
+            padding:0;
+
+            width:100%;
+            height:100%;
+
+            font-family:Segoe UI,Arial,sans-serif;
+
+            background:#F5F7FA;
+
+        }
+
+        body{
+
+            display:flex;
+
+            justify-content:center;
+
+            align-items:center;
+
+            flex-direction:column;
+
+            color:#555;
+
+        }
+
+        .spinner{
+
+            width:46px;
+            height:46px;
+
+            border:5px solid #DDD;
+
+            border-top-color:#0D6EFD;
+
+            border-radius:50%;
+
+            animation:spin .8s linear infinite;
+
+            margin-bottom:20px;
+
+        }
+
+        @keyframes spin{
+
+            to{
+
+                transform:rotate(360deg);
+
+            }
+
+        }
+
+    </style>
 
 </head>
 
 <body>
 
-    <p>Redirecting to login...</p>
+    <div class="spinner"></div>
+
+    <h3>Building Care System</h3>
+
+    <small>Preparing application...</small>
+
+    <script>
+
+    // ==========================================
+    // SERVICE WORKER
+    // ==========================================
+
+    if ("serviceWorker" in navigator) {
+
+        window.addEventListener("load", async () => {
+
+            try {
+
+                const registration = await navigator.serviceWorker.register(
+                    "assets/pwa/sw.js"
+                );
+
+                console.log(
+                    "[PWA]",
+                    "Service Worker Registered",
+                    registration.scope
+                );
+
+            } catch (err) {
+
+                console.error(
+                    "[PWA]",
+                    err
+                );
+
+            }
+
+        });
+
+    }
+
+    // ==========================================
+    // REDIRECT
+    // ==========================================
+
+    (function () {
+
+        try {
+
+            const user =
+                localStorage.getItem("BCS_USER");
+
+            const token =
+                localStorage.getItem("BCS_TOKEN");
+
+            if (user && token) {
+
+                window.location.replace("dashboard.html");
+
+            } else {
+
+                window.location.replace("login.html");
+
+            }
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            window.location.replace("login.html");
+
+        }
+
+    })();
+
+    </script>
 
 </body>
 

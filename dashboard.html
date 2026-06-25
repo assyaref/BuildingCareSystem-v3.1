@@ -698,18 +698,32 @@ Approval Pending
 <script src="assets/js/modules/dashboard.js"></script>
 
 <!-- ======================================================
-     LOGOUT HANDLER - FIX TOMBOL LOGOUT TIDAK BEREAKSI
+     LOGOUT HANDLER - FIX TOMBOL LOGOUT & REDIRECT
 ======================================================= -->
 <script>
 /**
  * ======================================================
  * DASHBOARD LOGOUT HANDLER
- * Fix untuk tombol logout yang tidak bereaksi
+ * Fix: Tombol logout tidak bereaksi & redirect ke login
  * ======================================================
  */
 
 (function() {
     'use strict';
+
+    // Deteksi halaman login yang tersedia
+    function getLoginPage() {
+        // Coba beberapa kemungkinan nama file login
+        const possiblePages = ['login.html', 'index.html', 'auth.html', 'signin.html'];
+        
+        // Cek apakah ada elemen login di halaman saat ini (berarti ini halaman login)
+        if (document.querySelector('#loginForm') || document.querySelector('.login-container')) {
+            return null; // Sudah di halaman login
+        }
+        
+        // Return halaman login default
+        return 'login.html';
+    }
 
     // Tunggu DOM siap
     if (document.readyState === 'loading') {
@@ -728,7 +742,7 @@ Approval Pending
 
         console.log('[LOGOUT] Tombol logout ditemukan, memasang event listener...');
 
-        // Hapus event listener lama (jika ada)
+        // Hapus event listener lama dengan clone
         const newLogoutBtn = logoutBtn.cloneNode(true);
         logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
 
@@ -798,27 +812,41 @@ Approval Pending
                 if (window.BCS.Session) {
                     window.BCS.Session.destroy();
                 }
+                if (window.BCS.Auth) {
+                    window.BCS.Auth.logout();
+                }
                 console.log('[LOGOUT] BCS storage cleared');
             }
 
-            // 5. Redirect ke halaman login
-            console.log('[LOGOUT] Redirecting to login page...');
+            // 5. Tentukan halaman redirect
+            const loginPage = getLoginPage();
             
-            // Gunakan setTimeout untuk memastikan semua proses selesai
+            // 6. Redirect ke halaman login
+            console.log('[LOGOUT] Redirecting to:', loginPage);
+            
             setTimeout(() => {
-                window.location.replace('index.html');
-            }, 300);
+                if (loginPage) {
+                    window.location.replace(loginPage);
+                } else {
+                    // Jika sudah di halaman login, reload saja
+                    window.location.reload();
+                }
+            }, 500);
 
         } catch (error) {
             console.error('[LOGOUT] Error:', error);
-            // Fallback redirect
-            window.location.replace('index.html');
+            // Fallback: redirect ke login.html
+            setTimeout(() => {
+                window.location.replace('login.html');
+            }, 300);
         }
     }
 
-    // Ekspos fungsi logout ke global (untuk debugging)
+    // Ekspos fungsi logout ke global
     window.logout = performLogout;
-    console.log('[LOGOUT] Handler siap. Fungsi logout tersedia di console.');
+    window.BCSLogout = performLogout;
+    
+    console.log('[LOGOUT] Handler siap. Gunakan window.logout() untuk test.');
 
 })();
 </script>

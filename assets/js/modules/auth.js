@@ -24,15 +24,15 @@ const Logger = (() => {
 
 /**
  * ======================================================
- * REKOMENDASI 1: AUTH CONFIG FROM CONFIG.JS
+ * PERBAIKAN 1: AUTH_CONFIG IMMUTABLE (OBJECT.FREEZE)
  * ======================================================
  */
-const AUTH_CONFIG = {
+const AUTH_CONFIG = Object.freeze({
     HEARTBEAT_INTERVAL: window.CONFIG?.AUTH?.HEARTBEAT || 300000,
     LOGIN_PAGE: window.CONFIG?.AUTH?.LOGIN || "login.html",
     DEFAULT_ROUTE: window.CONFIG?.AUTH?.DEFAULT || "dashboard.html",
     STORAGE_KEY: "BCS_SESSION"
-};
+});
 
 /**
  * ======================================================
@@ -96,7 +96,7 @@ const AuthHelper = (() => {
 
 /**
  * ======================================================
- * REKOMENDASI 2 & 8: AUTH STORE (SAFE SESSION & ONE-GATE STORAGE)
+ * REKOMENDASI 2 & 8: AUTH STORE & PERBAIKAN 3: SAFE STORAGE PROVIDER
  * ======================================================
  */
 const AuthStore = (() => {
@@ -107,11 +107,37 @@ const AuthStore = (() => {
         user: {}
     };
 
+    // Memory storage fallback untuk mode private ekstrim / cookies disabled
+    const memoryStorage = (() => {
+        const store = {};
+        return {
+            getItem: (key) => store[key] || null,
+            setItem: (key, val) => { store[key] = String(val); },
+            removeItem: (key) => { delete store[key]; }
+        };
+    })();
+
     const storageProvider = () => {
         if (window.App && typeof App.storage === "function") {
             return App.storage();
         }
-        return localStorage;
+        
+        // Menggunakan try...catch untuk mengantisipasi security error di private mode
+        try {
+            localStorage.setItem("__storage_test__", "1");
+            localStorage.removeItem("__storage_test__");
+            return localStorage;
+        } catch (e) {
+            Logger.warn("localStorage tidak tersedia, mencoba sessionStorage.", e);
+            try {
+                sessionStorage.setItem("__storage_test__", "1");
+                sessionStorage.removeItem("__storage_test__");
+                return sessionStorage;
+            } catch (err) {
+                Logger.error("sessionStorage juga tidak tersedia. Menggunakan memory fallback.", err);
+                return memoryStorage;
+            }
+        }
     };
 
     function get() {
@@ -445,8 +471,12 @@ const AuthUI = (() => {
         });
     }
 
+    /**
+     * PERBAIKAN 2: LOGIKA LOG IN ENTER KEY FIXED
+     * Logika dibalik untuk memastikan handler terpasang saat element form ada.
+     */
     function bindEnterKey() {
-        if (form()) return; 
+        if (!form()) return; 
         password()?.addEventListener("keypress", e => {
             if (e.key === "Enter") submit(e);
         });

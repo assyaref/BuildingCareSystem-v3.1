@@ -1,132 +1,126 @@
 // ======================================================
-// Building Care System Enterprise v4.0 Architect-Level
+// Building Care System Enterprise v3.5 Stable (Refactored)
 // File : assets/js/modules/auth.js
+// Phase 1 : Header + Helper + AuthStore
 // Radiant Group Duri
 // ======================================================
 
 "use strict";
 
-// Inisialisasi Namespace Tunggal Enterprise (Rekomendasi 10)
-window.BCS = window.BCS || {};
-
 /**
  * ======================================================
- * REKOMENDASI 1 & 10: ENTERPRISE LOGGER SYSTEM
+ * REKOMENDASI 13: LOGGER SYSTEM (DEBUG CONTROL)
  * ======================================================
  */
-BCS.Logger = (() => {
+const Logger = (() => {
     const isDebug = () => window.CONFIG?.DEBUG !== false;
 
-    return Object.freeze({
-        info: (module, message, ...args) => {
-            if (isDebug()) console.log(`[%c${module.toUpperCase()}%c] ${message}`, "color: #10b981; font-weight: bold;", "", ...args);
-        },
-        warn: (module, message, ...args) => {
-            if (isDebug()) console.warn(`[%c${module.toUpperCase()}%c] ${message}`, "color: #f59e0b; font-weight: bold;", "", ...args);
-        },
-        error: (module, error, ...args) => {
-            if (isDebug()) console.error(`[%c${module.toUpperCase()}%c]`, "color: #ef4444; font-weight: bold;", error, ...args);
-        }
-    });
+    return {
+        info: (...args) => { if (isDebug()) console.log("[INFO]", ...args); },
+        warn: (...args) => { if (isDebug()) console.warn("[WARN]", ...args); },
+        error: (...args) => { if (isDebug()) console.error("[ERROR]", ...args); }
+    };
 })();
 
 /**
  * ======================================================
- * REKOMENDASI 2: IMMUTABLE AUTH CONFIG
+ * REKOMENDASI 1: AUTH CONFIG FROM CONFIG.JS
  * ======================================================
  */
-const AUTH_CONFIG = Object.freeze({
+const AUTH_CONFIG = {
     HEARTBEAT_INTERVAL: window.CONFIG?.AUTH?.HEARTBEAT || 300000,
     LOGIN_PAGE: window.CONFIG?.AUTH?.LOGIN || "login.html",
     DEFAULT_ROUTE: window.CONFIG?.AUTH?.DEFAULT || "dashboard.html",
     STORAGE_KEY: "BCS_SESSION"
-});
+};
 
 /**
  * ======================================================
- * REKOMENDASI 7: NETWORK DETECTION SERVICE
+ * REKOMENDASI 7: DYNAMIC ROLE ROUTE FROM CONFIG
  * ======================================================
  */
-const NetworkService = (() => {
-    function init() {
-        window.addEventListener("online", () => {
-            BCS.Logger.info("NETWORK", "📡 System Online. Resuming Operations.");
-            if (window.App && typeof App.toast === "function") App.toast("Kembali Online", "success");
-        });
-        window.addEventListener("offline", () => {
-            BCS.Logger.warn("NETWORK", "📡 Offline Mode. Checking connection stability.");
-            if (window.App && typeof App.toast === "function") App.toast("Koneksi Terputus (Offline Mode)", "danger");
-        });
-    }
-    return { init, isOnline: () => navigator.onLine };
-})();
+const ROLE_ROUTE = window.CONFIG?.ROUTES || {
+    USER: "user-report.html",
+    "GENERAL AFFAIR": "user-report.html",
+    TECHNICIAN: "workorder.html",
+    ADMIN: "dashboard.html",
+    ADMINISTRATOR: "dashboard.html",
+    "LEAD BRANCH SUPPORT": "dashboard.html"
+};
 
 /**
  * ======================================================
- * REKOMENDASI 5: NAVIGATION SERVICE
+ * AUTH HELPER
  * ======================================================
  */
-const Navigation = (() => {
-    return Object.freeze({
-        go: (page) => {
-            BCS.Logger.info("NAVIGATE", `Redirecting to => ${page}`);
-            location.replace(page);
-        },
-        page: () => location.pathname.split("/").pop(),
-        isLoginPage: () => location.pathname.split("/").pop() === AUTH_CONFIG.LOGIN_PAGE
-    });
-})();
-
-/**
- * ======================================================
- * REKOMENDASI 3 & 10: CENTRALIZED STORAGE PROVIDER
- * ======================================================
- */
-BCS.Storage = (() => {
-    // Memory fallback jika localStorage/sessionStorage tidak dapat diakses
-    const memoryStore = new Map();
-
-    const provider = (type = "local") => {
-        if (window.App && typeof App.storage === "function") return App.storage();
-        try {
-            return type === "session" ? sessionStorage : localStorage;
-        } catch {
-            return {
-                getItem: (key) => memoryStore.get(key) || null,
-                setItem: (key, val) => memoryStore.set(key, val),
-                removeItem: (key) => memoryStore.delete(key)
-            };
+const AuthHelper = (() => {
+    function toast(message, type = "info") {
+        if (window.App && typeof App.toast === "function") {
+            App.toast(message, type);
+        } else {
+            Logger.info(`[TOAST - ${type.toUpperCase()}] ${message}`);
         }
-    };
+    }
 
-    return Object.freeze({
-        get: (key, type = "local") => {
-            const data = provider(type).getItem(key);
-            try { return data ? JSON.parse(data) : null; } catch { return data; }
-        },
-        set: (key, val, type = "local") => {
-            const strVal = typeof val === "object" ? JSON.stringify(val) : val;
-            provider(type).setItem(key, strVal);
-        },
-        remove: (key, type = "local") => provider(type).removeItem(key)
-    });
+    function loading(show, text = "Loading...") {
+        if (window.App && typeof App.loading === "function") {
+            App.loading(show, text);
+        }
+    }
+
+    // BUG 3 FIXED: Cegah redirect ke halaman yang sama
+    function redirect(page) {
+        if (AuthHelper.page() === page) {
+            Logger.info(`[NAVIGATION] Sudah berada di halaman ${page}. Navigasi dibatalkan.`);
+            return;
+        }
+        location.replace(page);
+    }
+
+    function page() {
+        return location.pathname.split("/").pop();
+    }
+
+    function isLoginPage() {
+        return page() === AUTH_CONFIG.LOGIN_PAGE;
+    }
+
+    return {
+        toast,
+        loading,
+        redirect,
+        page,
+        isLoginPage
+    };
 })();
 
 /**
  * ======================================================
- * AUTH STORE
+ * REKOMENDASI 2 & 8: AUTH STORE (SAFE SESSION & ONE-GATE STORAGE)
  * ======================================================
  */
 const AuthStore = (() => {
     let cache = null;
-    const EMPTY_SESSION = Object.freeze({ token: "", user: {} });
+
+    const EMPTY_SESSION = {
+        token: "",
+        user: {}
+    };
+
+    const storageProvider = () => {
+        if (window.App && typeof App.storage === "function") {
+            return App.storage();
+        }
+        return localStorage;
+    };
 
     function get() {
         if (cache) return cache;
         if (window.App && typeof App.getSession === "function") {
             cache = App.getSession() ?? structuredClone(EMPTY_SESSION);
         } else {
-            cache = BCS.Storage.get(AUTH_CONFIG.STORAGE_KEY) ?? structuredClone(EMPTY_SESSION);
+            const stored = storageProvider().getItem(AUTH_CONFIG.STORAGE_KEY);
+            cache = stored ? JSON.parse(stored) : structuredClone(EMPTY_SESSION);
         }
         return cache;
     }
@@ -136,7 +130,7 @@ const AuthStore = (() => {
         if (window.App && typeof App.setSession === "function") {
             App.setSession(cache);
         } else {
-            BCS.Storage.set(AUTH_CONFIG.STORAGE_KEY, cache);
+            storageProvider().setItem(AUTH_CONFIG.STORAGE_KEY, JSON.stringify(cache));
         }
         return cache;
     }
@@ -146,106 +140,120 @@ const AuthStore = (() => {
         if (window.App && typeof App.removeSession === "function") {
             App.removeSession();
         } else {
-            BCS.Storage.remove(AUTH_CONFIG.STORAGE_KEY);
+            storageProvider().removeItem(AUTH_CONFIG.STORAGE_KEY);
         }
+    }
+
+    // BUG 1 FIXED: Fungsi dideklarasikan secara eksplisit dengan hoisting yang aman
+    function token() { return get()?.token || ""; }
+    function user() { return get()?.user || {}; }
+    function role() { return String(user().role || "").trim().toUpperCase(); }
+    function isLogin() { return token() !== ""; }
+
+    function hasRole(...roles) { return roles.includes(role()); }
+
+    function updateUser(data = {}) {
+        const session = get();
+        session.user = { ...session.user, ...data };
+        set(session);
+    }
+
+    function updateToken(newToken) {
+        const session = get();
+        session.token = newToken;
+        set(session);
     }
 
     return {
-        get, set, clear,
-        token: () => get()?.token || "",
-        user: () => get()?.user || {},
-        role: () => String(user().role || "").trim().toUpperCase(),
-        isLogin: () => token() !== ""
+        get, set, clear, token, user, role, isLogin, hasRole, updateUser, updateToken, storageProvider
     };
 })();
 
+Logger.info("Auth Phase 1 Loaded");
+
 /**
  * ======================================================
- * REKOMENDASI 4: CENTRALIZED REQUEST HANDLER & AUTH API
+ * REKOMENDASI 5 & 6: AUTH API WITH RETRY LOGIC & SAFE VERIFY
  * ======================================================
  */
 const AuthApi = (() => {
-    // Interceptor & Wrapper Terpusat untuk Penanganan Error API
-    async function request(endpoint, payload = {}) {
-        if (!NetworkService.isOnline()) {
-            BCS.Logger.warn("AUTH_API", `Aborted [${endpoint}] request due to offline status.`);
-            return { success: false, message: "Tidak ada koneksi internet." };
-        }
-        try {
-            // Menggunakan provider Api bawaan BCS global
-            const apiProvider = window.Api || window.BCS.Api;
-            if (!apiProvider || typeof apiProvider.post !== "function") {
-                throw new Error("BCS API Provider Global tidak ditemukan.");
-            }
-            return await apiProvider.post(endpoint, payload);
-        } catch (err) {
-            BCS.Logger.error("AUTH_API", `Endpoint [${endpoint}] failed:`, err);
-            return { success: false, message: "Koneksi server bermasalah." };
-        }
-    }
-
     async function login(payload = {}) {
-        if (window.App && typeof App.loading === "function") App.loading(true, "Signing In...");
-        
-        BCS.Logger.info("AUTH", "Initiating login request...");
-        const response = await request("login", payload);
+        AuthHelper.loading(true, "Signing In...");
+        try {
+            Logger.info("Login Request", payload);
+            const response = await Api.post("login", payload);
+            Logger.info("Login Response", response);
 
-        if (response && response.success) {
+            if (!response || !response.success) {
+                return response || { success: false, message: "Login gagal." };
+            }
+
             AuthStore.set(response.data);
-            // Rekomendasi 9: Global Event Dispatch
-            window.dispatchEvent(new CustomEvent("auth:login", { detail: response.data }));
+            return response;
+        } catch (err) {
+            Logger.error("Login Error:", err);
+            return { success: false, message: "Server tidak dapat dihubungi." };
+        } finally {
+            AuthHelper.loading(false);
         }
-        
-        if (window.App && typeof App.loading === "function") App.loading(false);
-        return response;
     }
 
     async function logout() {
         AuthHeartbeat.stop();
         try {
             if (AuthStore.isLogin()) {
-                await request("logout", { token: AuthStore.token() });
+                await Api.post("logout", { token: AuthStore.token() });
             }
+        } catch (err) {
+            Logger.warn("Logout API warning:", err);
         } finally {
             AuthStore.clear();
-            // Rekomendasi 9: Global Event Dispatch
-            window.dispatchEvent(new CustomEvent("auth:logout"));
-            Navigation.go(AUTH_CONFIG.LOGIN_PAGE);
+            AuthHelper.redirect(AUTH_CONFIG.LOGIN_PAGE);
         }
     }
 
     async function verify() {
         if (!AuthStore.isLogin()) return false;
-        const response = await request("verifySession", { token: AuthStore.token() });
-        return Boolean(response && response.success);
+        try {
+            const response = await Api.post("verifySession", { token: AuthStore.token() });
+            return Boolean(response && response.success);
+        } catch (err) {
+            Logger.warn("Verify API Warning:", err);
+            return false;
+        }
     }
 
     async function verifyWithRetry(retries = 3, delayMs = 2000) {
         for (let i = 1; i <= retries; i++) {
-            if (await verify()) return true;
-            BCS.Logger.warn("AUTH", `Verifikasi gagal. Retry attempt (${i}/${retries})`);
-            if (i < retries) await new Promise(res => setTimeout(res, delayMs));
+            const isValid = await verify();
+            if (isValid) return true;
+            
+            Logger.warn(`Verifikasi gagal. Mencoba ulang (${i}/${retries})...`);
+            if (i < retries) {
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+            }
         }
         return false;
     }
 
-    /**
-     * REKOMENDASI 8: AUTO REFRESH TOKEN
-     */
-    async function refreshToken() {
-        BCS.Logger.info("AUTH", "Attempting token silent refresh...");
-        const response = await request("refreshToken", { token: AuthStore.token() });
-        if (response && response.success && response.data?.token) {
-            AuthStore.updateToken(response.data.token);
-            BCS.Logger.info("AUTH", "Silent token refresh success.");
-            return true;
+    // BUG 2 FIXED: Fungsi refresh/refreshToken aman dari crash manipulasi token ilegal
+    async function refresh() {
+        const valid = await verifyWithRetry();
+        if (!valid) {
+            AuthHelper.toast("Session Expired", "warning");
+            await logout();
         }
-        BCS.Logger.error("AUTH", "Silent token refresh rejected by Server.");
-        return false;
+        return valid;
     }
 
-    return { login, logout, verifyWithRetry, refreshToken };
+    return {
+        login, logout, verify, verifyWithRetry, refresh,
+        updateUser: AuthStore.updateUser,
+        updateToken: AuthStore.updateToken
+    };
 })();
+
+Logger.info("Auth Phase 2 Loaded");
 
 /**
  * ======================================================
@@ -253,24 +261,29 @@ const AuthApi = (() => {
  * ======================================================
  */
 const AuthRouter = (() => {
-    const ROLE_ROUTE = window.CONFIG?.ROUTES || {
-        USER: "user-report.html",
-        "GENERAL AFFAIR": "user-report.html",
-        TECHNICIAN: "workorder.html",
-        ADMIN: "dashboard.html",
-        ADMINISTRATOR: "dashboard.html",
-        "LEAD BRANCH SUPPORT": "dashboard.html"
-    };
-
     function getRoute(role = "") {
-        return ROLE_ROUTE[String(role).trim().toUpperCase()] || AUTH_CONFIG.DEFAULT_ROUTE;
+        role = String(role).trim().toUpperCase();
+        return ROLE_ROUTE[role] || AUTH_CONFIG.DEFAULT_ROUTE;
     }
 
-    return {
-        redirect: () => Navigation.go(getRoute(AuthStore.role())),
-        allow: (...roles) => roles.length === 0 || roles.includes(AuthStore.role())
-    };
+    function redirect() {
+        const role = AuthStore.role();
+        const page = getRoute(role);
+        Logger.info("[AUTH ROUTER]", role, "=>", page);
+        AuthHelper.redirect(page);
+    }
+
+    function byRole(role) { AuthHelper.redirect(getRoute(role)); }
+    function is(...roles) { return roles.includes(AuthStore.role()); }
+    function allow(...roles) { return roles.length === 0 || is(...roles); }
+    function current() { return AuthHelper.page(); }
+    function exists(role) { return !!ROLE_ROUTE[String(role).trim().toUpperCase()]; }
+    function routes() { return { ...ROLE_ROUTE }; }
+
+    return { redirect, byRole, getRoute, allow, is, current, exists, routes };
 })();
+
+Logger.info("Auth Phase 3 Loaded");
 
 /**
  * ======================================================
@@ -278,241 +291,296 @@ const AuthRouter = (() => {
  * ======================================================
  */
 const AuthGuard = (() => {
-    async function protect(roles = []) {
-        if (Navigation.isLoginPage()) {
-            if (AuthStore.isLogin()) AuthRouter.redirect();
-            return true;
-        }
+    function isAuthenticated() { return AuthStore.isLogin(); }
 
-        if (!AuthStore.isLogin()) {
-            BCS.Logger.warn("GUARD", "Unauthorized state. Redirecting to login.");
-            Navigation.go(AUTH_CONFIG.LOGIN_PAGE);
+    async function login() {
+        if (AuthHelper.isLoginPage()) return true;
+        if (!isAuthenticated()) {
+            Logger.info("[AUTH GUARD]", "Session Not Found");
+            AuthHelper.redirect(AUTH_CONFIG.LOGIN_PAGE);
             return false;
         }
-
-        const sessionValid = await AuthApi.verifyWithRetry();
-        if (!sessionValid) {
-            BCS.Logger.error("GUARD", "Session validation failed on load.");
-            await AuthApi.logout();
-            return false;
-        }
-
-        if (roles.length > 0 && !AuthRouter.allow(...roles)) {
-            BCS.Logger.warn("GUARD", "Forbidden Area: User lacking role authorization.");
-            if (window.App && typeof App.toast === "function") App.toast("Hak akses ditolak", "warning");
-            AuthRouter.redirect();
-            return false;
-        }
-
         return true;
     }
 
-    return { protect };
+    function role(...roles) {
+        if (roles.length === 0 || AuthRouter.allow(...roles)) return true;
+        AuthHelper.toast("Anda tidak memiliki hak akses.", "warning");
+        AuthRouter.redirect();
+        return false;
+    }
+
+    async function session() {
+        if (!isAuthenticated()) return false;
+        const valid = await AuthApi.verifyWithRetry();
+        if (!valid) {
+            AuthHelper.toast("Session Expired", "warning");
+            await AuthApi.logout();
+            return false;
+        }
+        return true;
+    }
+
+    async function protect(roles = []) {
+        if (!(await login()) || !(await session())) return false;
+        return !(roles.length > 0 && !role(...roles));
+    }
+
+    function autoRedirect() {
+        if (AuthHelper.isLoginPage() && AuthStore.isLogin()) {
+            AuthRouter.redirect();
+        }
+    }
+
+    return {
+        login, role, session, protect, autoRedirect,
+        publicPage: () => AuthHelper.isLoginPage(),
+        privatePage: () => !AuthHelper.isLoginPage(),
+        isAuthenticated
+    };
 })();
+
+Logger.info("Auth Phase 4 Loaded");
 
 /**
  * ======================================================
- * AUTH UI HANDLER
+ * REKOMENDASI 9 & 10: AUTH UI (DUPLICATION GUARD & TOGGLE ICON)
  * ======================================================
  */
 const AuthUI = (() => {
     let submitting = false;
     let binded = false;
 
-    const dom = {
-        form: () => document.getElementById("loginForm"),
-        nik: () => document.getElementById("nik"),
-        password: () => document.getElementById("password"),
-        button: () => document.getElementById("btnLogin"),
-        remember: () => document.getElementById("rememberMe"),
-        togglePassword: () => document.getElementById("togglePassword")
-    };
+    function form() { return document.getElementById("loginForm"); }
+    function nik() { return document.getElementById("nik"); }
+    function password() { return document.getElementById("password"); }
+    function button() { return document.getElementById("btnLogin"); }
+    function remember() { return document.getElementById("rememberMe"); }
+    function togglePassword() { return document.getElementById("togglePassword"); }
+
+    function validate() {
+        if (!nik()?.value.trim()) {
+            AuthHelper.toast("NIK wajib diisi", "warning");
+            nik()?.focus();
+            return false;
+        }
+        if (!password()?.value.trim()) {
+            AuthHelper.toast("Password wajib diisi", "warning");
+            password()?.focus();
+            return false;
+        }
+        return true;
+    }
 
     async function submit(e) {
         if (e) e.preventDefault();
         if (submitting) return;
-
-        if (!dom.nik()?.value.trim() || !dom.password()?.value.trim()) {
-            if (window.App && typeof App.toast === "function") App.toast("Lengkapi seluruh form login", "warning");
-            return;
-        }
+        if (!validate()) return;
 
         submitting = true;
-        dom.button()?.setAttribute("disabled", "true");
+        button()?.setAttribute("disabled", "true");
 
-        const result = await AuthApi.login({
-            nik: dom.nik().value.trim(),
-            password: dom.password().value.trim()
-        });
+        // BUG 4 FIXED: Pembungkusan try...finally menyeluruh agar state submitting aman jika terjadi throw error
+        try {
+            const result = await AuthApi.login({
+                nik: nik().value.trim(),
+                password: password().value.trim()
+            });
 
-        if (result && result.success) {
-            if (dom.remember()?.checked) {
-                BCS.Storage.set("BCS_REMEMBER", dom.nik().value.trim());
-            } else {
-                BCS.Storage.remove("BCS_REMEMBER");
+            if (!result || !result.success) {
+                AuthHelper.toast(result?.message || "Login gagal", "danger");
+                return;
             }
-            
-            if (window.App && typeof App.toast === "function") App.toast("Selamat datang kembali!", "success");
+
+            saveRemember();
+            AuthHelper.toast("Login berhasil", "success");
 
             await Promise.resolve();
-            requestAnimationFrame(() => AuthRouter.redirect());
-        } else {
-            if (window.App && typeof App.toast === "function") App.toast(result?.message || "Identitas login salah", "danger");
+            requestAnimationFrame(() => {
+                AuthRouter.redirect();
+            });
+        } catch (err) {
+            Logger.error("Submit UI Fatal Error:", err);
+            AuthHelper.toast("Terjadi kesalahan sistem.", "danger");
+        } finally {
             submitting = false;
-            dom.button()?.removeAttribute("disabled");
+            button()?.removeAttribute("disabled");
         }
+    }
+
+    function saveRemember() {
+        if (!remember()) return;
+        const storage = AuthStore.storageProvider();
+        if (remember().checked) {
+            storage.setItem("BCS_REMEMBER", nik().value.trim());
+        } else {
+            storage.removeItem("BCS_REMEMBER");
+        }
+    }
+
+    function loadRemember() {
+        if (!remember() || !nik()) return;
+        const nikSaved = AuthStore.storageProvider().getItem("BCS_REMEMBER");
+        if (!nikSaved) return;
+
+        nik().value = nikSaved;
+        remember().checked = true;
+    }
+
+    function bindTogglePassword() {
+        const toggleEl = togglePassword();
+        const passEl = password();
+        if (!toggleEl || !passEl) return;
+        
+        toggleEl.addEventListener("click", () => {
+            const isPassword = passEl.type === "password";
+            passEl.type = isPassword ? "text" : "password";
+            
+            const iconEl = toggleEl.querySelector("i") || toggleEl;
+            if (isPassword) {
+                iconEl.className = iconEl.className.replace(/fa-eye|bi-eye/g, match => match.includes("fa") ? "fa-eye-slash" : "bi-eye-slash");
+            } else {
+                iconEl.className = iconEl.className.replace(/fa-eye-slash|bi-eye-slash/g, match => match.includes("fa") ? "fa-eye" : "bi-eye");
+            }
+        });
+    }
+
+    function bindEnterKey() {
+        if (form()) return; 
+        password()?.addEventListener("keypress", e => {
+            if (e.key === "Enter") submit(e);
+        });
     }
 
     function init() {
-        if (binded || !Navigation.isLoginPage()) return;
+        if (binded) return; 
         binded = true;
 
-        dom.form()?.addEventListener("submit", submit);
-        
-        dom.togglePassword()?.addEventListener("click", () => {
-            const passEl = dom.password();
-            if (!passEl) return;
-            const isPass = passEl.type === "password";
-            passEl.type = isPass ? "text" : "password";
-            
-            const icon = dom.togglePassword().querySelector("i") || dom.togglePassword();
-            icon.className = isPass 
-                ? icon.className.replace(/fa-eye|bi-eye/g, m => m.includes("fa") ? "fa-eye-slash" : "bi-eye-slash")
-                : icon.className.replace(/fa-eye-slash|bi-eye-slash/g, m => m.includes("fa") ? "fa-eye" : "bi-eye");
-        });
-
-        const savedNik = BCS.Storage.get("BCS_REMEMBER");
-        if (savedNik && dom.nik() && dom.remember()) {
-            dom.nik().value = savedNik;
-            dom.remember().checked = true;
-        }
-
-        dom.nik()?.focus();
-        BCS.Logger.info("UI", "Auth UI Components loaded cleanly.");
+        form()?.addEventListener("submit", submit);
+        bindEnterKey();
+        bindTogglePassword();
+        loadRemember();
+        nik()?.focus();
+        Logger.info("Auth UI Ready");
     }
 
-    return { init };
+    return { init, submit, validate };
 })();
+
+Logger.info("Auth Phase 5 Loaded");
 
 /**
  * ======================================================
- * REKOMENDASI 6: AUTH HEARTBEAT WITH VISIBILITY DETECTION
+ * REKOMENDASI 11: AUTH HEARTBEAT WITH ACTIVITY REFRESH
  * ======================================================
  */
 const AuthHeartbeat = (() => {
     let timer = null;
 
-    async function processPulse() {
-        if (!AuthStore.isLogin()) return;
-        BCS.Logger.info("HEARTBEAT", "Validating pipeline activity background...");
-        
-        const valid = await AuthApi.verifyWithRetry();
-        if (valid) {
-            if (window.App && typeof App.refreshLastActivity === "function") {
-                App.refreshLastActivity();
-            }
-        } else {
-            BCS.Logger.error("HEARTBEAT", "Background handshake failed. Purging active terminal.");
-            await AuthApi.logout();
-        }
-    }
-
     function start() {
         stop();
-        timer = setInterval(processPulse, AUTH_CONFIG.HEARTBEAT_INTERVAL);
-        BCS.Logger.info("HEARTBEAT", "Background loop initialized.");
+        timer = setInterval(verifyAndRefresh, AUTH_CONFIG.HEARTBEAT_INTERVAL);
+        Logger.info("Heartbeat Started");
     }
 
     function stop() {
         if (timer) {
             clearInterval(timer);
             timer = null;
-            BCS.Logger.info("HEARTBEAT", "Background loop suspended.");
+            Logger.info("Heartbeat Stopped");
         }
     }
 
-    function initVisibilityTriggers() {
-        // Otomatis pause heartbeat jika tab di-minimize atau berpindah tab (Menghemat resource device client)
-        document.addEventListener("visibilitychange", () => {
-            if (!AuthStore.isLogin()) return;
-            if (document.hidden) {
-                BCS.Logger.info("HEARTBEAT", "Application hidden. Entering safe hibernation pause mode.");
-                stop();
-            } else {
-                BCS.Logger.info("HEARTBEAT", "Application focused. Activating reactive resume.");
-                processPulse(); // Jalankan verifikasi instant saat tab dibuka kembali
-                start();
+    async function verifyAndRefresh() {
+        if (!AuthStore.isLogin()) return;
+        
+        const valid = await AuthApi.verifyWithRetry();
+        if (valid) {
+            if (window.App && typeof App.refreshLastActivity === "function") {
+                App.refreshLastActivity();
+                Logger.info("Session verified & activity timestamp refreshed.");
             }
-        });
+        } else {
+            AuthHelper.toast("Session Expired", "warning");
+            await AuthApi.logout();
+        }
     }
 
-    return { start, stop, initVisibilityTriggers };
+    return { start, stop, verify: verifyAndRefresh };
 })();
 
 /**
  * ======================================================
- * REKOMENDASI 10 & 15: SECURE ARCHITECT FACADE IMMUTABILITY
+ * AUTH FACADE (REKOMENDASI 15: OBJECT FREEZE)
  * ======================================================
  */
-BCS.Auth = (() => {
-    const facadeInstance = {
+const Auth = (() => {
+    const instance = {
         login: AuthApi.login,
         logout: AuthApi.logout,
+        verify: AuthApi.verify,
         guard: AuthGuard.protect,
-        refreshToken: AuthApi.refreshToken,
         user: AuthStore.user,
         token: AuthStore.token,
         role: AuthStore.role,
+        session: AuthStore.get,
         isLogin: AuthStore.isLogin,
+        redirect: AuthRouter.redirect,
+        clear: AuthStore.clear,
         startHeartbeat: AuthHeartbeat.start,
         stopHeartbeat: AuthHeartbeat.stop
     };
 
-    // Bekukan facade agar komponen internal/script luar tidak bisa melakukan manipulasi (Anti-Tampering)
-    return Object.freeze(facadeInstance);
+    return Object.freeze(instance);
 })();
-
-// Backward compatibility shim untuk module legacy
-if (!window.Session) {
-    window.Session = Object.freeze({
-        getUser: () => BCS.Auth.user(),
-        getToken: () => BCS.Auth.token(),
-        getRole: () => BCS.Auth.role(),
-        isLoggedIn: () => BCS.Auth.isLogin()
-    });
-}
 
 /**
  * ======================================================
- * AUTH BOOTSTRAPPER (WINDOW LOAD ENGINE)
+ * REKOMENDASI 14: BACKWARD COMPATIBILITY FOR OLD SCRIPTS
+ * ======================================================
+ */
+if (!window.Session) {
+    window.Session = {
+        getUser: () => Auth.user(),
+        getToken: () => Auth.token(),
+        getRole: () => Auth.role(),
+        isLoggedIn: () => Auth.isLogin()
+    };
+    Logger.info("Legacy window.Session polyfill attached.");
+}
+
+Logger.info("Auth Phase 6 Loaded");
+
+/**
+ * ======================================================
+ * AUTH BOOTSTRAP (REKOMENDASI 12: WINDOW LOAD BIND)
  * ======================================================
  */
 const AuthBootstrap = (() => {
-    let executed = false;
+    let initialized = false;
 
-    async function startEngine() {
-        if (executed) return;
-        executed = true;
+    async function init() {
+        if (initialized) return;
+        initialized = true;
 
-        BCS.Logger.info("CORE", "Bootstrapping BCS Engine v4.0 Structural Architecture...");
+        Logger.info("Initializing Authentication Architecture...");
 
-        NetworkService.init();
-        AuthHeartbeat.initVisibilityTriggers();
+        AuthGuard.autoRedirect();
 
-        const activeRouteClear = await AuthGuard.protect();
-        if (!activeRouteClear) return;
-
-        if (Navigation.isLoginPage()) {
-            AuthUI.init();
-        } else {
-            AuthHeartbeat.start();
+        if (AuthGuard.privatePage()) {
+            const ok = await AuthGuard.protect();
+            if (!ok) return;
+            Auth.startHeartbeat();
         }
 
-        BCS.Logger.info("CORE", "All modules stabilized.");
+        if (AuthHelper.isLoginPage()) {
+            AuthUI.init();
+        }
+
+        Logger.info("Authentication Engine Ready");
     }
 
-    return { startEngine };
+    return { init };
 })();
 
-// Rekomendasi 12 (Dari sebelumnya) & Dipertahankan di v4: load event agar seluruh aset CSS & DOM render tuntas
-window.addEventListener("load", AuthBootstrap.startEngine);
+window.addEventListener("load", AuthBootstrap.init);

@@ -1,319 +1,237 @@
 // ======================================================
 // Building Care System Enterprise
 // File : assets/js/core/session.js
-// Desc : Session Manager with Multi-Layer Storage
-// Version : 4.0 FINAL
+// Desc : Simple Session Manager - SINGLE SOURCE OF TRUTH
+// Version : 6.0 FINAL STABLE
 // ======================================================
 
 "use strict";
 
-const SESSION_KEY = "BCS_SESSION";
-const SESSION_BACKUP_KEY = "BCS_SESSION_BACKUP";
-
 /**
- * Session Manager - Multi-Layer Storage
+ * Session Manager - Simple & Reliable
+ * Menggunakan localStorage sebagai single source of truth
  */
 const Session = (() => {
     
-    // Cache in memory
+    // Memory cache (fallback jika storage gagal)
     let memoryCache = null;
-    let cacheTimestamp = 0;
-    const CACHE_TTL = 5000; // 5 detik
+    let useMemoryFallback = false;
 
     /**
-     * Get storage with fallback
+     * Cek apakah storage tersedia
      */
-    function getStorage() {
+    function isStorageAvailable() {
+        if (useMemoryFallback) return false;
         try {
             localStorage.setItem("__test__", "1");
             localStorage.removeItem("__test__");
-            return localStorage;
+            return true;
         } catch (e) {
-            try {
-                sessionStorage.setItem("__test__", "1");
-                sessionStorage.removeItem("__test__");
-                return sessionStorage;
-            } catch (err) {
-                return null;
-            }
+            useMemoryFallback = true;
+            console.warn("[Session] localStorage tidak tersedia, menggunakan memory fallback");
+            return false;
         }
     }
 
     /**
-     * Save to all available storage
+     * Simpan data ke storage atau memory
      */
-    function saveToAllStorages(key, value) {
-        const storage = getStorage();
-        if (storage) {
+    function saveData(key, value) {
+        const jsonValue = JSON.stringify(value);
+        
+        if (isStorageAvailable()) {
             try {
-                storage.setItem(key, value);
+                localStorage.setItem(key, jsonValue);
+                // Backup ke sessionStorage
+                try {
+                    sessionStorage.setItem(key, jsonValue);
+                } catch (e) {}
+                return true;
             } catch (e) {
-                console.warn("[Session] Gagal save ke storage:", e);
+                console.error("[Session] Gagal save ke localStorage:", e);
+                memoryCache = value;
+                return false;
             }
+        } else {
+            memoryCache = value;
+            return true;
         }
-        
-        // Juga simpan ke sessionStorage sebagai backup
-        try {
-            sessionStorage.setItem(key, value);
-        } catch (e) {
-            // Ignore
-        }
-        
-        // Update memory cache
-        memoryCache = JSON.parse(value);
-        cacheTimestamp = Date.now();
     }
 
     /**
-     * Read from all available storage
+     * Ambil data dari storage atau memory
      */
-    function readFromAllStorages(key) {
+    function getData(key) {
         // Cek memory cache dulu
-        if (memoryCache && (Date.now() - cacheTimestamp) < CACHE_TTL) {
-            return JSON.stringify(memoryCache);
-        }
+        if (memoryCache) return memoryCache;
         
-        // Coba dari localStorage
-        const storage = getStorage();
-        if (storage) {
+        if (isStorageAvailable()) {
             try {
-                const data = storage.getItem(key);
+                const data = localStorage.getItem(key);
                 if (data) {
-                    memoryCache = JSON.parse(data);
-                    cacheTimestamp = Date.now();
-                    return data;
+                    try {
+                        return JSON.parse(data);
+                    } catch (e) {
+                        return data;
+                    }
                 }
             } catch (e) {
-                console.warn("[Session] Gagal baca dari storage:", e);
+                console.error("[Session] Gagal baca dari localStorage:", e);
             }
-        }
-        
-        // Coba dari sessionStorage
-        try {
-            const data = sessionStorage.getItem(key);
-            if (data) {
-                memoryCache = JSON.parse(data);
-                cacheTimestamp = Date.now();
-                return data;
-            }
-        } catch (e) {
-            // Ignore
+            
+            // Coba dari sessionStorage backup
+            try {
+                const backup = sessionStorage.getItem(key);
+                if (backup) {
+                    const parsed = JSON.parse(backup);
+                    // Restore ke localStorage
+                    localStorage.setItem(key, backup);
+                    return parsed;
+                }
+            } catch (e) {}
         }
         
         return null;
     }
 
     /**
-     * Remove from all storages
+     * Hapus data dari semua storage
      */
-    function removeFromAllStorages(key) {
+    function removeData(key) {
         try {
-            const storage = getStorage();
-            if (storage) {
-                storage.removeItem(key);
-            }
+            localStorage.removeItem(key);
             sessionStorage.removeItem(key);
-        } catch (e) {
-            // Ignore
-        }
+        } catch (e) {}
         memoryCache = null;
-        cacheTimestamp = 0;
+    }
+
+    // =============================================
+    // PUBLIC API
+    // =============================================
+
+    /**
+     * Set session data
+     */
+    function set(sessionData) {
+        if (!sessionData) {
+            console.warn("[Session] set() called with null/undefined");
+            return false;
+        }
+
+        // Pastikan ada token
+        if (!sessionData.token || sessionData.token === "undefined" || sessionData.token === "null") {
+            console.warn("[Session] Token tidak valid:", sessionData.token);
+            return false;
+        }
+
+        // Normalisasi data
+        const normalized = {
+            token: sessionData.token.trim(),
+            user: sessionData.user || {},
+            nik: sessionData.nik || sessionData.user?.nik || "",
+            role: sessionData.role || sessionData.user?.role || "",
+            timestamp: Date.now()
+        };
+
+        // Simpan ke BCS_SESSION
+        const saved = saveData("BCS_SESSION", normalized);
+        
+        // Juga simpan ke key individual untuk kompatibilitas
+        saveData("token", normalized.token);
+        saveData("user", normalized.user);
+        if (normalized.nik) saveData("nik", normalized.nik);
+        if (normalized.role) saveData("role", normalized.role);
+        saveData("session_timestamp", normalized.timestamp);
+
+        console.log("✅ [Session] Data tersimpan:", {
+            token: normalized.token.substring(0, 15) + "...",
+            nik: normalized.nik,
+            role: normalized.role
+        });
+
+        // Verifikasi
+        const verify = getData("BCS_SESSION");
+        if (verify && verify.token) {
+            console.log("✅ [Session] Verifikasi: OK");
+            return true;
+        } else {
+            console.warn("⚠️ [Session] Verifikasi: GAGAL, mencoba ulang...");
+            // Retry
+            setTimeout(() => {
+                saveData("BCS_SESSION", normalized);
+            }, 100);
+            return true;
+        }
     }
 
     /**
-     * Ambil session
+     * Get session data
      */
     function get() {
         try {
-            // Coba baca dari BCS_SESSION
-            let data = readFromAllStorages(SESSION_KEY);
-            
-            if (data) {
-                try {
-                    const session = JSON.parse(data);
-                    if (session && session.token) {
-                        // Validasi token tidak kosong
-                        if (session.token && session.token !== "undefined" && session.token !== "null") {
-                            syncToLegacy(session);
-                            return session;
-                        }
-                    }
-                } catch (e) {
-                    console.warn("[Session] Gagal parse session:", e);
-                }
+            // Coba dari BCS_SESSION
+            let data = getData("BCS_SESSION");
+            if (data && data.token && data.token !== "undefined" && data.token !== "null") {
+                return data;
             }
-            
-            // Coba dari backup
-            const backupData = readFromAllStorages(SESSION_BACKUP_KEY);
-            if (backupData) {
-                try {
-                    const session = JSON.parse(backupData);
-                    if (session && session.token) {
-                        // Restore dari backup
-                        saveToAllStorages(SESSION_KEY, backupData);
-                        return session;
-                    }
-                } catch (e) {
-                    console.warn("[Session] Gagal parse backup:", e);
-                }
-            }
-            
-            // Fallback ke legacy
-            return getLegacySession();
-        } catch (e) {
-            console.error("[Session] Gagal get session:", e);
-            return null;
-        }
-    }
 
-    /**
-     * Sync ke key legacy
-     */
-    function syncToLegacy(session) {
-        try {
-            if (session && session.token) {
-                localStorage.setItem("token", session.token);
-                localStorage.setItem("user", JSON.stringify(session.user || {}));
-                if (session.nik) localStorage.setItem("nik", session.nik);
-                if (session.role) localStorage.setItem("role", session.role);
-            }
-        } catch (e) {
-            // Ignore
-        }
-    }
-
-    /**
-     * Get from legacy keys
-     */
-    function getLegacySession() {
-        try {
-            const token = localStorage.getItem("token");
-            const userStr = localStorage.getItem("user");
-            const nik = localStorage.getItem("nik");
-            const role = localStorage.getItem("role");
-
+            // Coba dari individual keys
+            const token = getData("token");
             if (token && token !== "undefined" && token !== "null") {
-                const user = userStr ? JSON.parse(userStr) : {};
-                const session = {
-                    token: token,
-                    user: user,
-                    nik: nik || user?.nik || "",
-                    role: role || user?.role || ""
-                };
+                const user = getData("user") || {};
+                const nik = getData("nik") || "";
+                const role = getData("role") || "";
+                const timestamp = getData("session_timestamp") || Date.now();
                 
+                data = { token, user, nik, role, timestamp };
                 // Save ke format baru
-                const jsonData = JSON.stringify(session);
-                saveToAllStorages(SESSION_KEY, jsonData);
-                saveToAllStorages(SESSION_BACKUP_KEY, jsonData);
-                syncToLegacy(session);
-                
-                return session;
+                saveData("BCS_SESSION", data);
+                return data;
             }
+
             return null;
         } catch (e) {
-            console.warn("[Session] Gagal baca legacy:", e);
+            console.error("[Session] Gagal get data:", e);
             return null;
         }
     }
 
     /**
-     * Simpan session - MULTI LAYER
-     */
-    function set(session) {
-        try {
-            if (!session || !session.token) {
-                console.warn("[Session] Session tidak valid");
-                return false;
-            }
-
-            // Validasi token
-            if (session.token === "undefined" || session.token === "null" || session.token === "") {
-                console.warn("[Session] Token tidak valid:", session.token);
-                return false;
-            }
-
-            // Normalisasi
-            const normalized = {
-                token: session.token,
-                user: session.user || {},
-                nik: session.nik || session.user?.nik || "",
-                role: session.role || session.user?.role || ""
-            };
-
-            const jsonData = JSON.stringify(normalized);
-            
-            // Simpan ke MULTIPLE STORAGE
-            saveToAllStorages(SESSION_KEY, jsonData);
-            saveToAllStorages(SESSION_BACKUP_KEY, jsonData);
-            
-            // Simpan ke legacy
-            syncToLegacy(normalized);
-
-            console.log("✅ [Session] Session tersimpan di MULTIPLE storage:", {
-                token: normalized.token.substring(0, 20) + "...",
-                nik: normalized.nik,
-                role: normalized.role
-            });
-
-            // Verifikasi
-            const verify = readFromAllStorages(SESSION_KEY);
-            if (verify) {
-                console.log("✅ [Session] Verifikasi storage: OK");
-            } else {
-                console.warn("⚠️ [Session] Verifikasi storage: GAGAL - akan retry");
-                // Retry sekali
-                setTimeout(() => {
-                    saveToAllStorages(SESSION_KEY, jsonData);
-                    saveToAllStorages(SESSION_BACKUP_KEY, jsonData);
-                }, 100);
-            }
-
-            return true;
-        } catch (e) {
-            console.error("[Session] Gagal menyimpan:", e);
-            return false;
-        }
-    }
-
-    /**
-     * Hapus session dari semua storage
+     * Clear session
      */
     function clear() {
-        try {
-            removeFromAllStorages(SESSION_KEY);
-            removeFromAllStorages(SESSION_BACKUP_KEY);
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            localStorage.removeItem("nik");
-            localStorage.removeItem("role");
-            localStorage.removeItem("BCS_REMEMBER");
-            console.log("✅ [Session] Session cleared dari semua storage");
-            return true;
-        } catch (e) {
-            console.warn("[Session] Gagal clear:", e);
-            return false;
-        }
-    }
-
-    /**
-     * Cek login - VALIDASI TOKEN
-     */
-    function isLoggedIn() {
-        const session = get();
-        if (!session) return false;
-        if (!session.token) return false;
-        if (session.token === "undefined" || session.token === "null") return false;
-        if (session.token.length < 10) return false; // Token minimal 10 karakter
+        removeData("BCS_SESSION");
+        removeData("token");
+        removeData("user");
+        removeData("nik");
+        removeData("role");
+        removeData("session_timestamp");
+        removeData("BCS_REMEMBER");
+        memoryCache = null;
+        console.log("✅ [Session] Data cleared");
         return true;
     }
 
     /**
-     * Get token dengan validasi
+     * Check if logged in
+     */
+    function isLoggedIn() {
+        const data = get();
+        if (!data) return false;
+        if (!data.token) return false;
+        if (data.token === "undefined" || data.token === "null") return false;
+        if (data.token.trim() === "") return false;
+        if (data.token.length < 5) return false;
+        return true;
+    }
+
+    /**
+     * Get token
      */
     function getToken() {
-        const session = get();
-        if (!session) return "";
-        const token = session.token || "";
+        const data = get();
+        if (!data) return "";
+        const token = data.token || "";
         if (token === "undefined" || token === "null") return "";
         return token;
     }
@@ -322,88 +240,69 @@ const Session = (() => {
      * Get user
      */
     function getUser() {
-        const session = get();
-        return session?.user || {};
+        const data = get();
+        return data?.user || {};
     }
 
     /**
      * Get NIK
      */
     function getNik() {
-        const session = get();
-        return session?.nik || session?.user?.nik || "";
+        const data = get();
+        return data?.nik || data?.user?.nik || "";
     }
 
     /**
      * Get Role
      */
     function getRole() {
-        const session = get();
-        return session?.role || session?.user?.role || "";
+        const data = get();
+        return data?.role || data?.user?.role || "";
     }
 
     /**
      * Get Nama
      */
     function getNama() {
-        const session = get();
-        return session?.user?.nama || session?.user?.name || "";
+        const data = get();
+        return data?.user?.nama || data?.user?.name || "";
     }
 
     /**
      * Get Departemen
      */
     function getDept() {
-        const session = get();
-        return session?.user?.departemen || session?.user?.department || "";
+        const data = get();
+        return data?.user?.departemen || data?.user?.department || "";
     }
 
     /**
-     * Get full session
+     * Get timestamp
      */
-    function getFull() {
-        return get();
+    function getTimestamp() {
+        const data = get();
+        return data?.timestamp || 0;
     }
 
     /**
-     * Verify session integrity
+     * Verify session
      */
     function verify() {
-        const session = get();
-        if (!session) return false;
-        if (!session.token) return false;
-        if (session.token === "undefined" || session.token === "null") return false;
-        
-        // Cek apakah data di semua storage konsisten
-        const storage = getStorage();
-        if (storage) {
-            const main = storage.getItem(SESSION_KEY);
-            const backup = storage.getItem(SESSION_BACKUP_KEY);
-            if (main && backup) {
-                try {
-                    const mainData = JSON.parse(main);
-                    const backupData = JSON.parse(backup);
-                    if (mainData.token !== backupData.token) {
-                        console.warn("⚠️ [Session] Inkonsistensi data: main vs backup");
-                        // Restore dari yang valid
-                        if (mainData.token) {
-                            saveToAllStorages(SESSION_BACKUP_KEY, main);
-                        } else if (backupData.token) {
-                            saveToAllStorages(SESSION_KEY, backup);
-                        }
-                    }
-                } catch (e) {
-                    // Ignore
-                }
-            }
-        }
-        
+        const data = get();
+        if (!data) return false;
+        if (!data.token) return false;
+        if (data.token === "undefined" || data.token === "null") return false;
+        if (data.token.length < 5) return false;
         return true;
     }
 
+    // =============================================
+    // EXPORT
+    // =============================================
+
     return {
-        get,
         set,
+        get,
         clear,
         isLoggedIn,
         getToken,
@@ -412,7 +311,7 @@ const Session = (() => {
         getRole,
         getNama,
         getDept,
-        getFull,
+        getTimestamp,
         verify
     };
 })();
@@ -420,4 +319,4 @@ const Session = (() => {
 // Export ke global
 window.Session = Session;
 
-console.log("✅ [Session] Session Manager v4.0 FINAL loaded");
+console.log("✅ [Session] Session Manager v6.0 FINAL loaded");

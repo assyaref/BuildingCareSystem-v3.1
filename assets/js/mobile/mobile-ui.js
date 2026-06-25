@@ -1,7 +1,7 @@
 // ======================================================
 // Building Care System Enterprise v11.0
 // mobile-ui.js
-// Enterprise Mobile UI Engine - Refactored
+// Enterprise Mobile UI Engine - Facade Layer
 // ======================================================
 
 "use strict";
@@ -13,6 +13,24 @@ if (typeof BCS === 'undefined') {
 if (typeof BCS.Mobile === 'undefined') {
     BCS.Mobile = {};
 }
+if (typeof BCS.Events === 'undefined') {
+    BCS.Events = {
+        on: () => {},
+        off: () => {},
+        emit: () => {}
+    };
+}
+
+// Event Constants
+BCS.Events.Type = Object.freeze({
+    REPORT_SUBMIT: 'report:submit',
+    REPORT_RESET: 'report:reset',
+    REPORT_SUCCESS: 'report:submit:success',
+    REPORT_ERROR: 'report:submit:error',
+    CAMERA_CAPTURED: 'camera:photo:captured',
+    MODULE_READY: 'module:ready',
+    CONNECTION_CHANGE: 'connection:change'
+});
 
 BCS.Mobile.UI = (() => {
 
@@ -29,11 +47,25 @@ BCS.Mobile.UI = (() => {
     // ==========================================
 
     const state = {
-        initialized: false
+        initialized: false,
+        loading: false,
+        photo: null,
+        preview: null,
+        connection: 'online'
     };
 
     // ==========================================
-    // DOM CACHE (Immutable - Sealed)
+    // EVENT SUBSCRIPTIONS
+    // ==========================================
+
+    const subscriptions = [];
+    const windowListeners = {
+        online: null,
+        offline: null
+    };
+
+    // ==========================================
+    // DOM CACHE
     // ==========================================
 
     const DOM = Object.seal({
@@ -55,6 +87,14 @@ BCS.Mobile.UI = (() => {
     });
 
     // ==========================================
+    // DEPENDENCIES
+    // ==========================================
+
+    let Renderer = null;
+    let Binder = null;
+    let Animation = null;
+
+    // ==========================================
     // LOGGER
     // ==========================================
 
@@ -64,6 +104,13 @@ BCS.Mobile.UI = (() => {
                 BCS.Logger.info('MobileUI', ...args);
             } else {
                 console.log('[MobileUI]', ...args);
+            }
+        },
+        warn(...args) {
+            if (BCS.Logger?.warn) {
+                BCS.Logger.warn('MobileUI', ...args);
+            } else {
+                console.warn('[MobileUI]', ...args);
             }
         },
         error(...args) {
@@ -76,72 +123,91 @@ BCS.Mobile.UI = (() => {
     };
 
     // ==========================================
-    // COLLECT FORM DATA (No UI manipulation)
+    // PRIVATE METHODS
     // ==========================================
 
-    function collectFormData() {
-        // Gunakan text() untuk non-input elements
-        const userName = DOM.userName ? DOM.userName.text().trim() : '';
-        const userDept = DOM.userDept ? DOM.userDept.text().trim() : '';
-        const location = DOM.lokasi ? DOM.lokasi.val().trim() : '';
-        const description = DOM.deskripsi ? DOM.deskripsi.val().trim() : '';
-        
-        return {
-            category: BCS.Mobile.Renderer.getState().category,
-            priority: BCS.Mobile.Renderer.getState().priority,
-            location: location,
-            description: description,
-            photo: state.photo || null,
-            preview: state.preview || null,
-            userName: userName,
-            userDept: userDept
+    function setupEventSubscriptions() {
+        const events = BCS.Events;
+        if (!events) return;
+
+        // Subscribe ke event-event yang diperlukan
+        const offSubmit = events.on(BCS.Events.Type.REPORT_RESET, resetForm);
+        const offSuccess = events.on(BCS.Events.Type.REPORT_SUCCESS, () => {
+            resetForm();
+        });
+        const offError = events.on(BCS.Events.Type.REPORT_ERROR, () => {
+            // Loading sudah di-handle oleh Renderer
+        });
+        const offCamera = events.on(BCS.Events.Type.CAMERA_CAPTURED, (data) => {
+            if (data.file && data.dataUrl) {
+                setPhoto(data.file, data.dataUrl);
+            }
+        });
+
+        subscriptions.push(offSubmit, offSuccess, offError, offCamera);
+    }
+
+    function setupWindowListeners() {
+        if (navigator.onLine === undefined) return;
+
+        const onlineHandler = () => {
+            state.connection = 'online';
+            if (Renderer?.update) {
+                Renderer.update({ connection: 'online' });
+            }
+            BCS.Events?.emit(BCS.Events.Type.CONNECTION_CHANGE, 'online');
         };
+
+        const offlineHandler = () => {
+            state.connection = 'offline';
+            if (Renderer?.update) {
+                Renderer.update({ connection: 'offline' });
+            }
+            BCS.Events?.emit(BCS.Events.Type.CONNECTION_CHANGE, 'offline');
+        };
+
+        windowListeners.online = onlineHandler;
+        windowListeners.offline = offlineHandler;
+
+        window.addEventListener('online', onlineHandler);
+        window.addEventListener('offline', offlineHandler);
+    }
+
+    function removeWindowListeners() {
+        if (windowListeners.online) {
+            window.removeEventListener('online', windowListeners.online);
+            windowListeners.online = null;
+        }
+        if (windowListeners.offline) {
+            window.removeEventListener('offline', windowListeners.offline);
+            windowListeners.offline = null;
+        }
+    }
+
+    function clearSubscriptions() {
+        subscriptions.forEach(off => {
+            if (typeof off === 'function') off();
+        });
+        subscriptions.length = 0;
     }
 
     // ==========================================
-    // SET PHOTO (For upload handling)
+    // PUBLIC METHODS
     // ==========================================
 
-    function setPhoto(file, preview) {
-        state.photo = file;
-        state.preview = preview;
-        BCS.Mobile.Renderer.renderPreview(preview);
-    }
-
-    // ==========================================
-    // RESET (Pure reset, no emit)
-    // ==========================================
-
-    function resetForm() {
-        state.photo = null;
-        state.preview = null;
-        BCS.Mobile.Renderer.renderReset();
-        Logger.info('Form reset (pure)');
-    }
-
-    // ==========================================
-    // DESTROY
-    // ==========================================
-
-    function destroy() {
-        if (!state.initialized) {
+    function init(options = {}) {
+        if (state.initialized) {
+            Logger.warn('Mobile UI already initialized');
             return;
         }
 
-        BCS.Mobile.Binder.unbind();
-        BCS.Mobile.Renderer.destroy();
+        // Inject dependencies
+        Renderer = options.renderer || BCS.Mobile.Renderer;
+        Binder = options.binder || BCS.Mobile.Binder;
+        Animation = options.animation || BCS.Mobile.Animation;
 
-        state.initialized = false;
-        Logger.info('Mobile UI destroyed');
-    }
-
-    // ==========================================
-    // INIT
-    // ==========================================
-
-    function init() {
-        if (state.initialized) {
-            Logger.warn('Mobile UI already initialized');
+        if (!Renderer || !Binder) {
+            Logger.error('Renderer or Binder not available');
             return;
         }
 
@@ -162,77 +228,163 @@ BCS.Mobile.UI = (() => {
         DOM.reportForm = $('#reportForm');
         DOM.connectionStatus = $('#connectionStatus');
 
-        // Initialize Renderer
-        BCS.Mobile.Renderer.init({
-            userName: DOM.userName,
-            userDept: DOM.userDept,
-            lokasi: DOM.lokasi,
-            deskripsi: DOM.deskripsi,
-            charCount: DOM.charCount,
-            photo: DOM.photo,
-            preview: DOM.preview,
-            placeholder: DOM.placeholder,
-            previewWrapper: DOM.previewWrapper,
-            category: DOM.category,
-            priority: DOM.priority,
-            submit: DOM.submit,
-            fab: DOM.fab,
-            reportForm: DOM.reportForm,
-            connectionStatus: DOM.connectionStatus
-        });
-
-        // Initialize Binder
-        BCS.Mobile.Binder.bind({
-            deskripsi: DOM.deskripsi,
-            photo: DOM.photo,
-            category: DOM.category,
-            priority: DOM.priority,
-            submit: DOM.submit,
-            fab: DOM.fab,
-            reportForm: DOM.reportForm
-        }, {
-            // Custom handlers
-            submitClick: () => {
-                if (BCS.Events) {
-                    BCS.Events.emit('report:submit');
-                }
-            },
-            // Gunakan default handlers untuk yang lain
-        });
-
-        // Listen untuk reset dari luar (tanpa emit dari UI)
-        if (BCS.Events) {
-            // Hanya listen, tidak emit
-            BCS.Events.on('report:reset', resetForm);
-            BCS.Events.on('report:submit:success', () => {
-                resetForm();
+        // Initialize Renderer dengan dependency injection
+        if (Renderer.init) {
+            Renderer.init({
+                dom: DOM,
+                animation: Animation,
+                events: BCS.Events
             });
-            BCS.Events.on('report:submit:error', () => {
-                // Loading sudah di-handle oleh Renderer
-            });
-            
-            // Listen untuk photo dari Camera module
-            BCS.Events.on('camera:photo:captured', (data) => {
-                if (data.file && data.dataUrl) {
-                    setPhoto(data.file, data.dataUrl);
+        }
+
+        // Initialize Binder dengan dependency injection
+        if (Binder.init) {
+            Binder.init({
+                dom: DOM,
+                renderer: Renderer,
+                animation: Animation,
+                events: BCS.Events,
+                handlers: {
+                    submitClick: () => {
+                        BCS.Events?.emit(BCS.Events.Type.REPORT_SUBMIT);
+                    }
                 }
             });
         }
 
-        // Initialize Connection Status
-        if (navigator.onLine !== undefined) {
-            BCS.Mobile.Renderer.renderConnection(navigator.onLine ? 'online' : 'offline');
-            
-            window.addEventListener('online', () => {
-                BCS.Mobile.Renderer.renderConnection('online');
-            });
-            window.addEventListener('offline', () => {
-                BCS.Mobile.Renderer.renderConnection('offline');
-            });
+        // Setup event subscriptions
+        setupEventSubscriptions();
+
+        // Setup window listeners
+        setupWindowListeners();
+
+        // Set initial connection status
+        if (Renderer?.update) {
+            const status = navigator.onLine ? 'online' : 'offline';
+            state.connection = status;
+            Renderer.update({ connection: status });
         }
 
         state.initialized = true;
         Logger.info('Mobile UI Ready');
+
+        // Notify module ready
+        BCS.Events?.emit(BCS.Events.Type.MODULE_READY, 'MobileUI');
+    }
+
+    function destroy() {
+        if (!state.initialized) {
+            return;
+        }
+
+        // Destroy binder
+        if (Binder?.destroy) {
+            Binder.destroy();
+        }
+
+        // Destroy renderer
+        if (Renderer?.destroy) {
+            Renderer.destroy();
+        }
+
+        // Cleanup event subscriptions
+        clearSubscriptions();
+
+        // Cleanup window listeners
+        removeWindowListeners();
+
+        // Reset state
+        state.initialized = false;
+        state.loading = false;
+        state.photo = null;
+        state.preview = null;
+        state.connection = 'online';
+
+        Logger.info('Mobile UI destroyed');
+    }
+
+    function resetForm() {
+        state.photo = null;
+        state.preview = null;
+        
+        if (Renderer?.update) {
+            Renderer.update({ reset: true });
+        }
+        
+        Logger.info('Form reset');
+    }
+
+    function collectFormData() {
+        const userName = DOM.userName ? DOM.userName.text().trim() : '';
+        const userDept = DOM.userDept ? DOM.userDept.text().trim() : '';
+        const location = DOM.lokasi ? DOM.lokasi.val().trim() : '';
+        const description = DOM.deskripsi ? DOM.deskripsi.val().trim() : '';
+        
+        // Get form state dari Renderer
+        let formState = {};
+        if (Renderer?.getFormState) {
+            formState = Renderer.getFormState();
+        }
+
+        return {
+            category: formState.category || '',
+            priority: formState.priority || '',
+            location: location,
+            description: description,
+            photo: state.photo || null,
+            preview: state.preview || null,
+            userName: userName,
+            userDept: userDept
+        };
+    }
+
+    function setPhoto(file, preview) {
+        state.photo = file;
+        state.preview = preview;
+        
+        if (Renderer?.update) {
+            Renderer.update({ preview: preview });
+        }
+    }
+
+    function setLoading(loading) {
+        state.loading = loading;
+        
+        if (Renderer?.update) {
+            Renderer.update({ loading: loading });
+        }
+    }
+
+    function setConnection(status) {
+        if (status !== 'online' && status !== 'offline') {
+            return;
+        }
+        
+        state.connection = status;
+        
+        if (Renderer?.update) {
+            Renderer.update({ connection: status });
+        }
+    }
+
+    function render() {
+        if (Renderer?.render) {
+            Renderer.render();
+        }
+    }
+
+    function getState() {
+        return {
+            initialized: state.initialized,
+            loading: state.loading,
+            photo: state.photo,
+            preview: state.preview,
+            connection: state.connection
+        };
+    }
+
+    function getDOM() {
+        return { ...DOM };
     }
 
     // ==========================================
@@ -245,36 +397,20 @@ BCS.Mobile.UI = (() => {
         resetForm,
         collectFormData,
         setPhoto,
-        getState: () => ({ 
-            ...state, 
-            photo: state.photo,
-            preview: state.preview,
-            rendererState: BCS.Mobile.Renderer.getState()
-        }),
-        getDOM: () => ({ ...DOM })
+        setLoading,
+        setConnection,
+        render,
+        getState,
+        getDOM
     });
 
 })();
 
 // ==========================================
-// AUTO-INIT
+// BOOTSTRAP
 // ==========================================
 
-$(function() {
-    if (BCS.Events) {
-        // Tunggu sampai UserReportModule siap
-        BCS.Events.on('module:ready', (module) => {
-            if (module === 'UserReport') {
-                BCS.Mobile.UI.init();
-            }
-        });
-        
-        // Jika module sudah ready, langsung init
-        if (BCS.UserReport?.initialized) {
-            BCS.Mobile.UI.init();
-        }
-    } else {
-        // Fallback jika Events tidak tersedia
-        BCS.Mobile.UI.init();
-    }
-});
+// Register module untuk bootstrap
+if (typeof BCS !== 'undefined' && BCS.Module) {
+    BCS.Module.register('MobileUI', BCS.Mobile.UI);
+}

@@ -1,5 +1,5 @@
 // ======================================================
-// Building Care System Enterprise v6.0 (CTO Level Framework)
+// Building Care System Enterprise v6.1 (CTO Level Framework)
 // Core API Framework & Modular Core Plugin Architecture
 // Radiant Group Duri
 // ======================================================
@@ -50,7 +50,13 @@ BCS.Events = (() => {
         });
     }
 
-    return Object.freeze({ on, off, once, emit });
+    // FIX: Tambahkan emitAsync untuk kompatibilitas
+    async function emitAsync(event, data) {
+        emit(event, data);
+        return Promise.resolve();
+    }
+
+    return Object.freeze({ on, off, once, emit, emitAsync });
 })();
 
 /**
@@ -110,7 +116,7 @@ const UploadProvider = {
                 data: chunkData
             };
 
-            result = await Api.post(action, payload);
+            result = await BCS.Api.post(action, payload);
 
             if (!result || !result.success) {
                 BCS.Events.emit("upload:error", { chunk: currentChunk, result });
@@ -138,7 +144,12 @@ const UploadProvider = {
  * ======================================================
  */
 const Api = (() => {
-    const BASE_URL = window.CONFIG?.API?.URL || "";
+    // FIX: Gunakan CONFIG dari global, bukan window.CONFIG?.API?.URL
+    const BASE_URL = (typeof CONFIG !== 'undefined' && CONFIG.API?.URL) || 
+                     (window.CONFIG?.API?.URL) || 
+                     "https://script.google.com/macros/s/AKfycbzN3jSKv-RywufMhzub5SAbReV0ES31_4AMZP7Us4UxhskijtydQYpOWmPgCKQ9GmzH2w/exec";
+    
+    // Jangan throw error jika URL tidak ada, gunakan default
     if (!BASE_URL) throw new Error("CONFIG.API.URL belum dikonfigurasi.");
 
     const TIMEOUT = window.CONFIG?.API?.TIMEOUT || 30000;
@@ -322,6 +333,8 @@ const Api = (() => {
     };
 })();
 
+// FIX: Assign ke BCS.Api agar bisa diakses global
+window.BCS.Api = Api;
 Object.freeze(Api);
 
 /**
@@ -335,14 +348,12 @@ BCS.Services = (() => {
     return Object.freeze({
         register: (name, serviceInstance) => {
             registry.set(name, serviceInstance);
-            // PERBAIKAN 1 FIXED: `DEBUG` global konstan digunakan menggantikan `isDebug()`
             if (DEBUG) console.log(`[SERVICE REGISTRY] Modul "${name}" berhasil terdaftar.`);
         },
         get: (name) => {
             if (!registry.has(name)) throw new Error(`Service "${name}" belum terdaftar di Core BCS.`);
             return registry.get(name);
         },
-        // PERBAIKAN 3: Penambahan metode has() untuk pengecekan eksistensi service tanpa trigger exception
         has: (name) => registry.has(name)
     });
 })();
@@ -369,7 +380,6 @@ BCS.use = (() => {
 
         if (DEBUG) console.log(`[PLUGIN ENGINE] Memasang dan menginisialisasi plugin: "${pluginName}"...`);
 
-        // Jika berbentuk fungsi jalankan constructor injeksi, jika objek jalankan metode install()
         if (typeof plugin === "function") {
             plugin(BCS, options);
         } else if (typeof plugin.install === "function") {
@@ -388,27 +398,28 @@ BCS.use = (() => {
  * INITIAL CORE CONCRETE DOMAIN SERVICES
  * ======================================================
  */
+// FIX: Gunakan BCS.Api bukan Api
 const AuthService = {
-    login: payload => Api.post("login", payload),
-    logout: payload => Api.post("logout", payload),
-    verify: payload => Api.post("verifySession", payload),
-    ping: () => Api.post("ping")
+    login: payload => BCS.Api.post("login", payload),
+    logout: payload => BCS.Api.post("logout", payload),
+    verify: payload => BCS.Api.post("verifySession", payload),
+    ping: () => BCS.Api.post("ping")
 };
 
 const ReportService = {
-    save: payload => Api.post("saveReport", payload),
-    update: payload => Api.post("updateReport", payload),
-    delete: payload => Api.post("deleteReport", payload),
-    approve: payload => Api.post("approveReport", payload),
-    reject: payload => Api.post("rejectReport", payload),
-    getHistory: payload => Api.get("getHistory", payload),
-    upload: (file, options) => Api.upload(file, "uploadReportAttachment", options)
+    save: payload => BCS.Api.post("saveReport", payload),
+    update: payload => BCS.Api.post("updateReport", payload),
+    delete: payload => BCS.Api.post("deleteReport", payload),
+    approve: payload => BCS.Api.post("approveReport", payload),
+    reject: payload => BCS.Api.post("rejectReport", payload),
+    getHistory: payload => BCS.Api.get("getHistory", payload),
+    upload: (file, options) => BCS.Api.upload(file, "uploadReportAttachment", options)
 };
 
 const SystemService = {
-    getDashboard: payload => Api.post("dashboard", payload),
-    getWorkOrder: payload => Api.post("workorder", payload),
-    getUserManagement: payload => Api.post("user", payload)
+    getDashboard: payload => BCS.Api.post("dashboard", payload),
+    getWorkOrder: payload => BCS.Api.post("workorder", payload),
+    getUserManagement: payload => BCS.Api.post("user", payload)
 };
 
 // Auto-register core service bawaan sistem
@@ -418,8 +429,13 @@ BCS.Services.register("system", SystemService);
 
 // Bind entitas ke namespace BCS global penampung utama (Bug 1 & 2 Guard Safe Extensible)
 Object.assign(window.BCS, {
-    Api,
+    Api: BCS.Api,
     AuthService,
     ReportService,
     SystemService
 });
+
+// FIX: Tambahkan alias window.Api untuk kompatibilitas
+window.Api = BCS.Api;
+
+console.log("[BCS] Core API Framework initialized");

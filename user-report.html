@@ -60,31 +60,21 @@
                         <i class="bi bi-snow"></i>
                         <span>AC</span>
                     </div>
-                    <div class="category-card" data-value="GEDUNG">
+                    <div class="category-card" data-value="KONDISI GEDUNG">
                         <i class="bi bi-building"></i>
-                        <span>GEDUNG</span>
-                    </div>
-                    <div class="category-card" data-value="AIR">
-                        <i class="bi bi-droplet"></i>
-                        <span>AIR</span>
+                        <span>KONDISI GEDUNG</span>
                     </div>
                 </div>
             </div>
 
-            <!-- ====== PRIORITAS ====== -->
+            <!-- ====== PRIORITAS (DROPDOWN) ====== -->
             <div class="form-group">
                 <label class="form-label">Prioritas</label>
-                <div class="priority-grid" id="priorityGrid">
-                    <div class="priority-card active" data-priority="NORMAL">
-                        🟢 NORMAL
-                    </div>
-                    <div class="priority-card" data-priority="HIGH">
-                        🟡 HIGH
-                    </div>
-                    <div class="priority-card" data-priority="URGENT">
-                        🔴 URGENT
-                    </div>
-                </div>
+                <select id="prioritySelect" class="form-select">
+                    <option value="NORMAL">🟢 NORMAL</option>
+                    <option value="HIGH">🟡 HIGH</option>
+                    <option value="URGENT">🔴 URGENT</option>
+                </select>
             </div>
 
             <!-- ====== DESKRIPSI ====== -->
@@ -166,26 +156,24 @@
 
     </nav>
 
-   <!-- ====== SCRIPTS ====== -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- ====== SCRIPTS ====== -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-<!-- 🔥 KRITIS: CONFIG DULUAN -->
-<script src="./config/config.js"></script>
+    <!-- Config -->
+    <script src="./config/config.js"></script>
 
-<!-- 🔥 KRITIS: SESSION.js - PALING PERTAMA -->
-<script src="./assets/js/core/session.js"></script>
+    <!-- Core -->
+    <script src="./assets/js/core/session.js"></script>
+    <script src="./assets/js/core/app.js"></script>
+    <script src="./assets/js/core/api.js"></script>
 
-<!-- 🔥 KEMUDIAN CORE LAINNYA -->
-<script src="./assets/js/core/app.js"></script>
-<script src="./assets/js/core/api.js"></script>
+    <!-- Modules -->
+    <script src="./assets/js/modules/auth.js"></script>
+    <script src="./assets/js/modules/userReport.js"></script>
 
-<!-- 🔥 MODULES -->
-<script src="./assets/js/modules/auth.js"></script>
-<script src="./assets/js/modules/userReport.js"></script>
-
-<!-- 🔥 MOBILE UI - PALING AKHIR -->
-<script src="./assets/js/mobile/mobile-ui.js"></script>
+    <!-- Mobile UI -->
+    <script src="./assets/js/mobile/mobile-ui.js"></script>
 
 </body>
 </html>

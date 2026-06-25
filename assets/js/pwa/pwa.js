@@ -96,3 +96,205 @@ const PWA = (() => {
     // ==========================================
 
 })();
+    // ==========================================
+    // MODULE REGISTRY
+    // ==========================================
+
+    const modules = {
+
+        install: null,
+
+        update: null
+
+    };
+
+    // ==========================================
+    // UPDATE STATE
+    // ==========================================
+
+    function updateState(key, value) {
+
+        state[key] = value;
+
+        BCS.Events?.emit?.("pwa:state", {
+
+            key,
+
+            value,
+
+            state: getState()
+
+        });
+
+    }
+
+    function getState() {
+
+        return {
+
+            ...state
+
+        };
+
+    }
+
+    // ==========================================
+    // LOAD MODULES
+    // ==========================================
+
+    function loadModules() {
+
+        modules.install =
+
+            BCS.PWA?.Install ||
+
+            window.PWAInstall ||
+
+            null;
+
+        modules.update =
+
+            BCS.PWA?.Update ||
+
+            window.PWAUpdate ||
+
+            null;
+
+        Logger.info(
+
+            "Modules loaded",
+
+            {
+
+                install: !!modules.install,
+
+                update: !!modules.update
+
+            }
+
+        );
+
+    }
+
+    // ==========================================
+    // INIT MODULES
+    // ==========================================
+
+    async function initModules() {
+
+        loadModules();
+
+        if (modules.install?.init) {
+
+            await modules.install.init();
+
+            updateState(
+
+                "install",
+
+                true
+
+            );
+
+        }
+
+        if (modules.update?.init) {
+
+            await modules.update.init();
+
+            updateState(
+
+                "update",
+
+                true
+
+            );
+
+        }
+
+    }
+    // ==========================================
+    // INIT
+    // ==========================================
+
+    async function init(config = {}) {
+
+        if (state.initialized) {
+
+            return;
+
+        }
+
+        runtimeConfig = {
+
+            ...runtimeConfig,
+
+            ...config
+
+        };
+
+        Logger.info(
+
+            "Initializing PWA..."
+
+        );
+
+        try {
+
+            if (
+
+                runtimeConfig.autoInitModules
+
+            ) {
+
+                await initModules();
+
+            }
+
+            updateState(
+
+                "initialized",
+
+                true
+
+            );
+
+            updateState(
+
+                "ready",
+
+                true
+
+            );
+
+            BCS.Events?.emit?.(
+
+                "pwa:ready"
+
+            );
+
+            Logger.info(
+
+                "PWA Ready"
+
+            );
+
+        }
+
+        catch (err) {
+
+            Logger.error(err);
+
+            BCS.Events?.emit?.(
+
+                "pwa:error",
+
+                err
+
+            );
+
+            throw err;
+
+        }
+
+    }

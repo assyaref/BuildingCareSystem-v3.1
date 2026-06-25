@@ -1,12 +1,12 @@
 // ======================================================
 // Building Care System Enterprise v6.2 FINAL
-// Core API Framework - FIXED
+// Core API Framework
 // Radiant Group Duri
 // ======================================================
 
 "use strict";
 
-// Pastikan BCS.Events sudah ada (dari app.js)
+// Pastikan BCS dan BCS.Events tersedia
 if (!window.BCS) window.BCS = {};
 if (!BCS.Events) {
     BCS.Events = (() => {
@@ -34,8 +34,6 @@ const API_URL = (typeof CONFIG !== 'undefined' && CONFIG.API?.URL) ||
                 (window.CONFIG?.API?.URL) || 
                 "https://script.google.com/macros/s/AKfycbzN3jSKv-RywufMhzub5SAbReV0ES31_4AMZP7Us4UxhskijtydQYpOWmPgCKQ9GmzH2w/exec";
 
-const API_TIMEOUT = window.CONFIG?.API?.TIMEOUT || 30000;
-
 // ======================================================
 // API ENGINE
 // ======================================================
@@ -56,22 +54,49 @@ const Api = (() => {
         }
     }
 
+    /**
+     * Get token from any available source
+     */
+    function getToken() {
+        // Coba dari Session
+        if (window.Session && typeof Session.getToken === 'function') {
+            const token = Session.getToken();
+            if (token && token !== "undefined" && token !== "null") {
+                return token;
+            }
+        }
+        
+        // Coba dari localStorage langsung
+        try {
+            const token = localStorage.getItem("token");
+            if (token && token !== "undefined" && token !== "null") {
+                return token;
+            }
+        } catch (e) {}
+        
+        // Coba dari BCS_SESSION
+        try {
+            const session = localStorage.getItem("BCS_SESSION");
+            if (session) {
+                const data = JSON.parse(session);
+                if (data && data.token) {
+                    return data.token;
+                }
+            }
+        } catch (e) {}
+        
+        return null;
+    }
+
     async function request(method, action, data = {}) {
         showLoading();
         
         try {
-            // Get token from Session or Auth
-            let token = null;
-            if (window.Session && typeof Session.getToken === 'function') {
-                token = Session.getToken();
-            } else if (window.Auth && typeof Auth.token === 'function') {
-                token = Auth.token();
-            } else {
-                token = localStorage.getItem("token");
-            }
+            // Get token
+            const token = getToken();
             
             const payload = { action, ...data };
-            if (token && token !== "undefined" && token !== "null") {
+            if (token) {
                 payload.token = token;
             }
 
@@ -88,7 +113,10 @@ const Api = (() => {
             if (method === "GET") {
                 const params = new URLSearchParams({ action, ...data });
                 url = `${API_URL}?${params.toString()}`;
+                delete options.body;
             }
+
+            console.log(`[API] ${method} ${action}`, { url, payload });
 
             const response = await fetch(url, options);
             
@@ -103,9 +131,6 @@ const Api = (() => {
                 console.warn("[API] Session expired, clearing...");
                 if (window.Session && typeof Session.clear === 'function') {
                     Session.clear();
-                }
-                if (window.Auth && typeof Auth.clear === 'function') {
-                    Auth.clear();
                 }
                 localStorage.removeItem("token");
                 localStorage.removeItem("BCS_SESSION");

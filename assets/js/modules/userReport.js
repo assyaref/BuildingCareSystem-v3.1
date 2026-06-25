@@ -1,28 +1,31 @@
 // =====================================================
-// Building Care System Enterprise v7.0 (Enterprise Edition)
-// userReport.js
-// ROLE USER - MOBILE REPORT
+// Building Care System Enterprise v7.1 (Enterprise Edition)
+// userReport.js - ROLE USER - MOBILE REPORT
 // Radiant Group Duri
 // =====================================================
 
 "use strict";
 
-BCS.Modules.register("user-report", (() => {
+/**
+ * User Report Module
+ */
+const UserReportModule = (() => {
 
-    // CONFIGURATIONS & CONSTANTS
+    // ==========================================
+    // CONFIGURATION
+    // ==========================================
     const TAG = "UserReport";
-    const DEFAULT_PRIORITY = "NORMAL";
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-    
-    // 4. MIME VALIDATION EXTENSION (Including iOS High-Efficiency Image Container)
     const ALLOWED_MIMES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
 
-    // 1. SCALABLE STATE ENGINE
+    // ==========================================
+    // STATE
+    // ==========================================
     const state = {
         user: {},
         form: {
             kategori: "",
-            prioritas: DEFAULT_PRIORITY,
+            prioritas: "NORMAL",
             photo: "",
             filename: ""
         },
@@ -31,95 +34,137 @@ BCS.Modules.register("user-report", (() => {
         }
     };
 
-    // DOM CACHE CONTAINER
+    // ==========================================
+    // DOM CACHE
+    // ==========================================
     let DOM = {};
-    function initDOMCache() {
+
+    function initDOM() {
         DOM = {
-            userName: $("#userName"),
-            userDept: $("#userDept"),
-            lokasi: $("#lokasi"),
-            deskripsi: $("#deskripsi"),
-            charCount: $("#charCount"),
-            photo: $("#photo"),
-            previewImage: $("#previewImage"),
-            previewPlaceholder: $("#previewPlaceholder"),
-            submitReport: $("#submitReport"),
-            categoryItems: $(".category-item"),
-            priorityItems: $(".priority-item")
+            userName: document.getElementById('userName'),
+            userDept: document.getElementById('userDept'),
+            userAvatar: document.getElementById('userAvatar'),
+            lokasi: document.getElementById('lokasi'),
+            deskripsi: document.getElementById('deskripsi'),
+            charCount: document.getElementById('charCount'),
+            photo: document.getElementById('photo'),
+            previewImage: document.getElementById('previewImage'),
+            previewPlaceholder: document.getElementById('previewPlaceholder'),
+            photoRemove: document.getElementById('photoRemove'),
+            submitReport: document.getElementById('submitReport'),
+            categoryCards: document.querySelectorAll('.category-card'),
+            prioritySelect: document.getElementById('prioritySelect'),
+            previewWrapper: document.getElementById('previewWrapper')
         };
     }
 
     // ==========================================
-    // INITIALIZATION LIFECYCLE
+    // INITIALIZATION
     // ==========================================
-    async function init() {
-        BCS.Logger.debug(TAG, "Memulai inisialisasi modul.");
-        initDOMCache();
+    function init() {
+        console.log(`[${TAG}] Initializing...`);
         
-        state.user = BCS.Auth?.user() || BCS.Store.get("BCS_USER");
-        if (!checkAuth()) return;
-
+        initDOM();
+        loadUserData();
         bindEvents();
-        render();
-        BCS.Logger.info(TAG, "Lifecycle Init selesai dijalankan.");
+        renderForm();
+        
+        console.log(`[${TAG}] Ready`);
     }
 
     // ==========================================
-    // AUTHENTICATION GUARD
+    // LOAD USER DATA
     // ==========================================
-    function checkAuth() {
-        if (!state.user || !state.user.nama) {
-            BCS.Logger.warn(TAG, "Autentikasi gagal: Sesi kedaluwarsa.");
-            BCS.App.Toast.warning("Session Expired");
-            BCS.App.Navigate.go("login.html");
-            return false;
+    function loadUserData() {
+        try {
+            if (window.Session && Session.isLoggedIn()) {
+                state.user = Session.getUser();
+                const nama = Session.getNama() || state.user?.nama || state.user?.name || "User";
+                const dept = Session.getDept() || state.user?.departemen || state.user?.department || "";
+
+                if (DOM.userName) {
+                    DOM.userName.textContent = `Halo ${nama} 👋`;
+                }
+                if (DOM.userDept) {
+                    DOM.userDept.textContent = dept || Session.getNik() || "Building Care";
+                }
+                if (DOM.userAvatar) {
+                    const initial = nama.charAt(0).toUpperCase();
+                    DOM.userAvatar.textContent = /[A-Z]/.test(initial) ? initial : "👤";
+                }
+            } else {
+                console.warn(`[${TAG}] User not logged in`);
+                window.location.href = 'login.html';
+            }
+        } catch (e) {
+            console.error(`[${TAG}] Failed to load user:`, e);
         }
-        return true;
     }
 
     // ==========================================
-    // CENTRALIZED EVENT BINDING
+    // BIND EVENTS
     // ==========================================
     function bindEvents() {
-        BCS.Logger.trace(TAG, "Melakukan binding event listener.");
-
-        DOM.categoryItems.on("click", function () {
-            state.form.kategori = $(this).data("value");
-            renderForm();
+        // Kategori - click
+        DOM.categoryCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const value = this.dataset.value;
+                state.form.kategori = value;
+                renderForm();
+            });
         });
 
-        DOM.priorityItems.on("click", function () {
-            state.form.prioritas = $(this).data("priority");
-            renderForm();
-        });
+        // Prioritas - change dropdown
+        if (DOM.prioritySelect) {
+            DOM.prioritySelect.addEventListener('change', function() {
+                state.form.prioritas = this.value;
+                renderForm();
+            });
+        }
 
-        DOM.deskripsi.on("input", function () {
-            DOM.charCount.text($(this).val().length);
-        });
+        // Deskripsi - char counter
+        if (DOM.deskripsi) {
+            DOM.deskripsi.addEventListener('input', function() {
+                if (DOM.charCount) {
+                    DOM.charCount.textContent = this.value.length;
+                }
+            });
+        }
 
-        DOM.photo.on("change", handlePhotoChange);
-        DOM.submitReport.on("click", submitReport);
+        // Photo - change
+        if (DOM.photo) {
+            DOM.photo.addEventListener('change', handlePhotoChange);
+        }
+
+        // Photo Remove
+        if (DOM.photoRemove) {
+            DOM.photoRemove.addEventListener('click', removePhoto);
+        }
+
+        // Submit
+        if (DOM.submitReport) {
+            DOM.submitReport.addEventListener('click', submitReport);
+        }
     }
 
     // ==========================================
-    // HANDLERS & PHOTO PROCESSING
+    // PHOTO HANDLING
     // ==========================================
     function handlePhotoChange(e) {
         const file = e.target.files[0];
         if (!file) return;
 
-        // 4. Multi-Criteria Photo Validation (Size & Mime Guard)
+        // Validasi ukuran
         if (file.size > MAX_FILE_SIZE) {
-            BCS.Logger.warn(TAG, `File ditolak: Ukuran ${file.size} melebihi batas.`);
-            BCS.App.Toast.warning("Ukuran foto maksimal 5 MB");
-            DOM.photo.val("");
+            alert('Ukuran foto maksimal 5 MB');
+            DOM.photo.value = '';
             return;
         }
 
+        // Validasi format
         if (!ALLOWED_MIMES.includes(file.type)) {
-            BCS.Logger.warn(TAG, `File ditolak: Format MIME '${file.type}' tidak diizinkan.`);
-            BCS.App.Toast.warning("Format file harus JPEG, PNG, WEBP, atau HEIC/HEIF");
-            DOM.photo.val("");
+            alert('Format file harus JPEG, PNG, WEBP, atau HEIC/HEIF');
+            DOM.photo.value = '';
             return;
         }
 
@@ -128,41 +173,88 @@ BCS.Modules.register("user-report", (() => {
     }
 
     function processPhoto(file) {
-        BCS.Logger.trace(TAG, `Memproses file foto: ${file.name}`);
         const reader = new FileReader();
-        reader.onload = function (ev) {
-            state.form.photo = ev.target.result; 
+        reader.onload = function(ev) {
+            state.form.photo = ev.target.result;
             renderForm();
         };
         reader.readAsDataURL(file);
     }
 
+    function removePhoto() {
+        state.form.photo = '';
+        state.form.filename = '';
+        DOM.photo.value = '';
+        renderForm();
+    }
+
     // ==========================================
-    // FORM VALIDATION ENGINE
+    // RENDER FORM
+    // ==========================================
+    function renderForm() {
+        // Kategori
+        DOM.categoryCards.forEach(card => {
+            card.classList.toggle('active', card.dataset.value === state.form.kategori);
+        });
+
+        // Prioritas dropdown
+        if (DOM.prioritySelect) {
+            DOM.prioritySelect.value = state.form.prioritas;
+        }
+
+        // Preview Photo
+        if (state.form.photo) {
+            DOM.previewImage.src = state.form.photo;
+            DOM.previewImage.classList.remove('d-none');
+            if (DOM.previewPlaceholder) DOM.previewPlaceholder.style.display = 'none';
+            if (DOM.photoRemove) DOM.photoRemove.classList.remove('d-none');
+        } else {
+            DOM.previewImage.src = '';
+            DOM.previewImage.classList.add('d-none');
+            if (DOM.previewPlaceholder) DOM.previewPlaceholder.style.display = 'flex';
+            if (DOM.photoRemove) DOM.photoRemove.classList.add('d-none');
+        }
+
+        // Submit button state
+        renderButton();
+    }
+
+    // ==========================================
+    // RENDER BUTTON
+    // ==========================================
+    function renderButton() {
+        if (!DOM.submitReport) return;
+        
+        if (state.ui.submitting) {
+            DOM.submitReport.disabled = true;
+            DOM.submitReport.innerHTML = `<i class="bi bi-hourglass-split"></i> Mengirim...`;
+        } else {
+            DOM.submitReport.disabled = false;
+            DOM.submitReport.innerHTML = `<i class="bi bi-send-fill"></i> Kirim Report`;
+        }
+    }
+
+    // ==========================================
+    // VALIDATION
     // ==========================================
     function validateForm() {
-        const lokasi = DOM.lokasi.val().trim();
-        const deskripsi = DOM.deskripsi.val().trim();
+        const lokasi = DOM.lokasi?.value?.trim() || '';
+        const deskripsi = DOM.deskripsi?.value?.trim() || '';
 
-        if (!BCS.Validator) {
-            BCS.Logger.warn(TAG, "Core Validator tidak ditemukan, melewati validasi.");
-            return true;
-        }
-
-        if (!BCS.Validator.validate(lokasi, ["required"]).valid) {
-            BCS.App.Toast.warning("Lokasi wajib diisi");
+        if (!lokasi) {
+            alert('Lokasi wajib diisi');
+            DOM.lokasi?.focus();
             return false;
         }
 
-        if (!BCS.Validator.validate(state.form.kategori, ["required"]).valid) {
-            BCS.App.Toast.warning("Pilih kategori kerusakan");
+        if (!state.form.kategori) {
+            alert('Pilih kategori kerusakan');
             return false;
         }
 
-        const deskripsiValid = BCS.Validator.validate(deskripsi, ["required", "min:5"]);
-        if (!deskripsiValid.valid) {
-            const hasValue = BCS.Validator.validate(deskripsi, ["required"]).valid;
-            BCS.App.Toast.warning(hasValue ? "Deskripsi terlalu pendek" : "Deskripsi wajib diisi");
+        if (!deskripsi || deskripsi.length < 5) {
+            alert('Deskripsi wajib diisi minimal 5 karakter');
+            DOM.deskripsi?.focus();
             return false;
         }
 
@@ -170,209 +262,102 @@ BCS.Modules.register("user-report", (() => {
     }
 
     // ==========================================
-    // PAYLOAD BUILDER LAYER
+    // BUILD PAYLOAD
     // ==========================================
     function buildPayload() {
-        const payload = {
-            nama: state.user.nama,
-            departemen: state.user.departemen || "-",
-            lokasi: DOM.lokasi.val().trim(),
+        return {
+            nama: state.user?.nama || state.user?.name || "User",
+            nik: Session?.getNik() || state.user?.nik || "",
+            departemen: state.user?.departemen || state.user?.department || "-",
+            lokasi: DOM.lokasi?.value?.trim() || "",
             kategori: state.form.kategori,
             prioritas: state.form.prioritas,
-            deskripsi: DOM.deskripsi.val().trim(),
-            photo: state.form.photo,
-            filename: state.form.filename,
-            timestamp: new Date().toISOString()
-        };
-
-        // Telemetry Isolation Call
-        payload.telemetry = buildTelemetry();
-
-        return payload;
-    }
-
-    function buildTelemetry() {
-        // 5. EXTENDED HARDENED TELEMETRY DIAGNOSTICS
-        return {
-            appVersion: BCS.manifest?.version || BCS.version?.framework || "7.0",
-            device: navigator.userAgent,
-            gps: null,
-            battery: null,
-            screen: {
-                width: window.innerWidth,
-                height: window.innerHeight
-            },
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            language: navigator.language
+            deskripsi: DOM.deskripsi?.value?.trim() || "",
+            photo: state.form.photo || "",
+            filename: state.form.filename || "",
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent
         };
     }
 
     // ==========================================
-    // API EXECUTION SUBMIT
+    // SUBMIT REPORT
     // ==========================================
     async function submitReport() {
         if (state.ui.submitting) return;
-        if (!checkAuth()) return;
         if (!validateForm()) return;
 
-        BCS.Logger.info(TAG, "Memulai pengiriman submit report form.");
         state.ui.submitting = true;
-        Button.render();
+        renderButton();
 
         try {
-            // 3. SAFE COUNTER GUARD FOR PARALLEL REQUESTS
-            BCS.App.Loading.show();
-
             const payload = buildPayload();
-            const res = await BCS.Api.report(payload);
+            console.log(`[${TAG}] Submitting report:`, payload);
 
-            if (!res) {
-                BCS.App.Toast.danger("Tidak ada respon server");
-                return;
+            // 🔥 Kirim ke API
+            const response = await BCS.Api.post('saveReport', payload);
+            console.log(`[${TAG}] Response:`, response);
+
+            if (response && response.success) {
+                alert('✅ Report berhasil dikirim!');
+                clearForm();
+            } else {
+                alert('❌ Gagal mengirim report: ' + (response?.message || 'Unknown error'));
             }
 
-            if (!res.success) {
-                BCS.App.Toast.danger(res.message || "Gagal menyimpan report");
-                return;
-            }
-
-            BCS.Logger.info(TAG, "Laporan sukses terkirim ke server API.");
-            BCS.App.Toast.success("Report berhasil dikirim");
-
-            // 2. FULLY ENHANCED PAYLOAD EMISSION FOR DASHBOARD/HISTORY SYNC
-            BCS.Events.emit("report:created", {
-                report: payload,
-                response: res,
-                timestamp: Date.now()
-            });
-
-            clearState();
-
-        } catch (err) {
-            BCS.Error.handle(err);
+        } catch (error) {
+            console.error(`[${TAG}] Submit error:`, error);
+            alert('❌ Terjadi kesalahan saat mengirim report');
         } finally {
             state.ui.submitting = false;
-            
-            // 3. INTERNAL COUNTER SINKRONISASI CO-RELATION GUARD
-            BCS.App.Loading.hide();
-            Button.render();
+            renderButton();
         }
     }
 
     // ==========================================
-    // 1. DATA STATE RESET & CLEARING ENGINE
+    // CLEAR FORM
     // ==========================================
-    function resetState() {
-        state.form.kategori = "";
-        state.form.prioritas = DEFAULT_PRIORITY;
-        state.form.photo = "";
-        state.form.filename = "";
-        state.ui.submitting = false;
-    }
+    function clearForm() {
+        state.form.kategori = '';
+        state.form.prioritas = 'NORMAL';
+        state.form.photo = '';
+        state.form.filename = '';
 
-    function clearState() {
-        resetState();
+        if (DOM.lokasi) DOM.lokasi.value = '';
+        if (DOM.deskripsi) DOM.deskripsi.value = '';
+        if (DOM.charCount) DOM.charCount.textContent = '0';
+        if (DOM.photo) DOM.photo.value = '';
 
-        DOM.lokasi.val("");
-        DOM.deskripsi.val("");
-        DOM.charCount.text("0");
-        DOM.photo.val("");
-
-        render();
-    }
-
-    // ==========================================
-    // PIPELINE UNIFIED RENDER LAYER
-    // ==========================================
-    function render() {
-        renderHeader();
         renderForm();
-        renderFooter();
-    }
-
-    function renderHeader() {
-        if (state.user) {
-            DOM.userName.html(`Halo ${state.user.nama} 👋`);
-            DOM.userDept.text(state.user.departemen || "-");
-        }
-    }
-
-    function renderForm() {
-        // Render Preview Photo
-        if (state.form.photo) {
-            DOM.previewImage.removeClass("d-none").attr("src", state.form.photo);
-            DOM.previewPlaceholder.hide();
-        } else {
-            DOM.previewImage.attr("src", "").addClass("d-none");
-            DOM.previewPlaceholder.show();
-        }
-
-        // Render Priority Active Items
-        DOM.priorityItems.removeClass("active");
-        $(`.priority-item[data-priority='${state.form.prioritas}']`).addClass("active");
-
-        // Render Category Active Items
-        DOM.categoryItems.removeClass("active");
-        if (state.form.kategori) {
-            $(`.category-item[data-value='${state.form.kategori}']`).addClass("active");
-        }
-
-        // Render Component Button State
-        Button.render();
-    }
-
-    function renderFooter() {
-        // Slot untuk render metadata status, badge, last login, atau copyright footer
     }
 
     // ==========================================
-    // GLOBAL BUTTON COMPONENT OBJECT
-    // ==========================================
-    const Button = {
-        render() {
-            if (state.ui.submitting) {
-                DOM.submitReport.prop("disabled", true).html(`
-                    <i class="bi bi-hourglass-split"></i> Mengirim...
-                `);
-            } else {
-                DOM.submitReport.prop("disabled", false).html(`
-                    <i class="bi bi-send-fill"></i> Kirim Report
-                `);
-            }
-        }
-    };
-
-    // ==========================================
-    // CLEANUP GARBAGE COLLECTOR
+    // DESTROY
     // ==========================================
     function destroy() {
-        BCS.Logger.debug(TAG, "Mengeksekusi rutin pembongkaran modul destroy().");
-        
-        // Unbind event listeners
-        DOM.categoryItems.off("click");
-        DOM.priorityItems.off("click");
-        DOM.deskripsi.off("input");
-        DOM.photo.off("change");
-        DOM.submitReport.off("click");
-        
-        // 1. RE-INITIALIZE SAFE MEMORY INSTEAD OF NULLIFYING THE ROOT OBJECT
-        resetState();
-        state.user = {};
-        
-        DOM = {};
-        BCS.Logger.info(TAG, "Modul berhasil dihancurkan & memori dibersihkan untuk siklus berikutnya.");
+        console.log(`[${TAG}] Destroying...`);
+        // Cleanup events jika perlu
     }
 
+    // ==========================================
+    // EXPORT
+    // ==========================================
     return {
         init,
         destroy
     };
 
-})());
+})();
 
 // ==========================================
-// AUTOMATIC LIFECYCLE TRIGGER
+// AUTO INIT
 // ==========================================
-$(document).ready(() => {
-    BCS.Modules.init("user-report");
+document.addEventListener('DOMContentLoaded', function() {
+    // Tunggu auth selesai
+    setTimeout(() => {
+        UserReportModule.init();
+    }, 300);
 });
+
+// Export ke global
+window.UserReport = UserReportModule;

@@ -2,16 +2,23 @@
 <html lang="id">
 
 <head>
-
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="Building Care System Enterprise - Radiant Group Duri">
     <meta name="author" content="Radiant Group Duri">
 
+    <!-- ✅ PWA Meta Tags -->
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+
     <title>Building Care System Enterprise</title>
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+    <!-- ✅ Tambahkan icon untuk PWA (ukuran besar) -->
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -110,7 +117,7 @@
                             <small class="text-muted">Secure Login</small>
                         </div>
 
-                        <!-- LOGIN BUTTON - ID diubah ke btnLogin -->
+                        <!-- LOGIN BUTTON -->
                         <div class="d-grid">
                             <button id="btnLogin" type="submit" class="btn btn-primary btn-lg">
                                 <i class="fa-solid fa-right-to-bracket me-2"></i>LOGIN
@@ -162,5 +169,21 @@
 
 <!-- Modules -->
 <script src="assets/js/modules/auth.js"></script>
+
+<!-- ✅ Registrasi Service Worker untuk PWA -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('sw.js')
+                .then(function(registration) {
+                    console.log('Service Worker registered successfully with scope:', registration.scope);
+                })
+                .catch(function(error) {
+                    console.log('Service Worker registration failed:', error);
+                });
+        });
+    }
+</script>
+
 </body>
 </html>

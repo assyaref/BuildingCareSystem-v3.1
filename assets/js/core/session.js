@@ -1,7 +1,8 @@
 // ======================================================
 // Building Care System Enterprise
 // File : assets/js/core/session.js
-// Desc : Session Manager - Compatible with Auth.js
+// Desc : Session Manager - Full Compatibility with Auth.js
+// Version : 3.0
 // ======================================================
 
 "use strict";
@@ -9,7 +10,7 @@
 const SESSION_KEY = "BCS_SESSION";
 
 /**
- * Session Manager - Single source of truth untuk session
+ * Session Manager - Single source of truth
  */
 const Session = (() => {
     
@@ -18,16 +19,24 @@ const Session = (() => {
      */
     function get() {
         try {
-            const data = localStorage.getItem(SESSION_KEY);
-            if (!data) {
-                // Fallback: coba baca dari key lama
-                return getLegacySession();
+            // Coba baca dari BCS_SESSION dulu
+            let data = localStorage.getItem(SESSION_KEY);
+            
+            if (data) {
+                try {
+                    const session = JSON.parse(data);
+                    if (session && session.token) {
+                        // Sync ke key legacy untuk kompatibilitas
+                        syncToLegacy(session);
+                        return session;
+                    }
+                } catch (e) {
+                    console.warn("[Session] Gagal parse BCS_SESSION:", e);
+                }
             }
-            const session = JSON.parse(data);
-            if (session && session.token) {
-                return session;
-            }
-            return null;
+            
+            // Fallback: coba baca dari key lama
+            return getLegacySession();
         } catch (e) {
             console.warn("[Session] Gagal membaca session:", e);
             return null;
@@ -35,23 +44,47 @@ const Session = (() => {
     }
 
     /**
-     * Fallback untuk kompatibilitas dengan key lama
+     * Sync session ke key legacy
+     */
+    function syncToLegacy(session) {
+        try {
+            if (session.token) {
+                localStorage.setItem("token", session.token);
+            }
+            if (session.user) {
+                localStorage.setItem("user", JSON.stringify(session.user));
+            }
+            if (session.nik) {
+                localStorage.setItem("nik", session.nik);
+            }
+            if (session.role) {
+                localStorage.setItem("role", session.role);
+            }
+        } catch (e) {
+            // Ignore
+        }
+    }
+
+    /**
+     * Fallback: baca dari key legacy
      */
     function getLegacySession() {
         try {
             const token = localStorage.getItem("token");
-            const user = localStorage.getItem("user");
+            const userStr = localStorage.getItem("user");
             const nik = localStorage.getItem("nik");
             const role = localStorage.getItem("role");
 
             if (token) {
+                const user = userStr ? JSON.parse(userStr) : {};
                 const session = {
                     token: token,
-                    user: user ? JSON.parse(user) : {},
-                    nik: nik || "",
-                    role: role || ""
+                    user: user,
+                    nik: nik || user?.nik || "",
+                    role: role || user?.role || ""
                 };
-                // Simpan ke format baru untuk下一次
+                
+                // Simpan ke format baru
                 localStorage.setItem(SESSION_KEY, JSON.stringify(session));
                 return session;
             }
@@ -71,18 +104,33 @@ const Session = (() => {
                 console.warn("[Session] Session tidak valid, tidak disimpan");
                 return false;
             }
-            localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+            // Normalisasi data
+            const normalized = {
+                token: session.token,
+                user: session.user || {},
+                nik: session.nik || session.user?.nik || "",
+                role: session.role || session.user?.role || ""
+            };
+
+            // Simpan ke BCS_SESSION
+            localStorage.setItem(SESSION_KEY, JSON.stringify(normalized));
             
-            // Simpan juga ke key lama untuk kompatibilitas
-            localStorage.setItem("token", session.token);
-            localStorage.setItem("user", JSON.stringify(session.user || {}));
-            if (session.user?.nik) {
-                localStorage.setItem("nik", session.user.nik);
+            // Simpan ke key legacy
+            localStorage.setItem("token", normalized.token);
+            localStorage.setItem("user", JSON.stringify(normalized.user));
+            if (normalized.nik) {
+                localStorage.setItem("nik", normalized.nik);
             }
-            if (session.user?.role) {
-                localStorage.setItem("role", session.user.role);
+            if (normalized.role) {
+                localStorage.setItem("role", normalized.role);
             }
-            
+
+            console.log("✅ [Session] Session tersimpan:", {
+                token: normalized.token.substring(0, 20) + "...",
+                nik: normalized.nik,
+                role: normalized.role
+            });
             return true;
         } catch (e) {
             console.error("[Session] Gagal menyimpan session:", e);
@@ -101,6 +149,7 @@ const Session = (() => {
             localStorage.removeItem("nik");
             localStorage.removeItem("role");
             localStorage.removeItem("BCS_REMEMBER");
+            console.log("✅ [Session] Session cleared");
             return true;
         } catch (e) {
             console.warn("[Session] Gagal menghapus session:", e);
@@ -109,7 +158,7 @@ const Session = (() => {
     }
 
     /**
-     * Cek apakah user sudah login
+     * Cek login status
      */
     function isLoggedIn() {
         const session = get();
@@ -125,7 +174,7 @@ const Session = (() => {
     }
 
     /**
-     * Ambil data user
+     * Ambil user
      */
     function getUser() {
         const session = get();
@@ -133,23 +182,23 @@ const Session = (() => {
     }
 
     /**
-     * Ambil NIK user
+     * Ambil NIK
      */
     function getNik() {
         const session = get();
-        return session?.user?.nik || session?.nik || "";
+        return session?.nik || session?.user?.nik || "";
     }
 
     /**
-     * Ambil role user
+     * Ambil Role
      */
     function getRole() {
         const session = get();
-        return session?.user?.role || session?.role || "";
+        return session?.role || session?.user?.role || "";
     }
 
     /**
-     * Ambil nama user
+     * Ambil Nama
      */
     function getNama() {
         const session = get();
@@ -157,11 +206,18 @@ const Session = (() => {
     }
 
     /**
-     * Ambil departemen user
+     * Ambil Departemen
      */
     function getDept() {
         const session = get();
         return session?.user?.departemen || session?.user?.department || "";
+    }
+
+    /**
+     * Ambil data lengkap session
+     */
+    function getFull() {
+        return get();
     }
 
     return {
@@ -174,12 +230,12 @@ const Session = (() => {
         getNik,
         getRole,
         getNama,
-        getDept
+        getDept,
+        getFull
     };
 })();
 
 // Export ke global
 window.Session = Session;
-window.session = Session;
 
-console.log("[Session] ✅ Session Manager loaded");
+console.log("✅ [Session] Session Manager loaded");

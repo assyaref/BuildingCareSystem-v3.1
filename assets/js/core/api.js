@@ -1,6 +1,6 @@
 // ======================================================
-// Building Care System Enterprise v4.5 (Refactored)
-// Core API Framework & Provider Engine
+// Building Care System Enterprise v5.0 (Enterprise Framework)
+// Core API Framework & Advanced Engine Pipeline
 // Radiant Group Duri
 // ======================================================
 
@@ -8,285 +8,372 @@
 
 /**
  * ======================================================
- * SYSTEM DEFAULT PROVIDERS (PROVIDER PATTERN)
+ * SYSTEM CONTAINER SETUP (PERBAIKAN BUG 1 & BUG 2 FIXED)
  * ======================================================
+ * Container global dikelola tanpa Object.freeze() pada root, 
+ * sehingga aman diekspansi di sprint mendatang (misal: BCS.Storage).
+ * Pembekuan (Object.freeze) diturunkan secara spesifik ke level modul.
  */
-
-// Default Fetch Provider (Dapat digunakan untuk Laravel, Node, dll)
-const FetchProvider = {
-    async request(config) {
-        const { url, method, headers, body, timeout, signal } = config;
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout || 30000);
-        
-        if (signal) {
-            signal.addEventListener('abort', () => controller.abort());
-        }
-
-        try {
-            const fetchOptions = {
-                method,
-                headers,
-                cache: "no-store",
-                signal: controller.signal,
-                body: method !== "GET" ? body : undefined
-            };
-
-            const response = await fetch(url, fetchOptions);
-            clearTimeout(timeoutId);
-            return response;
-        } catch (err) {
-            clearTimeout(timeoutId);
-            throw err;
-        }
-    }
-};
-
-// Mock Provider untuk keperluan testing lokal tanpa backend
-const MockProvider = {
-    async request(config) {
-        await new Promise(r => setTimeout(r, 500)); // Simulasi network delay
-        const urlParams = new URL(config.url).searchParams;
-        const action = config.method === "GET" ? urlParams.get("action") : JSON.parse(config.body || "{}").action;
-
-        if (action === "ping") {
-            return { ok: true, status: 200, json: async () => ({ success: true, message: "pong" }) };
-        }
-        return { ok: true, status: 200, json: async () => ({ success: true, data: {} }) };
-    }
-};
-
+window.BCS = window.BCS || {};
 
 /**
  * ======================================================
- * CORE API FRAMEWORK
+ * 1. ENTERPRISE EVENT BUS (PUB/SUB SYSTEM)
+ * ======================================================
+ */
+BCS.Events = (() => {
+    const listeners = {};
+
+    function on(event, callback) {
+        if (!listeners[event]) listeners[event] = [];
+        listeners[event].push(callback);
+    }
+
+    function off(event, callback) {
+        if (!listeners[event]) return;
+        listeners[event] = listeners[event].filter(cb => cb !== callback);
+    }
+
+    function emit(event, data) {
+        if (!listeners[event]) return;
+        listeners[event].forEach(callback => {
+            try { callback(data); } catch (e) { console.error(`[EVENT ERROR] ${event}:`, e); }
+        });
+    }
+
+    return Object.freeze({ on, off, emit });
+})();
+
+/**
+ * ======================================================
+ * SYSTEM DEFAULT PROVIDERS & REGISTRY
+ * ======================================================
+ */
+const FetchProvider = {
+    async request(config) {
+        const { url, method, headers, body, signal } = config;
+        const fetchOptions = { method, headers, cache: "no-store", signal, body: method !== "GET" ? body : undefined };
+        return await fetch(url, fetchOptions);
+    }
+};
+
+const MockProvider = {
+    async request(config) {
+        await new Promise(r => setTimeout(r, 200));
+        return { 
+            ok: true, 
+            status: 200, 
+            headers: { get: () => "45" },
+            json: async () => ({ success: true, message: "mock_pong", data: {} }) 
+        };
+    }
+};
+
+/**
+ * ======================================================
+ * 6. CHUNKED UPLOAD PROVIDER (RESUME & PROGRESS ENGINE)
+ * ======================================================
+ */
+const UploadProvider = {
+    async uploadChunked(file, action, options = {}) {
+        const { chunkSize = 1024 * 1024, onProgress } = options; // Default chunk size 1MB
+        const totalChunks = Math.ceil(file.size / chunkSize);
+        let currentChunk = 0;
+        let result = null;
+
+        BCS.Events.emit("upload:start", { fileName: file.name, totalChunks });
+
+        while (currentChunk < totalChunks) {
+            const start = currentChunk * chunkSize;
+            const end = Math.min(file.size, start + chunkSize);
+            const chunk = file.slice(start, end);
+
+            // Konversi chunk ke Base64 / ArrayBuffer sesuai skema text-plain backend BCS
+            const reader = new FileReader();
+            const chunkData = await new Promise((resolve) => {
+                reader.onloadend = () => resolve(reader.result.split(",")[1]);
+                reader.readAsDataURL(chunk);
+            });
+
+            const payload = {
+                fileName: file.name,
+                chunkIndex: currentChunk,
+                totalChunks,
+                data: chunkData
+            };
+
+            result = await Api.post(action, payload);
+
+            if (!result || !result.success) {
+                BCS.Events.emit("upload:error", { chunk: currentChunk, result });
+                return result;
+            }
+
+            currentChunk++;
+            if (typeof onProgress === "function") {
+                onProgress({
+                    percent: Math.round((currentChunk / totalChunks) * 100),
+                    currentChunk,
+                    totalChunks
+                });
+            }
+        }
+
+        BCS.Events.emit("upload:success", { file: file.name });
+        return result;
+    }
+};
+
+/**
+ * ======================================================
+ * CORE API ENGINE FRAMEWORK
  * ======================================================
  */
 const Api = (() => {
-
-    // ==========================================
-    // REKOMENDASI 1: BASE_URL VALIDATION
-    // ==========================================
     const BASE_URL = window.CONFIG?.API?.URL || "";
-    if (!BASE_URL) {
-        throw new Error("CONFIG.API.URL belum dikonfigurasi.");
-    }
+    if (!BASE_URL) throw new Error("CONFIG.API.URL belum dikonfigurasi.");
 
     const TIMEOUT = window.CONFIG?.API?.TIMEOUT || 30000;
     const RETRY = window.CONFIG?.API?.RETRY || 2;
 
     let loadingCounter = 0;
-    let currentProvider = FetchProvider; // Default Provider
+    const interceptors = { request: [], response: [] };
 
-    // Interceptor Storage (Axios Style)
-    const interceptors = {
-        request: [],
-        response: []
+    // 5. Abort Duplicate Tracking Store
+    const pendingRequests = new Map();
+
+    // 8. Provider Registry Storage
+    const providerRegistry = { fetch: FetchProvider, mock: MockProvider };
+    let activeProvider = "fetch";
+
+    // ==========================================
+    // 3. CIRCUIT BREAKER STORAGE & STATE
+    // ==========================================
+    const circuitBreaker = {
+        state: "CLOSED", // CLOSED, OPEN, HALF-OPEN
+        failureCount: 0,
+        failureThreshold: 3, // Buka sirkuit setelah 3x gagal berturut-turut
+        cooldownWindow: 30000, // 30 detik durasi cooldown
+        nextAttemptTime: 0
     };
 
     // ==========================================
-    // REKOMENDASI 7: ENHANCED LOGGER
+    // 4. CACHE LAYER STORAGE
+    // ==========================================
+    const cacheStore = new Map();
+
+    // ==========================================
+    // LOGGER & UI HELPERS
     // ==========================================
     const isDebug = () => window.CONFIG?.DEBUG !== false;
-
-    function info(logData) { 
-        if (isDebug()) console.log("[API INFO]", { ...logData, time: new Date() }); 
-    }
+    function info(logData) { if (isDebug()) console.log("[API INFO]", logData); }
     function warn(...args) { if (isDebug()) console.warn("[API WARN]", ...args); }
-    function error(...args) { if (isDebug()) console.error("[API ERROR]", ...args); }
 
-    // ==========================================
-    // REKOMENDASI 2: SAFE LOADING QUEUE
-    // ==========================================
     function showLoading() {
         loadingCounter++;
-        if (loadingCounter === 1 && window.App && typeof App.loading === "function") {
-            App.loading(true);
-        }
+        if (loadingCounter === 1 && window.App && typeof App.loading === "function") App.loading(true);
     }
 
     function hideLoading() {
-        // Menggunakan Math.max untuk menghindari nilai negatif akibat race condition / throw
         loadingCounter = Math.max(0, loadingCounter - 1);
-        if (loadingCounter === 0 && window.App && typeof App.loading === "function") {
-            App.loading(false);
-        }
+        if (loadingCounter === 0 && window.App && typeof App.loading === "function") App.loading(false);
     }
 
     // ==========================================
-    // REKOMENDASI 6: OFFLINE & ONLINE DETECTION
+    // PIPELINE ENGINE REQUEST
     // ==========================================
-    window.addEventListener("offline", () => {
-        warn("Koneksi terputus. Aplikasi berjalan dalam mode Offline.");
-        if (window.App && typeof App.toast === "function") {
-            App.toast("📡 Anda sedang Offline. Beberapa fitur API mungkin tidak tersedia.", "danger");
-        }
-    });
-
-    window.addEventListener("online", () => {
-        info({ message: "Koneksi kembali terhubung. Mode Online." });
-        if (window.App && typeof App.toast === "function") {
-            App.toast("🟢 Anda kembali Online. Koneksi dipulihkan.", "success");
-        }
-    });
-
-    // ==========================================
-    // REKOMENDASI 4: RESPONSE STRUCTURE VALIDATION
-    // ==========================================
-    async function parse(response) {
-        try {
-            if (typeof response.json !== "function") return response; // Jika mock langsung return object
-            const result = await response.json();
-            
-            if (!result || typeof result.success !== "boolean") {
-                return {
-                    success: false,
-                    message: "Invalid API Format: Properti 'success' (boolean) tidak ditemukan."
-                };
+    async function requestEngine(method, action, payload = {}, retry = RETRY, cacheConfig = null) {
+        // --- CHECK CACHE LAYER (GET ONLY) ---
+        const cacheKey = `${method}:${action}:${JSON.stringify(payload)}`;
+        if (method === "GET" && cacheConfig?.ttl) {
+            const cached = cacheStore.get(cacheKey);
+            if (cached && Date.now() < cached.expiresAt) {
+                info({ message: "Returning Cached Response", action, cacheKey });
+                return cached.data;
             }
-            return result;
-        } catch (err) {
-            warn("Gagal melakukan parse respons data:", err);
-            return {
-                success: false,
-                message: "Server mengirimkan format respons yang tidak valid (Bukan JSON)."
-            };
         }
-    }
 
-    // ==========================================
-    // CENTRAL PIPELINE REQUEST (WITH RETRY BACKOFF)
-    // ==========================================
-    async function requestEngine(method, action, payload = {}, retry = RETRY) {
-        if (!navigator.onLine) {
-            return {
-                success: false,
-                message: "Tidak ada koneksi internet. Silakan periksa jaringan Anda."
-            };
+        // --- CHECK CIRCUIT BREAKER ---
+        if (circuitBreaker.state === "OPEN") {
+            if (Date.now() > circuitBreaker.nextAttemptTime) {
+                circuitBreaker.state = "HALF-OPEN";
+                warn("Circuit Breaker beralih ke HALF-OPEN. Mencoba tes request...");
+            } else {
+                BCS.Events.emit("api:circuit-open", { action, method });
+                return { success: false, message: `Circuit is OPEN. Request diblokir sementara. Silakan coba lagi nanti.` };
+            }
         }
+
+        if (!navigator.onLine) {
+            return { success: false, message: "Tidak ada koneksi internet." };
+        }
+
+        // --- 5. ABORT DUPLICATE REQUESTS ENGINE ---
+        const requestFingerprint = `${method}:${action}`;
+        if (pendingRequests.has(requestFingerprint)) {
+            info({ message: "Aborting Duplicate Active Request", fingerprint: requestFingerprint });
+            const oldController = pendingRequests.get(requestFingerprint);
+            oldController.abort();
+        }
+        const currentController = new AbortController();
+        pendingRequests.set(requestFingerprint, currentController);
 
         showLoading();
+        const startTime = performance.now(); // Mulai hitung durasi metrics
 
-        // Inisialisasi awal konfigurasi request (Bisa diubah oleh interceptor)
         let config = {
-            url: BASE_URL,
-            method,
+            url: BASE_URL, method, timeout: TIMEOUT, action,
             headers: method === "POST" ? { "Content-Type": "text/plain;charset=utf-8" } : {},
             payload: { ...payload },
-            action,
-            timeout: TIMEOUT
+            signal: currentController.signal
         };
 
-        // 1. RUN REQUEST INTERCEPTORS
-        for (const interceptor of interceptors.request) {
-            config = interceptor(config) || config;
-        }
+        // Run Interceptors Request
+        for (const interceptor of interceptors.request) { config = interceptor(config) || config; }
 
-        // Ambil token dari Auth jika payload belum memilikinya setelah interceptor berjalan
-        if (!config.payload.token && window.Auth && typeof Auth.token === "function" && Auth.token()) {
-            config.payload.token = Auth.token();
-        }
+        if (!config.payload.token && window.Auth?.token) { config.payload.token = Auth.token(); }
 
-        // Finalisasi skema payload ke bentuk format url atau body plain text
         if (config.method === "POST") {
-            config.body = JSON.stringify({
-                action: config.action,
-                data: config.payload
-            });
+            config.body = JSON.stringify({ action: config.action, data: config.payload });
         } else {
             const params = new URLSearchParams({ action: config.action, ...config.payload });
             config.url = `${config.url}?${params.toString()}`;
         }
 
+        // Timeout controller wrapper link
+        const timeoutId = setTimeout(() => currentController.abort(), config.timeout);
+
         try {
-            // REKOMENDASI 7: Enhanced Log Format
-            info({ method: config.method, action: config.action, payload: config.payload });
+            const provider = providerRegistry[activeProvider] || FetchProvider;
+            const response = await provider.request(config);
+            clearTimeout(timeoutId);
 
-            // Eksekusi request via Provider Terpilih
-            const response = await currentProvider.request(config);
-
-            // REKOMENDASI 3: HTTP STATUS VALIDATION (404, 403, 500, dll)
+            // Handle HTTP Status Validation
             if (!response.ok) {
-                return {
-                    success: false,
-                    status: response.status,
-                    message: response.statusText || `HTTP Error ${response.status}`
-                };
+                throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
             }
 
-            let result = await parse(response);
-
-            // 2. RUN RESPONSE INTERCEPTORS
-            for (const interceptor of interceptors.response) {
-                result = interceptor(result) || result;
+            // Parse & Validate Format JSON
+            let result = await (typeof response.json === "function" ? response.json() : response);
+            if (!result || typeof result.success !== "boolean") {
+                result = { success: false, message: "Invalid API Format" };
             }
 
-            // Global Auto Logout Hook
-            if (result?.message === "Session Expired" && window.Auth && typeof Auth.logout === "function") {
-                warn("Sesi kedaluwarsa terdeteksi dari respons server. Memulai auto-logout...");
-                await Auth.logout();
+            // Run Interceptors Response
+            for (const interceptor of interceptors.response) { result = interceptor(result) || result; }
+
+            // --- RECOVERY CIRCUIT IF SUCCESS ---
+            if (circuitBreaker.state === "HALF-OPEN" || circuitBreaker.state === "CLOSED") {
+                circuitBreaker.state = "CLOSED";
+                circuitBreaker.failureCount = 0;
             }
 
+            // --- 2. METRICS GENERATION & LOGGING ---
+            const duration = Math.round(performance.now() - startTime);
+            const size = response.headers ? parseInt(response.headers.get("content-length") || "0", 10) : 0;
+            
+            info({
+                message: `${config.method} ${config.action} -> ${response.status || 200} OK`,
+                metrics: { duration: `${duration}ms`, size: `${size} bytes`, status: response.status || 200 },
+                time: new Date()
+            });
+
+            // Write Cache Layer (If Configured)
+            if (method === "GET" && cacheConfig?.ttl && result.success) {
+                cacheStore.set(cacheKey, { data: result, expiresAt: Date.now() + cacheConfig.ttl });
+            }
+
+            BCS.Events.emit("api:success", { action: config.action, result });
             return result;
-        } catch (err) {
-            warn(`Request gagal (${method} : ${action}). Sisa retry: ${retry}. Error:`, err.message);
 
-            if (retry > 0) {
-                // REKOMENDASI 5: RETRY WITH EXPONENTIAL BACKOFF
-                const delayMs = (RETRY - retry + 1) * 1000;
-                info({ message: `Melakukan retry dalam ${delayMs}ms...` });
-                await new Promise(resolve => setTimeout(resolve, delayMs));
-                
-                return await requestEngine(method, action, payload, retry - 1);
+        } catch (err) {
+            clearTimeout(timeoutId);
+            const duration = Math.round(performance.now() - startTime);
+
+            if (err.name === "AbortError") {
+                // Jangan track sirkuit atau jalankan retry jika dibatalkan secara sengaja oleh duplicate controller
+                if (!currentController.signal.aborted) {
+                    return { success: false, message: `Request Timeout melebihi batas ${config.timeout / 1000}s.` };
+                }
+                return { success: false, message: "Request Aborted (Duplicate Safeguard)." };
             }
 
-            return {
-                success: false,
-                message: err.name === "AbortError" 
-                    ? `Koneksi terputus: Melebihi batas waktu ${TIMEOUT / 1000} detik.` 
-                    : err.message || "Gagal menghubungi server."
-            };
+            // --- EXECUTING CIRCUIT BREAKER RULES ---
+            circuitBreaker.failureCount++;
+            warn(`Request Gagal. Kegagalan beruntun: ${circuitBreaker.failureCount}/${circuitBreaker.failureThreshold}`);
+            
+            if (circuitBreaker.failureCount >= circuitBreaker.failureThreshold) {
+                circuitBreaker.state = "OPEN";
+                circuitBreaker.nextAttemptTime = Date.now() + circuitBreaker.cooldownWindow;
+                error(`[CIRCUIT BREAKER OPENED] Terlalu banyak kegagalan. Lock sistem selama ${circuitBreaker.cooldownWindow / 1000} detik.`);
+            }
+
+            // Exponential Backoff Retry Pipeline
+            if (retry > 0 && circuitBreaker.state !== "OPEN") {
+                const backoffDelay = (RETRY - retry + 1) * 1000;
+                await new Promise(r => setTimeout(r, backoffDelay));
+                return await requestEngine(method, action, payload, retry - 1, cacheConfig);
+            }
+
+            BCS.Events.emit("api:error", { action: config.action, error: err.message });
+            return { success: false, duration, message: err.message || "Request Failed" };
+
         } finally {
+            if (pendingRequests.get(requestFingerprint) === currentController) {
+                pendingRequests.delete(requestFingerprint);
+            }
             hideLoading();
         }
     }
 
     // ==========================================
-    // INTERFACE MANAGEMENT & CORE METHODS
+    // MODULE INTERFACE EXPANSION
     // ==========================================
-    function post(action, data = {}) { return requestEngine("POST", action, data); }
-    function get(action, data = {})  { return requestEngine("GET", action, data); }
-
-    // Menambahkan Interceptor Baru (Axios Style API)
-    function use(interceptorObject) {
-        if (interceptorObject.request) interceptors.request.push(interceptorObject.request);
-        if (interceptorObject.response) interceptors.response.push(interceptorObject.response);
-    }
-
-    // Mengganti Driver/Provider Komunikasi Data (Provider Pattern)
-    function setProvider(provider) {
-        if (provider && typeof provider.request === "function") {
-            currentProvider = provider;
-            info({ message: "API Network Provider berhasil dialihkan." });
-        } else {
-            throw new Error("Provider yang didaftarkan harus memiliki fungsi 'request(config)'.");
-        }
-    }
-
     return {
-        get,
-        post,
-        use,
-        setProvider,
-        providers: { FetchProvider, MockProvider }
+        post: (action, data = {}) => requestEngine("POST", action, data),
+        get: (action, data = {}, cacheConfig = null) => requestEngine("GET", action, data, RETRY, cacheConfig),
+        use: (obj) => {
+            if (obj.request) interceptors.request.push(obj.request);
+            if (obj.response) interceptors.response.push(obj.response);
+        },
+        // 8. Provider Registry Methods
+        registerProvider: (name, provider) => {
+            if (provider && typeof provider.request === "function") providerRegistry[name] = provider;
+        },
+        useProvider: (name) => {
+            if (providerRegistry[name]) activeProvider = name;
+        },
+        upload: (file, action, options) => UploadProvider.uploadChunked(file, action, options),
+        clearCache: () => cacheStore.clear()
     };
+})();
 
+// Pembekuan Modul Terisolasi untuk Keamanan Runtime (Bug 2 Fixed Layer)
+Object.freeze(Api);
+
+/**
+ * ======================================================
+ * 7. SERVICE REGISTRY ARCHITECTURE
+ * ======================================================
+ */
+BCS.Services = (() => {
+    const registry = new Map();
+
+    return Object.freeze({
+        register: (name, serviceInstance) => {
+            registry.set(name, serviceInstance);
+            if (isDebug()) console.log(`[SERVICE REGISTRY] Modul "${name}" berhasil terdaftar.`);
+        },
+        get: (name) => {
+            if (!registry.has(name)) throw new Error(`Service "${name}" belum terdaftar di Core BCS.`);
+            return registry.get(name);
+        }
+    });
 })();
 
 /**
  * ======================================================
- * REKOMENDASI 8: ENTERPRISE SERVICE LAYER ARCHITECTURE
+ * CONCRETE DOMAIN SERVICES DEFINITIONS
  * ======================================================
  */
 const AuthService = {
@@ -302,8 +389,9 @@ const ReportService = {
     delete: payload => Api.post("deleteReport", payload),
     approve: payload => Api.post("approveReport", payload),
     reject: payload => Api.post("rejectReport", payload),
-    upload: payload => Api.post("uploadReportAttachment", payload),
-    getHistory: payload => Api.get("getHistory", payload)
+    getHistory: payload => Api.get("getHistory", payload),
+    // 6. Integrasi dengan UploadProvider Chunked Upload
+    upload: (file, options) => Api.upload(file, "uploadReportAttachment", options)
 };
 
 const SystemService = {
@@ -312,16 +400,15 @@ const SystemService = {
     getUserManagement: payload => Api.post("user", payload)
 };
 
-// Satukan ekspor dalam interface utama yang immutable
-const BCS = Object.freeze({
+// Registrasikan Layanan secara dinamis ke Service Registry
+BCS.Services.register("auth", AuthService);
+BCS.Services.register("report", ReportService);
+BCS.Services.register("system", SystemService);
+
+// Kaitkan entitas inti framework ke Object Penampung BCS Global (Bug 1 & 2 Guard)
+Object.assign(window.BCS, {
     Api,
     AuthService,
     ReportService,
     SystemService
 });
-
-// Menjaga backward compatibility dengan skrip lama yang langsung memanggil Api.login() dll.
-if (typeof window !== "undefined") {
-    window.Api = Api;
-    window.BCS = BCS;
-}

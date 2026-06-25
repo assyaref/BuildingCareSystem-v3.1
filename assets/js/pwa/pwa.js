@@ -12,289 +12,147 @@ const PWA = (() => {
     // ==========================================
     // CONFIGURATION
     // ==========================================
-
     const DEFAULT_CONFIG = Object.freeze({
-
         debug: false,
-
         autoInitModules: true,
-
         logPrefix: "PWA"
-
     });
 
     let runtimeConfig = {
-
         ...DEFAULT_CONFIG
-
     };
 
     // ==========================================
     // LOGGER
     // ==========================================
-
     const Logger = {
-
-        info(...args){
-
-            BCS.Logger?.info?.(
-
-                runtimeConfig.logPrefix,
-
-                ...args
-
-            );
-
+        info(...args) {
+            BCS.Logger?.info?.(runtimeConfig.logPrefix, ...args);
         },
-
-        warn(...args){
-
-            BCS.Logger?.warn?.(
-
-                runtimeConfig.logPrefix,
-
-                ...args
-
-            );
-
+        warn(...args) {
+            BCS.Logger?.warn?.(runtimeConfig.logPrefix, ...args);
         },
-
-        error(...args){
-
-            BCS.Logger?.error?.(
-
-                runtimeConfig.logPrefix,
-
-                ...args
-
-            );
-
+        error(...args) {
+            BCS.Logger?.error?.(runtimeConfig.logPrefix, ...args);
         }
-
     };
 
     // ==========================================
     // STATE
     // ==========================================
-
     const createState = () => ({
-
-        initialized:false,
-
-        ready:false,
-
-        install:false,
-
-        update:false
-
+        initialized: false,
+        ready: false,
+        install: false,
+        update: false
     });
 
     const state = createState();
 
-    // ==========================================
-    // EXPORT BELOW
-    // ==========================================
+    function getState() {
+        return {
+            ...state
+        };
+    }
 
-})();
-    // ==========================================
-    // MODULE REGISTRY
-    // ==========================================
-
-    const modules = {
-
-        install: null,
-
-        update: null
-
-    };
-
-    // ==========================================
-    // UPDATE STATE
-    // ==========================================
-
-    function updateState(key, value) {
+    function setState(key, value) {
+        if (!(key in state)) {
+            Logger.warn(`Unknown state: ${key}`);
+            return;
+        }
 
         state[key] = value;
 
         BCS.Events?.emit?.("pwa:state", {
-
             key,
-
             value,
-
             state: getState()
-
         });
-
-    }
-
-    function getState() {
-
-        return {
-
-            ...state
-
-        };
-
     }
 
     // ==========================================
-    // LOAD MODULES
+    // MODULE REGISTRY
     // ==========================================
+    const modules = Object.seal({
+        install: null,
+        update: null
+    });
 
+    // ==========================================
+    // MODULE LOADER & INITIALIZER
+    // ==========================================
     function loadModules() {
+        // Mencari di BCS.PWA terlebih dahulu, fallback ke window jika diperlukan
+        modules.install = BCS.PWA?.Install ?? window.PWAInstall ?? null;
+        modules.update = BCS.PWA?.Update ?? window.PWAUpdate ?? null;
 
-        modules.install =
+        if (!modules.install) {
+            Logger.warn("Install module belum terdaftar.");
+        }
+        if (!modules.update) {
+            Logger.warn("Update module belum terdaftar.");
+        }
 
-            BCS.PWA?.Install ||
-
-            window.PWAInstall ||
-
-            null;
-
-        modules.update =
-
-            BCS.PWA?.Update ||
-
-            window.PWAUpdate ||
-
-            null;
-
-        Logger.info(
-
-            "Modules loaded",
-
-            {
-
-                install: !!modules.install,
-
-                update: !!modules.update
-
-            }
-
-        );
-
+        Logger.info("Module Registry", {
+            install: !!modules.install,
+            update: !!modules.update
+        });
     }
-
-    // ==========================================
-    // INIT MODULES
-    // ==========================================
 
     async function initModules() {
-
         loadModules();
 
         if (modules.install?.init) {
-
+            Logger.info("Initialize Install Module");
             await modules.install.init();
-
-            updateState(
-
-                "install",
-
-                true
-
-            );
-
+            setState("install", true);
         }
 
         if (modules.update?.init) {
-
+            Logger.info("Initialize Update Module");
             await modules.update.init();
-
-            updateState(
-
-                "update",
-
-                true
-
-            );
-
+            setState("update", true);
         }
-
     }
-    // ==========================================
-    // INIT
-    // ==========================================
 
+    // ==========================================
+    // PUBLIC INITIALIZATION
+    // ==========================================
     async function init(config = {}) {
-
         if (state.initialized) {
-
             return;
-
         }
 
         runtimeConfig = {
-
             ...runtimeConfig,
-
             ...config
-
         };
 
-        Logger.info(
-
-            "Initializing PWA..."
-
-        );
+        Logger.info("Initializing PWA...");
 
         try {
-
-            if (
-
-                runtimeConfig.autoInitModules
-
-            ) {
-
+            if (runtimeConfig.autoInitModules) {
                 await initModules();
-
             }
 
-            updateState(
+            setState("initialized", true);
+            setState("ready", true);
 
-                "initialized",
-
-                true
-
-            );
-
-            updateState(
-
-                "ready",
-
-                true
-
-            );
-
-            BCS.Events?.emit?.(
-
-                "pwa:ready"
-
-            );
-
-            Logger.info(
-
-                "PWA Ready"
-
-            );
-
-        }
-
-        catch (err) {
-
+            BCS.Events?.emit?.("pwa:ready");
+            Logger.info("PWA Ready");
+        } catch (err) {
             Logger.error(err);
-
-            BCS.Events?.emit?.(
-
-                "pwa:error",
-
-                err
-
-            );
-
+            BCS.Events?.emit?.("pwa:error", err);
             throw err;
-
         }
-
     }
+
+    // ==========================================
+    // EXPORT PUBLIC API
+    // ==========================================
+    return {
+        init,
+        getState
+    };
+
+})();

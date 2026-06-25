@@ -9,27 +9,28 @@
 
 (async () => {
     // ==================================================
-    // 1. CONSTANTS (State Freeze Applied)
+    // 1. CONSTANTS & CONFIGURATION (Rekomendasi 1: Unified & Deep Frozen)
     // ==================================================
     const MODULE_NAME = "Dashboard";
-    const POLLING_ACTIVE = 30000;    // 30 detik saat tab aktif
-    const POLLING_HIDDEN = 300000;  // 5 menit saat tab tidak aktif (Adaptive Polling)
-    const ANIMATION_DURATION = 800;
-    const ANIMATION_FRAMES = 30;
     
-    const CHART_COLORS = Object.freeze({
-        ac: Object.freeze({ normal: "#2563EB", hover: "#1D4ED8" }),
-        listrik: Object.freeze({ normal: "#F59E0B", hover: "#D97706" }),
-        gedung: Object.freeze({ normal: "#7C3AED", hover: "#6D28D9" }),
-        line: "#2563EB"
+    const CONFIG = Object.freeze({
+        POLLING_ACTIVE: 30000,     // 30 detik saat tab aktif
+        POLLING_HIDDEN: 300000,    // 5 menit saat tab tidak aktif (Adaptive Polling)
+        ANIMATION_DURATION: 800,
+        ANIMATION_FRAMES: 30,
+        CACHE_TTL: 10000,          // Throttling Cache 10 detik (Rekomendasi 3)
+        CHART_COLORS: Object.freeze({
+            ac: Object.freeze({ normal: "#2563EB", hover: "#1D4ED8" }),
+            listrik: Object.freeze({ normal: "#F59E0B", hover: "#D97706" }),
+            gedung: Object.freeze({ normal: "#7C3AED", hover: "#6D28D9" }),
+            line: "#2563EB"
+        })
     });
 
     Object.freeze(MODULE_NAME);
 
-    // ==================================================
-    // 2. STATE
-    // ==================================================
-    const state = {
+    // Initial State Factory untuk mempermudah reset state saat Destroy
+    const createInitialState = () => ({
         summary: {
             total: 0, ac: 0, listrik: 0, gedung: 0,
             open: 0, progress: 0, done: 0,
@@ -58,9 +59,26 @@
             refreshInterval: null,
             clockInterval: null,
             counterTimers: Object.create(null),
-            eventUnsubscribers: [] // Menyimpan fungsi unsubscribe event
+            eventUnsubscribers: []
+        },
+        // Rekomendasi 3: Simple Client Cache State
+        cache: {
+            summaryPayload: null,
+            slaPayload: null,
+            timestamp: 0
+        },
+        // Rekomendasi 4: Internal Performance Metrics
+        metrics: {
+            refreshCount: 0,
+            apiTime: 0,
+            renderTime: 0
         }
-    };
+    });
+
+    // ==================================================
+    // 2. STATE INITIALIZATION
+    // ==================================================
+    let state = createInitialState();
 
     // ==================================================
     // 3. DOM CACHE
@@ -120,22 +138,29 @@
     };
 
     // ==================================================
-    // 6. API (Transformed to BCS.Services.Dashboard)
+    // 4. SERVICE REGISTRATION (Rekomendasi 2: Consistent Registry Pattern)
     // ==================================================
     if (typeof BCS === "undefined") window.BCS = {};
     if (!BCS.Services) BCS.Services = {};
+    
+    // Fallback registry method jika belum di-define di core framework
+    if (typeof BCS.Services.register !== "function") {
+        BCS.Services.register = function(name, serviceObject) {
+            this[name.charAt(0).toUpperCase() + name.slice(1)] = serviceObject;
+        };
+    }
 
-    BCS.Services.Dashboard = {
+    BCS.Services.register("dashboard", {
         async fetchDashboardData(token) {
             return await BCS.Api.dashboard({ token });
         },
         async fetchSLAAnalytics() {
             return await BCS.Api.post("getSLAAnalytics");
         }
-    };
+    });
 
     // ==================================================
-    // 7. PROCESSING
+    // 5. PROCESSING
     // ==================================================
     function processDashboardPayload(result) {
         const data = result?.data ?? result?.payload ?? result?.result ?? {};
@@ -184,7 +209,7 @@
     }
 
     // ==================================================
-    // 8. SUMMARY COMPONENT
+    // 6. SUMMARY COMPONENT
     // ==================================================
     const DashboardSummary = {
         animateCounter(element, endValue) {
@@ -203,7 +228,7 @@
             }
 
             const diff = endValue - start;
-            const step = diff / ANIMATION_FRAMES;
+            const step = diff / CONFIG.ANIMATION_FRAMES;
 
             state.ui.counterTimers[id] = setInterval(() => {
                 start += step;
@@ -215,7 +240,7 @@
                     delete state.ui.counterTimers[id];
                 }
                 element.textContent = Math.round(start);
-            }, ANIMATION_DURATION / ANIMATION_FRAMES);
+            }, CONFIG.ANIMATION_DURATION / CONFIG.ANIMATION_FRAMES);
         },
 
         setTrendStyle(textEl, iconEl, value) {
@@ -255,7 +280,7 @@
     };
 
     // ==================================================
-    // 9. CHART COMPONENT (Refactored to Update Dataset Only)
+    // 7. CHART COMPONENT
     // ==================================================
     const DashboardChart = {
         renderDonut() {
@@ -263,10 +288,9 @@
 
             const nextData = [state.summary.ac, state.summary.listrik, state.summary.gedung];
 
-            // Menggunakan .update() jika instance chart sudah terbentuk
             if (state.charts.donut instanceof Chart) {
                 state.charts.donut.data.datasets[0].data = nextData;
-                state.charts.donut.update("active"); // transisi update internal lebih ringan
+                state.charts.donut.update("active");
                 return;
             }
 
@@ -276,8 +300,8 @@
                     labels: ["AC", "Listrik", "Gedung"],
                     datasets: [{
                         data: nextData,
-                        backgroundColor: [CHART_COLORS.ac.normal, CHART_COLORS.listrik.normal, CHART_COLORS.gedung.normal],
-                        hoverBackgroundColor: [CHART_COLORS.ac.hover, CHART_COLORS.listrik.hover, CHART_COLORS.gedung.hover],
+                        backgroundColor: [CONFIG.CHART_COLORS.ac.normal, CONFIG.CHART_COLORS.listrik.normal, CONFIG.CHART_COLORS.gedung.normal],
+                        hoverBackgroundColor: [CONFIG.CHART_COLORS.ac.hover, CONFIG.CHART_COLORS.listrik.hover, CONFIG.CHART_COLORS.gedung.hover],
                         hoverOffset: 8,
                         borderWidth: 0
                     }]
@@ -297,7 +321,6 @@
         renderLine() {
             if (!DOM.chart.monthly) return;
 
-            // Menggunakan .update() jika instance chart sudah terbentuk
             if (state.charts.line instanceof Chart) {
                 state.charts.line.data.datasets[0].data = [...state.monthly];
                 state.charts.line.update("active");
@@ -316,7 +339,7 @@
                     datasets: [{
                         label: "Total Report",
                         data: [...state.monthly],
-                        borderColor: CHART_COLORS.line,
+                        borderColor: CONFIG.CHART_COLORS.line,
                         backgroundColor: gradient,
                         borderWidth: 3,
                         fill: true,
@@ -325,10 +348,10 @@
                         pointHoverRadius: 8,
                         pointHitRadius: 15,
                         pointBorderWidth: 2,
-                        pointBackgroundColor: CHART_COLORS.line,
+                        pointBackgroundColor: CONFIG.CHART_COLORS.line,
                         pointBorderColor: "#FFFFFF",
                         pointHoverBackgroundColor: "#FFFFFF",
-                        pointHoverBorderColor: CHART_COLORS.line
+                        pointHoverBorderColor: CONFIG.CHART_COLORS.line
                     }]
                 },
                 options: {
@@ -372,7 +395,7 @@
     };
 
     // ==================================================
-    // 10. ACTIVITY COMPONENT
+    // 8. ACTIVITY COMPONENT
     // ==================================================
     const DashboardActivity = {
         escapeHtml(value) {
@@ -419,7 +442,7 @@
     };
 
     // ==================================================
-    // 11. FOOTER COMPONENT
+    // 9. FOOTER COMPONENT
     // ==================================================
     const DashboardFooter = {
         updateClock() {
@@ -444,15 +467,13 @@
     };
 
     // ==================================================
-    // 12. RENDER PIPELINE
+    // 10. RENDER PIPELINE
     // ==================================================
     const Render = {
         animateCards() {
             if (typeof BCS !== "undefined" && BCS.Animation && typeof BCS.Animation.fadeUp === "function") {
-                // Sentralisasi Engine Animasi Global Aplikasi
                 BCS.Animation.fadeUp(DOM.cards);
             } else {
-                // Fallback jika global engine belum termuat sempurna
                 DOM.cards.forEach((card, index) => {
                     card.animate([
                         { opacity: 0, transform: "translateY(20px)" },
@@ -468,17 +489,31 @@
         },
 
         all() {
+            const tStart = performance.now();
             DashboardSummary.render();
             DashboardChart.render();
             DashboardActivity.render();
             DashboardFooter.render();
+            
+            // Rekomendasi 4: Log Render Metrics
+            state.metrics.renderTime = performance.now() - tStart;
+            BCS.Logger.performance(MODULE_NAME, `UI Rendered in ${state.metrics.renderTime.toFixed(2)}ms`, tStart);
         }
     };
 
     // ==================================================
-    // CORE PIPELINES (Dengan Loading Guard Terintegrasi)
+    // CORE PIPELINES (Rekomendasi 3 & 4: Cached and Monitored Pipelines)
     // ==================================================
-    async function loadSummary() {
+    async function loadSummary(forceRefresh = false) {
+        const now = Date.now();
+        
+        // Rekomendasi 3: Cek validitas Cache (< 10 detik) jika bukan paksaan sistem event stream
+        if (!forceRefresh && state.cache.summaryPayload && (now - state.cache.timestamp < CONFIG.CACHE_TTL)) {
+            console.log(`[${MODULE_NAME}] Serving Summary Data from Client Cache.`);
+            processDashboardPayload(state.cache.summaryPayload);
+            return true;
+        }
+
         BCS.App.Loading.show();
         try {
             const session = BCS.App.getSession();
@@ -489,14 +524,20 @@
             }
 
             const t0 = performance.now();
-            // Memanggil Service Module yang baru hasil refactor
             const result = await BCS.Services.Dashboard.fetchDashboardData(session.token);
-            BCS.Logger.performance(MODULE_NAME, "Load Summary API", t0);
+            
+            // Rekomendasi 4: Simpan statistik API Time
+            state.metrics.apiTime = performance.now() - t0;
+            BCS.Logger.performance(MODULE_NAME, "Load Summary API Fetch", t0);
 
             if (!result || result.success !== true) {
                 BCS.App.toast(result?.message || "Dashboard gagal dimuat.", "error");
                 return false;
             }
+
+            // Simpan ke Cache
+            state.cache.summaryPayload = result;
+            state.cache.timestamp = now;
 
             processDashboardPayload(result);
             return true;
@@ -508,9 +549,21 @@
         }
     }
 
-    async function loadSLAAnalytics() {
+    async function loadSLAAnalytics(forceRefresh = false) {
+        const now = Date.now();
+        
+        // Rekomendasi 3: Implementasi Cache untuk SLA Analytics
+        if (!forceRefresh && state.cache.slaPayload && (now - state.cache.timestamp < CONFIG.CACHE_TTL)) {
+            console.log(`[${MODULE_NAME}] Serving SLA Analytics from Client Cache.`);
+            processSLAPayload(state.cache.slaPayload);
+            return;
+        }
+
         try {
             const response = await BCS.Services.Dashboard.fetchSLAAnalytics();
+            if (response && response.success) {
+                state.cache.slaPayload = response;
+            }
             processSLAPayload(response);
         } catch (err) {
             console.error("[SLA Analytics System Failure]", err);
@@ -529,22 +582,22 @@
         return true;
     }
 
-    // Centered Entrance Guard untuk seluruh event pemicu (Auto Refresh, Button Click, Event Stream)
-    async function refresh() {
+    // Centered Entrance Guard
+    async function refresh(forceRefresh = false) {
         if (state.ui.isRefreshing) return false; 
         state.ui.isRefreshing = true;
 
-        BCS.Logger.performance(MODULE_NAME, "Refresh Pipeline Initiated", performance.now());
+        // Rekomendasi 4: Increment Refresh Count Metric
+        state.metrics.refreshCount++;
+
+        BCS.Logger.performance(MODULE_NAME, `Refresh Pipeline Initiated (Run #${state.metrics.refreshCount})`, performance.now());
         try {
-            const summaryLoaded = await loadSummary();
+            const summaryLoaded = await loadSummary(forceRefresh);
             if (!summaryLoaded) return false;
 
-            await loadSLAAnalytics();
+            await loadSLAAnalytics(forceRefresh);
 
-            const tRender = performance.now();
             Render.all();
-            BCS.Logger.performance(MODULE_NAME, "Full UI Components Redrawn", tRender);
-
             return true;
         } catch (err) {
             BCS.Error.handle(err);
@@ -555,17 +608,17 @@
     }
 
     // ==================================================
-    // 5. EVENTS & ADAPTIVE POLLING SYSTEM
+    // 11. EVENTS & ADAPTIVE POLLING SYSTEM
     // ==================================================
     function startAutoRefresh(customMs = null) {
         stopAutoRefresh();
         
-        // Memilih interval berdasarkan visibilitas tab saat ini (Adaptive)
-        const currentInterval = customMs || (document.hidden ? POLLING_HIDDEN : POLLING_ACTIVE);
+        const currentInterval = customMs || (document.hidden ? CONFIG.POLLING_HIDDEN : CONFIG.POLLING_ACTIVE);
 
         state.ui.refreshInterval = setInterval(async () => {
             try {
-                await refresh();
+                // Polling otomatis tidak memaksa bypass cache, biarkan mekanisme TTL berjalan
+                await refresh(false);
             } catch (err) {
                 console.error(err);
             }
@@ -593,11 +646,11 @@
     }
 
     function bindEvents() {
-        // Direct Button Interactions
         if (DOM.buttons.refresh) {
             DOM.buttons.refresh.addEventListener("click", async (e) => {
                 e.preventDefault();
-                await refresh();
+                // User menekan tombol secara manual -> Paksa bypass cache (forceRefresh = true)
+                await refresh(true);
             });
         }
 
@@ -610,38 +663,35 @@
             });
         }
 
-        // Window Tab Visibility Focus Guard (Adaptive Polling Adjustment)
         document.addEventListener("visibilitychange", async () => {
             if (document.hidden) {
-                // Tab tidak aktif: ubah interval menjadi lebih lambat (5 menit) demi performa server/client
-                startAutoRefresh(POLLING_HIDDEN);
+                startAutoRefresh(CONFIG.POLLING_HIDDEN);
                 return;
             }
-            // Tab kembali aktif: instant refresh dan kembalikan polling cepat (30 detik)
-            await refresh();
-            startAutoRefresh(POLLING_ACTIVE);
+            // Tab kembali aktif: Instant refresh (Bypass cache untuk menjamin data paling aktual setelah ditinggal)
+            await refresh(true);
+            startAutoRefresh(CONFIG.POLLING_ACTIVE);
         });
 
         window.addEventListener("beforeunload", () => destroy());
 
-        // Enterprise Event-Driven Architecture dengan Callback Unsubscribe
         if (typeof BCS !== "undefined" && BCS.Events) {
             const unsubCreated = BCS.Events.on("report:created", async () => {
-                BCS.Logger.performance(MODULE_NAME, "Event Caught: report:created -> Realtime Refresh Triggered", performance.now());
-                await refresh();
+                BCS.Logger.performance(MODULE_NAME, "Event: report:created -> Realtime Force Refresh Triggered", performance.now());
+                await refresh(true);
             });
             if (typeof unsubCreated === "function") state.ui.eventUnsubscribers.push(unsubCreated);
 
             const unsubUpdated = BCS.Events.on("report:updated", async () => {
-                BCS.Logger.performance(MODULE_NAME, "Event Caught: report:updated -> Realtime Refresh Triggered", performance.now());
-                await refresh();
+                BCS.Logger.performance(MODULE_NAME, "Event: report:updated -> Realtime Force Refresh Triggered", performance.now());
+                await refresh(true);
             });
             if (typeof unsubUpdated === "function") state.ui.eventUnsubscribers.push(unsubUpdated);
         }
     }
 
     // ==================================================
-    // 4. INIT
+    // 12. INIT
     // ==================================================
     async function init() {
         if (state.ui.initialized) return true;
@@ -661,19 +711,18 @@
             const userLoaded = loadUser();
             if (!userLoaded) throw new Error("Data user gagal dimuat.");
 
-            const summaryLoaded = await loadSummary();
+            // Inisialisasi awal selalu paksa ambil data dari server
+            const summaryLoaded = await loadSummary(true);
             if (!summaryLoaded) throw new Error("Dashboard data gagal dimuat.");
 
-            await loadSLAAnalytics();
+            await loadSLAAnalytics(true);
 
-            // Render Core Interface Components
             Render.animateCards();
             Render.all();
 
-            // Systems Execution Bootstrap
             startClock();
             bindEvents();
-            startAutoRefresh(); // Mulai dengan deteksi default visibilitas
+            startAutoRefresh();
 
             state.ui.initialized = true;
             BCS.Logger.performance(MODULE_NAME, "Module Fully Bootstrapped & Ready", tInit);
@@ -689,13 +738,12 @@
     }
 
     // ==================================================
-    // 13. DESTROY (Clean Unsubscribe Applied)
+    // 13. DESTROY (Rekomendasi 5: Reset State Complete)
     // ==================================================
     function destroy() {
         stopAutoRefresh();
         stopClock();
         
-        // 1. Eksekusi Pencabutan / Unsubscribe Seluruh Event Listener Global 
         while (state.ui.eventUnsubscribers.length > 0) {
             const unsubscribe = state.ui.eventUnsubscribers.pop();
             if (typeof unsubscribe === "function") {
@@ -703,17 +751,17 @@
             }
         }
 
-        // 2. Clear all remaining active tickers
         Object.keys(state.ui.counterTimers).forEach(id => {
             clearInterval(state.ui.counterTimers[id]);
         });
-        state.ui.counterTimers = Object.create(null);
 
         if (state.charts.donut instanceof Chart) state.charts.donut.destroy();
         if (state.charts.line instanceof Chart) state.charts.line.destroy();
         
-        state.ui.initialized = false;
-        console.log(`[${MODULE_NAME}] Destroy pipeline executed clean with Event Unsubscribed.`);
+        // Rekomendasi 5: Reset State ke kondisi factory default awal secara bersih
+        state = createInitialState();
+        
+        console.log(`[${MODULE_NAME}] Destroy pipeline executed clean. State returned to baseline definition.`);
     }
 
     // Dom Ready Runner

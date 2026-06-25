@@ -5,39 +5,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Building Care System Enterprise</title>
+    
     <link rel="manifest" href="assets/pwa/manifest.json">
+    <meta name="application-name" content="Building Care System Enterprise">
     <meta name="theme-color" content="#0D6EFD">
+    
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Building Care">
     <link rel="apple-touch-icon" href="assets/pwa/icons/icon-192.png">
 
-    <script src="assets/js/core/bootstrap.js"></script> 
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/pwa/icons/icon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/pwa/icons/icon-16.png">
+
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            background: #F5F7FA;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        #app-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100%;
+            color: #333333;
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #E5E5E5;
+            border-top-color: #0D6EFD;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin: 0 0 8px 0;
+            font-size: 22px;
+            font-weight: 600;
+            color: #0D6EFD;
+        }
+
+        small {
+            font-size: 14px;
+            color: #6c757d;
+        }
+    </style>
+
+    <script src="assets/js/core/bootstrap.js" defer></script> 
 
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
             try {
                 if (typeof BCS !== 'undefined' && typeof BCS.bootstrap === 'function') {
+                    // Seluruh logika SW, Offline, Session, & Redirect dihandle di sini
                     await BCS.bootstrap();
                 } else {
-                    throw new Error("BCS Bootstrap Engine gagal dimuat.");
+                    throw new Error("BCS Core atau Bootstrap Engine gagal dimuat.");
                 }
             } catch (err) {
-                console.error("[BCS-Bootstrap-Error]", err);
-                // Fallback terakhir jika sistem bootstrap gagal total
-                window.location.replace("login.html");
+                console.error("[BCS-Bootstrap-Fatal-Error]", err);
+                
+                // 7. Penanganan Bootstrap Error Interaktif (Bukan Redirect Berulang)
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #F5F7FA;">
+                        <div style="padding: 40px; text-align: center; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); max-width: 400px; width: 90%;">
+                            <h2 style="color: #DC3545; margin-bottom: 12px;">Building Care System</h2>
+                            <p style="color: #6c757d; font-size: 15px; line-height: 1.5; margin-bottom: 24px;">Gagal memuat sistem atau koneksi terputus.</p>
+                            <button onclick="location.reload()" style="background: #0D6EFD; color: #ffffff; border: none; padding: 10px 24px; font-size: 14px; font-weight: 500; border-radius: 4px; cursor: pointer; transition: background 0.2s;">
+                                Muat Ulang
+                            </button>
+                        </div>
+                    </div>
+                `;
             }
         });
     </script>
 </head>
 
 <body>
-    <div id="app-loader" style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #0D6EFD;">
-        <div style="text-align: center;">
-            <p style="font-weight: bold; margin-bottom: 5px;">Building Care System</p>
-            <p style="font-size: 14px; color: #6c757d; margin: 0;">Memuat sistem...</p>
+    <noscript>
+        <div style="padding: 40px; text-align: center; font-family: sans-serif; background: #F5F7FA; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <h2 style="color: #DC3545;">JavaScript Dinonaktifkan</h2>
+            <p style="color: #6c757d;">Building Care System memerlukan JavaScript aktif untuk dapat berjalan.</p>
         </div>
+    </noscript>
+
+    <div id="app-loader">
+        <div class="loader"></div>
+        <h2>Building Care System</h2>
+        <small>Initializing Enterprise Platform...</small>
     </div>
 </body>
 

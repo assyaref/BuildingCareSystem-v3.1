@@ -13,10 +13,12 @@ BCS.Modules.register("user-report", (() => {
     const TAG = "UserReport";
     const DEFAULT_PRIORITY = "NORMAL";
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-    const ALLOWED_MIMES = ["image/jpeg", "image/png", "image/webp"];
+    
+    // 4. MIME VALIDATION EXTENSION (Including iOS High-Efficiency Image Container)
+    const ALLOWED_MIMES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
 
-    // 1. SCALABLE STATE ENGINE (Divided Categories)
-    let state = {
+    // 1. SCALABLE STATE ENGINE
+    const state = {
         user: {},
         form: {
             kategori: "",
@@ -106,7 +108,7 @@ BCS.Modules.register("user-report", (() => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // 4. Multi-Criteria Photo Validation (Size & Mime)
+        // 4. Multi-Criteria Photo Validation (Size & Mime Guard)
         if (file.size > MAX_FILE_SIZE) {
             BCS.Logger.warn(TAG, `File ditolak: Ukuran ${file.size} melebihi batas.`);
             BCS.App.Toast.warning("Ukuran foto maksimal 5 MB");
@@ -116,7 +118,7 @@ BCS.Modules.register("user-report", (() => {
 
         if (!ALLOWED_MIMES.includes(file.type)) {
             BCS.Logger.warn(TAG, `File ditolak: Format MIME '${file.type}' tidak diizinkan.`);
-            BCS.App.Toast.warning("Format file harus JPEG, PNG, atau WEBP");
+            BCS.App.Toast.warning("Format file harus JPEG, PNG, WEBP, atau HEIC/HEIF");
             DOM.photo.val("");
             return;
         }
@@ -183,18 +185,25 @@ BCS.Modules.register("user-report", (() => {
             timestamp: new Date().toISOString()
         };
 
-        // 2. Telemetry Isolation
+        // Telemetry Isolation Call
         payload.telemetry = buildTelemetry();
 
         return payload;
     }
 
     function buildTelemetry() {
+        // 5. EXTENDED HARDENED TELEMETRY DIAGNOSTICS
         return {
             appVersion: BCS.manifest?.version || BCS.version?.framework || "7.0",
             device: navigator.userAgent,
             gps: null,
-            battery: null
+            battery: null,
+            screen: {
+                width: window.innerWidth,
+                height: window.innerHeight
+            },
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            language: navigator.language
         };
     }
 
@@ -211,6 +220,7 @@ BCS.Modules.register("user-report", (() => {
         Button.render();
 
         try {
+            // 3. SAFE COUNTER GUARD FOR PARALLEL REQUESTS
             BCS.App.Loading.show();
 
             const payload = buildPayload();
@@ -229,30 +239,39 @@ BCS.Modules.register("user-report", (() => {
             BCS.Logger.info(TAG, "Laporan sukses terkirim ke server API.");
             BCS.App.Toast.success("Report berhasil dikirim");
 
-            // 8. Event Bus Broadcast Trigger
-            BCS.Events.emit("report:created", payload);
+            // 2. FULLY ENHANCED PAYLOAD EMISSION FOR DASHBOARD/HISTORY SYNC
+            BCS.Events.emit("report:created", {
+                report: payload,
+                response: res,
+                timestamp: Date.now()
+            });
 
             clearState();
 
         } catch (err) {
-            // 3. Centralized One-Door Error Handler
             BCS.Error.handle(err);
         } finally {
             state.ui.submitting = false;
+            
+            // 3. INTERNAL COUNTER SINKRONISASI CO-RELATION GUARD
             BCS.App.Loading.hide();
             Button.render();
         }
     }
 
     // ==========================================
-    // DATA STATE CLEARING ENGINE
+    // 1. DATA STATE RESET & CLEARING ENGINE
     // ==========================================
-    function clearState() {
+    function resetState() {
         state.form.kategori = "";
         state.form.prioritas = DEFAULT_PRIORITY;
         state.form.photo = "";
         state.form.filename = "";
         state.ui.submitting = false;
+    }
+
+    function clearState() {
+        resetState();
 
         DOM.lokasi.val("");
         DOM.deskripsi.val("");
@@ -263,7 +282,7 @@ BCS.Modules.register("user-report", (() => {
     }
 
     // ==========================================
-    // 5. PIPELINE UNIFIED RENDER LAYER
+    // PIPELINE UNIFIED RENDER LAYER
     // ==========================================
     function render() {
         renderHeader();
@@ -303,11 +322,11 @@ BCS.Modules.register("user-report", (() => {
     }
 
     function renderFooter() {
-        // Slot untuk render metadata status, badge, last login, atau copyright footer di masa mendatang
+        // Slot untuk render metadata status, badge, last login, atau copyright footer
     }
 
     // ==========================================
-    // 6. GLOBAL BUTTON COMPONENT OBJECT
+    // GLOBAL BUTTON COMPONENT OBJECT
     // ==========================================
     const Button = {
         render() {
@@ -336,11 +355,12 @@ BCS.Modules.register("user-report", (() => {
         DOM.photo.off("change");
         DOM.submitReport.off("click");
         
-        // 9. Nullify DOM cache container to force Garbage Collection
-        DOM = {};
-        state = null;
+        // 1. RE-INITIALIZE SAFE MEMORY INSTEAD OF NULLIFYING THE ROOT OBJECT
+        resetState();
+        state.user = {};
         
-        BCS.Logger.info(TAG, "Modul berhasil dihancurkan & memori dibersihkan.");
+        DOM = {};
+        BCS.Logger.info(TAG, "Modul berhasil dihancurkan & memori dibersihkan untuk siklus berikutnya.");
     }
 
     return {
@@ -351,9 +371,8 @@ BCS.Modules.register("user-report", (() => {
 })());
 
 // ==========================================
-// AUTOMATIC TRIGGER VIA BCS CORE SYSTEM
+// AUTOMATIC LIFECYCLE TRIGGER
 // ==========================================
 $(document).ready(() => {
-    // 10. Dipanggil otomatis oleh Registry Engine Utama tanpa merubah struktur berkas proyek
     BCS.Modules.init("user-report");
 });

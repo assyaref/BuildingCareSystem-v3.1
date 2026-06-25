@@ -17,7 +17,7 @@ const Offline = (() => {
     const CONFIG = Object.freeze({
         DEBUG: true,
         DATABASE: "BCS_OFFLINE_DB",
-        VERSION: 1,
+        VERSION: 2, // Diubah ke versi 2 karena struktur objek store/index diperbarui
         STORE: "QUEUE",
         MAX_RETRY: 5,
         RETRY_DELAY: 5000,
@@ -30,6 +30,12 @@ const Offline = (() => {
         SYNCING: "SYNCING",
         SUCCESS: "SUCCESS",
         FAILED: "FAILED"
+    });
+
+    const PRIORITY = Object.freeze({
+        HIGH: "HIGH",
+        NORMAL: "NORMAL",
+        LOW: "LOW"
     });
 
     // =====================================================
@@ -72,7 +78,9 @@ const Offline = (() => {
                 successCount: 0,
                 retryCount: 0,
                 apiTime: 0,
-                syncTime: 0
+                syncTime: 0,
+                averageSync: 0,  // Ditambahkan untuk DevTools
+                averageApi: 0    // Ditambahkan untuk DevTools
             }
         };
     }
@@ -105,16 +113,28 @@ const Offline = (() => {
             }
             return "BCS-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
         },
-        createQueueItem(action, payload) {
+        createQueueItem(action, payload, priority = PRIORITY.NORMAL) {
             return {
                 id: this.uuid(),
                 action,
                 payload,
+                priority: priority.toUpperCase() in PRIORITY ? priority.toUpperCase() : PRIORITY.NORMAL,
                 status: STATUS.PENDING,
                 retry: 0,
                 createdAt: this.timestamp(),
                 updatedAt: this.timestamp()
             };
+        },
+        // Pengurutan berdasarkan Bobot Prioritas, lalu berdasarkan Waktu Masuk (FIFO di level prioritas yang sama)
+        sortPriority(a, b) {
+            const weights = { [PRIORITY.HIGH]: 3, [PRIORITY.NORMAL]: 2, [PRIORITY.LOW]: 1 };
+            const weightA = weights[a.priority] || 2;
+            const weightB = weights[b.priority] || 2;
+            
+            if (weightA !== weightB) {
+                return weightB - weightA; // Prioritas tinggi diproses lebih dulu
+            }
+            return new Date(a.createdAt) - new Date(b.createdAt); // FIFO untuk prioritas setara
         }
     };
 
@@ -126,6 +146,7 @@ const Offline = (() => {
             return new Promise((resolve, reject) => {
                 if (state.database) return resolve(state.database);
 
+                // Menggunakan CONFIG.VERSION untuk memudahkan tracking upgrade skema database
                 const request = indexedDB.open(CONFIG.DATABASE, CONFIG.VERSION);
 
                 request.onupgradeneeded = event => {
@@ -133,13 +154,14 @@ const Offline = (() => {
                     if (!db.objectStoreNames.contains(CONFIG.STORE)) {
                         const store = db.createObjectStore(CONFIG.STORE, { keyPath: "id" });
                         store.createIndex("status", "status", { unique: false });
+                        store.createIndex("priority", "priority", { unique: false });
                         store.createIndex("createdAt", "createdAt", { unique: false });
                     }
                 };
 
                 request.onsuccess = event => {
                     state.database = event.target.result;
-                    Logger.info("IndexedDB Connected");
+                    Logger.info(`IndexedDB Connected (v${CONFIG.VERSION})`);
                     resolve(state.database);
                 };
 
@@ -184,37 +206,48 @@ const Offline = (() => {
     // SECTION 7 : QUEUE
     // =====================================================
     const Queue = {
-        async add(action, payload) {
+        async add(action, payload, priority) {
             if (state.queue.length >= CONFIG.MAX_QUEUE) {
                 throw new Error("Queue Full: Maximum limit reached.");
             }
-            const item = Helpers.createQueueItem(action, payload);
+            const item = Helpers.createQueueItem(action, payload, priority);
             await Storage.add(item);
             state.queue.push(item);
+            state.queue.sort(Helpers.sortPriority); // Jaga agar state internal selalu terurut prioritas
             state.metrics.queueCount = state.queue.length;
-            Logger.info("Queue Added", item.id);
+            
+            Logger.info(`Queue Added [${item.priority}]`, item.id);
+            BCS.Events?.emit("queue:added", item);
+            
             return item;
         },
         async load() {
-            state.queue = await Storage.getAll();
+            const items = await Storage.getAll();
+            state.queue = items.sort(Helpers.sortPriority);
             state.metrics.queueCount = state.queue.length;
-            Logger.info("Queue Loaded from Storage:", state.queue.length);
+            Logger.info("Queue Loaded & Sorted from Storage:", state.queue.length);
         },
         async remove(id) {
             await Storage.remove(id);
             state.queue = state.queue.filter(x => x.id !== id);
             state.metrics.queueCount = state.queue.length;
+            BCS.Events?.emit("queue:removed", id);
         },
         async update(item) {
             item.updatedAt = Helpers.timestamp();
             await Storage.update(item);
             const index = state.queue.findIndex(x => x.id === item.id);
-            if (index !== -1) state.queue[index] = item;
+            if (index !== -1) {
+                state.queue[index] = item;
+                state.queue.sort(Helpers.sortPriority);
+            }
         },
         async clear() {
             await Storage.clear();
+            const oldQueue = [...state.queue];
             state.queue = [];
             state.metrics.queueCount = 0;
+            oldQueue.forEach(item => BCS.Events?.emit("queue:removed", item.id));
         },
         pending() {
             return state.queue.filter(q => q.status === STATUS.PENDING || q.status === STATUS.FAILED);
@@ -222,7 +255,7 @@ const Offline = (() => {
     };
 
     // =====================================================
-    // SECTION 8 : RETRY (Retry Manager)
+    // SECTION 8 : RETRY (Exponential Backoff Manager)
     // =====================================================
     const RetryManager = {
         schedule(item) {
@@ -230,13 +263,18 @@ const Offline = (() => {
                 Logger.error(`Item ${item.id} mencapai batas maksimum retry. Sync dihentikan.`);
                 return;
             }
-            Logger.warn(`Scheduling retry untuk ${item.id} dalam ${CONFIG.RETRY_DELAY}ms (Attempt ${item.retry})`);
+            
+            // Implementasi Exponential Backoff (contoh: retry 1 = 10s, retry 2 = 20s, retry 3 = 40s...)
+            const backoffDelay = CONFIG.RETRY_DELAY * Math.pow(2, item.retry);
+            
+            Logger.warn(`Scheduling retry untuk ${item.id} dalam ${backoffDelay / 1000}s (Attempt ${item.retry}/${CONFIG.MAX_RETRY})`);
+            
             setTimeout(async () => {
                 if (Helpers.isOnline() && !state.syncing) {
                     state.metrics.retryCount++;
                     await SyncManager.process(item);
                 }
-            }, CONFIG.RETRY_DELAY);
+            }, backoffDelay);
         }
     };
 
@@ -255,13 +293,13 @@ const Offline = (() => {
             state.syncing = true;
 
             try {
-                const items = Queue.pending();
+                const items = Queue.pending(); // Sudah otomatis terurut berdasarkan prioritas tertinggi
                 if (!items.length) {
                     Logger.info("Queue kosong.");
                     return;
                 }
 
-                Logger.info(`Sync ${items.length} item...`);
+                Logger.info(`Sync ${items.length} item berdasarkan urutan prioritas...`);
                 state.metrics.syncCount++;
 
                 for (const item of items) {
@@ -269,9 +307,15 @@ const Offline = (() => {
                 }
 
                 state.lastSync = Helpers.timestamp();
-                state.metrics.syncTime = performance.now() - started;
-                Logger.performance("Sync", state.metrics.syncTime);
+                
+                // Kalkulasi Metrik Durasi Sync Keseluruhan
+                const currentSyncTime = performance.now() - started;
+                state.metrics.syncTime = currentSyncTime;
+                state.metrics.averageSync = state.metrics.averageSync === 0 
+                    ? currentSyncTime 
+                    : (state.metrics.averageSync + currentSyncTime) / 2;
 
+                Logger.performance("Sync Complete Duration", currentSyncTime);
                 BCS.Events?.emit("sync:success", { total: items.length });
             } catch (err) {
                 Logger.error(err);
@@ -287,15 +331,23 @@ const Offline = (() => {
                 await Queue.update(item);
 
                 const started = performance.now();
-                const response = await BCS.Api.post(item.action, item.payload);
-                state.metrics.apiTime = performance.now() - started;
+                
+                // Menggunakan ApiAdapter sebagai abstraksi tunggal pemanggilan jaringan
+                const response = await ApiAdapter.send(item);
+                
+                // Kalkulasi Metrik Durasi API Tunggal
+                const currentApiTime = performance.now() - started;
+                state.metrics.apiTime = currentApiTime;
+                state.metrics.averageApi = state.metrics.averageApi === 0 
+                    ? currentApiTime 
+                    : (state.metrics.averageApi + currentApiTime) / 2;
 
                 if (response && response.success) {
                     item.status = STATUS.SUCCESS;
                     await Queue.remove(item.id);
                     state.metrics.successCount++;
                     BCS.Events?.emit("queue:processed", item);
-                    Logger.info("Queue Success", item.id);
+                    Logger.info("Queue Processed Successfully", item.id);
                 } else {
                     throw new Error(response?.message || "Sync gagal");
                 }
@@ -304,7 +356,7 @@ const Offline = (() => {
                 item.status = STATUS.FAILED;
                 await Queue.update(item);
                 state.metrics.failedCount++;
-                Logger.warn("Queue Failed", item.id);
+                Logger.warn(`Queue Processing Failed (${item.retry}):`, item.id);
                 RetryManager.schedule(item);
             }
         }
@@ -325,11 +377,13 @@ const Offline = (() => {
         handleOnline() {
             state.online = true;
             Logger.info("Aplikasi kembali Online. Memicu Auto-Sync...");
+            BCS.Events?.emit("network:online");
             SyncManager.sync();
         },
         handleOffline() {
             state.online = false;
             Logger.warn("Aplikasi beralih ke Offline mode.");
+            BCS.Events?.emit("network:offline");
         }
     };
 
@@ -347,26 +401,35 @@ const Offline = (() => {
     };
 
     // =====================================================
-    // SECTION 12 : API
+    // SECTION 12 : API & ADAPTER
     // =====================================================
+    const ApiAdapter = {
+        // Abstraksi tunggal untuk mempermudah migrasi jika arsitektur pemanggilan core/Google Apps Script berubah
+        async send(item) {
+            return await BCS.Api.post(item.action, item.payload);
+        }
+    };
+
     const OfflineAPI = {
-        async enqueue(action, payload) {
+        async enqueue(action, payload, priority = PRIORITY.NORMAL) {
             if (Helpers.isOnline()) {
                 try {
-                    const res = await BCS.Api.post(action, payload);
+                    // Bungkus sementara ke item mock untuk dikirim via adapter
+                    const mockItem = { action, payload };
+                    const res = await ApiAdapter.send(mockItem);
                     if (res?.success) return res;
                 } catch (err) {
-                    Logger.warn("API langsung gagal, dialihkan masuk queue.");
+                    Logger.warn("API langsung gagal, dialihkan masuk antrean lokal.");
                 }
             }
 
-            const item = await Queue.add(action, payload);
+            const item = await Queue.add(action, payload, priority);
             Events.triggerNotification(item);
 
             return {
                 success: true,
                 offline: true,
-                message: "Data disimpan ke Offline Queue",
+                message: `Data disimpan ke Offline Queue [Prioritas: ${item.priority}]`,
                 id: item.id
             };
         },
@@ -383,6 +446,16 @@ const Offline = (() => {
         },
         pending() {
             return Queue.pending();
+        },
+        // Queue Inspector untuk visualisasi deteksi status antrean (saran 6)
+        inspect() {
+            return {
+                pending: state.queue.filter(x => x.status === STATUS.PENDING).length,
+                failed: state.queue.filter(x => x.status === STATUS.FAILED).length,
+                success: state.queue.filter(x => x.status === STATUS.SUCCESS).length,
+                syncing: state.queue.filter(x => x.status === STATUS.SYNCING).length,
+                total: state.queue.length
+            };
         }
     };
 
@@ -392,15 +465,16 @@ const Offline = (() => {
     const Events = {
         init() {
             if (BCS.Events) {
-                // Contoh tracking event global dari sistem luar jika dibutuhkan
                 const unsub = BCS.Events.on("app:ready", () => SyncManager.sync());
                 state.ui.eventUnsubscribers.push(unsub);
             }
         },
         triggerNotification(item) {
-            // Memicu modul Notification jika terintegrasi global
             if (typeof BCS.Notification?.show === "function") {
-                BCS.Notification.show("Mode Offline", "Koneksi terputus. Data disimpan di antrean lokal.");
+                BCS.Notification.show(
+                    `Mode Offline (${item.priority})`, 
+                    "Koneksi tidak stabil. Tugas Anda telah dijadwalkan di penyimpanan lokal."
+                );
             }
         },
         destroy() {
@@ -414,18 +488,29 @@ const Offline = (() => {
     // =====================================================
     const DestroyManager = {
         execute() {
+            // Bersihkan Interval Timer
             if (state.ui.autoSync) {
                 clearInterval(state.ui.autoSync);
                 state.ui.autoSync = null;
             }
+
+            // Unbind Event Listeners bawaan modul
             Network.destroy();
             Events.destroy();
+
+            // Memutus hubungan koneksi database
             if (state.database) {
                 state.database.close();
                 state.database = null;
             }
+
+            // Reset total state internal engine (Saran 8)
+            state.queue = [];
+            state.syncing = false;
+            state.lastSync = null;
             state.ui.initialized = false;
-            Logger.warn("Offline Engine Destroyed");
+            
+            Logger.warn("Offline Engine Destroyed & Volatile State Reset");
         }
     };
 
@@ -450,9 +535,8 @@ const Offline = (() => {
                 }
 
                 state.ui.initialized = true;
-                Logger.info("Offline Engine Fully Ready");
+                Logger.info("Offline Engine Fully Ready with Priority Core");
 
-                // Jalankan sync pertama jika online saat load awal
                 if (Helpers.isOnline()) SyncManager.sync();
 
             } catch (error) {
@@ -463,6 +547,7 @@ const Offline = (() => {
         flush: OfflineAPI.flush,
         status: OfflineAPI.status,
         pending: OfflineAPI.pending,
+        inspect: OfflineAPI.inspect,
         getMetrics: Metrics.get,
         resetMetrics: Metrics.reset,
         destroy: DestroyManager.execute

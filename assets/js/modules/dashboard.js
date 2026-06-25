@@ -2,793 +2,690 @@
 // Building Care System Enterprise v3.2
 // File : assets/js/modules/dashboard.js
 // Radiant Group Duri
+// Refactored to Enterprise Target Architecture
 // ======================================================
 
 "use strict";
 
-/**
- * =====================================================
- * DASHBOARD — CORE
- * Handles: init, session guard, user profile, summary data
- * =====================================================
- */
-const Dashboard = (() => {
+(async () => {
     // ==================================================
-    // PRIVATE STATE
+    // 1. CONSTANTS
     // ==================================================
-    let initialized = false;
-    let initializing = false;
-
-    let dashboardData = {
-        activity: [],
-        monthly: [],
-        total: 0,
-        ac: 0,
-        listrik: 0,
-        gedung: 0,
-        open: 0,
-        progress: 0,
-        done: 0,
-        totalTrend: 0,
-        acTrend: 0,
-        listrikTrend: 0,
-        gedungTrend: 0,
-        onlineUser: 0,
-        todayReport: 0,
-        pendingApproval: 0,
-        lastUpdate: null
+    const MODULE_NAME = "Dashboard";
+    const POLLING_INTERVAL = 30000;
+    const ANIMATION_DURATION = 800;
+    const ANIMATION_FRAMES = 30;
+    const CHART_COLORS = {
+        ac: { normal: "#2563EB", hover: "#1D4ED8" },
+        listrik: { normal: "#F59E0B", hover: "#D97706" },
+        gedung: { normal: "#7C3AED", hover: "#6D28D9" },
+        line: "#2563EB"
     };
 
-    let donutChart = null;
-    let lineChart = null;
+    // ==================================================
+    // 2. STATE
+    // ==================================================
+    const state = {
+        summary: {
+            total: 0, ac: 0, listrik: 0, gedung: 0,
+            open: 0, progress: 0, done: 0,
+            totalTrend: 0, acTrend: 0, listrikTrend: 0, gedungTrend: 0,
+            fast: 0, normal: 0, late: 0,
+            fastPercent: "0%", normalPercent: "0%", latePercent: "0%"
+        },
+        activity: [],
+        monthly: Array(12).fill(0),
+        footer: {
+            onlineUser: 0,
+            todayReport: 0,
+            pendingApproval: 0,
+            lastUpdate: null,
+            todayDate: "-",
+            currentTime: "-"
+        },
+        charts: {
+            donut: null,
+            line: null
+        },
+        ui: {
+            initialized: false,
+            initializing: false,
+            isRefreshing: false,
+            refreshInterval: null,
+            clockInterval: null,
+            counterTimers: Object.create(null)
+        }
+    };
 
     // ==================================================
-    // HELPER
+    // 3. DOM CACHE
     // ==================================================
-    function setText(id, value) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.textContent = value;
+    const DOM = {
+        user: {
+            name: document.getElementById("userName"),
+            role: document.getElementById("userRole"),
+            nik: document.getElementById("userNik"),
+            lastLogin: document.getElementById("lastLogin")
+        },
+        total: document.getElementById("totalReport"),
+        open: document.getElementById("totalOpen"),
+        progress: document.getElementById("totalProgress"),
+        done: document.getElementById("totalDone"),
+        categories: {
+            ac: document.getElementById("acTotal"),
+            listrik: document.getElementById("listrikTotal"),
+            gedung: document.getElementById("gedungTotal")
+        },
+        trends: {
+            total: document.getElementById("totalTrend"),
+            totalIcon: document.getElementById("totalTrendIcon"),
+            ac: document.getElementById("acTrend"),
+            acIcon: document.getElementById("acTrendIcon"),
+            listrik: document.getElementById("listrikTrend"),
+            listrikIcon: document.getElementById("listrikTrendIcon"),
+            gedung: document.getElementById("gedungTrend"),
+            gedungIcon: document.getElementById("gedungTrendIcon")
+        },
+        sla: {
+            fastCount: document.getElementById("fastCount"),
+            normalCount: document.getElementById("normalCount"),
+            lateCount: document.getElementById("lateCount"),
+            fastPercent: document.getElementById("fastPercent"),
+            normalPercent: document.getElementById("normalPercent"),
+            latePercent: document.getElementById("latePercent")
+        },
+        chart: {
+            report: document.getElementById("reportChart"),
+            monthly: document.getElementById("monthlyChart")
+        },
+        activity: document.getElementById("recentActivity"),
+        footer: {
+            onlineUser: document.getElementById("onlineUser"),
+            todayReport: document.getElementById("todayReport"),
+            pendingApproval: document.getElementById("pendingApproval"),
+            lastUpdate: document.getElementById("lastUpdate"),
+            todayDate: document.getElementById("todayDate"),
+            currentTime: document.getElementById("currentTime")
+        },
+        buttons: {
+            refresh: document.getElementById("refreshDashboard"),
+            logout: document.getElementById("logoutBtn")
+        },
+        cards: document.querySelectorAll(".summary-card, .status-card, .enterprise-card, .user-profile-card")
+    };
+
+    // ==================================================
+    // 6. API
+    // ==================================================
+    const DashboardApi = {
+        async fetchDashboardData(token) {
+            return await BCS.Api.dashboard({ token });
+        },
+        async fetchSLAAnalytics() {
+            // Mengasumsikan BCS.Api.dashboardSLA atau custom endpoint yang setara
+            return await BCS.Api.post("getSLAAnalytics");
+        }
+    };
+
+    // ==================================================
+    // 7. PROCESSING
+    // ==================================================
+    function processDashboardPayload(result) {
+        const data = result?.data ?? result?.payload ?? result?.result ?? {};
+        
+        const toNumber = (val) => {
+            const num = Number(val);
+            return Number.isFinite(num) ? num : 0;
+        };
+
+        // Map Summary
+        state.summary.total = toNumber(data.total);
+        state.summary.ac = toNumber(data.ac);
+        state.summary.listrik = toNumber(data.listrik);
+        state.summary.gedung = toNumber(data.gedung);
+        state.summary.open = toNumber(data.open);
+        state.summary.progress = toNumber(data.progress);
+        state.summary.done = toNumber(data.done);
+        state.summary.totalTrend = toNumber(data.totalTrend);
+        state.summary.acTrend = toNumber(data.acTrend);
+        state.summary.listrikTrend = toNumber(data.listrikTrend);
+        state.summary.gedungTrend = toNumber(data.gedungTrend);
+
+        // Map Activity
+        state.activity = Array.isArray(data.activity) ? [...data.activity] : [];
+
+        // Map Monthly
+        state.monthly = (() => {
+            const monthly = Array.isArray(data.monthly) ? [...data.monthly] : Array(12).fill(0);
+            while (monthly.length < 12) monthly.push(0);
+            return monthly.slice(0, 12);
+        })();
+
+        // Map Footer Raw Data
+        state.footer.onlineUser = toNumber(data.onlineUser);
+        state.footer.todayReport = toNumber(data.todayReport);
+        state.footer.pendingApproval = toNumber(data.pendingApproval);
+        state.footer.lastUpdate = data.lastUpdate || data.serverTime || new Date().toLocaleString("id-ID");
+    }
+
+    function processSLAPayload(response) {
+        if (!response || !response.success) return;
+        const data = response.data || {};
+        
+        state.summary.fast = data.fast || 0;
+        state.summary.normal = data.normal || 0;
+        state.summary.late = data.late || 0;
+        state.summary.fastPercent = (data.fastPercent || 0) + "%";
+        state.summary.normalPercent = (data.normalPercent || 0) + "%";
+        state.summary.latePercent = (data.latePercent || 0) + "%";
     }
 
     // ==================================================
-    // LOAD USER
+    // 8. SUMMARY COMPONENT
     // ==================================================
+    const DashboardSummary = {
+        animateCounter(element, endValue) {
+            if (!element) return;
+            endValue = Number(endValue) || 0;
+            let start = Number(element.textContent) || 0;
+
+            if (start === endValue) {
+                element.textContent = endValue;
+                return;
+            }
+
+            const id = element.id || Math.random().toString(36).substr(2, 9);
+            if (state.ui.counterTimers[id]) {
+                clearInterval(state.ui.counterTimers[id]);
+            }
+
+            const diff = endValue - start;
+            const step = diff / ANIMATION_FRAMES;
+
+            state.ui.counterTimers[id] = setInterval(() => {
+                start += step;
+                const finished = (step > 0 && start >= endValue) || (step < 0 && start <= endValue);
+
+                if (finished) {
+                    start = endValue;
+                    clearInterval(state.ui.counterTimers[id]);
+                    delete state.ui.counterTimers[id];
+                }
+                element.textContent = Math.round(start);
+            }, ANIMATION_DURATION / ANIMATION_FRAMES);
+        },
+
+        setTrendStyle(textEl, iconEl, value) {
+            if (!textEl || !iconEl) return;
+            textEl.textContent = Math.abs(value);
+
+            if (value >= 0) {
+                iconEl.className = "bi bi-arrow-up";
+                textEl.parentElement.className = "summary-trend success";
+            } else {
+                iconEl.className = "bi bi-arrow-down";
+                textEl.parentElement.className = "summary-trend danger";
+            }
+        },
+
+        render() {
+            // Counters
+            this.animateCounter(DOM.total, state.summary.total);
+            this.animateCounter(DOM.open, state.summary.open);
+            this.animateCounter(DOM.progress, state.summary.progress);
+            this.animateCounter(DOM.done, state.summary.done);
+            this.animateCounter(DOM.categories.ac, state.summary.ac);
+            this.animateCounter(DOM.categories.listrik, state.summary.listrik);
+            this.animateCounter(DOM.categories.gedung, state.summary.gedung);
+
+            // Trends
+            this.setTrendStyle(DOM.trends.total, DOM.trends.totalIcon, state.summary.totalTrend);
+            this.setTrendStyle(DOM.trends.ac, DOM.trends.acIcon, state.summary.acTrend);
+            this.setTrendStyle(DOM.trends.listrik, DOM.trends.listrikIcon, state.summary.listrikTrend);
+            this.setTrendStyle(DOM.trends.gedung, DOM.trends.gedungIcon, state.summary.gedungTrend);
+
+            // SLA Static Elements
+            if (DOM.sla.fastCount) DOM.sla.fastCount.textContent = state.summary.fast;
+            if (DOM.sla.normalCount) DOM.sla.normalCount.textContent = state.summary.normal;
+            if (DOM.sla.lateCount) DOM.sla.lateCount.textContent = state.summary.late;
+            if (DOM.sla.fastPercent) DOM.sla.fastPercent.textContent = state.summary.fastPercent;
+            if (DOM.sla.normalPercent) DOM.sla.normalPercent.textContent = state.summary.normalPercent;
+            if (DOM.sla.latePercent) DOM.sla.latePercent.textContent = state.summary.latePercent;
+        }
+    };
+
+    // ==================================================
+    // 9. CHART COMPONENT
+    // ==================================================
+    const DashboardChart = {
+        renderDonut() {
+            if (!DOM.chart.report) return;
+
+            if (state.charts.donut instanceof Chart) {
+                state.charts.donut.destroy();
+            }
+
+            state.charts.donut = new Chart(DOM.chart.report, {
+                type: "doughnut",
+                data: {
+                    labels: ["AC", "Listrik", "Gedung"],
+                    datasets: [{
+                        data: [state.summary.ac, state.summary.listrik, state.summary.gedung],
+                        backgroundColor: [CHART_COLORS.ac.normal, CHART_COLORS.listrik.normal, CHART_COLORS.gedung.normal],
+                        hoverBackgroundColor: [CHART_COLORS.ac.hover, CHART_COLORS.listrik.hover, CHART_COLORS.gedung.hover],
+                        hoverOffset: 8,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "72%",
+                    animation: { animateRotate: true, animateScale: true, duration: 1200, easing: "easeOutQuart" },
+                    plugins: {
+                        legend: { position: "bottom", labels: { usePointStyle: true, pointStyle: "circle", padding: 20 } }
+                    }
+                }
+            });
+        },
+
+        renderLine() {
+            if (!DOM.chart.monthly) return;
+
+            if (state.charts.line instanceof Chart) {
+                state.charts.line.destroy();
+            }
+
+            const ctx = DOM.chart.monthly.getContext("2d");
+            const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+            gradient.addColorStop(0, "rgba(37,99,235,0.35)");
+            gradient.addColorStop(1, "rgba(37,99,235,0.03)");
+
+            state.charts.line = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+                    datasets: [{
+                        label: "Total Report",
+                        data: state.monthly,
+                        borderColor: CHART_COLORS.line,
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.45,
+                        pointRadius: 4,
+                        pointHoverRadius: 8,
+                        pointHitRadius: 15,
+                        pointBorderWidth: 2,
+                        pointBackgroundColor: CHART_COLORS.line,
+                        pointBorderColor: "#FFFFFF",
+                        pointHoverBackgroundColor: "#FFFFFF",
+                        pointHoverBorderColor: CHART_COLORS.line
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 1200, easing: "easeOutQuart" },
+                    interaction: { intersect: false, mode: "index" },
+                    elements: {
+                        line: { borderJoinStyle: "round", borderCapStyle: "round" },
+                        point: { hitRadius: 15, hoverRadius: 8 }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "#1F2937",
+                            titleColor: "#FFFFFF",
+                            bodyColor: "#FFFFFF",
+                            displayColors: false,
+                            padding: 12,
+                            cornerRadius: 10,
+                            callbacks: { label: (context) => "Total Report : " + context.parsed.y }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false, drawBorder: false }, ticks: { color: "#64748B", font: { size: 12 } } },
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: Math.max(...state.monthly, 5) + 5,
+                            ticks: { precision: 0, stepSize: 5, color: "#64748B", font: { size: 12 } },
+                            grid: { color: "rgba(148,163,184,0.10)", drawBorder: false }
+                        }
+                    }
+                }
+            });
+        },
+
+        render() {
+            this.renderDonut();
+            this.renderLine();
+        }
+    };
+
+    // ==================================================
+    // 10. ACTIVITY COMPONENT
+    // ==================================================
+    const DashboardActivity = {
+        escapeHtml(value) {
+            const div = document.createElement("div");
+            div.textContent = value ?? "";
+            return div.innerHTML;
+        },
+
+        render() {
+            if (!DOM.activity) return;
+
+            if (state.activity.length === 0) {
+                DOM.activity.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-clock-history fs-1 d-block mb-2"></i>
+                        <span>Tidak ada aktivitas terbaru</span>
+                    </div>`;
+                return;
+            }
+
+            const STATUS_CONFIG = {
+                OPEN: { icon: "bi-folder2-open", color: "primary" },
+                PROGRESS: { icon: "bi-arrow-repeat", color: "warning" },
+                DONE: { icon: "bi-check-circle-fill", color: "success" }
+            };
+
+            DOM.activity.innerHTML = state.activity.map(item => {
+                const status = item.status || "OPEN";
+                const config = STATUS_CONFIG[status] || STATUS_CONFIG.OPEN;
+
+                return `
+                    <div class="activity-item">
+                        <div class="activity-icon ${config.color}">
+                            <i class="bi ${config.icon}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <strong>${this.escapeHtml(item.kategori || "-")}</strong>
+                            <small>${this.escapeHtml(item.lokasi || "-")}</small>
+                        </div>
+                        <span>${this.escapeHtml(item.waktu || "-")}</span>
+                    </div>`;
+            }).join("");
+        }
+    };
+
+    // ==================================================
+    // 11. FOOTER COMPONENT
+    // ==================================================
+    const DashboardFooter = {
+        updateClock() {
+            const now = new Date();
+            state.footer.todayDate = now.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+            state.footer.currentTime = now.toLocaleTimeString("id-ID", { hour12: false });
+            this.renderClockOnly();
+        },
+
+        renderClockOnly() {
+            if (DOM.footer.todayDate) DOM.footer.todayDate.textContent = state.footer.todayDate;
+            if (DOM.footer.currentTime) DOM.footer.currentTime.textContent = state.footer.currentTime;
+        },
+
+        render() {
+            if (DOM.footer.onlineUser) DOM.footer.onlineUser.textContent = state.footer.onlineUser;
+            if (DOM.footer.todayReport) DOM.footer.todayReport.textContent = state.footer.todayReport;
+            if (DOM.footer.pendingApproval) DOM.footer.pendingApproval.textContent = state.footer.pendingApproval;
+            if (DOM.footer.lastUpdate) DOM.footer.lastUpdate.textContent = state.footer.lastUpdate;
+            this.renderClockOnly();
+        }
+    };
+
+    // ==================================================
+    // 12. RENDER PIPELINE
+    // ==================================================
+    const Render = {
+        animateCards() {
+            DOM.cards.forEach((card, index) => {
+                card.animate([
+                    { opacity: 0, transform: "translateY(20px)" },
+                    { opacity: 1, transform: "translateY(0)" }
+                ], {
+                    duration: 500,
+                    delay: index * 120,
+                    fill: "forwards",
+                    easing: "ease-out"
+                });
+            });
+        },
+
+        all() {
+            DashboardSummary.render();
+            DashboardChart.render();
+            DashboardActivity.render();
+            DashboardFooter.render();
+        }
+    };
+
+    // ==================================================
+    // CORE PIPELINES (Load & Refresh)
+    // ==================================================
+    async function loadSummary() {
+        BCS.App.Loading.show();
+        try {
+            const session = BCS.App.getSession();
+            if (!session || !session.token) {
+                BCS.App.toast("Session telah berakhir. Silakan login kembali.", "error");
+                BCS.App.redirect("login.html");
+                return false;
+            }
+
+            const t0 = performance.now();
+            const result = await DashboardApi.fetchDashboardData(session.token);
+            BCS.Logger.performance(MODULE_NAME, "Load Summary API", t0);
+
+            if (!result || result.success !== true) {
+                BCS.App.toast(result?.message || "Dashboard gagal dimuat.", "error");
+                return false;
+            }
+
+            processDashboardPayload(result);
+            return true;
+        } catch (err) {
+            BCS.Error.handle(err);
+            return false;
+        } finally {
+            BCS.App.Loading.hide();
+        }
+    }
+
+    async function loadSLAAnalytics() {
+        try {
+            const response = await DashboardApi.fetchSLAAnalytics();
+            processSLAPayload(response);
+        } catch (err) {
+            console.error("[SLA Analytics System Failure]", err);
+        }
+    }
+
     function loadUser() {
-        const session = App.getSession();
+        const session = BCS.App.getSession();
         if (!session) return false;
 
-        setText("userName", session.nama ?? "-");
-        setText("userRole", session.role ?? "-");
-        setText("userNik", session.nik ?? "-");
-        setText("lastLogin", session.lastLogin ?? new Date().toLocaleString("id-ID"));
+        if (DOM.user.name) DOM.user.name.textContent = session.nama ?? "-";
+        if (DOM.user.role) DOM.user.role.textContent = session.role ?? "-";
+        if (DOM.user.nik) DOM.user.nik.textContent = session.nik ?? "-";
+        if (DOM.user.lastLogin) DOM.user.lastLogin.textContent = session.lastLogin ?? new Date().toLocaleString("id-ID");
 
         return true;
     }
 
-    // ==================================================
-    // LOAD DASHBOARD SUMMARY
-    // ==================================================
-    async function loadSummary() {
-        App.showLoading();
+    async function refresh() {
+        if (state.ui.isRefreshing) return false;
+        state.ui.isRefreshing = true;
 
+        BCS.Logger.performance(MODULE_NAME, "Refresh Pipeline Initiated", performance.now());
         try {
-            const session = App.getSession();
-            if (!session || !session.token) {
-                App.toast("Session telah berakhir. Silakan login kembali.", "error");
-                App.redirect("login.html");
-                return false;
-            }
+            const summaryLoaded = await loadSummary();
+            if (!summaryLoaded) return false;
 
-            const result = await Api.post("getDashboard", { token: session.token });
-            console.log("[Dashboard API]", result);
+            await loadSLAAnalytics();
 
-            if (!result) {
-                App.toast("Tidak ada respon dari server.", "error");
-                return false;
-            }
+            const tRender = performance.now();
+            Render.all();
+            BCS.Logger.performance(MODULE_NAME, "Full UI Components Redrawn", tRender);
 
-            if (result.success !== true) {
-                App.toast(result.message || "Dashboard gagal dimuat.", "error");
-                return false;
-            }
-
-            // DATA MAPPING
-            const data = result?.data ?? result?.payload ?? result?.result ?? {};
-            const toNumber = (value) => {
-                const number = Number(value);
-                return Number.isFinite(number) ? number : 0;
-            };
-            const toArray = (value, fallback = []) => {
-                return Array.isArray(value) ? [...value] : [...fallback];
-            };
-
-            // Update Dashboard State
-            dashboardData = {
-                ...dashboardData,
-                total: toNumber(data.total),
-                ac: toNumber(data.ac),
-                listrik: toNumber(data.listrik),
-                gedung: toNumber(data.gedung),
-                open: toNumber(data.open),
-                progress: toNumber(data.progress),
-                done: toNumber(data.done),
-                totalTrend: toNumber(data.totalTrend),
-                acTrend: toNumber(data.acTrend),
-                listrikTrend: toNumber(data.listrikTrend),
-                gedungTrend: toNumber(data.gedungTrend),
-                onlineUser: toNumber(data.onlineUser),
-                todayReport: toNumber(data.todayReport),
-                pendingApproval: toNumber(data.pendingApproval),
-                lastUpdate: data.lastUpdate || data.serverTime || new Date().toLocaleString("id-ID"),
-                activity: toArray(data.activity),
-                monthly: (() => {
-                    const monthly = toArray(data.monthly, Array(12).fill(0));
-                    while (monthly.length < 12) {
-                        monthly.push(0);
-                    }
-                    return monthly.slice(0, 12);
-                })()
-            };
-
-            App.log("Dashboard Data Loaded");
-            console.table({
-                total: dashboardData.total,
-                ac: dashboardData.ac,
-                listrik: dashboardData.listrik,
-                gedung: dashboardData.gedung,
-                open: dashboardData.open,
-                progress: dashboardData.progress,
-                done: dashboardData.done,
-                todayReport: dashboardData.todayReport,
-                onlineUser: dashboardData.onlineUser,
-                pendingApproval: dashboardData.pendingApproval
-            });
-
-            renderSummary();
-            App.log("Dashboard Summary Loaded");
             return true;
-
         } catch (err) {
-            console.error("[Dashboard Load Summary]", err);
-            App.handleError(err);
+            BCS.Error.handle(err);
             return false;
         } finally {
-            App.hideLoading();
+            state.ui.isRefreshing = false;
         }
     }
-// ========================================
-// SLA ANALYTICS
-// Sprint 10.2
-// ========================================
-async function loadSLAAnalytics() {
 
-    try {
-
-        const response = await Api.post("getSLAAnalytics");
-
-        if (!response.success) return;
-
-        const data = response.data;
-
-        document.getElementById("fastCount").textContent =
-            data.fast;
-
-        document.getElementById("normalCount").textContent =
-            data.normal;
-
-        document.getElementById("lateCount").textContent =
-            data.late;
-
-        document.getElementById("fastPercent").textContent =
-            data.fastPercent + "%";
-
-        document.getElementById("normalPercent").textContent =
-            data.normalPercent + "%";
-
-        document.getElementById("latePercent").textContent =
-            data.latePercent + "%";
-
-    } catch (err) {
-
-        console.error(err);
-
+    // ==================================================
+    // 5. EVENTS & AUTO-REFRESH
+    // ==================================================
+    function startAutoRefresh() {
+        stopAutoRefresh();
+        state.ui.refreshInterval = setInterval(async () => {
+            try {
+                await refresh();
+            } catch (err) {
+                console.error(err);
+            }
+        }, POLLING_INTERVAL);
     }
 
-}
-    // ==================================================
-    // RENDER SUMMARY
-    // ==================================================
-    function renderSummary() {
-        const {
-            total = 0, ac = 0, listrik = 0, gedung = 0,
-            open = 0, progress = 0, done = 0,
-            totalTrend = 0, acTrend = 0, listrikTrend = 0, gedungTrend = 0
-        } = dashboardData;
+    function stopAutoRefresh() {
+        if (state.ui.refreshInterval) {
+            clearInterval(state.ui.refreshInterval);
+            state.ui.refreshInterval = null;
+        }
+    }
 
-        const counters = [
-            ["totalReport", total],
-            ["acTotal", ac],
-            ["listrikTotal", listrik],
-            ["gedungTotal", gedung],
-            ["totalOpen", open],
-            ["totalProgress", progress],
-            ["totalDone", done]
-        ];
-        counters.forEach(([id, value]) => {
-            DashboardView.animateCounter(id, value);
+    function startClock() {
+        if (state.ui.clockInterval) return;
+        DashboardFooter.updateClock();
+        state.ui.clockInterval = setInterval(() => DashboardFooter.updateClock(), 1000);
+    }
+
+    function stopClock() {
+        if (state.ui.clockInterval) {
+            clearInterval(state.ui.clockInterval);
+            state.ui.clockInterval = null;
+        }
+    }
+
+    function bindEvents() {
+        // Direct Button Interactions
+        if (DOM.buttons.refresh) {
+            DOM.buttons.refresh.addEventListener("click", async (e) => {
+                e.preventDefault();
+                await refresh();
+            });
+        }
+
+        if (DOM.buttons.logout) {
+            DOM.buttons.logout.addEventListener("click", async (e) => {
+                e.preventDefault();
+                const confirmed = await BCS.App.confirm("Logout", "Keluar dari aplikasi?");
+                if (!confirmed || !confirmed.isConfirmed) return;
+                await BCS.Auth.logout();
+            });
+        }
+
+        // Window Tab Visibility Focus Guard
+        document.addEventListener("visibilitychange", async () => {
+            if (document.hidden) {
+                stopAutoRefresh();
+                return;
+            }
+            await refresh();
+            startAutoRefresh();
         });
 
-        const trends = [
-            ["total", totalTrend],
-            ["ac", acTrend],
-            ["listrik", listrikTrend],
-            ["gedung", gedungTrend]
-        ];
-        trends.forEach(([id, value]) => {
-            DashboardView.setTrend(id, value);
-        });
+        window.addEventListener("beforeunload", () => destroy());
+
+        // Enterprise Event-Driven Architecture (Instant UI Synchronization)
+        if (typeof BCS !== "undefined" && BCS.Events) {
+            BCS.Events.on("report:created", async () => {
+                BCS.Logger.performance(MODULE_NAME, "Event Caught: report:created -> Realtime Refresh Triggered", performance.now());
+                await refresh();
+            });
+
+            BCS.Events.on("report:updated", async () => {
+                BCS.Logger.performance(MODULE_NAME, "Event Caught: report:updated -> Realtime Refresh Triggered", performance.now());
+                await refresh();
+            });
+        }
     }
 
     // ==================================================
-    // INIT
+    // 4. INIT
     // ==================================================
     async function init() {
-        if (initialized) return true;
-        if (initializing) return false;
+        if (state.ui.initialized) return true;
+        if (state.ui.initializing) return false;
 
-        initializing = true;
-        App.log("Dashboard Module Loaded");
+        state.ui.initializing = true;
+        const tInit = performance.now();
 
         try {
-            const isAuthenticated = await AuthService.guard();
-            if (!isAuthenticated) return false;
+            const isAuthenticated = await BCS.Auth.guard();
+            if (!isAuthenticated) {
+                BCS.App.removeSession();
+                BCS.App.redirect("login.html");
+                return false;
+            }
 
             const userLoaded = loadUser();
             if (!userLoaded) throw new Error("Data user gagal dimuat.");
 
             const summaryLoaded = await loadSummary();
             if (!summaryLoaded) throw new Error("Dashboard data gagal dimuat.");
+
             await loadSLAAnalytics();
-            initialized = true;
-            App.log("Dashboard Initialized Successfully");
-            return true;
 
-        } catch (err) {
-            initialized = false;
-            console.error("[Dashboard Init]", err);
-            App.handleError(err);
-            return false;
-        } finally {
-            initializing = false;
-        }
-    }
+            // Render Core Interface Components
+            Render.animateCards();
+            Render.all();
 
-    // ==================================================
-    // GETTERS & SETTERS
-    // ==================================================
-    function getData() {
-        return {
-            ...dashboardData,
-            activity: [...dashboardData.activity],
-            monthly: [...dashboardData.monthly]
-        };
-    }
-
-    const getDonutChart = () => donutChart;
-    const setDonutChart = (instance) => { donutChart = instance; };
-    const getLineChart = () => lineChart;
-    const setLineChart = (instance) => { lineChart = instance; };
-
-    // ==================================================
-    // PUBLIC API
-    // ==================================================
-    return {
-        init,
-        loadUser,
-        loadSummary,
-        loadSLAAnalytics,
-        renderSummary,
-        getData,
-        getDonutChart,
-        setDonutChart,
-        getLineChart,
-        setLineChart
-    };
-})();
-
-/**
- * =====================================================
- * DASHBOARD VIEW
- * Handles: card animation, activity list, chart, last refresh
- * =====================================================
- */
-const DashboardView = (() => {
-    const counterTimers = Object.create(null);
-    let isRefreshing = false;
-
-    // ==================================================
-    // COUNTER ANIMATION
-    // ==================================================
-    function animateCounter(id, endValue) {
-        const element = document.getElementById(id);
-        if (!element) return;
-
-        endValue = Number(endValue) || 0;
-        let start = Number(element.textContent) || 0;
-
-        if (start === endValue) {
-            element.textContent = endValue;
-            return;
-        }
-
-        if (counterTimers[id]) {
-            clearInterval(counterTimers[id]);
-        }
-
-        const DURATION = 800;
-        const FRAMES = 30;
-        const diff = endValue - start;
-        const step = diff / FRAMES;
-
-        counterTimers[id] = setInterval(() => {
-            start += step;
-            const finished = (step > 0 && start >= endValue) || (step < 0 && start <= endValue);
-
-            if (finished) {
-                start = endValue;
-                clearInterval(counterTimers[id]);
-                delete counterTimers[id];
-            }
-            element.textContent = Math.round(start);
-        }, DURATION / FRAMES);
-    }
-
-    // ==================================================
-    // TREND INDICATOR
-    // ==================================================
-    function setTrend(id, value) {
-        const trendText = document.getElementById(id + "Trend");
-        const trendIcon = document.getElementById(id + "TrendIcon");
-        if (!trendText || !trendIcon) return;
-
-        trendText.textContent = Math.abs(value);
-
-        if (value >= 0) {
-            trendIcon.className = "bi bi-arrow-up";
-            trendText.parentElement.className = "summary-trend success";
-        } else {
-            trendIcon.className = "bi bi-arrow-down";
-            trendText.parentElement.className = "summary-trend danger";
-        }
-    }
-
-    // ==================================================
-    // CARD ANIMATION
-    // ==================================================
-    function animateCards() {
-        const cards = document.querySelectorAll(".summary-card, .status-card, .enterprise-card, .user-profile-card");
-        cards.forEach((card, index) => {
-            card.animate([
-                { opacity: 0, transform: "translateY(20px)" },
-                { opacity: 1, transform: "translateY(0)" }
-            ], {
-                duration: 500,
-                delay: index * 120,
-                fill: "forwards",
-                easing: "ease-out"
-            });
-        });
-    }
-
-    // ==================================================
-    // RERECENT ACTIVITY
-    // ==================================================
-    function renderActivity() {
-        const container = document.getElementById("recentActivity");
-        if (!container) return;
-
-        const list = Dashboard.getData()?.activity ?? [];
-
-        if (list.length === 0) {
-            container.innerHTML = `
-                <div class="text-center text-muted py-4">
-                    <i class="bi bi-clock-history fs-1 d-block mb-2"></i>
-                    <span>Tidak ada aktivitas terbaru</span>
-                </div>`;
-            return;
-        }
-
-        const STATUS_CONFIG = {
-            OPEN: { icon: "bi-folder2-open", color: "primary" },
-            PROGRESS: { icon: "bi-arrow-repeat", color: "warning" },
-            DONE: { icon: "bi-check-circle-fill", color: "success" }
-        };
-
-        const escapeHtml = (value) => {
-            const div = document.createElement("div");
-            div.textContent = value ?? "";
-            return div.innerHTML;
-        };
-
-        container.innerHTML = list.map(item => {
-            const status = item.status || "OPEN";
-            const config = STATUS_CONFIG[status] || STATUS_CONFIG.OPEN;
-
-            return `
-                <div class="activity-item">
-                    <div class="activity-icon ${config.color}">
-                        <i class="bi ${config.icon}"></i>
-                    </div>
-                    <div class="activity-content">
-                        <strong>${escapeHtml(item.kategori || "-")}</strong>
-                        <small>${escapeHtml(item.lokasi || "-")}</small>
-                    </div>
-                    <span>${escapeHtml(item.waktu || "-")}</span>
-                </div>`;
-        }).join("");
-    }
-
-    // ==================================================
-    // CHART DOUGHNUT
-    // ==================================================
-    function renderChart() {
-        const canvas = document.getElementById("reportChart");
-        if (!canvas) return;
-
-        const oldChart = Dashboard.getDonutChart();
-        if (oldChart instanceof Chart) {
-            oldChart.destroy();
-        }
-
-        const data = Dashboard.getData() || {};
-        const chart = new Chart(canvas, {
-            type: "doughnut",
-            data: {
-                labels: ["AC", "Listrik", "Gedung"],
-                datasets: [{
-                    data: [data.ac || 0, data.listrik || 0, data.gedung || 0],
-                    backgroundColor: ["#2563EB", "#F59E0B", "#7C3AED"],
-                    hoverBackgroundColor: ["#1D4ED8", "#D97706", "#6D28D9"],
-                    hoverOffset: 8,
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: "72%",
-                animation: {
-                    animateRotate: true,
-                    animateScale: true,
-                    duration: 1200,
-                    easing: "easeOutQuart"
-                },
-                plugins: {
-                    legend: {
-                        position: "bottom",
-                        labels: {
-                            usePointStyle: true,
-                            pointStyle: "circle",
-                            padding: 20
-                        }
-                    }
-                }
-            }
-        });
-
-        Dashboard.setDonutChart(chart);
-    }
-
-    // ==================================================
-    // MONTHLY LINE CHART
-    // ==================================================
-    function renderLineChart() {
-        const canvas = document.getElementById("monthlyChart");
-        if (!canvas) return;
-
-        const oldChart = Dashboard.getLineChart();
-        if (oldChart instanceof Chart) {
-            oldChart.destroy();
-        }
-
-        const data = Dashboard.getData() || {};
-        const monthlyData = Array.isArray(data.monthly) ? [...data.monthly] : [];
-        while (monthlyData.length < 12) {
-            monthlyData.push(0);
-        }
-
-        const ctx = canvas.getContext("2d");
-        const gradient = ctx.createLinearGradient(0, 0, 0, 320);
-        gradient.addColorStop(0, "rgba(37,99,235,0.35)");
-        gradient.addColorStop(1, "rgba(37,99,235,0.03)");
-
-        const chart = new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
-                datasets: [{
-                    label: "Total Report",
-                    data: monthlyData.slice(0, 12),
-                    borderColor: "#2563EB",
-                    backgroundColor: gradient,
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.45,
-                    pointRadius: 4,
-                    pointHoverRadius: 8,
-                    pointHitRadius: 15,
-                    pointBorderWidth: 2,
-                    pointBackgroundColor: "#2563EB",
-                    pointBorderColor: "#FFFFFF",
-                    pointHoverBackgroundColor: "#FFFFFF",
-                    pointHoverBorderColor: "#2563EB"
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: { duration: 1200, easing: "easeOutQuart" },
-                interaction: { intersect: false, mode: "index" },
-                elements: {
-                    line: { borderJoinStyle: "round", borderCapStyle: "round" },
-                    point: { hitRadius: 15, hoverRadius: 8 }
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: "#1F2937",
-                        titleColor: "#FFFFFF",
-                        bodyColor: "#FFFFFF",
-                        displayColors: false,
-                        padding: 12,
-                        cornerRadius: 10,
-                        callbacks: {
-                            label(context) {
-                                return "Total Report : " + context.parsed.y;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false, drawBorder: false },
-                        ticks: { color: "#64748B", font: { size: 12 } }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        suggestedMax: Math.max(...monthlyData, 5) + 5,
-                        ticks: { precision: 0, stepSize: 5, color: "#64748B", font: { size: 12 } },
-                        grid: { color: "rgba(148,163,184,0.10)", drawBorder: false }
-                    }
-                }
-            }
-        });
-
-        Dashboard.setLineChart(chart);
-    }
-
-    // ==================================================
-    // LAST REFRESH
-    // ==================================================
-    function updateLastRefresh() {
-        const target = document.getElementById("lastUpdate");
-        if (!target) return;
-
-        const data = Dashboard.getData() || {};
-        target.textContent = data.lastUpdate ?? new Date().toLocaleString("id-ID");
-    }
-
-    // ==================================================
-    // REFRESH ALL
-    // ==================================================
-    async function refresh() {
-        if (isRefreshing) return false;
-        isRefreshing = true;
-
-        App.log("Refreshing Dashboard...");
-        try {
-            const loaded = await Dashboard.loadSummary();
-            if (!loaded) return false;
-            await Dashboard.loadSLAAnalytics();
-            renderActivity();
-            renderChart();
-            renderLineChart();
-            updateLastRefresh();
-
-            App.log("Dashboard Refresh Success");
-            return true;
-        } catch (err) {
-            console.error("[Dashboard Refresh]", err);
-            App.handleError(err);
-            return false;
-        } finally {
-            isRefreshing = false;
-        }
-    }
-
-    return {
-        animateCounter,
-        setTrend,
-        animateCards,
-        renderActivity,
-        renderChart,
-        renderLineChart,
-        updateLastRefresh,
-        refresh
-    };
-})();
-
-/**
- * =====================================================
- * DASHBOARD MODULE (Bootstrap & Events)
- * Handles: event binding, auto-refresh, visibility
- * =====================================================
- */
-const DashboardModule = (() => {
-    let refreshInterval = null;
-    let clockInterval = null;
-
-    function bindRefreshButton() {
-        const button = document.getElementById("refreshDashboard");
-        if (!button) return;
-        button.addEventListener("click", async (event) => {
-            event.preventDefault();
-            await DashboardView.refresh();
-        });
-    }
-
-    function bindLogoutButton() {
-        const button = document.getElementById("logoutBtn");
-        if (!button) return;
-        button.addEventListener("click", async (event) => {
-            event.preventDefault();
-            const confirmed = await App.confirm("Logout", "Keluar dari aplikasi?");
-            if (!confirmed || !confirmed.isConfirmed) return;
-            await AuthService.logout();
-        });
-    }
-
-    function startAutoRefresh() {
-        stopAutoRefresh();
-        refreshInterval = setInterval(async () => {
-            App.log("Realtime Dashboard Refresh");
-            try {
-                await DashboardView.refresh();
-                updateFooter();
-            } catch (err) {
-                console.error(err);
-            }
-        }, 30000);
-    }
-
-    function stopAutoRefresh() {
-        if (!refreshInterval) return;
-        clearInterval(refreshInterval);
-        refreshInterval = null;
-    }
-
-    function bindVisibility() {
-        document.addEventListener("visibilitychange", async () => {
-            if (document.hidden) {
-                App.log("Pause Refresh");
-                stopAutoRefresh();
-                return;
-            }
-            App.log("Resume Refresh");
-            try {
-                await DashboardView.refresh();
-                startAutoRefresh();
-            } catch (err) {
-                console.error(err);
-            }
-        });
-    }
-
-    function bindUnload() {
-        window.addEventListener("beforeunload", () => {
-            stopAutoRefresh();
-            stopClock();
-        });
-    }
-
-    async function checkSession() {
-        const valid = await AuthService.verifySession();
-        if (valid) return true;
-
-        App.removeSession();
-        App.redirect("login.html");
-        return false;
-    }
-
-    // REALTIME CLOCK
-    function updateClock() {
-        const now = new Date();
-        setFooter("todayDate", now.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }));
-        setFooter("currentTime", now.toLocaleTimeString("id-ID", { hour12: false }));
-    }
-
-    function startClock() {
-        if (clockInterval) return;
-        updateClock();
-        clockInterval = setInterval(updateClock, 1000);
-    }
-
-    function stopClock() {
-        if (!clockInterval) return;
-        clearInterval(clockInterval);
-        clockInterval = null;
-    }
-
-    // FOOTER HELPERS
-    function setFooter(id, value) {
-        const element = document.getElementById(id);
-        if (!element) {
-            console.warn("[Footer] Element tidak ditemukan :", id);
-            return;
-        }
-        element.textContent = value ?? "-";
-    }
-
-    function updateFooter() {
-        const { onlineUser = 0, todayReport = 0, pendingApproval = 0 } = Dashboard.getData() || {};
-        setFooter("onlineUser", onlineUser);
-        setFooter("todayReport", todayReport);
-        setFooter("pendingApproval", pendingApproval);
-    }
-
-    // INITIALIZE
-    async function init() {
-        App.log("Dashboard Bootstrap");
-        try {
-            const sessionValid = await checkSession();
-            if (!sessionValid) return false;
-
-            const dashboardReady = await Dashboard.init();
-            if (!dashboardReady) throw new Error("Dashboard gagal diinisialisasi.");
-
-            // Render UI
-            DashboardView.animateCards();
-            DashboardView.renderActivity();
-            DashboardView.renderChart();
-            DashboardView.renderLineChart();
-            DashboardView.updateLastRefresh();
-
-            // Footer & Clock
-            updateFooter();
+            // Systems Execution Bootstrap
             startClock();
-
-            // Event Binding
-            bindRefreshButton();
-            bindLogoutButton();
-            bindVisibility();
-            bindUnload();
-
-            // Auto Refresh
+            bindEvents();
             startAutoRefresh();
 
-            App.log("Dashboard Module Ready");
+            state.ui.initialized = true;
+            BCS.Logger.performance(MODULE_NAME, "Module Fully Bootstrapped & Ready", tInit);
             return true;
+
         } catch (err) {
-            console.error("[DashboardModule Init]", err);
-            App.handleError(err);
+            state.ui.initialized = false;
+            BCS.Error.handle(err);
             return false;
+        } finally {
+            state.ui.initializing = false;
         }
     }
 
-    return {
-        init,
-        bindRefreshButton,
-        bindLogoutButton,
-        startAutoRefresh,
-        stopAutoRefresh,
-        checkSession
-    };
-})();
+    // ==================================================
+    // 13. DESTROY
+    // ==================================================
+    function destroy() {
+        stopAutoRefresh();
+        stopClock();
+        
+        // Clear all remaining active tickers
+        Object.keys(state.ui.counterTimers).forEach(id => {
+            clearInterval(state.ui.counterTimers[id]);
+        });
+        state.ui.counterTimers = Object.create(null);
 
-// ======================================================
-// APPLICATION START
-// ======================================================
-document.addEventListener("DOMContentLoaded", async () => {
-    await DashboardModule.init();
+        if (state.charts.donut instanceof Chart) state.charts.donut.destroy();
+        if (state.charts.line instanceof Chart) state.charts.line.destroy();
+        
+        state.ui.initialized = false;
+        console.log(`[${MODULE_NAME}] Destroy pipeline executed clean.`);
+    }
+
+    // Dom Ready Runner
+    document.addEventListener("DOMContentLoaded", async () => {
+        await init();
     });
+})();

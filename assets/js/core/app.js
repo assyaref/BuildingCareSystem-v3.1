@@ -1,6 +1,6 @@
 // ======================================================
 // Building Care System Enterprise v7.1 FINAL
-// Core Enterprise Framework - FIXED
+// Core Enterprise Framework
 // Radiant Group Duri
 // ======================================================
 
@@ -18,44 +18,12 @@ BCS.manifest = Object.freeze({
     version: "1.0.0",
     author: "Radiant Group",
     environment: window.CONFIG?.ENV || "production",
-    build: "2026.06.25",
-    modules: ["Auth", "Api", "Storage", "Logger", "Events", "Components", "Modules"]
+    build: "2026.06.25"
 });
 
 /**
  * ======================================================
- * 2. ENTERPRISE LOGGER
- * ======================================================
- */
-BCS.Logger = (() => {
-    const LEVELS = { TRACE: 0, DEBUG: 1, INFO: 2, WARN: 3, ERROR: 4, OFF: 5 };
-    let currentLevel = window.CONFIG?.LOG_LEVEL ? LEVELS[window.CONFIG.LOG_LEVEL.toUpperCase()] : LEVELS.INFO;
-
-    function shouldLog(level) { return LEVELS[level] >= currentLevel; }
-    function getLevelName() { return Object.keys(LEVELS).find(key => LEVELS[key] === currentLevel); }
-
-    function setLevel(levelName) {
-        const upper = levelName.toUpperCase();
-        if (LEVELS[upper] !== undefined) {
-            currentLevel = LEVELS[upper];
-            console.log(`[LOGGER] Level diubah ke: ${upper}`);
-        }
-    }
-
-    return Object.freeze({
-        trace: (tag, ...args) => { if (shouldLog("TRACE")) console.log(`[TRACE:${tag}]`, ...args); },
-        debug: (tag, ...args) => { if (shouldLog("DEBUG")) console.log(`[DEBUG:${tag}]`, ...args); },
-        info:  (tag, ...args) => { if (shouldLog("INFO"))  console.log(`[INFO:${tag}]`, ...args); },
-        warn:  (tag, ...args) => { if (shouldLog("WARN"))  console.warn(`[WARN:${tag}]`, ...args); },
-        error: (tag, ...args) => { if (shouldLog("ERROR")) console.error(`[ERROR:${tag}]`, ...args); },
-        setLevel,
-        getLevelName
-    });
-})();
-
-/**
- * ======================================================
- * 3. SINGLE EVENT BUS (MERGE dari api.js)
+ * 2. EVENT BUS - SINGLE INSTANCE
  * ======================================================
  */
 if (!BCS.Events) {
@@ -105,7 +73,27 @@ if (!BCS.Events) {
 
 /**
  * ======================================================
- * 4. STORAGE LAYER - FIXED
+ * 3. LOGGER
+ * ======================================================
+ */
+BCS.Logger = (() => {
+    const LEVELS = { TRACE: 0, DEBUG: 1, INFO: 2, WARN: 3, ERROR: 4, OFF: 5 };
+    let currentLevel = window.CONFIG?.LOG_LEVEL ? LEVELS[window.CONFIG.LOG_LEVEL.toUpperCase()] : LEVELS.INFO;
+
+    function shouldLog(level) { return LEVELS[level] >= currentLevel; }
+
+    return Object.freeze({
+        trace: (tag, ...args) => { if (shouldLog("TRACE")) console.log(`[TRACE:${tag}]`, ...args); },
+        debug: (tag, ...args) => { if (shouldLog("DEBUG")) console.log(`[DEBUG:${tag}]`, ...args); },
+        info:  (tag, ...args) => { if (shouldLog("INFO"))  console.log(`[INFO:${tag}]`, ...args); },
+        warn:  (tag, ...args) => { if (shouldLog("WARN"))  console.warn(`[WARN:${tag}]`, ...args); },
+        error: (tag, ...args) => { if (shouldLog("ERROR")) console.error(`[ERROR:${tag}]`, ...args); }
+    });
+})();
+
+/**
+ * ======================================================
+ * 4. STORAGE - SINGLE LAYER
  * ======================================================
  */
 BCS.Storage = (() => {
@@ -172,35 +160,31 @@ BCS.Storage = (() => {
 
     function setSession(data) {
         if (data && data.token) {
-            // Simpan ke localStorage
             set(SESSION_KEY, data);
-            // Simpan ke sessionStorage sebagai backup
-            try {
-                sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
-            } catch (e) {}
-            // Simpan ke legacy keys
             set("token", data.token);
             set("user", data.user || {});
             if (data.nik) set("nik", data.nik);
             if (data.role) set("role", data.role);
             
-            // Also update Session global
+            // Backup ke sessionStorage
+            try {
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
+            } catch (e) {}
+            
+            // Update Session global
             if (window.Session && typeof Session.set === 'function') {
                 Session.set(data);
             }
             
-            BCS.Logger.info("Storage", "Session saved successfully");
+            BCS.Logger.info("Storage", "Session saved");
             return true;
         }
         return false;
     }
 
     function getSession() {
-        // Try BCS_SESSION first
         let data = get(SESSION_KEY);
-        if (data && data.token) {
-            return data;
-        }
+        if (data && data.token) return data;
         
         // Try sessionStorage backup
         try {
@@ -208,7 +192,6 @@ BCS.Storage = (() => {
             if (backup) {
                 data = JSON.parse(backup);
                 if (data && data.token) {
-                    // Restore to localStorage
                     set(SESSION_KEY, data);
                     return data;
                 }
@@ -235,9 +218,7 @@ BCS.Storage = (() => {
         remove("user");
         remove("nik");
         remove("role");
-        try {
-            sessionStorage.removeItem(SESSION_KEY);
-        } catch (e) {}
+        try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
         BCS.Logger.info("Storage", "Session removed");
     }
 
@@ -247,27 +228,13 @@ BCS.Storage = (() => {
         remove,
         setSession,
         getSession,
-        removeSession,
-        getStorage
+        removeSession
     });
 })();
 
 /**
  * ======================================================
- * 5. UTILITIES
- * ======================================================
- */
-BCS.Utils = (() => {
-    return Object.freeze({
-        delay: (ms = 300) => new Promise(res => setTimeout(res, ms)),
-        uuid: () => Date.now().toString(36) + Math.random().toString(36).substring(2),
-        clone: (obj) => typeof structuredClone === "function" ? structuredClone(obj) : JSON.parse(JSON.stringify(obj))
-    });
-})();
-
-/**
- * ======================================================
- * 6. APP UI HELPERS
+ * 5. APP UI HELPERS
  * ======================================================
  */
 BCS.App = (() => {
@@ -322,35 +289,7 @@ BCS.App = (() => {
 
 /**
  * ======================================================
- * 7. MODULE REGISTRY
- * ======================================================
- */
-BCS.Modules = (() => {
-    const modules = new Map();
-    const activeInstances = new Map();
-
-    return Object.freeze({
-        register: (name, moduleDefinition) => {
-            modules.set(name, moduleDefinition);
-            BCS.Logger.trace("Modules", `Module [${name}] registered`);
-        },
-        init: async (name, options = {}) => {
-            if (!modules.has(name)) return null;
-            if (activeInstances.has(name)) return activeInstances.get(name);
-
-            const mod = modules.get(name);
-            if (mod.init) await mod.init(options);
-            activeInstances.set(name, mod);
-            BCS.Logger.trace("Modules", `Module [${name}] initialized`);
-            return mod;
-        },
-        getRunning: () => Array.from(activeInstances.keys())
-    });
-})();
-
-/**
- * ======================================================
- * 8. BOOTSTRAP
+ * 6. BOOTSTRAP
  * ======================================================
  */
 BCS.bootstrap = (() => {

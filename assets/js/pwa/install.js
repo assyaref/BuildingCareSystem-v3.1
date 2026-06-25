@@ -14,7 +14,7 @@ const PWAInstall = (() => {
         logPrefix: 'PWA'
     });
     
-    // Runtime configuration (mutable but controlled)
+    // Runtime configuration
     let runtimeConfig = { ...DEFAULT_CONFIG };
     
     // ==========================================
@@ -35,22 +35,27 @@ const PWAInstall = (() => {
     };
     
     // ==========================================
-    // 3. STATE
+    // 3. STATE FACTORY
     // ==========================================
-    const state = {
+    const createState = () => ({
         available: false,      // Install prompt available
         installed: false,      // App already installed
         standalone: false,     // Running in standalone mode
         deferred: false,       // Deferred prompt exists
         platform: null,        // Platform detection
         initialized: false     // Module initialized
-    };
+    });
+    
+    // ==========================================
+    // 4. STATE
+    // ==========================================
+    const state = createState();
     
     let deferredPrompt = null;
     let mediaQuery = null;
     
     // ==========================================
-    // 4. EVENT REGISTRY (For cleanup)
+    // 5. EVENT REGISTRY (For cleanup)
     // ==========================================
     const eventRegistry = {
         listeners: [],
@@ -69,7 +74,7 @@ const PWAInstall = (() => {
     };
     
     // ==========================================
-    // 5. PRIVATE METHODS
+    // 6. PRIVATE METHODS
     // ==========================================
     
     // Update state and emit events
@@ -91,11 +96,11 @@ const PWAInstall = (() => {
     };
     
     // ==========================================
-    // 6. EVENT REGISTRATION (With registry)
+    // 7. EVENT REGISTRATION (With registry)
     // ==========================================
     const registerEvents = () => {
         
-        // 6a. Before Install Prompt
+        // 7a. Before Install Prompt
         eventRegistry.add(
             window,
             'beforeinstallprompt',
@@ -111,7 +116,7 @@ const PWAInstall = (() => {
             }
         );
         
-        // 6b. App Installed
+        // 7b. App Installed
         eventRegistry.add(
             window,
             'appinstalled',
@@ -126,7 +131,7 @@ const PWAInstall = (() => {
             }
         );
         
-        // 6c. Standalone mode change (watch for changes)
+        // 7c. Standalone mode change (watch for changes)
         mediaQuery = window.matchMedia('(display-mode: standalone)');
         eventRegistry.add(
             mediaQuery,
@@ -138,7 +143,7 @@ const PWAInstall = (() => {
             }
         );
         
-        // 6d. iOS Standalone detection
+        // 7d. iOS Standalone detection
         if (window.navigator.standalone === true) {
             updateState('standalone', true);
             updateState('platform', 'ios');
@@ -146,12 +151,12 @@ const PWAInstall = (() => {
             BCS.Events?.emit?.('pwa:ios-standalone');
         }
         
-        // 6e. Initial standalone check
+        // 7e. Initial standalone check
         checkStandalone();
     };
     
     // ==========================================
-    // 7. INSTALL ENGINE
+    // 8. INSTALL ENGINE
     // ==========================================
     const install = async () => {
         if (!deferredPrompt) {
@@ -180,7 +185,7 @@ const PWAInstall = (() => {
     };
     
     // ==========================================
-    // 8. BRIDGE (Message from Service Worker)
+    // 9. BRIDGE (Message from Service Worker)
     // ==========================================
     const setupBridge = () => {
         if (!('serviceWorker' in navigator)) {
@@ -212,7 +217,7 @@ const PWAInstall = (() => {
     };
     
     // ==========================================
-    // 9. DETECTION
+    // 10. DETECTION
     // ==========================================
     const detect = () => {
         // Check if already installed
@@ -230,7 +235,7 @@ const PWAInstall = (() => {
     };
     
     // ==========================================
-    // 10. INIT
+    // 11. INIT
     // ==========================================
     const init = (config = {}) => {
         if (state.initialized) {
@@ -238,7 +243,7 @@ const PWAInstall = (() => {
             return state;
         }
         
-        // Merge config (runtime config, not immutable)
+        // Merge config
         runtimeConfig = { ...DEFAULT_CONFIG, ...config };
         
         Logger.info('Initializing PWA Install Module...');
@@ -264,7 +269,7 @@ const PWAInstall = (() => {
     };
     
     // ==========================================
-    // 11. DESTROY (Cleanup)
+    // 12. DESTROY (Cleanup)
     // ==========================================
     const destroy = () => {
         if (!state.initialized) {
@@ -277,19 +282,12 @@ const PWAInstall = (() => {
         // Remove all event listeners
         eventRegistry.removeAll();
         
-        // Reset state
+        // Reset state using factory
         deferredPrompt = null;
         mediaQuery = null;
         
-        Object.keys(state).forEach(key => {
-            if (key === 'platform') {
-                state[key] = null;
-            } else if (key === 'initialized') {
-                state[key] = false;
-            } else {
-                state[key] = false;
-            }
-        });
+        // Reset state with factory (maintains consistency)
+        Object.assign(state, createState());
         
         Logger.info('PWA Install Module destroyed');
         
@@ -298,7 +296,7 @@ const PWAInstall = (() => {
     };
     
     // ==========================================
-    // 12. CONFIG UPDATE (Runtime)
+    // 13. UPDATE CONFIG (Runtime)
     // ==========================================
     const updateConfig = (config = {}) => {
         const oldConfig = { ...runtimeConfig };
@@ -308,15 +306,15 @@ const PWAInstall = (() => {
     };
     
     // ==========================================
-    // 13. EXPORT
+    // 14. EXPORT
     // ==========================================
     return Object.freeze({
         init,
         destroy,
         install,
         updateConfig,
-        state: () => ({ ...state }), // Return copy to prevent mutation
-        config: () => ({ ...runtimeConfig }), // Return copy
+        state: () => ({ ...state }),
+        config: () => ({ ...runtimeConfig }),
         getDeferredPrompt: () => deferredPrompt,
         isAvailable: () => state.available,
         isInstalled: () => state.installed,
@@ -329,13 +327,7 @@ const PWAInstall = (() => {
                 init(runtimeConfig);
             } else {
                 deferredPrompt = null;
-                Object.keys(state).forEach(key => {
-                    if (key === 'platform') {
-                        state[key] = null;
-                    } else {
-                        state[key] = false;
-                    }
-                });
+                Object.assign(state, createState());
                 Logger.info('State reset');
             }
         }
@@ -344,62 +336,137 @@ const PWAInstall = (() => {
 })();
 
 // ==========================================
-// REGISTER TO BCS NAMESPACE
+// REGISTER TO BCS NAMESPACE (Inside IIFE)
 // ==========================================
-// BCS.PWA sebagai façade utama
-// BCS.PWA.Install, BCS.PWA.Cache, BCS.PWA.Update, BCS.PWA.Sync
+// Semua proses registrasi namespace di dalam IIFE
+// sehingga dapat mengakses Logger
 
-if (typeof BCS !== 'undefined') {
-    // Create PWA namespace if not exists
+(() => {
+    
+    // Check if BCS is available
+    if (typeof BCS === 'undefined') {
+        window.__PWAInstall = PWAInstall;
+        console.warn('[PWA] BCS not found, module stored in window.__PWAInstall');
+        return;
+    }
+    
+    // ==========================================
+    // Create PWA namespace
+    // ==========================================
     BCS.PWA = BCS.PWA || {};
     
     // Register Install module
     BCS.PWA.Install = PWAInstall;
     
-    // Placeholder for other modules (will be implemented later)
+    // Placeholder for other modules
     BCS.PWA.Cache = BCS.PWA.Cache || null;
     BCS.PWA.Update = BCS.PWA.Update || null;
     BCS.PWA.Sync = BCS.PWA.Sync || null;
     
-    // Façade methods
+    // ==========================================
+    // Façade methods with validation
+    // ==========================================
+    
     BCS.PWA.init = (config = {}) => {
+        if (!BCS.PWA.Install) {
+            throw new Error('[PWA] Install module not available.');
+        }
         return BCS.PWA.Install.init(config);
     };
     
     BCS.PWA.destroy = () => {
+        if (!BCS.PWA.Install) {
+            throw new Error('[PWA] Install module not available.');
+        }
         return BCS.PWA.Install.destroy();
     };
     
-    BCS.PWA.state = () => {
-        return BCS.PWA.Install.state();
-    };
-    
     BCS.PWA.install = () => {
+        if (!BCS.PWA.Install) {
+            throw new Error('[PWA] Install module not available.');
+        }
         return BCS.PWA.Install.install();
     };
     
+    BCS.PWA.state = () => {
+        if (!BCS.PWA.Install) {
+            throw new Error('[PWA] Install module not available.');
+        }
+        return BCS.PWA.Install.state();
+    };
+    
+    BCS.PWA.config = () => {
+        if (!BCS.PWA.Install) {
+            throw new Error('[PWA] Install module not available.');
+        }
+        return BCS.PWA.Install.config();
+    };
+    
+    BCS.PWA.updateConfig = (config) => {
+        if (!BCS.PWA.Install) {
+            throw new Error('[PWA] Install module not available.');
+        }
+        return BCS.PWA.Install.updateConfig(config);
+    };
+    
     BCS.PWA.isAvailable = () => {
+        if (!BCS.PWA.Install) {
+            return false;
+        }
         return BCS.PWA.Install.isAvailable();
     };
     
     BCS.PWA.isInstalled = () => {
+        if (!BCS.PWA.Install) {
+            return false;
+        }
         return BCS.PWA.Install.isInstalled();
     };
     
     BCS.PWA.isStandalone = () => {
+        if (!BCS.PWA.Install) {
+            return false;
+        }
         return BCS.PWA.Install.isStandalone();
     };
     
-    // NOTE: Auto-initialization moved to bootstrap.js
-    // No longer auto-initialize here
+    BCS.PWA.isInitialized = () => {
+        if (!BCS.PWA.Install) {
+            return false;
+        }
+        return BCS.PWA.Install.isInitialized();
+    };
     
-    Logger.info('BCS.PWA façade registered');
+    BCS.PWA.checkStandalone = () => {
+        if (!BCS.PWA.Install) {
+            throw new Error('[PWA] Install module not available.');
+        }
+        return BCS.PWA.Install.checkStandalone();
+    };
     
-} else {
-    // Fallback: simpan untuk nanti
-    window.__PWAInstall = PWAInstall;
-    console.warn('[PWA] BCS not found, module stored in window.__PWAInstall');
-}
+    BCS.PWA.reset = () => {
+        if (!BCS.PWA.Install) {
+            throw new Error('[PWA] Install module not available.');
+        }
+        return BCS.PWA.Install.reset();
+    };
+    
+    // ==========================================
+    // Log using BCS.Logger (outside IIFE scope)
+    // ==========================================
+    // Use BCS.Logger directly since Logger from IIFE is not accessible
+    if (BCS.Logger) {
+        BCS.Logger.info?.('PWA', 'BCS.PWA façade registered');
+    } else if (console) {
+        console.info('[PWA] BCS.PWA façade registered');
+    }
+    
+    // ==========================================
+    // NO AUTO-INITIALIZATION HERE
+    // Control from bootstrap.js
+    // ==========================================
+    
+})();
 
 // ==========================================
 // USAGE EXAMPLES
@@ -410,39 +477,36 @@ if (typeof BCS !== 'undefined') {
 import { BCS } from './bcs.js';
 import './install.js';
 
-// Initialize PWA at the right time in startup sequence
-BCS.PWA.init({
-    debug: BCS.config?.debug || false
-});
-
-// 2. Install PWA
-const result = await BCS.PWA.install();
-if (result.success) {
-    console.log('PWA installed!');
+// Initialize PWA at the right time
+try {
+    BCS.PWA.init({ debug: BCS.config?.debug || false });
+} catch (error) {
+    console.error('Failed to initialize PWA:', error);
 }
 
-// 3. Check state
+// 2. Install PWA with validation
+try {
+    const result = await BCS.PWA.install();
+    if (result.success) {
+        console.log('PWA installed!');
+    }
+} catch (error) {
+    console.error('Install failed:', error.message);
+}
+
+// 3. Check state safely
 const state = BCS.PWA.state();
 console.log('Available:', state.available);
 console.log('Installed:', state.installed);
-console.log('Standalone:', state.standalone);
 
 // 4. Listen to events
 BCS.Events.on('pwa:install-available', () => {
     console.log('Show install button!');
 });
 
-BCS.Events.on('pwa:installed', () => {
-    console.log('App installed!');
-});
-
-BCS.Events.on('pwa:standalone-change', ({ standalone }) => {
-    console.log('Standalone mode:', standalone);
-});
-
-// 5. Cleanup (if needed)
+// 5. Cleanup
 BCS.PWA.destroy();
 
 // 6. Update config at runtime
-BCS.PWA.Install.updateConfig({ debug: true });
+BCS.PWA.updateConfig({ debug: true });
 */

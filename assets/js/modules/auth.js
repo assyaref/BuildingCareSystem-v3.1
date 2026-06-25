@@ -722,3 +722,8 @@ const AuthBootstrap = (() => {
         init
     };
 })();
+
+// Inisialisasi Aplikasi Saat DOM Selesai Dimuat
+document.addEventListener("DOMContentLoaded", () => {
+    AuthBootstrap.init();
+});

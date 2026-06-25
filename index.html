@@ -2,9 +2,12 @@
 <html lang="id">
 
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Building Care System Enterprise</title>
+    
+    <meta name="color-scheme" content="light">
     
     <link rel="manifest" href="assets/pwa/manifest.json">
     <meta name="application-name" content="Building Care System Enterprise">
@@ -29,6 +32,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
+        /* 2. Loader Animasi Halus (Fade Out Transition) */
         #app-loader {
             display: flex;
             justify-content: center;
@@ -36,6 +40,14 @@
             flex-direction: column;
             height: 100%;
             color: #333333;
+            transition: opacity .25s ease, visibility .25s ease;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #app-loader.fade-out {
+            opacity: 0;
+            visibility: hidden;
         }
 
         .loader {
@@ -74,20 +86,45 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
+            let bootstrapTimeout;
+
             try {
+                // 5. Bootstrap Timeout Safeguard (Mencegah aplikasi macet tanpa kejelasan)
+                const timeoutPromise = new Promise((_, reject) => {
+                    bootstrapTimeout = setTimeout(() => {
+                        reject(new Error("Bootstrap timeout (Sistem memakan waktu terlalu lama untuk merespons)."));
+                    }, 15000); // 15 Detik
+                });
+
                 if (typeof BCS !== 'undefined' && typeof BCS.bootstrap === 'function') {
-                    await BCS.bootstrap();
+                    // Menjalankan inisialisasi dengan proteksi balapan waktu (race condition)
+                    await Promise.race([BCS.bootstrap(), timeoutPromise]);
+                    
+                    clearTimeout(bootstrapTimeout);
+                    
+                    // 2. Transisi transparan yang mulus sebelum dialihkan oleh bootstrap.js
+                    document.getElementById("app-loader").classList.add("fade-out");
                 } else {
                     throw new Error("BCS Core atau Bootstrap Engine gagal dimuat.");
                 }
             } catch (err) {
-                console.error("[BCS-Bootstrap-Fatal-Error]", err);
+                if (bootstrapTimeout) clearTimeout(bootstrapTimeout);
+                
+                // 3. Debug Mode Conditional Logging
+                if (window.CONFIG?.DEBUG) {
+                    console.error("[BCS-Bootstrap-Fatal-Error]", err);
+                }
+                
+                // 4. Dinamisasi Detail Error (Detail saat dev/debug, umum saat production)
+                const errorMessage = window.CONFIG?.DEBUG 
+                    ? err.message 
+                    : "Gagal memuat sistem atau koneksi terputus.";
                 
                 document.body.innerHTML = `
                     <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #F5F7FA;">
                         <div style="padding: 40px; text-align: center; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); max-width: 400px; width: 90%;">
                             <h2 style="color: #DC3545; margin-bottom: 12px;">Building Care System</h2>
-                            <p style="color: #6c757d; font-size: 15px; line-height: 1.5; margin-bottom: 24px;">Gagal memuat sistem atau koneksi terputus.</p>
+                            <p style="color: #6c757d; font-size: 14px; line-height: 1.5; margin-bottom: 24px; word-break: break-word;">${errorMessage}</p>
                             <button onclick="location.reload()" style="background: #0D6EFD; color: #ffffff; border: none; padding: 10px 24px; font-size: 14px; font-weight: 500; border-radius: 4px; cursor: pointer; transition: background 0.2s;">
                                 Muat Ulang
                             </button>

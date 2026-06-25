@@ -1,12 +1,23 @@
 // ======================================================
-// MOBILE UI - USER DATA LOADER (FIXED)
+// Building Care System Enterprise v11.0 FINAL
+// mobile-ui.js - Enterprise Mobile UI Engine
+// Radiant Group Duri
+// ======================================================
+
+"use strict";
+
+// ======================================================
+// USER DATA LOADER - SINGLE VERSION
 // ======================================================
 
 /**
- * Load user data dari session dengan retry
+ * Load user data dari session dengan retry mechanism
  */
 function loadUserData(retryCount = 0) {
-    console.log(`🔍 [MobileUI] Loading user data... (attempt ${retryCount + 1})`);
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 500;
+    
+    console.log(`🔍 [MobileUI] Loading user data... (attempt ${retryCount + 1}/${MAX_RETRIES})`);
     
     const userName = document.getElementById('userName');
     const userDept = document.getElementById('userDept');
@@ -15,8 +26,8 @@ function loadUserData(retryCount = 0) {
     // Cek apakah Session tersedia
     if (typeof Session === 'undefined') {
         console.error("❌ [MobileUI] Session tidak tersedia!");
-        if (retryCount < 3) {
-            setTimeout(() => loadUserData(retryCount + 1), 500);
+        if (retryCount < MAX_RETRIES) {
+            setTimeout(() => loadUserData(retryCount + 1), RETRY_DELAY);
         }
         return;
     }
@@ -40,7 +51,8 @@ function loadUserData(retryCount = 0) {
             userDept.textContent = dept || nik || "Building Care";
         }
         if (userAvatar) {
-            userAvatar.textContent = nama.charAt(0).toUpperCase() || "👤";
+            const initial = nama.charAt(0).toUpperCase();
+            userAvatar.textContent = /[A-Z]/.test(initial) ? initial : "👤";
         }
         
         // Sembunyikan loading jika ada
@@ -50,12 +62,10 @@ function loadUserData(retryCount = 0) {
     } else {
         console.warn(`⚠️ [MobileUI] User tidak login (attempt ${retryCount + 1})`);
         
-        if (retryCount < 3) {
-            // Retry dengan delay
-            console.log(`🔄 [MobileUI] Retry load user data in 500ms...`);
-            setTimeout(() => loadUserData(retryCount + 1), 500);
+        if (retryCount < MAX_RETRIES) {
+            console.log(`🔄 [MobileUI] Retry load user data in ${RETRY_DELAY}ms...`);
+            setTimeout(() => loadUserData(retryCount + 1), RETRY_DELAY);
         } else {
-            // Redirect ke login setelah 3 kali gagal
             console.error("❌ [MobileUI] Gagal load user data setelah 3 attempt, redirect ke login");
             window.location.href = 'login.html';
         }
@@ -67,71 +77,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Tunggu sebentar agar auth.js selesai inisialisasi
     setTimeout(() => {
         loadUserData();
-    }, 300);
+    }, 500);
+});
+
+// Juga jalankan saat storage berubah
+window.addEventListener('storage', function(e) {
+    if (e.key === 'BCS_SESSION' || e.key === 'token') {
+        console.log('🔄 [MobileUI] Storage changed, reloading user data...');
+        loadUserData();
+    }
 });
 
 // ======================================================
 // END OF USER DATA LOADER
 // ======================================================
-// ======================================================
-// Building Care System Enterprise v11.0
-// mobile-ui.js
-// Enterprise Mobile UI Engine - Facade Layer
-// ======================================================
-// ======================================================
-// MOBILE UI - USER DATA LOADER (FIX)
-// ======================================================
-
-/**
- * Load user data dari session
- */
-function loadUserData() {
-    console.log("🔍 [MobileUI] Loading user data...");
-    
-    const userName = document.getElementById('userName');
-    const userDept = document.getElementById('userDept');
-    const userAvatar = document.getElementById('userAvatar');
-
-    // Cek apakah Session tersedia
-    if (typeof Session === 'undefined') {
-        console.error("❌ [MobileUI] Session tidak tersedia!");
-        return;
-    }
-
-    // Cek login status
-    if (Session.isLoggedIn()) {
-        const user = Session.getUser();
-        const nik = Session.getNik();
-        const nama = Session.getNama() || user?.nama || user?.name || "User";
-        const dept = Session.getDept() || user?.departemen || user?.department || "";
-
-        console.log("✅ [MobileUI] User ditemukan:", { nama, dept, nik, user });
-
-        if (userName) {
-            userName.textContent = `Halo ${nama} 👋`;
-        }
-        if (userDept) {
-            userDept.textContent = dept || nik || "Building Care";
-        }
-        if (userAvatar) {
-            userAvatar.textContent = nama.charAt(0).toUpperCase() || "👤";
-        }
-    } else {
-        console.warn("⚠️ [MobileUI] User tidak login, redirect ke login");
-        // Redirect ke login jika tidak ada session
-        window.location.href = 'login.html';
-    }
-}
-
-// Jalankan saat DOM ready
-document.addEventListener('DOMContentLoaded', function() {
-    loadUserData();
-});
 
 // ======================================================
-// END OF USER DATA LOADER
+// BCS Mobile UI Engine
 // ======================================================
-"use strict";
 
 // Pastikan BCS dan BCS.Mobile sudah terdefinisi
 if (typeof BCS === 'undefined') {
@@ -541,3 +504,5 @@ BCS.Mobile.UI = (() => {
 if (typeof BCS !== 'undefined' && BCS.Module) {
     BCS.Module.register('MobileUI', BCS.Mobile.UI);
 }
+
+console.log("✅ [MobileUI] Mobile UI Engine loaded");

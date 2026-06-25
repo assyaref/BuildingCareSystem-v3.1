@@ -17,7 +17,7 @@ const Offline = (() => {
     const CONFIG = Object.freeze({
         DEBUG: true,
         DATABASE: "BCS_OFFLINE_DB",
-        VERSION: 2, // Diubah ke versi 2 karena struktur objek store/index diperbarui
+        VERSION: 2,
         STORE: "QUEUE",
         MAX_RETRY: 5,
         RETRY_DELAY: 5000,
@@ -79,8 +79,8 @@ const Offline = (() => {
                 retryCount: 0,
                 apiTime: 0,
                 syncTime: 0,
-                averageSync: 0,  // Ditambahkan untuk DevTools
-                averageApi: 0    // Ditambahkan untuk DevTools
+                averageSync: 0,
+                averageApi: 0
             }
         };
     }
@@ -125,16 +125,15 @@ const Offline = (() => {
                 updatedAt: this.timestamp()
             };
         },
-        // Pengurutan berdasarkan Bobot Prioritas, lalu berdasarkan Waktu Masuk (FIFO di level prioritas yang sama)
         sortPriority(a, b) {
             const weights = { [PRIORITY.HIGH]: 3, [PRIORITY.NORMAL]: 2, [PRIORITY.LOW]: 1 };
             const weightA = weights[a.priority] || 2;
             const weightB = weights[b.priority] || 2;
             
             if (weightA !== weightB) {
-                return weightB - weightA; // Prioritas tinggi diproses lebih dulu
+                return weightB - weightA;
             }
-            return new Date(a.createdAt) - new Date(b.createdAt); // FIFO untuk prioritas setara
+            return new Date(a.createdAt) - new Date(b.createdAt);
         }
     };
 
@@ -146,7 +145,6 @@ const Offline = (() => {
             return new Promise((resolve, reject) => {
                 if (state.database) return resolve(state.database);
 
-                // Menggunakan CONFIG.VERSION untuk memudahkan tracking upgrade skema database
                 const request = indexedDB.open(CONFIG.DATABASE, CONFIG.VERSION);
 
                 request.onupgradeneeded = event => {
@@ -213,7 +211,7 @@ const Offline = (() => {
             const item = Helpers.createQueueItem(action, payload, priority);
             await Storage.add(item);
             state.queue.push(item);
-            state.queue.sort(Helpers.sortPriority); // Jaga agar state internal selalu terurut prioritas
+            state.queue.sort(Helpers.sortPriority);
             state.metrics.queueCount = state.queue.length;
             
             Logger.info(`Queue Added [${item.priority}]`, item.id);
@@ -255,7 +253,7 @@ const Offline = (() => {
     };
 
     // =====================================================
-    // SECTION 8 : RETRY (Exponential Backoff Manager)
+    // SECTION 8 : RETRY (Saran 1: Exponential Backoff)
     // =====================================================
     const RetryManager = {
         schedule(item) {
@@ -264,17 +262,16 @@ const Offline = (() => {
                 return;
             }
             
-            // Implementasi Exponential Backoff (contoh: retry 1 = 10s, retry 2 = 20s, retry 3 = 40s...)
-            const backoffDelay = CONFIG.RETRY_DELAY * Math.pow(2, item.retry);
-            
-            Logger.warn(`Scheduling retry untuk ${item.id} dalam ${backoffDelay / 1000}s (Attempt ${item.retry}/${CONFIG.MAX_RETRY})`);
+            // Formula Exponential Backoff
+            const delay = CONFIG.RETRY_DELAY * Math.pow(2, item.retry);
+            Logger.warn(`Retry #${item.retry} dalam ${delay} ms`);
             
             setTimeout(async () => {
-                if (Helpers.isOnline() && !state.syncing) {
-                    state.metrics.retryCount++;
-                    await SyncManager.process(item);
-                }
-            }, backoffDelay);
+                if (!Helpers.isOnline() || state.syncing) return;
+                
+                state.metrics.retryCount++;
+                await SyncManager.process(item);
+            }, delay);
         }
     };
 
@@ -293,7 +290,7 @@ const Offline = (() => {
             state.syncing = true;
 
             try {
-                const items = Queue.pending(); // Sudah otomatis terurut berdasarkan prioritas tertinggi
+                const items = Queue.pending();
                 if (!items.length) {
                     Logger.info("Queue kosong.");
                     return;
@@ -308,7 +305,6 @@ const Offline = (() => {
 
                 state.lastSync = Helpers.timestamp();
                 
-                // Kalkulasi Metrik Durasi Sync Keseluruhan
                 const currentSyncTime = performance.now() - started;
                 state.metrics.syncTime = currentSyncTime;
                 state.metrics.averageSync = state.metrics.averageSync === 0 
@@ -331,11 +327,8 @@ const Offline = (() => {
                 await Queue.update(item);
 
                 const started = performance.now();
-                
-                // Menggunakan ApiAdapter sebagai abstraksi tunggal pemanggilan jaringan
                 const response = await ApiAdapter.send(item);
                 
-                // Kalkulasi Metrik Durasi API Tunggal
                 const currentApiTime = performance.now() - started;
                 state.metrics.apiTime = currentApiTime;
                 state.metrics.averageApi = state.metrics.averageApi === 0 
@@ -363,16 +356,18 @@ const Offline = (() => {
     };
 
     // =====================================================
-    // SECTION 10 : NETWORK (Listeners)
+    // SECTION 10 : NETWORK (Saran 2: Tab Visibility Change)
     // =====================================================
     const Network = {
         init() {
             window.addEventListener("online", this.handleOnline);
             window.addEventListener("offline", this.handleOffline);
+            document.addEventListener("visibilitychange", this.handleVisibility);
         },
         destroy() {
             window.removeEventListener("online", this.handleOnline);
             window.removeEventListener("offline", this.handleOffline);
+            document.removeEventListener("visibilitychange", this.handleVisibility);
         },
         handleOnline() {
             state.online = true;
@@ -384,6 +379,11 @@ const Offline = (() => {
             state.online = false;
             Logger.warn("Aplikasi beralih ke Offline mode.");
             BCS.Events?.emit("network:offline");
+        },
+        handleVisibility() {
+            if (document.hidden) return;
+            Logger.info("Tab aktif kembali.");
+            SyncManager.sync();
         }
     };
 
@@ -404,7 +404,6 @@ const Offline = (() => {
     // SECTION 12 : API & ADAPTER
     // =====================================================
     const ApiAdapter = {
-        // Abstraksi tunggal untuk mempermudah migrasi jika arsitektur pemanggilan core/Google Apps Script berubah
         async send(item) {
             return await BCS.Api.post(item.action, item.payload);
         }
@@ -414,7 +413,6 @@ const Offline = (() => {
         async enqueue(action, payload, priority = PRIORITY.NORMAL) {
             if (Helpers.isOnline()) {
                 try {
-                    // Bungkus sementara ke item mock untuk dikirim via adapter
                     const mockItem = { action, payload };
                     const res = await ApiAdapter.send(mockItem);
                     if (res?.success) return res;
@@ -447,14 +445,16 @@ const Offline = (() => {
         pending() {
             return Queue.pending();
         },
-        // Queue Inspector untuk visualisasi deteksi status antrean (saran 6)
+        // Saran 3: Penambahan Queue Inspector Sesuai Parameter Spesifik Anda
         inspect() {
             return {
-                pending: state.queue.filter(x => x.status === STATUS.PENDING).length,
-                failed: state.queue.filter(x => x.status === STATUS.FAILED).length,
-                success: state.queue.filter(x => x.status === STATUS.SUCCESS).length,
-                syncing: state.queue.filter(x => x.status === STATUS.SYNCING).length,
-                total: state.queue.length
+                total: state.queue.length,
+                pending: state.queue.filter(q => q.status === STATUS.PENDING).length,
+                syncing: state.queue.filter(q => q.status === STATUS.SYNCING).length,
+                failed: state.queue.filter(q => q.status === STATUS.FAILED).length,
+                success: state.metrics.successCount,
+                online: state.online,
+                syncingNow: state.syncing
             };
         }
     };
@@ -473,7 +473,7 @@ const Offline = (() => {
             if (typeof BCS.Notification?.show === "function") {
                 BCS.Notification.show(
                     `Mode Offline (${item.priority})`, 
-                    "Koneksi tidak stabil. Tugas Anda telah dijadwalkan di penyimpanan lokal."
+                    "Koneksi terputus. Data disimpan di antrean lokal."
                 );
             }
         },
@@ -484,38 +484,37 @@ const Offline = (() => {
     };
 
     // =====================================================
-    // SECTION 14 : DESTROY
+    // SECTION 14 : DESTROY (Saran 4: State Volatile Deep Reset)
     // =====================================================
     const DestroyManager = {
         execute() {
-            // Bersihkan Interval Timer
             if (state.ui.autoSync) {
                 clearInterval(state.ui.autoSync);
                 state.ui.autoSync = null;
             }
 
-            // Unbind Event Listeners bawaan modul
             Network.destroy();
             Events.destroy();
 
-            // Memutus hubungan koneksi database
             if (state.database) {
                 state.database.close();
                 state.database = null;
             }
 
-            // Reset total state internal engine (Saran 8)
+            // Deep Reset State
             state.queue = [];
             state.syncing = false;
             state.lastSync = null;
-            state.ui.initialized = false;
+            state.online = navigator.onLine;
+            Metrics.reset();
             
+            state.ui.initialized = false;
             Logger.warn("Offline Engine Destroyed & Volatile State Reset");
         }
     };
 
     // =====================================================
-    // SECTION 15 : EXPORT
+    // SECTION 15 : EXPORT (Saran 5: Developer DevTools Expose)
     // =====================================================
     return {
         async init() {
@@ -547,10 +546,15 @@ const Offline = (() => {
         flush: OfflineAPI.flush,
         status: OfflineAPI.status,
         pending: OfflineAPI.pending,
-        inspect: OfflineAPI.inspect,
         getMetrics: Metrics.get,
         resetMetrics: Metrics.reset,
-        destroy: DestroyManager.execute
+        destroy: DestroyManager.execute,
+        
+        // Expose untuk kemudahan debugging via DevTools Console
+        inspect: OfflineAPI.inspect,
+        queue: Queue,
+        sync: SyncManager.sync,
+        database: Database
     };
 
 })();

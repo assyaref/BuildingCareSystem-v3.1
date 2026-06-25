@@ -13,26 +13,32 @@
     <meta name="apple-mobile-web-app-title" content="Building Care">
     <link rel="apple-touch-icon" href="assets/pwa/icons/icon-192.png">
 
-    <script src="assets/js/auth.js"></script> 
+    <script src="assets/js/core/bootstrap.js"></script> 
 
     <script>
-        // Memastikan objek BCS dan modul Auth sudah tersedia sebelum dipanggil
-        if (typeof BCS !== 'undefined' && BCS.Auth) {
-            const user = BCS.Auth.user();
-            if (user) {
-                window.location.replace("dashboard.html");
-            } else {
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                if (typeof BCS !== 'undefined' && typeof BCS.bootstrap === 'function') {
+                    await BCS.bootstrap();
+                } else {
+                    throw new Error("BCS Bootstrap Engine gagal dimuat.");
+                }
+            } catch (err) {
+                console.error("[BCS-Bootstrap-Error]", err);
+                // Fallback terakhir jika sistem bootstrap gagal total
                 window.location.replace("login.html");
             }
-        } else {
-            // Fallback jika modul gagal dimuat, amankan dengan mengarahkan ke login
-            window.location.replace("login.html");
-        }
+        });
     </script>
 </head>
 
 <body>
-    <p>Redirecting...</p>
+    <div id="app-loader" style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #0D6EFD;">
+        <div style="text-align: center;">
+            <p style="font-weight: bold; margin-bottom: 5px;">Building Care System</p>
+            <p style="font-size: 14px; color: #6c757d; margin: 0;">Memuat sistem...</p>
+        </div>
+    </div>
 </body>
 
 </html>

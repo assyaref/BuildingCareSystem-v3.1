@@ -7,27 +7,30 @@
 const PWAInstall = (() => {
     
     // ==========================================
-    // 1. CONFIGURATION
+    // 1. CONFIGURATION (Immutable)
     // ==========================================
-    const CONFIG = {
+    const DEFAULT_CONFIG = Object.freeze({
         debug: false,
         logPrefix: 'PWA'
-    };
+    });
+    
+    // Runtime configuration (mutable but controlled)
+    let runtimeConfig = { ...DEFAULT_CONFIG };
     
     // ==========================================
     // 2. LOGGER
     // ==========================================
     const Logger = {
         info(...args) {
-            if (CONFIG.debug) {
-                BCS.Logger?.info?.(CONFIG.logPrefix, ...args);
+            if (runtimeConfig.debug) {
+                BCS.Logger?.info?.(runtimeConfig.logPrefix, ...args);
             }
         },
         warn(...args) {
-            BCS.Logger?.warn?.(CONFIG.logPrefix, ...args);
+            BCS.Logger?.warn?.(runtimeConfig.logPrefix, ...args);
         },
         error(...args) {
-            BCS.Logger?.error?.(CONFIG.logPrefix, ...args);
+            BCS.Logger?.error?.(runtimeConfig.logPrefix, ...args);
         }
     };
     
@@ -39,14 +42,34 @@ const PWAInstall = (() => {
         installed: false,      // App already installed
         standalone: false,     // Running in standalone mode
         deferred: false,       // Deferred prompt exists
-        platform: null         // Platform detection
+        platform: null,        // Platform detection
+        initialized: false     // Module initialized
     };
     
     let deferredPrompt = null;
     let mediaQuery = null;
     
     // ==========================================
-    // 4. PRIVATE METHODS
+    // 4. EVENT REGISTRY (For cleanup)
+    // ==========================================
+    const eventRegistry = {
+        listeners: [],
+        
+        add(element, event, handler, options = {}) {
+            element.addEventListener(event, handler, options);
+            this.listeners.push({ element, event, handler, options });
+        },
+        
+        removeAll() {
+            this.listeners.forEach(({ element, event, handler, options }) => {
+                element.removeEventListener(event, handler, options);
+            });
+            this.listeners = [];
+        }
+    };
+    
+    // ==========================================
+    // 5. PRIVATE METHODS
     // ==========================================
     
     // Update state and emit events
@@ -68,42 +91,54 @@ const PWAInstall = (() => {
     };
     
     // ==========================================
-    // 5. EVENT REGISTRATION
+    // 6. EVENT REGISTRATION (With registry)
     // ==========================================
     const registerEvents = () => {
         
-        // 5a. Before Install Prompt
-        window.addEventListener('beforeinstallprompt', (event) => {
-            event.preventDefault();
-            
-            deferredPrompt = event;
-            updateState('available', true);
-            updateState('deferred', true);
-            
-            Logger.info('Install prompt available');
-            BCS.Events?.emit?.('pwa:install-available', { event });
-        });
+        // 6a. Before Install Prompt
+        eventRegistry.add(
+            window,
+            'beforeinstallprompt',
+            (event) => {
+                event.preventDefault();
+                
+                deferredPrompt = event;
+                updateState('available', true);
+                updateState('deferred', true);
+                
+                Logger.info('Install prompt available');
+                BCS.Events?.emit?.('pwa:install-available', { event });
+            }
+        );
         
-        // 5b. App Installed
-        window.addEventListener('appinstalled', (event) => {
-            deferredPrompt = null;
-            updateState('installed', true);
-            updateState('available', false);
-            updateState('deferred', false);
-            
-            Logger.info('App installed successfully');
-            BCS.Events?.emit?.('pwa:installed', { event });
-        });
+        // 6b. App Installed
+        eventRegistry.add(
+            window,
+            'appinstalled',
+            (event) => {
+                deferredPrompt = null;
+                updateState('installed', true);
+                updateState('available', false);
+                updateState('deferred', false);
+                
+                Logger.info('App installed successfully');
+                BCS.Events?.emit?.('pwa:installed', { event });
+            }
+        );
         
-        // 5c. Standalone mode change (watch for changes)
+        // 6c. Standalone mode change (watch for changes)
         mediaQuery = window.matchMedia('(display-mode: standalone)');
-        mediaQuery.addEventListener('change', (event) => {
-            updateState('standalone', event.matches);
-            Logger.info(`Standalone mode: ${event.matches}`);
-            BCS.Events?.emit?.('pwa:standalone-change', { standalone: event.matches });
-        });
+        eventRegistry.add(
+            mediaQuery,
+            'change',
+            (event) => {
+                updateState('standalone', event.matches);
+                Logger.info(`Standalone mode: ${event.matches}`);
+                BCS.Events?.emit?.('pwa:standalone-change', { standalone: event.matches });
+            }
+        );
         
-        // 5d. iOS Standalone detection
+        // 6d. iOS Standalone detection
         if (window.navigator.standalone === true) {
             updateState('standalone', true);
             updateState('platform', 'ios');
@@ -111,12 +146,12 @@ const PWAInstall = (() => {
             BCS.Events?.emit?.('pwa:ios-standalone');
         }
         
-        // 5e. Initial standalone check
+        // 6e. Initial standalone check
         checkStandalone();
     };
     
     // ==========================================
-    // 6. INSTALL ENGINE
+    // 7. INSTALL ENGINE
     // ==========================================
     const install = async () => {
         if (!deferredPrompt) {
@@ -145,7 +180,7 @@ const PWAInstall = (() => {
     };
     
     // ==========================================
-    // 7. BRIDGE (Message from Service Worker)
+    // 8. BRIDGE (Message from Service Worker)
     // ==========================================
     const setupBridge = () => {
         if (!('serviceWorker' in navigator)) {
@@ -153,28 +188,31 @@ const PWAInstall = (() => {
             return;
         }
         
-        navigator.serviceWorker.addEventListener('message', (event) => {
-            // Validation
-            if (!event.data || typeof event.data !== 'object') {
-                return;
+        eventRegistry.add(
+            navigator.serviceWorker,
+            'message',
+            (event) => {
+                // Validation
+                if (!event.data || typeof event.data !== 'object') {
+                    return;
+                }
+                
+                const { type, payload } = event.data;
+                
+                if (!type) {
+                    return;
+                }
+                
+                Logger.info(`Message received: ${type}`, payload);
+                
+                // Emit event directly - no switch needed
+                BCS.Events?.emit?.(type, payload);
             }
-            
-            const { type, payload } = event.data;
-            
-            if (!type) {
-                return;
-            }
-            
-            Logger.info(`Message received: ${type}`, payload);
-            
-            // Emit event directly - no switch needed
-            // Service Worker sends: { type: "pwa:activated", payload: {...} }
-            BCS.Events?.emit?.(type, payload);
-        });
+        );
     };
     
     // ==========================================
-    // 8. DETECTION
+    // 9. DETECTION
     // ==========================================
     const detect = () => {
         // Check if already installed
@@ -184,7 +222,6 @@ const PWAInstall = (() => {
         }
         
         // Check if app is installed (from appinstalled event already handled)
-        // Additional check for installation status
         if (window.navigator.standalone === true) {
             updateState('installed', true);
             updateState('standalone', true);
@@ -193,11 +230,16 @@ const PWAInstall = (() => {
     };
     
     // ==========================================
-    // 9. INIT
+    // 10. INIT
     // ==========================================
     const init = (config = {}) => {
-        // Merge config
-        Object.assign(CONFIG, config);
+        if (state.initialized) {
+            Logger.warn('Module already initialized');
+            return state;
+        }
+        
+        // Merge config (runtime config, not immutable)
+        runtimeConfig = { ...DEFAULT_CONFIG, ...config };
         
         Logger.info('Initializing PWA Install Module...');
         
@@ -210,36 +252,92 @@ const PWAInstall = (() => {
         // Run detection
         detect();
         
+        // Mark as initialized
+        updateState('initialized', true);
+        
         Logger.info('PWA Install Module initialized', state);
         
         // Emit initialization event
-        BCS.Events?.emit?.('pwa:initialized', { state });
+        BCS.Events?.emit?.('pwa:initialized', { state: { ...state } });
         
         return state;
     };
     
     // ==========================================
-    // 10. EXPORT
+    // 11. DESTROY (Cleanup)
+    // ==========================================
+    const destroy = () => {
+        if (!state.initialized) {
+            Logger.warn('Module not initialized');
+            return;
+        }
+        
+        Logger.info('Destroying PWA Install Module...');
+        
+        // Remove all event listeners
+        eventRegistry.removeAll();
+        
+        // Reset state
+        deferredPrompt = null;
+        mediaQuery = null;
+        
+        Object.keys(state).forEach(key => {
+            if (key === 'platform') {
+                state[key] = null;
+            } else if (key === 'initialized') {
+                state[key] = false;
+            } else {
+                state[key] = false;
+            }
+        });
+        
+        Logger.info('PWA Install Module destroyed');
+        
+        // Emit destroy event
+        BCS.Events?.emit?.('pwa:destroyed');
+    };
+    
+    // ==========================================
+    // 12. CONFIG UPDATE (Runtime)
+    // ==========================================
+    const updateConfig = (config = {}) => {
+        const oldConfig = { ...runtimeConfig };
+        runtimeConfig = { ...runtimeConfig, ...config };
+        Logger.info('Config updated', { old: oldConfig, new: runtimeConfig });
+        return { ...runtimeConfig };
+    };
+    
+    // ==========================================
+    // 13. EXPORT
     // ==========================================
     return Object.freeze({
         init,
+        destroy,
         install,
+        updateConfig,
         state: () => ({ ...state }), // Return copy to prevent mutation
+        config: () => ({ ...runtimeConfig }), // Return copy
         getDeferredPrompt: () => deferredPrompt,
         isAvailable: () => state.available,
         isInstalled: () => state.installed,
         isStandalone: () => state.standalone,
+        isInitialized: () => state.initialized,
         checkStandalone,
         reset: () => {
-            deferredPrompt = null;
-            Object.keys(state).forEach(key => {
-                if (key === 'platform') {
-                    state[key] = null;
-                } else {
-                    state[key] = false;
-                }
-            });
-            Logger.info('State reset');
+            if (state.initialized) {
+                destroy();
+                init(runtimeConfig);
+            } else {
+                deferredPrompt = null;
+                Object.keys(state).forEach(key => {
+                    if (key === 'platform') {
+                        state[key] = null;
+                    } else {
+                        state[key] = false;
+                    }
+                });
+                Logger.info('State reset');
+            }
         }
     });
     
@@ -248,21 +346,55 @@ const PWAInstall = (() => {
 // ==========================================
 // REGISTER TO BCS NAMESPACE
 // ==========================================
-// Konsisten dengan BCS.Api, BCS.Auth, BCS.Offline, BCS.Notification
+// BCS.PWA sebagai façade utama
+// BCS.PWA.Install, BCS.PWA.Cache, BCS.PWA.Update, BCS.PWA.Sync
 
 if (typeof BCS !== 'undefined') {
+    // Create PWA namespace if not exists
     BCS.PWA = BCS.PWA || {};
+    
+    // Register Install module
     BCS.PWA.Install = PWAInstall;
     
-    // Auto-initialize jika BCS sudah siap
-    if (BCS.isReady) {
-        PWAInstall.init({ debug: BCS.debug || false });
-    } else {
-        // Tunggu BCS siap
-        document.addEventListener('BCS:ready', () => {
-            PWAInstall.init({ debug: BCS.debug || false });
-        });
-    }
+    // Placeholder for other modules (will be implemented later)
+    BCS.PWA.Cache = BCS.PWA.Cache || null;
+    BCS.PWA.Update = BCS.PWA.Update || null;
+    BCS.PWA.Sync = BCS.PWA.Sync || null;
+    
+    // Façade methods
+    BCS.PWA.init = (config = {}) => {
+        return BCS.PWA.Install.init(config);
+    };
+    
+    BCS.PWA.destroy = () => {
+        return BCS.PWA.Install.destroy();
+    };
+    
+    BCS.PWA.state = () => {
+        return BCS.PWA.Install.state();
+    };
+    
+    BCS.PWA.install = () => {
+        return BCS.PWA.Install.install();
+    };
+    
+    BCS.PWA.isAvailable = () => {
+        return BCS.PWA.Install.isAvailable();
+    };
+    
+    BCS.PWA.isInstalled = () => {
+        return BCS.PWA.Install.isInstalled();
+    };
+    
+    BCS.PWA.isStandalone = () => {
+        return BCS.PWA.Install.isStandalone();
+    };
+    
+    // NOTE: Auto-initialization moved to bootstrap.js
+    // No longer auto-initialize here
+    
+    Logger.info('BCS.PWA façade registered');
+    
 } else {
     // Fallback: simpan untuk nanti
     window.__PWAInstall = PWAInstall;
@@ -273,19 +405,29 @@ if (typeof BCS !== 'undefined') {
 // USAGE EXAMPLES
 // ==========================================
 /*
-// 1. Install PWA
-const result = await BCS.PWA.Install.install();
+// 1. In bootstrap.js - Control initialization
+// bootstrap.js
+import { BCS } from './bcs.js';
+import './install.js';
+
+// Initialize PWA at the right time in startup sequence
+BCS.PWA.init({
+    debug: BCS.config?.debug || false
+});
+
+// 2. Install PWA
+const result = await BCS.PWA.install();
 if (result.success) {
     console.log('PWA installed!');
 }
 
-// 2. Check state
-const state = BCS.PWA.Install.state();
+// 3. Check state
+const state = BCS.PWA.state();
 console.log('Available:', state.available);
 console.log('Installed:', state.installed);
 console.log('Standalone:', state.standalone);
 
-// 3. Listen to events
+// 4. Listen to events
 BCS.Events.on('pwa:install-available', () => {
     console.log('Show install button!');
 });
@@ -298,8 +440,9 @@ BCS.Events.on('pwa:standalone-change', ({ standalone }) => {
     console.log('Standalone mode:', standalone);
 });
 
-// 4. Check if install is available
-if (BCS.PWA.Install.isAvailable()) {
-    // Show install button
-}
+// 5. Cleanup (if needed)
+BCS.PWA.destroy();
+
+// 6. Update config at runtime
+BCS.PWA.Install.updateConfig({ debug: true });
 */

@@ -5,544 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Building Care - Report</title>
 
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="./assets/css/user.css">
-    <link rel="stylesheet" href="./assets/css/form.css">
 
-    <style>
-        /* ============================================
-                   BOTTOM NAVIGATION STYLE
-                   ============================================ */
-        .bottom-navigation {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #ffffff;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 8px 12px 12px;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
-            border-radius: 24px 24px 0 0;
-            z-index: 1050;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 4px 12px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-decoration: none;
-            color: #94A3B8;
-            position: relative;
-            min-width: 56px;
-            border: none;
-            background: none;
-        }
-
-        .nav-item i {
-            font-size: 22px;
-            transition: all 0.3s ease;
-            line-height: 1;
-        }
-
-        .nav-item .nav-label {
-            font-size: 10px;
-            font-weight: 500;
-            margin-top: 2px;
-            transition: all 0.3s ease;
-            letter-spacing: 0.3px;
-        }
-
-        .nav-item.active {
-            color: #1E293B;
-        }
-
-        .nav-item.active i {
-            color: #2563EB;
-            transform: translateY(-2px);
-        }
-
-        .nav-item.active .nav-label {
-            color: #2563EB;
-            font-weight: 600;
-        }
-
-        .nav-item:hover:not(.nav-center) {
-            color: #1E293B;
-        }
-
-        .nav-item:hover:not(.nav-center) i {
-            transform: translateY(-2px);
-        }
-
-        /* Badge */
-        .nav-badge {
-            position: absolute;
-            top: -4px;
-            right: 2px;
-            background: #EF4444;
-            color: white;
-            font-size: 10px;
-            font-weight: 700;
-            min-width: 18px;
-            height: 18px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 5px;
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
-            border: 2px solid #ffffff;
-            line-height: 1;
-        }
-
-        /* FAB Button */
-        .nav-center {
-            position: relative;
-            margin-top: -28px;
-        }
-
-        .nav-fab {
-            width: 58px;
-            height: 58px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #2563EB, #3B82F6);
-            border: none;
-            color: white;
-            font-size: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 28px rgba(37, 99, 235, 0.4);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
-        }
-
-        .nav-fab:hover {
-            transform: scale(1.08) rotate(90deg);
-            box-shadow: 0 12px 36px rgba(37, 99, 235, 0.5);
-        }
-
-        .nav-fab:active {
-            transform: scale(0.95) rotate(90deg);
-        }
-
-        /* ============================================
-                   FORM DESIGN SYSTEM - OVERRIDE BOOTSTRAP
-                   ============================================ */
-        /* Gunakan .form-input dari form.css */
-        .form-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #E2E8F0;
-            border-radius: 12px;
-            font-size: 14px;
-            font-family: inherit;
-            transition: all 0.3s ease;
-            background: #F8FAFC;
-            color: #1E293B;
-            outline: none;
-        }
-
-        .form-input:focus {
-            border-color: #2563EB;
-            background: #FFFFFF;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-        }
-
-        .form-input::placeholder {
-            color: #94A3B8;
-        }
-
-        .form-input:disabled {
-            background: #F1F5F9;
-            cursor: not-allowed;
-        }
-
-        /* Label */
-        .form-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #334155;
-            margin-bottom: 6px;
-            letter-spacing: 0.3px;
-        }
-
-        /* Textarea */
-        textarea.form-input {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        /* ============================================
-                   CATEGORY CARD - MODERN
-                   ============================================ */
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-
-        .category-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 14px 8px;
-            border: 2px solid #E2E8F0;
-            border-radius: 14px;
-            background: #F8FAFC;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-align: center;
-            font-size: 11px;
-            font-weight: 600;
-            color: #475569;
-            gap: 6px;
-            user-select: none;
-        }
-
-        .category-card i {
-            font-size: 24px;
-            color: #94A3B8;
-            transition: all 0.3s ease;
-        }
-
-        .category-card:hover {
-            border-color: #94A3B8;
-            background: #F1F5F9;
-            transform: translateY(-2px);
-        }
-
-        .category-card.active {
-            border-color: #2563EB;
-            background: #EFF6FF;
-            color: #1E40AF;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
-        }
-
-        .category-card.active i {
-            color: #2563EB;
-        }
-
-        /* ============================================
-                   PRIORITY - MODERN
-                   ============================================ */
-        .priority-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
-        .priority-card {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 8px;
-            border: 2px solid #E2E8F0;
-            border-radius: 14px;
-            background: #F8FAFC;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 12px;
-            font-weight: 600;
-            color: #475569;
-            gap: 6px;
-            user-select: none;
-        }
-
-        .priority-card:hover {
-            border-color: #94A3B8;
-            background: #F1F5F9;
-            transform: translateY(-2px);
-        }
-
-        .priority-card.active {
-            border-color: #2563EB;
-            background: #EFF6FF;
-            color: #1E40AF;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
-        }
-
-        /* Priority colors */
-        .priority-card[data-priority="NORMAL"].active {
-            border-color: #22C55E;
-            background: #F0FDF4;
-            color: #166534;
-        }
-
-        .priority-card[data-priority="HIGH"].active {
-            border-color: #EAB308;
-            background: #FEFCE8;
-            color: #854D0E;
-        }
-
-        .priority-card[data-priority="URGENT"].active {
-            border-color: #EF4444;
-            background: #FEF2F2;
-            color: #991B1B;
-        }
-
-        /* ============================================
-                   PHOTO CARD
-                   ============================================ */
-        .photo-card {
-            position: relative;
-            border: 2px dashed #CBD5E1;
-            border-radius: 16px;
-            padding: 32px 20px;
-            text-align: center;
-            background: #F8FAFC;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .photo-card:hover {
-            border-color: #2563EB;
-            background: #EFF6FF;
-        }
-
-        .photo-card i {
-            font-size: 40px;
-            color: #94A3B8;
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        .photo-card p {
-            font-weight: 600;
-            color: #475569;
-            margin: 0;
-        }
-
-        .photo-card small {
-            color: #94A3B8;
-            font-size: 12px;
-        }
-
-        .photo-card input[type="file"] {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        /* ============================================
-                   PREVIEW
-                   ============================================ */
-        .preview-wrapper {
-            border-radius: 14px;
-            overflow: hidden;
-            background: #F8FAFC;
-            min-height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #E2E8F0;
-            transition: all 0.3s ease;
-        }
-
-        .preview-wrapper.has-image {
-            border-color: #2563EB;
-            background: #EFF6FF;
-        }
-
-        .preview-image {
-            width: 100%;
-            max-height: 300px;
-            object-fit: contain;
-            padding: 8px;
-        }
-
-        /* ============================================
-                   SUBMIT BUTTON
-                   ============================================ */
-        .submit-wrapper {
-            padding: 16px 20px 100px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #2563EB, #3B82F6);
-            color: white;
-            font-weight: 700;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
-        }
-
-        .btn-submit:active {
-            transform: scale(0.98);
-        }
-
-        /* ============================================
-                   USER HEADER
-                   ============================================ */
-        .user-header {
-            padding: 20px 20px 8px;
-        }
-
-        .user-header h4 {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1E293B;
-            margin: 0;
-        }
-
-        .user-header small {
-            color: #64748B;
-            font-size: 13px;
-        }
-
-        /* ============================================
-                   USER CARD
-                   ============================================ */
-        .user-card {
-            background: #FFFFFF;
-            border-radius: 20px;
-            padding: 20px;
-            margin: 12px 0;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-        }
-
-        /* ============================================
-                   RESPONSIVE
-                   ============================================ */
-        @media (max-width: 480px) {
-            .category-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .priority-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .bottom-navigation {
-                padding: 6px 8px 10px;
-                border-radius: 20px 20px 0 0;
-            }
-
-            .nav-item {
-                padding: 2px 8px;
-                min-width: 44px;
-            }
-
-            .nav-item i {
-                font-size: 20px;
-            }
-
-            .nav-item .nav-label {
-                font-size: 9px;
-            }
-
-            .nav-fab {
-                width: 50px;
-                height: 50px;
-                font-size: 24px;
-            }
-
-            .nav-center {
-                margin-top: -24px;
-            }
-
-            .nav-badge {
-                font-size: 9px;
-                min-width: 16px;
-                height: 16px;
-                right: 0;
-            }
-
-            .user-card {
-                padding: 16px;
-                margin: 8px 0;
-            }
-
-            .photo-card {
-                padding: 24px 16px;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .category-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 6px;
-            }
-
-            .priority-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 6px;
-            }
-
-            .category-card {
-                padding: 10px 4px;
-                font-size: 10px;
-            }
-
-            .category-card i {
-                font-size: 20px;
-            }
-
-            .priority-card {
-                padding: 10px 4px;
-                font-size: 10px;
-            }
-
-            .nav-item .nav-label {
-                font-size: 8px;
-            }
-
-            .nav-item i {
-                font-size: 18px;
-            }
-
-            .nav-fab {
-                width: 44px;
-                height: 44px;
-                font-size: 20px;
-            }
-
-            .nav-center {
-                margin-top: -20px;
-            }
-        }
-    </style>
+    <!-- Mobile CSS -->
+    <link rel="stylesheet" href="./assets/css/mobile/mobile.css">
+    <link rel="stylesheet" href="./assets/css/mobile/header.css">
+    <link rel="stylesheet" href="./assets/css/mobile/button.css">
+    <link rel="stylesheet" href="./assets/css/mobile/form.css">
+    <link rel="stylesheet" href="./assets/css/mobile/report.css">
+    <link rel="stylesheet" href="./assets/css/mobile/navigation.css">
 </head>
 <body>
 
-    <!-- ====== USER HEADER ====== -->
-    <div class="user-header">
-        <h4 id="userName">Halo 👋</h4>
-        <small id="userDept"></small>
-    </div>
+    <!-- ====== HEADER ====== -->
+    <header class="mobile-header">
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar">👤</div>
+            <div>
+                <h4 id="userName">Halo 👋</h4>
+                <small id="userDept"></small>
+            </div>
+        </div>
+    </header>
 
     <!-- ====== MAIN CONTENT ====== -->
     <div class="container">
@@ -550,13 +36,13 @@
             <h5 class="mb-4 fw-bold">Buat Laporan Kerusakan</h5>
 
             <!-- ====== LOKASI ====== -->
-            <div class="mb-4">
+            <div class="form-group">
                 <label class="form-label">Lokasi Kerusakan</label>
                 <input id="lokasi" class="form-input" placeholder="Contoh : Ruang Meeting">
             </div>
 
             <!-- ====== KATEGORI ====== -->
-            <div class="mb-4">
+            <div class="form-group">
                 <label class="form-label">Kategori</label>
                 <div class="category-grid" id="categoryGrid">
                     <div class="category-card" data-value="LISTRIK">
@@ -579,7 +65,7 @@
             </div>
 
             <!-- ====== PRIORITAS ====== -->
-            <div class="mb-4">
+            <div class="form-group">
                 <label class="form-label">Prioritas</label>
                 <div class="priority-grid" id="priorityGrid">
                     <div class="priority-card active" data-priority="NORMAL">
@@ -595,16 +81,16 @@
             </div>
 
             <!-- ====== DESKRIPSI ====== -->
-            <div class="mb-4">
+            <div class="form-group">
                 <label class="form-label">Deskripsi Kerusakan</label>
                 <textarea id="deskripsi" maxlength="500" class="form-input" placeholder="Jelaskan kerusakan yang ditemukan..."></textarea>
-                <small class="text-muted">
+                <small class="char-counter">
                     <span id="charCount">0</span>/500 karakter
                 </small>
             </div>
 
             <!-- ====== FOTO ====== -->
-            <div class="mb-4">
+            <div class="form-group">
                 <label class="form-label">Foto Kerusakan</label>
                 <div class="photo-card" id="photoCard">
                     <input id="photo" type="file" accept="image/*" capture="environment">
@@ -615,19 +101,20 @@
             </div>
 
             <!-- ====== PREVIEW ====== -->
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Preview Foto</label>
                 <div class="preview-wrapper" id="previewWrapper">
                     <img id="previewImage" class="preview-image d-none">
-                    <div id="previewPlaceholder">
-                        <i class="bi bi-image" style="font-size:50px; color:#CBD5E1"></i>
+                    <div id="previewPlaceholder" class="preview-placeholder">
+                        <i class="bi bi-image"></i>
+                        <span>Belum ada foto</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ====== SUBMIT BUTTON ====== -->
+    <!-- ====== SUBMIT BUTTON (STICKY) ====== -->
     <div class="submit-wrapper">
         <button id="submitReport" class="btn-submit">
             <i class="bi bi-send-fill"></i> Kirim Report
@@ -641,7 +128,7 @@
 
         <a href="user-report.html" class="nav-item active">
             <i class="bi bi-house-door-fill"></i>
-            <span class="nav-label">Home</span>
+            <span class="nav-label">Report</span>
         </a>
 
         <a href="user-history.html" class="nav-item">
@@ -669,105 +156,21 @@
     </nav>
 
     <!-- ====== SCRIPTS ====== -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
-    </script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js">
-    </script>
-    <script src="./config/config.js">
-    </script>
-    <script src="./assets/js/core/app.js">
-    </script>
-    <script src="./assets/js/core/api.js">
-    </script>
-    <script src="./assets/js/core/session.js">
-    </script>
-    <script src="./assets/js/modules/auth.js">
-    </script>
-    <script src="./assets/js/modules/userReport.js">
-    </script>
-
-    <!-- ====== INTERAKSI ====== -->
-    <script>
-        $(document).ready(function() {
-
-            // ---------- KATEGORI: category-card ----------
-            $('.category-card').on('click', function() {
-                $('.category-card').removeClass('active');
-                $(this).addClass('active');
-            });
-
-            // ---------- PRIORITAS: priority-card ----------
-            $('.priority-card').on('click', function() {
-                $('.priority-card').removeClass('active');
-                $(this).addClass('active');
-            });
-
-            // ---------- PREVIEW FOTO ----------
-            $('#photo').on('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        $('#previewImage').attr('src', event.target.result).removeClass('d-none');
-                        $('#previewPlaceholder').addClass('d-none');
-                        $('#previewWrapper').addClass('has-image');
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            // ---------- COUNTER KARAKTER ----------
-            $('#deskripsi').on('input', function() {
-                const len = $(this).val().length;
-                $('#charCount').text(len);
-                if (len > 480) {
-                    $('#charCount').css('color', '#EF4444');
-                } else {
-                    $('#charCount').css('color', '');
-                }
-            });
-
-            // ---------- FAB: scroll ke atas ----------
-            $('#fabReport').on('click', function(e) {
-                e.preventDefault();
-                $('html, body').animate({ scrollTop: 0 }, 400);
-                $('#lokasi').focus();
-
-                $(this).css('transform', 'scale(0.90) rotate(90deg)');
-                setTimeout(() => {
-                    $(this).css('transform', '');
-                }, 200);
-            });
-
-            // ---------- NAV AKTIF ----------
-            const currentPage = window.location.pathname.split('/').pop() || 'user-report.html';
-
-            $('.nav-item').each(function() {
-                const href = $(this).attr('href');
-                if (href && href.includes(currentPage)) {
-                    $('.nav-item').removeClass('active');
-                    $(this).addClass('active');
-                }
-            });
-
-            if (currentPage.includes('wo') || currentPage.includes('work-order')) {
-                $('.nav-item').removeClass('active');
-                $('#navWo').addClass('active');
-            }
-
-            // ---------- HOVER EFEK ----------
-            $('.nav-item:not(.nav-center)').on('mouseenter', function() {
-                if (!$(this).hasClass('active')) {
-                    $(this).find('i').css('transform', 'translateY(-2px)');
-                }
-            }).on('mouseleave', function() {
-                if (!$(this).hasClass('active')) {
-                    $(this).find('i').css('transform', '');
-                }
-            });
-
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- Core -->
+    <script src="./config/config.js"></script>
+    <script src="./assets/js/core/app.js"></script>
+    <script src="./assets/js/core/api.js"></script>
+    <script src="./assets/js/core/session.js"></script>
+    
+    <!-- Modules -->
+    <script src="./assets/js/modules/auth.js"></script>
+    <script src="./assets/js/modules/userReport.js"></script>
+    
+    <!-- Mobile UI -->
+    <script src="./assets/js/mobile/mobile-ui.js"></script>
 
 </body>
 </html>

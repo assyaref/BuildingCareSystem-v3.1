@@ -8,108 +8,407 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="./assets/css/user.css">
+
+    <style>
+        /* ============================================
+                   BOTTOM NAVIGATION STYLE
+                   ============================================ */
+        .bottom-navigation {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 12px 12px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+            border-radius: 24px 24px 0 0;
+            z-index: 1050;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            color: #94A3B8;
+            position: relative;
+            min-width: 56px;
+            border: none;
+            background: none;
+        }
+
+        .nav-item i {
+            font-size: 22px;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+
+        .nav-item .nav-label {
+            font-size: 10px;
+            font-weight: 500;
+            margin-top: 2px;
+            transition: all 0.3s ease;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-item.active {
+            color: #1E293B;
+        }
+
+        .nav-item.active i {
+            color: #2563EB;
+            transform: translateY(-2px);
+        }
+
+        .nav-item.active .nav-label {
+            color: #2563EB;
+            font-weight: 600;
+        }
+
+        .nav-item:hover:not(.nav-center) {
+            color: #1E293B;
+        }
+
+        .nav-item:hover:not(.nav-center) i {
+            transform: translateY(-2px);
+        }
+
+        /* Badge */
+        .nav-badge {
+            position: absolute;
+            top: -4px;
+            right: 2px;
+            background: #EF4444;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+            border: 2px solid #ffffff;
+            line-height: 1;
+        }
+
+        /* FAB Button */
+        .nav-center {
+            position: relative;
+            margin-top: -28px;
+        }
+
+        .nav-fab {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563EB, #3B82F6);
+            border: none;
+            color: white;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 28px rgba(37, 99, 235, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .nav-fab:hover {
+            transform: scale(1.08) rotate(90deg);
+            box-shadow: 0 12px 36px rgba(37, 99, 235, 0.5);
+        }
+
+        .nav-fab:active {
+            transform: scale(0.95) rotate(90deg);
+        }
+
+        /* ============================================
+                   ADJUST CONTENT FOR FIXED NAV
+                   ============================================ */
+        body {
+            padding-bottom: 90px;
+        }
+
+        .user-header {
+            padding-top: 20px;
+        }
+
+        /* ============================================
+                   RESPONSIVE TWEAKS
+                   ============================================ */
+        @media (max-width: 480px) {
+            .bottom-navigation {
+                padding: 6px 8px 10px;
+                border-radius: 20px 20px 0 0;
+            }
+
+            .nav-item {
+                padding: 2px 8px;
+                min-width: 44px;
+            }
+
+            .nav-item i {
+                font-size: 20px;
+            }
+
+            .nav-item .nav-label {
+                font-size: 9px;
+            }
+
+            .nav-fab {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+            }
+
+            .nav-center {
+                margin-top: -24px;
+            }
+
+            .nav-badge {
+                font-size: 9px;
+                min-width: 16px;
+                height: 16px;
+                right: 0;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .nav-item .nav-label {
+                font-size: 8px;
+            }
+
+            .nav-item i {
+                font-size: 18px;
+            }
+
+            .nav-fab {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+            }
+
+            .nav-center {
+                margin-top: -20px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<div class="user-header">
-    <h4 id="userName">Halo 👋</h4>
-    <small id="userDept"></small>
-</div>
+    <!-- ====== USER HEADER ====== -->
+    <div class="user-header">
+        <h4 id="userName">Halo 👋</h4>
+        <small id="userDept"></small>
+    </div>
 
-<div class="container">
-    <div class="user-card">
-        <h5 class="mb-4 fw-bold">Buat Laporan Kerusakan</h5>
+    <!-- ====== MAIN CONTENT ====== -->
+    <div class="container">
+        <div class="user-card">
+            <h5 class="mb-4 fw-bold">Buat Laporan Kerusakan</h5>
 
-        <div class="mb-4">
-            <label class="form-label">Lokasi Kerusakan</label>
-            <input id="lokasi" class="form-control" placeholder="Contoh : Ruang Meeting">
-        </div>
+            <div class="mb-4">
+                <label class="form-label">Lokasi Kerusakan</label>
+                <input id="lokasi" class="form-control" placeholder="Contoh : Ruang Meeting">
+            </div>
 
-        <div class="mb-4">
-            <label class="form-label">Kategori</label>
-            <div class="category-grid">
-                <div class="category-item" data-value="LISTRIK">
-                    <i class="bi bi-lightning-charge"></i> LISTRIK
-                </div>
-                <div class="category-item" data-value="AC">
-                    <i class="bi bi-snow"></i> AC
-                </div>
-                <div class="category-item" data-value="GEDUNG">
-                    <i class="bi bi-building"></i> GEDUNG
-                </div>
-                <div class="category-item" data-value="AIR">
-                    <i class="bi bi-droplet"></i> AIR
+            <div class="mb-4">
+                <label class="form-label">Kategori</label>
+                <div class="category-grid">
+                    <div class="category-item" data-value="LISTRIK">
+                        <i class="bi bi-lightning-charge"></i> LISTRIK
+                    </div>
+                    <div class="category-item" data-value="AC">
+                        <i class="bi bi-snow"></i> AC
+                    </div>
+                    <div class="category-item" data-value="GEDUNG">
+                        <i class="bi bi-building"></i> GEDUNG
+                    </div>
+                    <div class="category-item" data-value="AIR">
+                        <i class="bi bi-droplet"></i> AIR
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="mb-4">
-            <label class="form-label">Prioritas</label>
-            <div class="priority-item active" data-priority="NORMAL">🟢 NORMAL</div>
-            <div class="priority-item" data-priority="HIGH">🟡 HIGH</div>
-            <div class="priority-item" data-priority="URGENT">🔴 URGENT</div>
-        </div>
-
-        <div class="mb-4">
-            <label class="form-label">Deskripsi Kerusakan</label>
-            <textarea id="deskripsi" maxlength="500" class="form-control" placeholder="Jelaskan kerusakan yang ditemukan..."></textarea>
-            <small class="text-muted">
-                <span id="charCount">0</span>/500 karakter
-            </small>
-        </div>
-
-        <div class="mb-4">
-            <label class="form-label">Foto Kerusakan</label>
-            <div class="photo-card">
-                <input id="photo" type="file" accept="image/*" capture="environment" class="form-control">
-                <i class="bi bi-camera-fill"></i>
-                <p>Ambil Foto</p>
-                <small>JPG / PNG Maksimal 5 MB</small>
+            <div class="mb-4">
+                <label class="form-label">Prioritas</label>
+                <div class="priority-item active" data-priority="NORMAL">🟢 NORMAL</div>
+                <div class="priority-item" data-priority="HIGH">🟡 HIGH</div>
+                <div class="priority-item" data-priority="URGENT">🔴 URGENT</div>
             </div>
-        </div>
 
-        <div class="mb-3">
-            <label class="form-label">Preview Foto</label>
-            <div class="preview-wrapper">
-                <img id="previewImage" class="preview-image d-none">
-                <div id="previewPlaceholder">
-                    <i class="bi bi-image" style="font-size:50px; color:#CBD5E1"></i>
+            <div class="mb-4">
+                <label class="form-label">Deskripsi Kerusakan</label>
+                <textarea id="deskripsi" maxlength="500" class="form-control" placeholder="Jelaskan kerusakan yang ditemukan..."></textarea>
+                <small class="text-muted">
+                    <span id="charCount">0</span>/500 karakter
+                </small>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Foto Kerusakan</label>
+                <div class="photo-card">
+                    <input id="photo" type="file" accept="image/*" capture="environment" class="form-control">
+                    <i class="bi bi-camera-fill"></i>
+                    <p>Ambil Foto</p>
+                    <small>JPG / PNG Maksimal 5 MB</small>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Preview Foto</label>
+                <div class="preview-wrapper">
+                    <img id="previewImage" class="preview-image d-none">
+                    <div id="previewPlaceholder">
+                        <i class="bi bi-image" style="font-size:50px; color:#CBD5E1"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="submit-wrapper">
-    <button id="submitReport" class="btn btn-primary w-100">
-        <i class="bi bi-send-fill"></i> Kirim Report
-    </button>
-</div>
+    <!-- ====== SUBMIT BUTTON ====== -->
+    <div class="submit-wrapper">
+        <button id="submitReport" class="btn btn-primary w-100">
+            <i class="bi bi-send-fill"></i> Kirim Report
+        </button>
+    </div>
 
-<div class="bottom-nav">
-    <a href="user-report.html" class="active">
-        <i class="bi bi-house"></i> Report
-    </a>
-    <a href="user-history.html">
-        <i class="bi bi-clock-history"></i> History
-    </a>
-    <a href="user-profile.html">
-        <i class="bi bi-person"></i> Profile
-    </a>
-</div>
+    <!-- ============================================
+    BOTTOM NAVIGATION — GABUNGAN RAPI
+    ============================================ -->
+    <nav class="bottom-navigation">
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="./config/config.js"></script>
+        <!-- Home -->
+        <a href="user-report.html" class="nav-item active">
+            <i class="bi bi-house-door-fill"></i>
+            <span class="nav-label">Home</span>
+        </a>
 
-<script src="./assets/js/core/app.js"></script>
-<script src="./assets/js/core/api.js"></script>
-<script src="./assets/js/core/session.js"></script>
+        <!-- History -->
+        <a href="user-history.html" class="nav-item">
+            <i class="bi bi-clock-history"></i>
+            <span class="nav-label">History</span>
+        </a>
 
-<!-- WAJIB -->
-<script src="./assets/js/modules/auth.js"></script>
+        <!-- FAB (Plus) -->
+        <div class="nav-center">
+            <button class="nav-fab" id="fabReport" title="Buat Laporan Baru">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+        </div>
 
-<!-- USER REPORT -->
-<script src="./assets/js/modules/userReport.js"></script>
+        <!-- WO dengan Badge -->
+        <a href="#" class="nav-item" id="navWo">
+            <i class="bi bi-list-task"></i>
+            <span class="nav-label">WO</span>
+            <span class="nav-badge">3</span>
+        </a>
+
+        <!-- Profile -->
+        <a href="user-profile.html" class="nav-item">
+            <i class="bi bi-person-circle"></i>
+            <span class="nav-label">Profile</span>
+        </a>
+
+    </nav>
+
+    <!-- ====== SCRIPTS ====== -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+    </script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js">
+    </script>
+    <script src="./config/config.js">
+    </script>
+    <script src="./assets/js/core/app.js">
+    </script>
+    <script src="./assets/js/core/api.js">
+    </script>
+    <script src="./assets/js/core/session.js">
+    </script>
+    <script src="./assets/js/modules/auth.js">
+    </script>
+    <script src="./assets/js/modules/userReport.js">
+    </script>
+
+    <!-- ====== EXTRA SCRIPT: FAB + NAV INTERACTION ====== -->
+    <script>
+        $(document).ready(function() {
+
+            // ---------- FAB: buat laporan baru ----------
+            $('#fabReport').on('click', function(e) {
+                e.preventDefault();
+                // Scroll ke atas (form)
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 400);
+
+                // Opsional: fokus ke input pertama
+                $('#lokasi').focus();
+
+                // Efek klik
+                $(this).css('transform', 'scale(0.90) rotate(90deg)');
+                setTimeout(() => {
+                    $(this).css('transform', '');
+                }, 200);
+            });
+
+            // ---------- NAVIGASI AKTIF ----------
+            // Tandai nav item berdasarkan halaman saat ini
+            const currentPage = window.location.pathname.split('/').pop() || 'user-report.html';
+
+            $('.nav-item').each(function() {
+                const href = $(this).attr('href');
+                if (href && href.includes(currentPage)) {
+                    $('.nav-item').removeClass('active');
+                    $(this).addClass('active');
+                }
+            });
+
+            // Khusus untuk WO — jika tidak ada href, kita handle secara terpisah
+            if (currentPage.includes('wo') || currentPage.includes('work-order')) {
+                $('.nav-item').removeClass('active');
+                $('#navWo').addClass('active');
+            }
+
+            // ---------- HOVER EFEK UNTUK NAV ITEM ----------
+            $('.nav-item:not(.nav-center)').on('mouseenter', function() {
+                if (!$(this).hasClass('active')) {
+                    $(this).find('i').css('transform', 'translateY(-2px)');
+                }
+            }).on('mouseleave', function() {
+                if (!$(this).hasClass('active')) {
+                    $(this).find('i').css('transform', '');
+                }
+            });
+
+            // ---------- COUNTER KARAKTER (opsional tambahan) ----------
+            $('#deskripsi').on('input', function() {
+                const len = $(this).val().length;
+                $('#charCount').text(len);
+                if (len > 480) {
+                    $('#charCount').css('color', '#EF4444');
+                } else {
+                    $('#charCount').css('color', '');
+                }
+            });
+
+        });
+    </script>
 </body>
 </html>

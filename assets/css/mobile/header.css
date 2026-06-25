@@ -1,1 +1,355 @@
+/* ======================================================
+   Building Care System Enterprise v11.0
+   header.css
+   Mobile Header Component
+   Radiant Group Duri
+====================================================== */
 
+/* ======================================================
+   HEADER
+====================================================== */
+
+.mobile-header{
+
+    position:relative;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:16px;
+
+    padding:18px 20px;
+
+    background:linear-gradient(
+        135deg,
+        #2563EB,
+        #1D4ED8
+    );
+
+    color:#FFFFFF;
+
+    box-shadow:
+        0 6px 18px rgba(37,99,235,.18);
+
+}
+
+/* ======================================================
+   LEFT
+====================================================== */
+
+.mobile-header-left{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    flex:1;
+
+}
+
+/* ======================================================
+   MENU BUTTON
+====================================================== */
+
+.header-menu{
+
+    width:42px;
+
+    height:42px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:rgba(255,255,255,.15);
+
+    color:#FFFFFF;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.header-menu:hover{
+
+    background:rgba(255,255,255,.22);
+
+}
+
+.header-menu:active{
+
+    transform:scale(.96);
+
+}
+
+/* ======================================================
+   USER
+====================================================== */
+
+.header-user{
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    overflow:hidden;
+
+}
+
+.header-title{
+
+    font-size:22px;
+
+    font-weight:700;
+
+    color:#FFFFFF;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+.header-subtitle{
+
+    margin-top:4px;
+
+    font-size:13px;
+
+    color:rgba(255,255,255,.85);
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+/* ======================================================
+   RIGHT
+====================================================== */
+
+.mobile-header-right{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+}
+
+/* ======================================================
+   ACTION BUTTON
+====================================================== */
+
+.header-action{
+
+    width:42px;
+
+    height:42px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:rgba(255,255,255,.15);
+
+    color:#FFFFFF;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    position:relative;
+
+}
+
+.header-action:hover{
+
+    background:rgba(255,255,255,.22);
+
+}
+
+.header-action:active{
+
+    transform:scale(.96);
+
+}
+
+/* ======================================================
+   BADGE
+====================================================== */
+
+.header-badge{
+
+    position:absolute;
+
+    top:6px;
+
+    right:6px;
+
+    min-width:18px;
+
+    height:18px;
+
+    padding:0 4px;
+
+    border-radius:20px;
+
+    background:#EF4444;
+
+    color:#FFFFFF;
+
+    font-size:10px;
+
+    font-weight:700;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border:2px solid #2563EB;
+
+}
+
+/* ======================================================
+   AVATAR
+====================================================== */
+
+.header-avatar{
+
+    width:44px;
+
+    height:44px;
+
+    border-radius:50%;
+
+    object-fit:cover;
+
+    border:2px solid rgba(255,255,255,.25);
+
+}
+
+/* ======================================================
+   ONLINE DOT
+====================================================== */
+
+.header-status{
+
+    position:absolute;
+
+    bottom:0;
+
+    right:0;
+
+    width:12px;
+
+    height:12px;
+
+    background:#22C55E;
+
+    border-radius:50%;
+
+    border:2px solid #2563EB;
+
+}
+
+/* ======================================================
+   PROFILE WRAPPER
+====================================================== */
+
+.header-profile{
+
+    position:relative;
+
+}
+
+/* ======================================================
+   WELCOME
+====================================================== */
+
+.header-welcome{
+
+    font-size:12px;
+
+    color:rgba(255,255,255,.75);
+
+    margin-bottom:2px;
+
+}
+
+/* ======================================================
+   SHADOW
+====================================================== */
+
+.mobile-header::after{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    right:0;
+
+    bottom:-12px;
+
+    height:18px;
+
+    background:linear-gradient(
+
+        rgba(37,99,235,.20),
+
+        transparent
+
+    );
+
+    pointer-events:none;
+
+}
+
+/* ======================================================
+   RESPONSIVE
+====================================================== */
+
+@media(max-width:380px){
+
+    .header-title{
+
+        font-size:18px;
+
+    }
+
+    .header-subtitle{
+
+        font-size:12px;
+
+    }
+
+}

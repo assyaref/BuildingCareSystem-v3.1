@@ -1,33 +1,35 @@
 // ======================================================
-// Building Care System Enterprise v2.0-Alpha.1 Roadmap
+// Building Care System Enterprise v3.2
 // File : assets/js/modules/dashboard.js
 // Radiant Group Duri
-// Target Specification: Unified Store, Lazy Charts, Idle Interceptor, Realtime Metrics Panel
+// Refactored to Enterprise Target Architecture v1.1 Enhancement
 // ======================================================
 
 "use strict";
 
 (async () => {
     // ==================================================
-    // 1. CONSTANTS & INITIAL BASES
+    // 1. CONSTANTS & CONFIGURATION (Rekomendasi 1: Unified & Deep Frozen)
     // ==================================================
     const MODULE_NAME = "Dashboard";
-    const POLLING_ACTIVE = 30000;    
-    const POLLING_HIDDEN = 300000;  
-    const ANIMATION_DURATION = 800;
-    const ANIMATION_FRAMES = 30;
-    const IDLE_THRESHOLD = 300000; // 5 Menit Idle (Rekomendasi 4)
     
-    const CHART_COLORS = Object.freeze({
-        ac: Object.freeze({ normal: "#2563EB", hover: "#1D4ED8" }),
-        listrik: Object.freeze({ normal: "#F59E0B", hover: "#D97706" }),
-        gedung: Object.freeze({ normal: "#7C3AED", hover: "#6D28D9" }),
-        line: "#2563EB"
+    const CONFIG = Object.freeze({
+        POLLING_ACTIVE: 30000,     // 30 detik saat tab aktif
+        POLLING_HIDDEN: 300000,    // 5 menit saat tab tidak aktif (Adaptive Polling)
+        ANIMATION_DURATION: 800,
+        ANIMATION_FRAMES: 30,
+        CACHE_TTL: 10000,          // Throttling Cache 10 detik (Rekomendasi 3)
+        CHART_COLORS: Object.freeze({
+            ac: Object.freeze({ normal: "#2563EB", hover: "#1D4ED8" }),
+            listrik: Object.freeze({ normal: "#F59E0B", hover: "#D97706" }),
+            gedung: Object.freeze({ normal: "#7C3AED", hover: "#6D28D9" }),
+            line: "#2563EB"
+        })
     });
 
     Object.freeze(MODULE_NAME);
 
-    // Initial Factory State untuk kemudahan isolasi arsitektur v2 Store
+    // Initial State Factory untuk mempermudah reset state saat Destroy
     const createInitialState = () => ({
         summary: {
             total: 0, ac: 0, listrik: 0, gedung: 0,
@@ -39,54 +41,47 @@
         activity: [],
         monthly: Array(12).fill(0),
         footer: {
-            onlineUser: 0, todayReport: 0, pendingApproval: 0,
-            lastUpdate: null, todayDate: "-", currentTime: "-"
+            onlineUser: 0,
+            todayReport: 0,
+            pendingApproval: 0,
+            lastUpdate: null,
+            todayDate: "-",
+            currentTime: "-"
         },
-        charts: { donut: null, line: null },
+        charts: {
+            donut: null,
+            line: null
+        },
         ui: {
-            initialized: false, initializing: false, isRefreshing: false,
-            refreshInterval: null, clockInterval: null, idleTimeout: null,
-            isIdle: false,
+            initialized: false,
+            initializing: false,
+            isRefreshing: false,
+            refreshInterval: null,
+            clockInterval: null,
             counterTimers: Object.create(null),
-            eventUnsubscribers: [] 
+            eventUnsubscribers: []
         },
-        // Rekomendasi 5: Internal Realtime Performance Node Metrics
+        // Rekomendasi 3: Simple Client Cache State
+        cache: {
+            summaryPayload: null,
+            slaPayload: null,
+            timestamp: 0
+        },
+        // Rekomendasi 4: Internal Performance Metrics
         metrics: {
-            openCount: 0,
             refreshCount: 0,
             apiTime: 0,
-            renderTime: 0,
-            cacheHits: 0,
-            memoryEstimate: "0 MB"
+            renderTime: 0
         }
     });
 
     // ==================================================
-    // 2. STATE INTERCEPTION / RECONCILIATION (Rekomendasi 1: Dashboard Store)
+    // 2. STATE INITIALIZATION
     // ==================================================
-    if (typeof BCS === "undefined") window.BCS = {};
-    if (!BCS.Store) BCS.Store = {};
-
-    // Mengikat state lokal langsung ke namespace global Store BCS Enterprise
-    BCS.Store.dashboard = createInitialState();
-    const state = BCS.Store.dashboard;
+    let state = createInitialState();
 
     // ==================================================
-    // 3. ANALYTICS FALLBACK STUB (Rekomendasi 2: Dashboard Analytics Framework)
-    // ==================================================
-    if (!BCS.Analytics) {
-        BCS.Analytics = {
-            track(eventName, payload = {}) {
-                console.groupCollapsed(`[BCS Analytics v2 Tracking: ${eventName}]`);
-                console.log("Payload:", payload);
-                console.log("Timestamp:", new Date().toISOString());
-                console.groupEnd();
-            }
-        };
-    }
-
-    // ==================================================
-    // 4. DOM CACHE & DYNAMIC DEV PANEL CREATION
+    // 3. DOM CACHE
     // ==================================================
     const DOM = {
         user: {
@@ -105,14 +100,22 @@
             gedung: document.getElementById("gedungTotal")
         },
         trends: {
-            total: document.getElementById("totalTrend"), totalIcon: document.getElementById("totalTrendIcon"),
-            ac: document.getElementById("acTrend"), acIcon: document.getElementById("acTrendIcon"),
-            listrik: document.getElementById("listrikTrend"), listrikIcon: document.getElementById("listrikTrendIcon"),
-            gedung: document.getElementById("gedungTrend"), gedungIcon: document.getElementById("gedungTrendIcon")
+            total: document.getElementById("totalTrend"),
+            totalIcon: document.getElementById("totalTrendIcon"),
+            ac: document.getElementById("acTrend"),
+            acIcon: document.getElementById("acTrendIcon"),
+            listrik: document.getElementById("listrikTrend"),
+            listrikIcon: document.getElementById("listrikTrendIcon"),
+            gedung: document.getElementById("gedungTrend"),
+            gedungIcon: document.getElementById("gedungTrendIcon")
         },
         sla: {
-            fastCount: document.getElementById("fastCount"), normalCount: document.getElementById("normalCount"), lateCount: document.getElementById("lateCount"),
-            fastPercent: document.getElementById("fastPercent"), normalPercent: document.getElementById("normalPercent"), latePercent: document.getElementById("latePercent")
+            fastCount: document.getElementById("fastCount"),
+            normalCount: document.getElementById("normalCount"),
+            lateCount: document.getElementById("lateCount"),
+            fastPercent: document.getElementById("fastPercent"),
+            normalPercent: document.getElementById("normalPercent"),
+            latePercent: document.getElementById("latePercent")
         },
         chart: {
             report: document.getElementById("reportChart"),
@@ -120,9 +123,12 @@
         },
         activity: document.getElementById("recentActivity"),
         footer: {
-            onlineUser: document.getElementById("onlineUser"), todayReport: document.getElementById("todayReport"),
-            pendingApproval: document.getElementById("pendingApproval"), lastUpdate: document.getElementById("lastUpdate"),
-            todayDate: document.getElementById("todayDate"), currentTime: document.getElementById("currentTime")
+            onlineUser: document.getElementById("onlineUser"),
+            todayReport: document.getElementById("todayReport"),
+            pendingApproval: document.getElementById("pendingApproval"),
+            lastUpdate: document.getElementById("lastUpdate"),
+            todayDate: document.getElementById("todayDate"),
+            currentTime: document.getElementById("currentTime")
         },
         buttons: {
             refresh: document.getElementById("refreshDashboard"),
@@ -132,20 +138,37 @@
     };
 
     // ==================================================
-    // 5. SERVICES REGISTRATION
+    // 4. SERVICE REGISTRATION (Rekomendasi 2: Consistent Registry Pattern)
     // ==================================================
+    if (typeof BCS === "undefined") window.BCS = {};
     if (!BCS.Services) BCS.Services = {};
-    BCS.Services.Dashboard = {
-        async fetchDashboardData(token) { return await BCS.Api.dashboard({ token }); },
-        async fetchSLAAnalytics() { return await BCS.Api.post("getSLAAnalytics"); }
-    };
+    
+    // Fallback registry method jika belum di-define di core framework
+    if (typeof BCS.Services.register !== "function") {
+        BCS.Services.register = function(name, serviceObject) {
+            this[name.charAt(0).toUpperCase() + name.slice(1)] = serviceObject;
+        };
+    }
+
+    BCS.Services.register("dashboard", {
+        async fetchDashboardData(token) {
+            return await BCS.Api.dashboard({ token });
+        },
+        async fetchSLAAnalytics() {
+            return await BCS.Api.post("getSLAAnalytics");
+        }
+    });
 
     // ==================================================
-    // 6. PROCESSING
+    // 5. PROCESSING
     // ==================================================
     function processDashboardPayload(result) {
         const data = result?.data ?? result?.payload ?? result?.result ?? {};
-        const toNumber = (val) => { const num = Number(val); return Number.isFinite(num) ? num : 0; };
+        
+        const toNumber = (val) => {
+            const num = Number(val);
+            return Number.isFinite(num) ? num : 0;
+        };
 
         state.summary.total = toNumber(data.total);
         state.summary.ac = toNumber(data.ac);
@@ -160,6 +183,7 @@
         state.summary.gedungTrend = toNumber(data.gedungTrend);
 
         state.activity = Array.isArray(data.activity) ? [...data.activity] : [];
+
         state.monthly = (() => {
             const monthly = Array.isArray(data.monthly) ? [...data.monthly] : Array(12).fill(0);
             while (monthly.length < 12) monthly.push(0);
@@ -175,6 +199,7 @@
     function processSLAPayload(response) {
         if (!response || !response.success) return;
         const data = response.data || {};
+        
         state.summary.fast = data.fast || 0;
         state.summary.normal = data.normal || 0;
         state.summary.late = data.late || 0;
@@ -184,7 +209,7 @@
     }
 
     // ==================================================
-    // 7. SUMMARY COMPONENT
+    // 6. SUMMARY COMPONENT
     // ==================================================
     const DashboardSummary = {
         animateCounter(element, endValue) {
@@ -198,26 +223,30 @@
             }
 
             const id = element.id || Math.random().toString(36).substr(2, 9);
-            if (state.ui.counterTimers[id]) clearInterval(state.ui.counterTimers[id]);
+            if (state.ui.counterTimers[id]) {
+                clearInterval(state.ui.counterTimers[id]);
+            }
 
             const diff = endValue - start;
-            const step = diff / ANIMATION_FRAMES;
+            const step = diff / CONFIG.ANIMATION_FRAMES;
 
             state.ui.counterTimers[id] = setInterval(() => {
                 start += step;
                 const finished = (step > 0 && start >= endValue) || (step < 0 && start <= endValue);
+
                 if (finished) {
                     start = endValue;
                     clearInterval(state.ui.counterTimers[id]);
                     delete state.ui.counterTimers[id];
                 }
                 element.textContent = Math.round(start);
-            }, ANIMATION_DURATION / ANIMATION_FRAMES);
+            }, CONFIG.ANIMATION_DURATION / CONFIG.ANIMATION_FRAMES);
         },
 
         setTrendStyle(textEl, iconEl, value) {
             if (!textEl || !iconEl) return;
             textEl.textContent = Math.abs(value);
+
             if (value >= 0) {
                 iconEl.className = "bi bi-arrow-up";
                 textEl.parentElement.className = "summary-trend success";
@@ -251,34 +280,12 @@
     };
 
     // ==================================================
-    // 8. CHART COMPONENT (Rekomendasi 3: Intersection Observer Lazy Loading)
+    // 7. CHART COMPONENT
     // ==================================================
     const DashboardChart = {
-        lazyLoader: null,
-
-        initLazyLoaders() {
-            if (!("IntersectionObserver" in window)) {
-                // Fallback jika browser usang
-                this.render();
-                return;
-            }
-
-            this.lazyLoader = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        if (entry.target === DOM.chart.report) this.renderDonut();
-                        if (entry.target === DOM.chart.monthly) this.renderLine();
-                        this.lazyLoader.unobserve(entry.target); // Hanya trigger sekali saja
-                    }
-                });
-            }, { rootMargin: "50px 0px", threshold: 0.05 });
-
-            if (DOM.chart.report) this.lazyLoader.observe(DOM.chart.report);
-            if (DOM.chart.monthly) this.lazyLoader.observe(DOM.chart.monthly);
-        },
-
         renderDonut() {
             if (!DOM.chart.report) return;
+
             const nextData = [state.summary.ac, state.summary.listrik, state.summary.gedung];
 
             if (state.charts.donut instanceof Chart) {
@@ -293,15 +300,20 @@
                     labels: ["AC", "Listrik", "Gedung"],
                     datasets: [{
                         data: nextData,
-                        backgroundColor: [CHART_COLORS.ac.normal, CHART_COLORS.listrik.normal, CHART_COLORS.gedung.normal],
-                        hoverBackgroundColor: [CHART_COLORS.ac.hover, CHART_COLORS.listrik.hover, CHART_COLORS.gedung.hover],
-                        hoverOffset: 8, borderWidth: 0
+                        backgroundColor: [CONFIG.CHART_COLORS.ac.normal, CONFIG.CHART_COLORS.listrik.normal, CONFIG.CHART_COLORS.gedung.normal],
+                        hoverBackgroundColor: [CONFIG.CHART_COLORS.ac.hover, CONFIG.CHART_COLORS.listrik.hover, CONFIG.CHART_COLORS.gedung.hover],
+                        hoverOffset: 8,
+                        borderWidth: 0
                     }]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: false, cutout: "72%",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "72%",
                     animation: { animateRotate: true, animateScale: true, duration: 1200, easing: "easeOutQuart" },
-                    plugins: { legend: { position: "bottom", labels: { usePointStyle: true, pointStyle: "circle", padding: 20 } } }
+                    plugins: {
+                        legend: { position: "bottom", labels: { usePointStyle: true, pointStyle: "circle", padding: 20 } }
+                    }
                 }
             });
         },
@@ -325,27 +337,52 @@
                 data: {
                     labels: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
                     datasets: [{
-                        label: "Total Report", data: [...state.monthly],
-                        borderColor: CHART_COLORS.line, backgroundColor: gradient, borderWidth: 3, fill: true, tension: 0.45,
-                        pointRadius: 4, pointHoverRadius: 8, pointHitRadius: 15, pointBorderWidth: 2,
-                        pointBackgroundColor: CHART_COLORS.line, pointBorderColor: "#FFFFFF", pointHoverBackgroundColor: "#FFFFFF", pointHoverBorderColor: CHART_COLORS.line
+                        label: "Total Report",
+                        data: [...state.monthly],
+                        borderColor: CONFIG.CHART_COLORS.line,
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.45,
+                        pointRadius: 4,
+                        pointHoverRadius: 8,
+                        pointHitRadius: 15,
+                        pointBorderWidth: 2,
+                        pointBackgroundColor: CONFIG.CHART_COLORS.line,
+                        pointBorderColor: "#FFFFFF",
+                        pointHoverBackgroundColor: "#FFFFFF",
+                        pointHoverBorderColor: CONFIG.CHART_COLORS.line
                     }]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: false,
+                    responsive: true,
+                    maintainAspectRatio: false,
                     animation: { duration: 1200, easing: "easeOutQuart" },
                     interaction: { intersect: false, mode: "index" },
-                    elements: { line: { borderJoinStyle: "round", borderCapStyle: "round" }, point: { hitRadius: 15, hoverRadius: 8 } },
+                    elements: {
+                        line: { borderJoinStyle: "round", borderCapStyle: "round" },
+                        point: { hitRadius: 15, hoverRadius: 8 }
+                    },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: "#1F2937", titleColor: "#FFFFFF", bodyColor: "#FFFFFF", displayColors: false, padding: 12, cornerRadius: 10,
+                            backgroundColor: "#1F2937",
+                            titleColor: "#FFFFFF",
+                            bodyColor: "#FFFFFF",
+                            displayColors: false,
+                            padding: 12,
+                            cornerRadius: 10,
                             callbacks: { label: (context) => "Total Report : " + context.parsed.y }
                         }
                     },
                     scales: {
                         x: { grid: { display: false, drawBorder: false }, ticks: { color: "#64748B", font: { size: 12 } } },
-                        y: { beginAtZero: true, suggestedMax: Math.max(...state.monthly, 5) + 5, ticks: { precision: 0, stepSize: 5, color: "#64748B", font: { size: 12 } }, grid: { color: "rgba(148,163,184,0.10)", drawBorder: false } }
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: Math.max(...state.monthly, 5) + 5,
+                            ticks: { precision: 0, stepSize: 5, color: "#64748B", font: { size: 12 } },
+                            grid: { color: "rgba(148,163,184,0.10)", drawBorder: false }
+                        }
                     }
                 }
             });
@@ -358,24 +395,55 @@
     };
 
     // ==================================================
-    // 9. ACTIVITY, FOOTER & PERFORMANCE PANEL
+    // 8. ACTIVITY COMPONENT
     // ==================================================
     const DashboardActivity = {
-        escapeHtml(value) { const div = document.createElement("div"); div.textContent = value ?? ""; return div.innerHTML; },
+        escapeHtml(value) {
+            const div = document.createElement("div");
+            div.textContent = value ?? "";
+            return div.innerHTML;
+        },
+
         render() {
             if (!DOM.activity) return;
+
             if (state.activity.length === 0) {
-                DOM.activity.innerHTML = `<div class="text-center text-muted py-4"><i class="bi bi-clock-history fs-1 d-block mb-2"></i><span>Tidak ada aktivitas terbaru</span></div>`;
+                DOM.activity.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-clock-history fs-1 d-block mb-2"></i>
+                        <span>Tidak ada aktivitas terbaru</span>
+                    </div>`;
                 return;
             }
-            const STATUS_CONFIG = { OPEN: { icon: "bi-folder2-open", color: "primary" }, PROGRESS: { icon: "bi-arrow-repeat", color: "warning" }, DONE: { icon: "bi-check-circle-fill", color: "success" } };
+
+            const STATUS_CONFIG = {
+                OPEN: { icon: "bi-folder2-open", color: "primary" },
+                PROGRESS: { icon: "bi-arrow-repeat", color: "warning" },
+                DONE: { icon: "bi-check-circle-fill", color: "success" }
+            };
+
             DOM.activity.innerHTML = state.activity.map(item => {
-                const status = item.status || "OPEN"; const config = STATUS_CONFIG[status] || STATUS_CONFIG.OPEN;
-                return `<div class="activity-item"><div class="activity-icon ${config.color}"><i class="bi ${config.icon}"></i></div><div class="activity-content"><strong>${this.escapeHtml(item.kategori || "-")}</strong><small>${this.escapeHtml(item.lokasi || "-")}</small></div><span>${this.escapeHtml(item.waktu || "-")}</span></div>`;
+                const status = item.status || "OPEN";
+                const config = STATUS_CONFIG[status] || STATUS_CONFIG.OPEN;
+
+                return `
+                    <div class="activity-item">
+                        <div class="activity-icon ${config.color}">
+                            <i class="bi ${config.icon}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <strong>${this.escapeHtml(item.kategori || "-")}</strong>
+                            <small>${this.escapeHtml(item.lokasi || "-")}</small>
+                        </div>
+                        <span>${this.escapeHtml(item.waktu || "-")}</span>
+                    </div>`;
             }).join("");
         }
     };
 
+    // ==================================================
+    // 9. FOOTER COMPONENT
+    // ==================================================
     const DashboardFooter = {
         updateClock() {
             const now = new Date();
@@ -383,46 +451,18 @@
             state.footer.currentTime = now.toLocaleTimeString("id-ID", { hour12: false });
             this.renderClockOnly();
         },
+
         renderClockOnly() {
             if (DOM.footer.todayDate) DOM.footer.todayDate.textContent = state.footer.todayDate;
             if (DOM.footer.currentTime) DOM.footer.currentTime.textContent = state.footer.currentTime;
         },
+
         render() {
             if (DOM.footer.onlineUser) DOM.footer.onlineUser.textContent = state.footer.onlineUser;
             if (DOM.footer.todayReport) DOM.footer.todayReport.textContent = state.footer.todayReport;
             if (DOM.footer.pendingApproval) DOM.footer.pendingApproval.textContent = state.footer.pendingApproval;
             if (DOM.footer.lastUpdate) DOM.footer.lastUpdate.textContent = state.footer.lastUpdate;
             this.renderClockOnly();
-        }
-    };
-
-    // Rekomendasi 5: Realtime Embedded Performance Panel View 
-    const PerformancePanel = {
-        containerId: "bcs-perf-panel",
-        render() {
-            // Kalkulasi perkiraan heap memory jika didukung engine v8 browser
-            if (window.performance && window.performance.memory) {
-                state.metrics.memoryEstimate = `${Math.round(window.performance.memory.usedJSHeapSize / (1024 * 1024))} MB`;
-            } else {
-                state.metrics.memoryEstimate = "N/A (Non-V8)";
-            }
-
-            let panel = document.getElementById(this.containerId);
-            if (!panel) {
-                panel = document.createElement("div");
-                panel.id = this.containerId;
-                panel.style = "position:fixed;bottom:10px;right:10px;background:rgba(31,41,55,0.95);color:#10B981;font-family:monospace;padding:12px;border-radius:8px;font-size:11px;z-index:9999;border:1px solid #374151;box-shadow:0 4px 6px -1px rgba(0,0,0,0.5);width:220px;pointer-events:none;";
-                document.body.appendChild(panel);
-            }
-
-            panel.innerHTML = `
-                <div style="font-weight:bold;border-bottom:1px solid #374151;padding-bottom:4px;margin-bottom:6px;color:#F3F4F6">⚙️ BCS DEVELOPER PERFORMANCE</div>
-                <div>API Latency   : <span style="color:#FFF">${state.metrics.apiTime.toFixed(1)} ms</span></div>
-                <div>Render Engine : <span style="color:#FFF">${state.metrics.renderTime.toFixed(1)} ms</span></div>
-                <div>Refresh Run   : <span style="color:#FFF">${state.metrics.refreshCount}</span></div>
-                <div>Memory Heap   : <span style="color:#FFF">${state.metrics.memoryEstimate}</span></div>
-                <div style="margin-top:4px;font-size:10px;color:${state.ui.isIdle ? '#EF4444' : '#6EE7B7'}">System status: ${state.ui.isIdle ? 'IDLE (PAUSED)' : 'ACTIVE'}</div>
-            `;
         }
     };
 
@@ -435,35 +475,45 @@
                 BCS.Animation.fadeUp(DOM.cards);
             } else {
                 DOM.cards.forEach((card, index) => {
-                    card.animate([{ opacity: 0, transform: "translateY(20px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 500, delay: index * 120, fill: "forwards", easing: "ease-out" });
+                    card.animate([
+                        { opacity: 0, transform: "translateY(20px)" },
+                        { opacity: 1, transform: "translateY(0)" }
+                    ], {
+                        duration: 500,
+                        delay: index * 120,
+                        fill: "forwards",
+                        easing: "ease-out"
+                    });
                 });
             }
         },
 
         all() {
             const tStart = performance.now();
-            
             DashboardSummary.render();
+            DashboardChart.render();
             DashboardActivity.render();
             DashboardFooter.render();
-
-            // Jika observer sudah berjalan, charts akan merender dirinya sendiri on-scroll.
-            // Di v2 ini kita gunakan fallback update paksa jika instance Chart sudah terlanjur dirender
-            if (state.charts.donut instanceof Chart) DashboardChart.renderDonut();
-            if (state.charts.line instanceof Chart) DashboardChart.renderLine();
-
-            state.metrics.renderTime = performance.now() - tStart;
             
-            // Render Realtime Metrics Panel View
-            PerformancePanel.render();
-            BCS.Logger.performance(MODULE_NAME, "Full Engine UI Synchronized", tStart);
+            // Rekomendasi 4: Log Render Metrics
+            state.metrics.renderTime = performance.now() - tStart;
+            BCS.Logger.performance(MODULE_NAME, `UI Rendered in ${state.metrics.renderTime.toFixed(2)}ms`, tStart);
         }
     };
 
     // ==================================================
-    // CORE PIPELINES & TELEMETRY
+    // CORE PIPELINES (Rekomendasi 3 & 4: Cached and Monitored Pipelines)
     // ==================================================
-    async function loadSummary() {
+    async function loadSummary(forceRefresh = false) {
+        const now = Date.now();
+        
+        // Rekomendasi 3: Cek validitas Cache (< 10 detik) jika bukan paksaan sistem event stream
+        if (!forceRefresh && state.cache.summaryPayload && (now - state.cache.timestamp < CONFIG.CACHE_TTL)) {
+            console.log(`[${MODULE_NAME}] Serving Summary Data from Client Cache.`);
+            processDashboardPayload(state.cache.summaryPayload);
+            return true;
+        }
+
         BCS.App.Loading.show();
         try {
             const session = BCS.App.getSession();
@@ -476,13 +526,18 @@
             const t0 = performance.now();
             const result = await BCS.Services.Dashboard.fetchDashboardData(session.token);
             
+            // Rekomendasi 4: Simpan statistik API Time
             state.metrics.apiTime = performance.now() - t0;
-            BCS.Logger.performance(MODULE_NAME, "Load Summary API", t0);
+            BCS.Logger.performance(MODULE_NAME, "Load Summary API Fetch", t0);
 
             if (!result || result.success !== true) {
                 BCS.App.toast(result?.message || "Dashboard gagal dimuat.", "error");
                 return false;
             }
+
+            // Simpan ke Cache
+            state.cache.summaryPayload = result;
+            state.cache.timestamp = now;
 
             processDashboardPayload(result);
             return true;
@@ -494,9 +549,21 @@
         }
     }
 
-    async function loadSLAAnalytics() {
+    async function loadSLAAnalytics(forceRefresh = false) {
+        const now = Date.now();
+        
+        // Rekomendasi 3: Implementasi Cache untuk SLA Analytics
+        if (!forceRefresh && state.cache.slaPayload && (now - state.cache.timestamp < CONFIG.CACHE_TTL)) {
+            console.log(`[${MODULE_NAME}] Serving SLA Analytics from Client Cache.`);
+            processSLAPayload(state.cache.slaPayload);
+            return;
+        }
+
         try {
             const response = await BCS.Services.Dashboard.fetchSLAAnalytics();
+            if (response && response.success) {
+                state.cache.slaPayload = response;
+            }
             processSLAPayload(response);
         } catch (err) {
             console.error("[SLA Analytics System Failure]", err);
@@ -506,37 +573,30 @@
     function loadUser() {
         const session = BCS.App.getSession();
         if (!session) return false;
+
         if (DOM.user.name) DOM.user.name.textContent = session.nama ?? "-";
         if (DOM.user.role) DOM.user.role.textContent = session.role ?? "-";
         if (DOM.user.nik) DOM.user.nik.textContent = session.nik ?? "-";
         if (DOM.user.lastLogin) DOM.user.lastLogin.textContent = session.lastLogin ?? new Date().toLocaleString("id-ID");
+
         return true;
     }
 
-    async function refresh() {
-        // Rekomendasi 4: Interseptor Polling jika status User sedang Idle
-        if (state.ui.isIdle) {
-            console.warn(`[${MODULE_NAME}] Pipeline refresh di-pause: User terdeteksi Idle.`);
-            return false;
-        }
-
+    // Centered Entrance Guard
+    async function refresh(forceRefresh = false) {
         if (state.ui.isRefreshing) return false; 
         state.ui.isRefreshing = true;
 
-        // Rekomendasi 2 & 4: Increment & Track Telemetry Engine v2
+        // Rekomendasi 4: Increment Refresh Count Metric
         state.metrics.refreshCount++;
-        BCS.Analytics.track("dashboard_refresh", {
-            runNumber: state.metrics.refreshCount,
-            lastApiTime: state.metrics.apiTime,
-            lastRenderTime: state.metrics.renderTime
-        });
 
-        BCS.Logger.performance(MODULE_NAME, "Refresh Pipeline Initiated", performance.now());
+        BCS.Logger.performance(MODULE_NAME, `Refresh Pipeline Initiated (Run #${state.metrics.refreshCount})`, performance.now());
         try {
-            const summaryLoaded = await loadSummary();
+            const summaryLoaded = await loadSummary(forceRefresh);
             if (!summaryLoaded) return false;
 
-            await loadSLAAnalytics();
+            await loadSLAAnalytics(forceRefresh);
+
             Render.all();
             return true;
         } catch (err) {
@@ -548,15 +608,17 @@
     }
 
     // ==================================================
-    // 11. EVENTS, ADAPTIVE POLLING & IDLE TRACKER
+    // 11. EVENTS & ADAPTIVE POLLING SYSTEM
     // ==================================================
     function startAutoRefresh(customMs = null) {
         stopAutoRefresh();
-        const currentInterval = customMs || (document.hidden ? POLLING_HIDDEN : POLLING_ACTIVE);
+        
+        const currentInterval = customMs || (document.hidden ? CONFIG.POLLING_HIDDEN : CONFIG.POLLING_ACTIVE);
 
         state.ui.refreshInterval = setInterval(async () => {
             try {
-                await refresh();
+                // Polling otomatis tidak memaksa bypass cache, biarkan mekanisme TTL berjalan
+                await refresh(false);
             } catch (err) {
                 console.error(err);
             }
@@ -568,25 +630,6 @@
             clearInterval(state.ui.refreshInterval);
             state.ui.refreshInterval = null;
         }
-    }
-
-    // Rekomendasi 4: Mekanisme Interseptor Idle Activity
-    function resetIdleTimer() {
-        if (state.ui.isIdle) {
-            state.ui.isIdle = false;
-            console.log(`[${MODULE_NAME}] User kembali aktif. Melanjutkan engine polling.`);
-            BCS.Analytics.track("user_active");
-            refresh(); // Ambil data teranyar instan saat user kembali bekerja
-            PerformancePanel.render();
-        }
-
-        clearTimeout(state.ui.idleTimeout);
-        state.ui.idleTimeout = setTimeout(() => {
-            state.ui.isIdle = true;
-            console.warn(`[${MODULE_NAME}] Polling Auto Refresh ditangguhkan karena user tidak aktif > 5 menit.`);
-            BCS.Analytics.track("user_idle_paused");
-            PerformancePanel.render();
-        }, IDLE_THRESHOLD);
     }
 
     function startClock() {
@@ -606,8 +649,8 @@
         if (DOM.buttons.refresh) {
             DOM.buttons.refresh.addEventListener("click", async (e) => {
                 e.preventDefault();
-                resetIdleTimer();
-                await refresh();
+                // User menekan tombol secara manual -> Paksa bypass cache (forceRefresh = true)
+                await refresh(true);
             });
         }
 
@@ -622,28 +665,26 @@
 
         document.addEventListener("visibilitychange", async () => {
             if (document.hidden) {
-                startAutoRefresh(POLLING_HIDDEN);
+                startAutoRefresh(CONFIG.POLLING_HIDDEN);
                 return;
             }
-            if (!state.ui.isIdle) await refresh();
-            startAutoRefresh(POLLING_ACTIVE);
-        });
-
-        // Pasang pendengar aktivitas pengguna demi fungsionalitas Idle Checking
-        ["mousemove", "keydown", "click", "touchstart", "scroll"].forEach(eventName => {
-            document.addEventListener(eventName, resetIdleTimer, { passive: true });
+            // Tab kembali aktif: Instant refresh (Bypass cache untuk menjamin data paling aktual setelah ditinggal)
+            await refresh(true);
+            startAutoRefresh(CONFIG.POLLING_ACTIVE);
         });
 
         window.addEventListener("beforeunload", () => destroy());
 
         if (typeof BCS !== "undefined" && BCS.Events) {
             const unsubCreated = BCS.Events.on("report:created", async () => {
-                if (!state.ui.isIdle) await refresh();
+                BCS.Logger.performance(MODULE_NAME, "Event: report:created -> Realtime Force Refresh Triggered", performance.now());
+                await refresh(true);
             });
             if (typeof unsubCreated === "function") state.ui.eventUnsubscribers.push(unsubCreated);
 
             const unsubUpdated = BCS.Events.on("report:updated", async () => {
-                if (!state.ui.isIdle) await refresh();
+                BCS.Logger.performance(MODULE_NAME, "Event: report:updated -> Realtime Force Refresh Triggered", performance.now());
+                await refresh(true);
             });
             if (typeof unsubUpdated === "function") state.ui.eventUnsubscribers.push(unsubUpdated);
         }
@@ -670,26 +711,20 @@
             const userLoaded = loadUser();
             if (!userLoaded) throw new Error("Data user gagal dimuat.");
 
-            const summaryLoaded = await loadSummary();
+            // Inisialisasi awal selalu paksa ambil data dari server
+            const summaryLoaded = await loadSummary(true);
             if (!summaryLoaded) throw new Error("Dashboard data gagal dimuat.");
 
-            await loadSLAAnalytics();
+            await loadSLAAnalytics(true);
 
             Render.animateCards();
             Render.all();
 
-            // Bootstrap arsitektur v2 spesifik
-            DashboardChart.initLazyLoaders(); // Rekomendasi 3
-            resetIdleTimer();                 // Rekomendasi 4
-            
             startClock();
             bindEvents();
-            startAutoRefresh(); 
+            startAutoRefresh();
 
             state.ui.initialized = true;
-            state.metrics.openCount = 1;
-            
-            BCS.Analytics.track("dashboard_open", { renderInitTime: performance.now() - tInit });
             BCS.Logger.performance(MODULE_NAME, "Module Fully Bootstrapped & Ready", tInit);
             return true;
 
@@ -703,38 +738,30 @@
     }
 
     // ==================================================
-    // 13. DESTROY & STATE UNBINDING
+    // 13. DESTROY (Rekomendasi 5: Reset State Complete)
     // ==================================================
     function destroy() {
         stopAutoRefresh();
         stopClock();
-        clearTimeout(state.ui.idleTimeout);
-        
-        if (DashboardChart.lazyLoader) {
-            DashboardChart.lazyLoader.disconnect();
-        }
         
         while (state.ui.eventUnsubscribers.length > 0) {
             const unsubscribe = state.ui.eventUnsubscribers.pop();
-            if (typeof unsubscribe === "function") unsubscribe();
+            if (typeof unsubscribe === "function") {
+                unsubscribe();
+            }
         }
 
-        Object.keys(state.ui.counterTimers).forEach(id => { clearInterval(state.ui.counterTimers[id]); });
-        state.ui.counterTimers = Object.create(null);
+        Object.keys(state.ui.counterTimers).forEach(id => {
+            clearInterval(state.ui.counterTimers[id]);
+        });
 
         if (state.charts.donut instanceof Chart) state.charts.donut.destroy();
         if (state.charts.line instanceof Chart) state.charts.line.destroy();
         
-        // Lepas pemantau event idle activity
-        ["mousemove", "keydown", "click", "touchstart", "scroll"].forEach(eventName => {
-            document.removeEventListener(eventName, resetIdleTimer);
-        });
-
-        const panel = document.getElementById(PerformancePanel.containerId);
-        if (panel) panel.remove();
+        // Rekomendasi 5: Reset State ke kondisi factory default awal secara bersih
+        state = createInitialState();
         
-        state.ui.initialized = false;
-        console.log(`[${MODULE_NAME}] Core v2 Store module unmounted completely.`);
+        console.log(`[${MODULE_NAME}] Destroy pipeline executed clean. State returned to baseline definition.`);
     }
 
     // Dom Ready Runner

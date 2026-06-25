@@ -30,10 +30,7 @@
 
 <body>
 
-<!-- ======================================================
-     LOADING OVERLAY
-======================================================= -->
-
+<!-- LOADING OVERLAY -->
 <div id="loading" class="loading-overlay" style="display:none;">
     <div class="text-center">
         <div class="spinner-border text-light" role="status">
@@ -43,10 +40,7 @@
     </div>
 </div>
 
-<!-- ======================================================
-     LOGIN PAGE
-======================================================= -->
-
+<!-- LOGIN PAGE -->
 <div class="container">
     <div class="row justify-content-center align-items-center min-vh-100">
         <div class="col-xl-4 col-lg-5 col-md-6 col-sm-10">
@@ -116,9 +110,9 @@
                             <small class="text-muted">Secure Login</small>
                         </div>
 
-                        <!-- LOGIN BUTTON — id="loginButton" matches auth.js -->
+                        <!-- LOGIN BUTTON - ID diubah ke btnLogin -->
                         <div class="d-grid">
-                            <button id="loginButton" type="submit" class="btn btn-primary btn-lg">
+                            <button id="btnLogin" type="submit" class="btn btn-primary btn-lg">
                                 <i class="fa-solid fa-right-to-bracket me-2"></i>LOGIN
                             </button>
                         </div>
@@ -146,7 +140,7 @@
 </div>
 
 <!-- ======================================================
-     JAVASCRIPT — urutan penting: config → core → modules
+     JAVASCRIPT
 ======================================================= -->
 
 <!-- Library -->
@@ -156,11 +150,11 @@
 <!-- Config -->
 <script src="config/config.js"></script>
 
-<!-- Core -->
+<!-- Core - URUTAN PENTING -->
 <script src="assets/js/core/app.js"></script>
 <script src="assets/js/core/api.js"></script>
 <script src="assets/js/core/storage.js"></script>
-<script src="assets/js/core/session.js"></script>
+<script src="assets/js/core/session.js"></script>  <!-- SESSION HARUS DIMUAT -->
 <script src="assets/js/core/ui.js"></script>
 <script src="assets/js/core/utils.js"></script>
 

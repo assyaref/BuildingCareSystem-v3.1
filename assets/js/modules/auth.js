@@ -1,7 +1,6 @@
 // ======================================================
 // Building Care System Enterprise v3.6 Stable (Refactored)
 // File : assets/js/modules/auth.js
-// Phase 1 : Header + Helper + AuthStore
 // Radiant Group Duri
 // ======================================================
 
@@ -300,7 +299,260 @@ const AuthApi = (() => {
 
 Logger.info("Auth Phase 2 Loaded");
 
-// ... sisanya sama seperti auth.js Anda ...
+/**
+ * ======================================================
+ * AUTH ROUTER
+ * ======================================================
+ */
+const AuthRouter = (() => {
+    function getRoute(role = "") {
+        role = String(role).trim().toUpperCase();
+        return ROLE_ROUTE[role] || AUTH_CONFIG.DEFAULT_ROUTE;
+    }
+
+    function redirect() {
+        const role = AuthStore.role();
+        const page = getRoute(role);
+        Logger.info("[AUTH ROUTER]", role, "=>", page);
+        AuthHelper.redirect(page);
+    }
+
+    function byRole(role) { AuthHelper.redirect(getRoute(role)); }
+    function is(...roles) { return roles.includes(AuthStore.role()); }
+    function allow(...roles) { return roles.length === 0 || is(...roles); }
+    function current() { return AuthHelper.page(); }
+    function exists(role) { return !!ROLE_ROUTE[String(role).trim().toUpperCase()]; }
+    function routes() { return { ...ROLE_ROUTE }; }
+
+    return { redirect, byRole, getRoute, allow, is, current, exists, routes };
+})();
+
+Logger.info("Auth Phase 3 Loaded");
+
+/**
+ * ======================================================
+ * AUTH GUARD - MOVED BEFORE AuthUI and AuthHeartbeat
+ * ======================================================
+ */
+const AuthGuard = (() => {
+    function isAuthenticated() { return AuthStore.isLogin(); }
+
+    async function login() {
+        if (AuthHelper.isLoginPage()) return true;
+        if (!isAuthenticated()) {
+            Logger.info("[AUTH GUARD]", "Session Not Found");
+            AuthHelper.redirect(AUTH_CONFIG.LOGIN_PAGE);
+            return false;
+        }
+        return true;
+    }
+
+    function role(...roles) {
+        if (roles.length === 0 || AuthRouter.allow(...roles)) return true;
+        AuthHelper.toast("Anda tidak memiliki hak akses.", "warning");
+        AuthRouter.redirect();
+        return false;
+    }
+
+    async function session() {
+        if (!isAuthenticated()) return false;
+        const valid = await AuthApi.verifyWithRetry();
+        if (!valid) {
+            AuthHelper.toast("Session Expired", "warning");
+            await AuthApi.logout();
+            return false;
+        }
+        return true;
+    }
+
+    async function protect(roles = []) {
+        if (!(await login()) || !(await session())) return false;
+        return !(roles.length > 0 && !role(...roles));
+    }
+
+    function autoRedirect() {
+        if (AuthHelper.isLoginPage() && AuthStore.isLogin()) {
+            AuthRouter.redirect();
+        }
+    }
+
+    return {
+        login, role, session, protect, autoRedirect,
+        publicPage: () => AuthHelper.isLoginPage(),
+        privatePage: () => !AuthHelper.isLoginPage(),
+        isAuthenticated
+    };
+})();
+
+Logger.info("Auth Phase 4 Loaded");
+
+/**
+ * ======================================================
+ * REKOMENDASI 9 & 10: AUTH UI (DUPLICATION GUARD & TOGGLE ICON)
+ * ======================================================
+ */
+const AuthUI = (() => {
+    let submitting = false;
+    let binded = false;
+
+    function form() { return document.getElementById("loginForm"); }
+    function nik() { return document.getElementById("nik"); }
+    function password() { return document.getElementById("password"); }
+    function button() { return document.getElementById("btnLogin"); }
+    function remember() { return document.getElementById("rememberMe"); }
+    function togglePassword() { return document.getElementById("togglePassword"); }
+
+    function validate() {
+        if (!nik()?.value.trim()) {
+            AuthHelper.toast("NIK wajib diisi", "warning");
+            nik()?.focus();
+            return false;
+        }
+        if (!password()?.value.trim()) {
+            AuthHelper.toast("Password wajib diisi", "warning");
+            password()?.focus();
+            return false;
+        }
+        return true;
+    }
+
+    async function submit(e) {
+        if (e) e.preventDefault();
+        if (submitting) return;
+        if (!validate()) return;
+
+        submitting = true;
+        button()?.setAttribute("disabled", "true");
+
+        try {
+            const result = await AuthApi.login({
+                nik: nik().value.trim(),
+                password: password().value.trim()
+            });
+
+            if (!result || !result.success) {
+                AuthHelper.toast(result?.message || "Login gagal", "danger");
+                return;
+            }
+
+            saveRemember();
+            AuthHelper.toast("Login berhasil", "success");
+
+            await Promise.resolve();
+            requestAnimationFrame(() => {
+                AuthRouter.redirect();
+            });
+        } catch (err) {
+            Logger.error("Submit UI Fatal Error:", err);
+            AuthHelper.toast("Terjadi kesalahan sistem.", "danger");
+        } finally {
+            submitting = false;
+            button()?.removeAttribute("disabled");
+        }
+    }
+
+    function saveRemember() {
+        if (!remember()) return;
+        const storage = AuthStore.storageProvider();
+        if (remember().checked) {
+            storage.setItem("BCS_REMEMBER", nik().value.trim());
+        } else {
+            storage.removeItem("BCS_REMEMBER");
+        }
+    }
+
+    function loadRemember() {
+        if (!remember() || !nik()) return;
+        const nikSaved = AuthStore.storageProvider().getItem("BCS_REMEMBER");
+        if (!nikSaved) return;
+
+        nik().value = nikSaved;
+        remember().checked = true;
+    }
+
+    function bindTogglePassword() {
+        const toggleEl = togglePassword();
+        const passEl = password();
+        if (!toggleEl || !passEl) return;
+        
+        toggleEl.addEventListener("click", () => {
+            const isPassword = passEl.type === "password";
+            passEl.type = isPassword ? "text" : "password";
+            
+            const iconEl = toggleEl.querySelector("i") || toggleEl;
+            if (isPassword) {
+                iconEl.className = iconEl.className.replace(/fa-eye|bi-eye/g, match => match.includes("fa") ? "fa-eye-slash" : "bi-eye-slash");
+            } else {
+                iconEl.className = iconEl.className.replace(/fa-eye-slash|bi-eye-slash/g, match => match.includes("fa") ? "fa-eye" : "bi-eye");
+            }
+        });
+    }
+
+    function bindEnterKey() {
+        if (!form()) return; 
+        password()?.addEventListener("keypress", e => {
+            if (e.key === "Enter") submit(e);
+        });
+    }
+
+    function init() {
+        if (binded) return; 
+        binded = true;
+
+        form()?.addEventListener("submit", submit);
+        bindEnterKey();
+        bindTogglePassword();
+        loadRemember();
+        nik()?.focus();
+        Logger.info("Auth UI Ready");
+    }
+
+    return { init, submit, validate };
+})();
+
+Logger.info("Auth Phase 5 Loaded");
+
+/**
+ * ======================================================
+ * REKOMENDASI 11: AUTH HEARTBEAT WITH ACTIVITY REFRESH
+ * ======================================================
+ */
+const AuthHeartbeat = (() => {
+    let timer = null;
+
+    function start() {
+        stop();
+        timer = setInterval(verifyAndRefresh, AUTH_CONFIG.HEARTBEAT_INTERVAL);
+        Logger.info("Heartbeat Started");
+    }
+
+    function stop() {
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+            Logger.info("Heartbeat Stopped");
+        }
+    }
+
+    async function verifyAndRefresh() {
+        if (!AuthStore.isLogin()) return;
+        
+        const valid = await AuthApi.verifyWithRetry();
+        if (valid) {
+            if (window.App && typeof App.refreshLastActivity === "function") {
+                App.refreshLastActivity();
+                Logger.info("Session verified & activity timestamp refreshed.");
+            }
+        } else {
+            AuthHelper.toast("Session Expired", "warning");
+            await AuthApi.logout();
+        }
+    }
+
+    return { start, stop, verify: verifyAndRefresh };
+})();
+
+Logger.info("Auth Phase 6 Loaded");
 
 /**
  * ======================================================
@@ -329,4 +581,61 @@ const Auth = (() => {
     return Object.freeze(instance);
 })();
 
-// ... sisanya tetap sama ...
+/**
+ * ======================================================
+ * REKOMENDASI 14: BACKWARD COMPATIBILITY FOR OLD SCRIPTS
+ * ======================================================
+ */
+if (!window.Session) {
+    window.Session = {
+        getUser: () => Auth.user(),
+        getToken: () => Auth.token(),
+        getRole: () => Auth.role(),
+        isLoggedIn: () => Auth.isLogin()
+    };
+    Logger.info("Legacy window.Session polyfill attached.");
+}
+
+Logger.info("Auth Phase 7 Loaded");
+
+/**
+ * ======================================================
+ * AUTH BOOTSTRAP (REKOMENDASI 12: WINDOW LOAD BIND)
+ * ======================================================
+ */
+const AuthBootstrap = (() => {
+    let initialized = false;
+
+    async function init() {
+        if (initialized) return;
+        initialized = true;
+
+        Logger.info("Initializing Authentication Architecture...");
+
+        // Tunggu sedikit agar API siap
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        AuthGuard.autoRedirect();
+
+        if (AuthGuard.privatePage()) {
+            const ok = await AuthGuard.protect();
+            if (!ok) return;
+            AuthHeartbeat.start();
+        }
+
+        if (AuthHelper.isLoginPage()) {
+            AuthUI.init();
+        }
+
+        Logger.info("Authentication Engine Ready");
+    }
+
+    return { init };
+})();
+
+// FIX: Gunakan DOMContentLoaded untuk memastikan DOM siap
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', AuthBootstrap.init);
+} else {
+    AuthBootstrap.init();
+}

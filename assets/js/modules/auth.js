@@ -1,5 +1,5 @@
 // ======================================================
-// Building Care System Enterprise v3.5 Stable
+// Building Care System Enterprise v3.5 Stable (Refactored)
 // File : assets/js/modules/auth.js
 // Phase 1 : Header + Helper + AuthStore
 // Radiant Group Duri
@@ -9,14 +9,43 @@
 
 /**
  * ======================================================
- * AUTH CONFIG
+ * REKOMENDASI 13: LOGGER SYSTEM (DEBUG CONTROL)
+ * ======================================================
+ */
+const Logger = (() => {
+    const isDebug = () => window.CONFIG?.DEBUG !== false;
+
+    return {
+        info: (...args) => { if (isDebug()) console.log("[INFO]", ...args); },
+        warn: (...args) => { if (isDebug()) console.warn("[WARN]", ...args); },
+        error: (...args) => { if (isDebug()) console.error("[ERROR]", ...args); }
+    };
+})();
+
+/**
+ * ======================================================
+ * REKOMENDASI 1: AUTH CONFIG FROM CONFIG.JS
  * ======================================================
  */
 const AUTH_CONFIG = {
-    HEARTBEAT_INTERVAL: 5 * 60 * 1000,
-    LOGIN_PAGE: "login.html",
-    DEFAULT_ROUTE: "dashboard.html",
+    HEARTBEAT_INTERVAL: window.CONFIG?.AUTH?.HEARTBEAT || 300000,
+    LOGIN_PAGE: window.CONFIG?.AUTH?.LOGIN || "login.html",
+    DEFAULT_ROUTE: window.CONFIG?.AUTH?.DEFAULT || "dashboard.html",
     STORAGE_KEY: "BCS_SESSION"
+};
+
+/**
+ * ======================================================
+ * REKOMENDASI 7: DYNAMIC ROLE ROUTE FROM CONFIG
+ * ======================================================
+ */
+const ROLE_ROUTE = window.CONFIG?.ROUTES || {
+    USER: "user-report.html",
+    "GENERAL AFFAIR": "user-report.html",
+    TECHNICIAN: "workorder.html",
+    ADMIN: "dashboard.html",
+    ADMINISTRATOR: "dashboard.html",
+    "LEAD BRANCH SUPPORT": "dashboard.html"
 };
 
 /**
@@ -25,24 +54,16 @@ const AUTH_CONFIG = {
  * ======================================================
  */
 const AuthHelper = (() => {
-    function log(...args) {
-        if (window.App && App.log) {
-            App.log(...args);
-        } else {
-            console.log(...args);
-        }
-    }
-
     function toast(message, type = "info") {
-        if (window.App && App.toast) {
+        if (window.App && typeof App.toast === "function") {
             App.toast(message, type);
         } else {
-            console.log(message);
+            Logger.info(`[TOAST - ${type.toUpperCase()}] ${message}`);
         }
     }
 
     function loading(show, text = "Loading...") {
-        if (window.App && App.loading) {
+        if (window.App && typeof App.loading === "function") {
             App.loading(show, text);
         }
     }
@@ -60,7 +81,6 @@ const AuthHelper = (() => {
     }
 
     return {
-        log,
         toast,
         loading,
         redirect,
@@ -71,56 +91,65 @@ const AuthHelper = (() => {
 
 /**
  * ======================================================
- * AUTH STORE
- * Single Source of Truth
+ * REKOMENDASI 2 & 8: AUTH STORE (SAFE SESSION & ONE-GATE STORAGE)
  * ======================================================
  */
 const AuthStore = (() => {
     let cache = null;
 
+    const EMPTY_SESSION = {
+        token: "",
+        user: {}
+    };
+
+    // Rekomendasi 8: One-gate storage via App.storage() jika tersedia
+    const storageProvider = () => {
+        if (window.App && typeof App.storage === "function") {
+            return App.storage();
+        }
+        return localStorage;
+    };
+
     function get() {
         if (cache) return cache;
-        cache = App.getSession() || {};
+        if (window.App && typeof App.getSession === "function") {
+            cache = App.getSession() ?? structuredClone(EMPTY_SESSION);
+        } else {
+            const stored = storageProvider().getItem(AUTH_CONFIG.STORAGE_KEY);
+            cache = stored ? JSON.parse(stored) : structuredClone(EMPTY_SESSION);
+        }
         return cache;
     }
 
     function set(session) {
-        cache = session || {};
-        App.setSession(cache);
+        cache = session || structuredClone(EMPTY_SESSION);
+        if (window.App && typeof App.setSession === "function") {
+            App.setSession(cache);
+        } else {
+            storageProvider().setItem(AUTH_CONFIG.STORAGE_KEY, JSON.stringify(cache));
+        }
         return cache;
     }
 
     function clear() {
-        cache = null;
-        App.removeSession();
+        cache = structuredClone(EMPTY_SESSION);
+        if (window.App && typeof App.removeSession === "function") {
+            App.removeSession();
+        } else {
+            storageProvider().removeItem(AUTH_CONFIG.STORAGE_KEY);
+        }
     }
 
-    function token() {
-        return get()?.token || "";
-    }
+    function token() { return get()?.token || ""; }
+    function user() { return get()?.user || {}; }
+    function role() { return String(user().role || "").trim().toUpperCase(); }
+    function isLogin() { return token() !== ""; }
 
-    function user() {
-        return get()?.user || {};
-    }
-
-    function role() {
-        return String(user().role || "").trim().toUpperCase();
-    }
-
-    function isLogin() {
-        return token() !== "";
-    }
-
-    function hasRole(...roles) {
-        return roles.includes(role());
-    }
+    function hasRole(...roles) { return roles.includes(role()); }
 
     function updateUser(data = {}) {
         const session = get();
-        session.user = {
-            ...session.user,
-            ...data
-        };
+        session.user = { ...session.user, ...data };
         set(session);
     }
 
@@ -131,93 +160,82 @@ const AuthStore = (() => {
     }
 
     return {
-        get,
-        set,
-        clear,
-        token,
-        user,
-        role,
-        isLogin,
-        hasRole,
-        updateUser,
-        updateToken
+        get, set, clear, token, user, role, isLogin, hasRole, updateUser, updateToken, storageProvider
     };
 })();
 
-AuthHelper.log("Auth Phase 1 Loaded");
+Logger.info("Auth Phase 1 Loaded");
 
 /**
  * ======================================================
- * AUTH API
- * Enterprise v3.5 Stable
+ * REKOMENDASI 5 & 6: AUTH API WITH RETRY LOGIC & SAFE VERIFY
  * ======================================================
  */
 const AuthApi = (() => {
-    /**
-     * LOGIN
-     */
     async function login(payload = {}) {
         AuthHelper.loading(true, "Signing In...");
         try {
-            AuthHelper.log("[AUTH]", "Login Request", payload);
+            Logger.info("Login Request", payload);
             const response = await Api.post("login", payload);
-            AuthHelper.log("[AUTH]", response);
+            Logger.info("Login Response", response);
 
-            if (!response.success) {
-                return response;
+            if (!response || !response.success) {
+                return response || { success: false, message: "Login gagal." };
             }
 
             AuthStore.set(response.data);
             return response;
         } catch (err) {
-            console.error(err);
-            return {
-                success: false,
-                message: "Server tidak dapat dihubungi."
-            };
+            Logger.error("Login Error:", err);
+            return { success: false, message: "Server tidak dapat dihubungi." };
         } finally {
             AuthHelper.loading(false);
         }
     }
 
-    /**
-     * LOGOUT
-     */
     async function logout() {
+        // Rekomendasi 4: Stop Heartbeat sebelum menghapus session
+        AuthHeartbeat.stop();
         try {
-            await Api.post("logout", {
-                token: AuthStore.token()
-            });
+            if (AuthStore.isLogin()) {
+                await Api.post("logout", { token: AuthStore.token() });
+            }
         } catch (err) {
-            console.warn(err);
+            Logger.warn("Logout API warning:", err);
+        } finally {
+            AuthStore.clear();
+            AuthHelper.redirect(AUTH_CONFIG.LOGIN_PAGE);
         }
-        AuthStore.clear();
-        AuthHelper.redirect(AUTH_CONFIG.LOGIN_PAGE);
     }
 
-    /**
-     * VERIFY SESSION
-     */
+    // Rekomendasi 5: Verifikasi yang lebih aman menggunakan Boolean cast eksplisit
     async function verify() {
-        if (!AuthStore.isLogin()) {
-            return false;
-        }
+        if (!AuthStore.isLogin()) return false;
         try {
-            const response = await Api.post("verifySession", {
-                token: AuthStore.token()
-            });
-            return response.success;
+            const response = await Api.post("verifySession", { token: AuthStore.token() });
+            return Boolean(response && response.success);
         } catch (err) {
-            console.warn(err);
+            Logger.warn("Verify API Warning:", err);
             return false;
         }
     }
 
-    /**
-     * REFRESH SESSION
-     */
+    // Rekomendasi 6: Mekanisme Auto-Retry sebanyak 3 kali sebelum Logout global
+    async function verifyWithRetry(retries = 3, delayMs = 2000) {
+        for (let i = 1; i <= retries; i++) {
+            const isValid = await verify();
+            if (isValid) return true;
+            
+            Logger.warn(`Verifikasi gagal. Mencoba ulang (${i}/${retries})...`);
+            if (i < retries) {
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+            }
+        }
+        return false;
+    }
+
     async function refresh() {
-        const valid = await verify();
+        const valid = await verifyWithRetry();
         if (!valid) {
             AuthHelper.toast("Session Expired", "warning");
             await logout();
@@ -225,176 +243,73 @@ const AuthApi = (() => {
         return valid;
     }
 
-    /**
-     * CHANGE SESSION
-     */
-    function updateUser(data) {
-        AuthStore.updateUser(data);
-    }
-
-    /**
-     * CHANGE TOKEN
-     */
-    function updateToken(token) {
-        AuthStore.updateToken(token);
-    }
-
     return {
-        login,
-        logout,
-        verify,
-        refresh,
-        updateUser,
-        updateToken
+        login, logout, verify, verifyWithRetry, refresh,
+        updateUser: AuthStore.updateUser,
+        updateToken: AuthStore.updateToken
     };
 })();
 
-AuthHelper.log("Auth Phase 2 Loaded");
+Logger.info("Auth Phase 2 Loaded");
 
 /**
  * ======================================================
  * AUTH ROUTER
- * Enterprise v3.5 Stable
  * ======================================================
  */
-const ROLE_ROUTE = {
-    USER: "user-report.html",
-    "GENERAL AFFAIR": "user-report.html",
-    TECHNICIAN: "workorder.html",
-    ADMIN: "dashboard.html",
-    ADMINISTRATOR: "dashboard.html",
-    "LEAD BRANCH SUPPORT": "dashboard.html"
-};
-
 const AuthRouter = (() => {
-    /**
-     * GET ROUTE BY ROLE
-     */
     function getRoute(role = "") {
         role = String(role).trim().toUpperCase();
         return ROLE_ROUTE[role] || AUTH_CONFIG.DEFAULT_ROUTE;
     }
 
-    /**
-     * REDIRECT CURRENT USER
-     */
     function redirect() {
         const role = AuthStore.role();
         const page = getRoute(role);
-        AuthHelper.log("[AUTH ROUTER]", role, "=>", page);
+        Logger.info("[AUTH ROUTER]", role, "=>", page);
         AuthHelper.redirect(page);
     }
 
-    /**
-     * REDIRECT BY ROLE
-     */
-    function byRole(role) {
-        AuthHelper.redirect(getRoute(role));
-    }
+    function byRole(role) { AuthHelper.redirect(getRoute(role)); }
+    function is(...roles) { return roles.includes(AuthStore.role()); }
+    function allow(...roles) { return roles.length === 0 || is(...roles); }
+    function current() { return AuthHelper.page(); }
+    function exists(role) { return !!ROLE_ROUTE[String(role).trim().toUpperCase()]; }
+    function routes() { return { ...ROLE_ROUTE }; }
 
-    /**
-     * CHECK ROLE
-     */
-    function is(...roles) {
-        return roles.includes(AuthStore.role());
-    }
-
-    /**
-     * PAGE VALIDATION
-     */
-    function allow(...roles) {
-        if (roles.length === 0) return true;
-        return is(...roles);
-    }
-
-    /**
-     * CURRENT PAGE
-     */
-    function current() {
-        return AuthHelper.page();
-    }
-
-    /**
-     * ROUTE EXISTS
-     */
-    function exists(role) {
-        role = String(role).trim().toUpperCase();
-        return !!ROLE_ROUTE[role];
-    }
-
-    /**
-     * GET ALL ROUTES
-     */
-    function routes() {
-        return { ...ROLE_ROUTE };
-    }
-
-    return {
-        redirect,
-        byRole,
-        getRoute,
-        allow,
-        is,
-        current,
-        exists,
-        routes
-    };
+    return { redirect, byRole, getRoute, allow, is, current, exists, routes };
 })();
 
-AuthHelper.log("Auth Phase 3 Loaded");
+Logger.info("Auth Phase 3 Loaded");
 
 /**
  * ======================================================
  * AUTH GUARD
- * Enterprise v3.5 Stable
  * ======================================================
  */
 const AuthGuard = (() => {
-    /**
-     * CHECK LOGIN SESSION
-     */
-    function isAuthenticated() {
-        return AuthStore.isLogin();
-    }
+    function isAuthenticated() { return AuthStore.isLogin(); }
 
-    /**
-     * REQUIRE LOGIN
-     */
     async function login() {
-        if (AuthHelper.isLoginPage()) {
-            return true;
-        }
+        if (AuthHelper.isLoginPage()) return true;
         if (!isAuthenticated()) {
-            AuthHelper.log("[AUTH GUARD]", "Session Not Found");
+            Logger.info("[AUTH GUARD]", "Session Not Found");
             AuthHelper.redirect(AUTH_CONFIG.LOGIN_PAGE);
             return false;
         }
         return true;
     }
 
-    /**
-     * REQUIRE ROLE
-     */
     function role(...roles) {
-        if (roles.length === 0) {
-            return true;
-        }
-        if (AuthRouter.allow(...roles)) {
-            return true;
-        }
+        if (roles.length === 0 || AuthRouter.allow(...roles)) return true;
         AuthHelper.toast("Anda tidak memiliki hak akses.", "warning");
         AuthRouter.redirect();
         return false;
     }
 
-    /**
-     * VERIFY SESSION
-     */
     async function session() {
-        if (!isAuthenticated()) {
-            return false;
-        }
-        const valid = await AuthApi.verify();
+        if (!isAuthenticated()) return false;
+        const valid = await AuthApi.verifyWithRetry(); // Menggunakan mekanisme retry
         if (!valid) {
             AuthHelper.toast("Session Expired", "warning");
             await AuthApi.logout();
@@ -403,73 +318,36 @@ const AuthGuard = (() => {
         return true;
     }
 
-    /**
-     * PAGE GUARD
-     */
     async function protect(roles = []) {
-        const logged = await login();
-        if (!logged) {
-            return false;
-        }
-        const valid = await session();
-        if (!valid) {
-            return false;
-        }
-        if (roles.length > 0 && !role(...roles)) {
-            return false;
-        }
-        return true;
+        if (!(await login()) || !(await session())) return false;
+        return !(roles.length > 0 && !role(...roles));
     }
 
-    /**
-     * AUTO REDIRECT
-     */
     function autoRedirect() {
         if (AuthHelper.isLoginPage() && AuthStore.isLogin()) {
             AuthRouter.redirect();
         }
     }
 
-    /**
-     * PUBLIC PAGE
-     */
-    function publicPage() {
-        return AuthHelper.isLoginPage();
-    }
-
-    /**
-     * PRIVATE PAGE
-     */
-    function privatePage() {
-        return !publicPage();
-    }
-
     return {
-        login,
-        role,
-        session,
-        protect,
-        autoRedirect,
-        publicPage,
-        privatePage,
+        login, role, session, protect, autoRedirect,
+        publicPage: () => AuthHelper.isLoginPage(),
+        privatePage: () => !AuthHelper.isLoginPage(),
         isAuthenticated
     };
 })();
 
-AuthHelper.log("Auth Phase 4 Loaded");
+Logger.info("Auth Phase 4 Loaded");
 
 /**
  * ======================================================
- * AUTH UI
- * Enterprise v3.5 Stable
+ * REKOMENDASI 9 & 10: AUTH UI (DUPLICATION GUARD & TOGGLE ICON)
  * ======================================================
  */
 const AuthUI = (() => {
     let submitting = false;
+    let binded = false; // Rekomendasi 9: Mencegah duplikasi event handler
 
-    /**
-     * ELEMENT
-     */
     function form() { return document.getElementById("loginForm"); }
     function nik() { return document.getElementById("nik"); }
     function password() { return document.getElementById("password"); }
@@ -477,33 +355,27 @@ const AuthUI = (() => {
     function remember() { return document.getElementById("rememberMe"); }
     function togglePassword() { return document.getElementById("togglePassword"); }
 
-    /**
-     * VALIDASI
-     */
     function validate() {
         if (!nik()?.value.trim()) {
             AuthHelper.toast("NIK wajib diisi", "warning");
-            nik().focus();
+            nik()?.focus();
             return false;
         }
         if (!password()?.value.trim()) {
             AuthHelper.toast("Password wajib diisi", "warning");
-            password().focus();
+            password()?.focus();
             return false;
         }
         return true;
     }
 
-    /**
-     * LOGIN
-     */
     async function submit(e) {
         if (e) e.preventDefault();
         if (submitting) return;
         if (!validate()) return;
 
         submitting = true;
-        button()?.setAttribute("disabled", true);
+        button()?.setAttribute("disabled", "true");
 
         try {
             const result = await AuthApi.login({
@@ -511,104 +383,91 @@ const AuthUI = (() => {
                 password: password().value.trim()
             });
 
-            if (!result.success) {
-                AuthHelper.toast(result.message, "danger");
+            if (!result || !result.success) {
+                AuthHelper.toast(result?.message || "Login gagal", "danger");
                 return;
             }
 
             saveRemember();
             AuthHelper.toast("Login berhasil", "success");
-            AuthRouter.redirect();
+
+            // Rekomendasi 3: Menjamin I/O session selesai ditulis sebelum melakukan redirect
+            await Promise.resolve();
+            requestAnimationFrame(() => {
+                AuthRouter.redirect();
+            });
         } finally {
             submitting = false;
             button()?.removeAttribute("disabled");
         }
     }
 
-    /**
-     * REMEMBER ME
-     */
     function saveRemember() {
         if (!remember()) return;
+        const storage = AuthStore.storageProvider();
         if (remember().checked) {
-            localStorage.setItem("BCS_REMEMBER", nik().value.trim());
+            storage.setItem("BCS_REMEMBER", nik().value.trim());
         } else {
-            localStorage.removeItem("BCS_REMEMBER");
+            storage.removeItem("BCS_REMEMBER");
         }
     }
 
     function loadRemember() {
-        if (!remember()) return;
-        const nikSaved = localStorage.getItem("BCS_REMEMBER");
+        if (!remember() || !nik()) return;
+        const nikSaved = AuthStore.storageProvider().getItem("BCS_REMEMBER");
         if (!nikSaved) return;
 
         nik().value = nikSaved;
         remember().checked = true;
     }
 
-    /**
-     * SHOW PASSWORD
-     */
+    // Rekomendasi 10: Mengganti tipe password sekaligus mengubah kelas icon (Bootstrap / FontAwesome)
     function bindTogglePassword() {
-        if (!togglePassword()) return;
-        togglePassword().addEventListener("click", () => {
-            password().type = password().type === "password" ? "text" : "password";
-        });
-    }
-
-    /**
-     * ENTER KEY
-     */
-    function bindEnterKey() {
-        password()?.addEventListener("keypress", e => {
-            if (e.key === "Enter") {
-                submit(e);
+        const toggleEl = togglePassword();
+        const passEl = password();
+        if (!toggleEl || !passEl) return;
+        
+        toggleEl.addEventListener("click", () => {
+            const isPassword = passEl.type === "password";
+            passEl.type = isPassword ? "text" : "password";
+            
+            // Mencari element icon dalam element toggle
+            const iconEl = toggleEl.querySelector("i") || toggleEl;
+            if (isPassword) {
+                iconEl.className = iconEl.className.replace(/fa-eye|bi-eye/g, match => match.includes("fa") ? "fa-eye-slash" : "bi-eye-slash");
+            } else {
+                iconEl.className = iconEl.className.replace(/fa-eye-slash|bi-eye-slash/g, match => match.includes("fa") ? "fa-eye" : "bi-eye");
             }
         });
     }
 
-    /**
-     * AUTO FOCUS
-     */
-    function autoFocus() {
-        if (nik()) {
-            nik().focus();
-        }
+    function bindEnterKey() {
+        if (form()) return; // Jika memakai tag <form>, default submit action sudah menangani Enter key secara native
+        password()?.addEventListener("keypress", e => {
+            if (e.key === "Enter") submit(e);
+        });
     }
 
-    /**
-     * BIND FORM
-     */
-    function bindForm() {
-        if (!form()) return;
-        form().addEventListener("submit", submit, { once: false });
-    }
-
-    /**
-     * INIT
-     */
     function init() {
-        bindForm();
+        if (binded) return; // Mencegah inisialisasi ganda
+        binded = true;
+
+        form()?.addEventListener("submit", submit);
         bindEnterKey();
         bindTogglePassword();
         loadRemember();
-        autoFocus();
-        AuthHelper.log("Auth UI Ready");
+        nik()?.focus();
+        Logger.info("Auth UI Ready");
     }
 
-    return {
-        init,
-        submit,
-        validate
-    };
+    return { init, submit, validate };
 })();
 
-AuthHelper.log("Auth Phase 5 Loaded");
+Logger.info("Auth Phase 5 Loaded");
 
 /**
  * ======================================================
- * AUTH HEARTBEAT
- * Enterprise v3.5 Stable
+ * REKOMENDASI 11: AUTH HEARTBEAT WITH ACTIVITY REFRESH
  * ======================================================
  */
 const AuthHeartbeat = (() => {
@@ -616,79 +475,83 @@ const AuthHeartbeat = (() => {
 
     function start() {
         stop();
-        timer = setInterval(verify, AUTH_CONFIG.HEARTBEAT_INTERVAL);
-        AuthHelper.log("Heartbeat Started");
+        timer = setInterval(verifyAndRefresh, AUTH_CONFIG.HEARTBEAT_INTERVAL);
+        Logger.info("Heartbeat Started");
     }
 
     function stop() {
         if (timer) {
             clearInterval(timer);
             timer = null;
+            Logger.info("Heartbeat Stopped");
         }
     }
 
-    async function verify() {
+    // Rekomendasi 11: Memvalidasi token sekaligus mengupdate timestamp aktivitas terakhir
+    async function verifyAndRefresh() {
         if (!AuthStore.isLogin()) return;
-        const valid = await AuthApi.verify();
-        if (!valid) {
+        
+        const valid = await AuthApi.verifyWithRetry();
+        if (valid) {
+            if (window.App && typeof App.refreshLastActivity === "function") {
+                App.refreshLastActivity();
+                Logger.info("Session verified & activity timestamp refreshed.");
+            }
+        } else {
             AuthHelper.toast("Session Expired", "warning");
             await AuthApi.logout();
         }
     }
 
-    return {
-        start,
-        stop,
-        verify
-    };
+    return { start, stop, verify: verifyAndRefresh };
 })();
 
 /**
  * ======================================================
- * AUTH FACADE
- * Enterprise v3.5 Stable
+ * AUTH FACADE (REKOMENDASI 15: OBJECT FREEZE)
  * ======================================================
  */
 const Auth = (() => {
-    async function login(payload) { return await AuthApi.login(payload); }
-    async function logout() { return await AuthApi.logout(); }
-    async function verify() { return await AuthApi.verify(); }
-    async function guard(roles = []) { return await AuthGuard.protect(roles); }
-    
-    function user() { return AuthStore.user(); }
-    function token() { return AuthStore.token(); }
-    function role() { return AuthStore.role(); }
-    function session() { return AuthStore.get(); }
-    function isLogin() { return AuthStore.isLogin(); }
-    function redirect() { AuthRouter.redirect(); }
-    function clear() { AuthStore.clear(); }
-    
-    function startHeartbeat() { AuthHeartbeat.start(); }
-    function stopHeartbeat() { AuthHeartbeat.stop(); }
-
-    return {
-        login,
-        logout,
-        verify,
-        guard,
-        user,
-        token,
-        role,
-        session,
-        isLogin,
-        redirect,
-        clear,
-        startHeartbeat,
-        stopHeartbeat
+    const instance = {
+        login: AuthApi.login,
+        logout: AuthApi.logout,
+        verify: AuthApi.verify,
+        guard: AuthGuard.protect,
+        user: AuthStore.user,
+        token: AuthStore.token,
+        role: AuthStore.role,
+        session: AuthStore.get,
+        isLogin: AuthStore.isLogin,
+        redirect: AuthRouter.redirect,
+        clear: AuthStore.clear,
+        startHeartbeat: AuthHeartbeat.start,
+        stopHeartbeat: AuthHeartbeat.stop
     };
-})();
 
-AuthHelper.log("Auth Phase 6 Loaded");
+    // Rekomendasi 15: Membekukan object Auth agar tidak bisa di-tamper/diubah dari module lain
+    return Object.freeze(instance);
+})();
 
 /**
  * ======================================================
- * AUTH BOOTSTRAP
- * Enterprise v3.5 Stable
+ * REKOMENDASI 14: BACKWARD COMPATIBILITY FOR OLD SCRIPTS
+ * ======================================================
+ */
+if (!window.Session) {
+    window.Session = {
+        getUser: () => Auth.user(),
+        getToken: () => Auth.token(),
+        getRole: () => Auth.role(),
+        isLoggedIn: () => Auth.isLogin()
+    };
+    Logger.info("Legacy window.Session polyfill attached.");
+}
+
+Logger.info("Auth Phase 6 Loaded");
+
+/**
+ * ======================================================
+ * AUTH BOOTSTRAP (REKOMENDASI 12: WINDOW LOAD BIND)
  * ======================================================
  */
 const AuthBootstrap = (() => {
@@ -698,32 +561,25 @@ const AuthBootstrap = (() => {
         if (initialized) return;
         initialized = true;
 
-        AuthHelper.log("Initializing Authentication...");
+        Logger.info("Initializing Authentication Architecture...");
 
-        // AUTO REDIRECT LOGIN PAGE
         AuthGuard.autoRedirect();
 
-        // PROTECT PRIVATE PAGE
         if (AuthGuard.privatePage()) {
             const ok = await AuthGuard.protect();
             if (!ok) return;
             Auth.startHeartbeat();
         }
 
-        // LOGIN FORM
         if (AuthHelper.isLoginPage()) {
             AuthUI.init();
         }
 
-        AuthHelper.log("Authentication Ready");
+        Logger.info("Authentication Engine Ready");
     }
 
-    return {
-        init
-    };
+    return { init };
 })();
 
-// Inisialisasi Aplikasi Saat DOM Selesai Dimuat
-document.addEventListener("DOMContentLoaded", () => {
-    AuthBootstrap.init();
-});
+// Rekomendasi 12: Menunggu aset CSS, Bootstrap, & Icons sepenuhnya selesai termuat
+window.addEventListener("load", AuthBootstrap.init);

@@ -1,4 +1,79 @@
 // ======================================================
+// MOBILE UI - USER DATA LOADER (FIXED)
+// ======================================================
+
+/**
+ * Load user data dari session dengan retry
+ */
+function loadUserData(retryCount = 0) {
+    console.log(`🔍 [MobileUI] Loading user data... (attempt ${retryCount + 1})`);
+    
+    const userName = document.getElementById('userName');
+    const userDept = document.getElementById('userDept');
+    const userAvatar = document.getElementById('userAvatar');
+
+    // Cek apakah Session tersedia
+    if (typeof Session === 'undefined') {
+        console.error("❌ [MobileUI] Session tidak tersedia!");
+        if (retryCount < 3) {
+            setTimeout(() => loadUserData(retryCount + 1), 500);
+        }
+        return;
+    }
+
+    // Verifikasi session
+    Session.verify();
+
+    // Cek login status
+    if (Session.isLoggedIn()) {
+        const user = Session.getUser();
+        const nik = Session.getNik();
+        const nama = Session.getNama() || user?.nama || user?.name || "User";
+        const dept = Session.getDept() || user?.departemen || user?.department || "";
+
+        console.log("✅ [MobileUI] User ditemukan:", { nama, dept, nik });
+
+        if (userName) {
+            userName.textContent = `Halo ${nama} 👋`;
+        }
+        if (userDept) {
+            userDept.textContent = dept || nik || "Building Care";
+        }
+        if (userAvatar) {
+            userAvatar.textContent = nama.charAt(0).toUpperCase() || "👤";
+        }
+        
+        // Sembunyikan loading jika ada
+        const loading = document.getElementById('loading');
+        if (loading) loading.style.display = 'none';
+        
+    } else {
+        console.warn(`⚠️ [MobileUI] User tidak login (attempt ${retryCount + 1})`);
+        
+        if (retryCount < 3) {
+            // Retry dengan delay
+            console.log(`🔄 [MobileUI] Retry load user data in 500ms...`);
+            setTimeout(() => loadUserData(retryCount + 1), 500);
+        } else {
+            // Redirect ke login setelah 3 kali gagal
+            console.error("❌ [MobileUI] Gagal load user data setelah 3 attempt, redirect ke login");
+            window.location.href = 'login.html';
+        }
+    }
+}
+
+// Jalankan saat DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Tunggu sebentar agar auth.js selesai inisialisasi
+    setTimeout(() => {
+        loadUserData();
+    }, 300);
+});
+
+// ======================================================
+// END OF USER DATA LOADER
+// ======================================================
+// ======================================================
 // Building Care System Enterprise v11.0
 // mobile-ui.js
 // Enterprise Mobile UI Engine - Facade Layer

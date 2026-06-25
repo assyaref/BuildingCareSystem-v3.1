@@ -9,11 +9,23 @@
 
 BCS.Modules.register("history", (() => {
 
-    // CONSTANTS & CONFIGURATIONS
+    // 4. CENTRALIZED CONSTANTS ENGINE (Anti-Magic String & Object Freeze)
     const TAG = "HistoryModule";
     const SELECTOR_ACTIVE_CLASS = "active";
+    
+    const STATUS = Object.freeze({
+        OPEN: "OPEN",
+        PROGRESS: "PROGRESS",
+        DONE: "DONE"
+    });
 
-    // 1. STATE ENGINE ENTERPRISE
+    const PRIORITY = Object.freeze({
+        TINGGI: "TINGGI",
+        NORMAL: "NORMAL",
+        RENDAH: "RENDAH"
+    });
+
+    // STATE ENGINE ENTERPRISE
     const state = {
         reports: [],
         filtered: [],
@@ -35,13 +47,13 @@ BCS.Modules.register("history", (() => {
         }
     };
 
-    // 2. CENTRALIZED DOM CACHE ENGINE
+    // DOM CACHE CONTAINER
     let DOM = {};
     function initDOMCache() {
         DOM = {
             // Container & Wrappers
-            tableBody: $("#historyTableBody"), // Sisi Desktop
-            mobileContainer: $("#historyMobileContainer"), // Sisi Mobile Card
+            tableBody: $("#historyTableBody"),
+            mobileContainer: $("#historyMobileContainer"),
             emptyState: $("#historyEmptyState"),
             paginationContainer: $("#historyPagination"),
             
@@ -79,7 +91,7 @@ BCS.Modules.register("history", (() => {
         BCS.Logger.debug(TAG, "Memulai inisialisasi modul history.");
         initDOMCache();
         
-        // 9. Event Bus Listener Subscriber (Realtime Sync tanpa reload)
+        // Event Bus Listener Subscriber
         BCS.Events.on("report:created", handleReportCreated);
         
         bindEvents();
@@ -93,10 +105,10 @@ BCS.Modules.register("history", (() => {
     function bindEvents() {
         BCS.Logger.trace(TAG, "Melakukan binding event listener filters.");
 
-        // 12. Search Trigger
+        // Search Trigger
         DOM.searchField.on("input", function () {
             state.search = $(this).val().toLowerCase();
-            state.pagination.page = 1; // Reset ke halaman pertama
+            state.pagination.page = 1;
             executeProcessingPipeline();
         });
 
@@ -107,13 +119,26 @@ BCS.Modules.register("history", (() => {
             executeProcessingPipeline();
         });
 
-        // 13. Sort Sorting Order Trigger
+        // Sort Sorting Order Trigger
         DOM.sortTrigger.on("click", function () {
             state.sort = state.sort === "desc" ? "asc" : "desc";
             executeProcessingPipeline();
         });
 
-        // Modal Action Trigger (Delegation untuk performa tinggi)
+        // 1. HIGH-PERFORMANCE EVENT DELEGATION (CSP-Ready Security compliance)
+        DOM.paginationContainer.on("click", ".page-link-nav", function (e) {
+            e.preventDefault();
+            const action = $(this).data("action");
+            const pageNum = $(this).data("page");
+
+            if (pageNum !== undefined) {
+                Pagination.goPage(pageNum);
+            } else if (action && typeof Pagination[action] === "function") {
+                Pagination[action]();
+            }
+        });
+
+        // Modal Action Trigger via Document Delegation
         $(document).on("click", ".btn-show-photo", function () { openPhotoModal($(this).data("src")); });
         $(document).on("click", ".btn-show-detail", function () { openDetailModal($(this).data("id")); });
         $(document).on("click", ".btn-show-update", function () { openUpdateModal($(this).data("id")); });
@@ -121,7 +146,7 @@ BCS.Modules.register("history", (() => {
         DOM.btnSaveUpdate.on("click", saveUpdate);
     }
 
-    // 9. Realtime Event Bus Callback Handler
+    // Realtime Event Bus Callback Handler
     async function handleReportCreated(eventData) {
         BCS.Logger.info(TAG, "Event 'report:created' terdeteksi, merefresh data saji.", eventData);
         await loadReports();
@@ -133,12 +158,13 @@ BCS.Modules.register("history", (() => {
     async function loadReports() {
         if (state.ui.loading) return;
         
-        // 5. Unified Loading Counter Guard
         state.ui.loading = true;
         BCS.App.Loading.show();
+        
+        // 5. PERFORMANCE BENCHMARK LOGGER START
+        const startTime = performance.now();
 
         try {
-            // 4. Encapsulated Action API Call
             const response = await BCS.Api.history();
 
             if (!response || !response.success) {
@@ -147,6 +173,11 @@ BCS.Modules.register("history", (() => {
             }
 
             state.reports = response.data?.reports || [];
+            
+            // 5. PERFORMANCE BENCHMARK LOGGER END
+            const elapsedTime = (performance.now() - startTime).toFixed(2);
+            BCS.Logger.performance(TAG, `Data riwayat berhasil dimuat dari API.`, `${elapsedTime}ms`);
+
             executeProcessingPipeline();
 
         } catch (err) {
@@ -158,7 +189,7 @@ BCS.Modules.register("history", (() => {
     }
 
     // ==========================================
-    // FILTER EXECUTION ENGINE
+    // FILTER & SORT ENGINE
     // ==========================================
     function applyFilter() {
         state.filtered = state.reports.filter(report => {
@@ -171,13 +202,8 @@ BCS.Modules.register("history", (() => {
 
             return matchSearch && matchStatus;
         });
-        
-        BCS.Logger.debug(TAG, `Filter diterapkan. Hasil: ${state.filtered.length} entri.`);
     }
 
-    // ==========================================
-    // 13. SORT EXECUTION ENGINE
-    // ==========================================
     function applySort() {
         state.filtered.sort((a, b) => {
             const dateA = new Date(a.tanggal || a.timestamp);
@@ -186,16 +212,15 @@ BCS.Modules.register("history", (() => {
         });
     }
 
-    // Processing Central Pipeline Sync
     function executeProcessingPipeline() {
         applyFilter();
         applySort();
-        buildSummary(); // 11. Hitung statistika summary data
+        buildSummary(); 
         render();
     }
 
     // ==========================================
-    // 14. PAGINATION CONTROLLER ENGINE
+    // PAGINATION CONTROLLER ENGINE
     // ==========================================
     const Pagination = {
         getPaginatedData() {
@@ -241,17 +266,30 @@ BCS.Modules.register("history", (() => {
     };
 
     // ==========================================
-    // 11. SUMMARY CALCULATOR BUILDER
+    // 3. OPTIMIZED SUMMARY BUILDER (Single-Loop Algorithm O(N))
     // ==========================================
     function buildSummary() {
-        state.summary.total = state.reports.length;
-        state.summary.open = state.reports.filter(r => r.status === "OPEN").length;
-        state.summary.progress = state.reports.filter(r => r.status === "PROGRESS").length;
-        state.summary.done = state.reports.filter(r => r.status === "DONE").length;
+        let total = state.reports.length;
+        let open = 0;
+        let progress = 0;
+        let done = 0;
+
+        // Eksekusi iterasi tunggal linear berskala besar untuk menghindari multi-filtering array
+        for (let i = 0; i < total; i++) {
+            const currentStatus = state.reports[i].status;
+            if (currentStatus === STATUS.OPEN) open++;
+            else if (currentStatus === STATUS.PROGRESS) progress++;
+            else if (currentStatus === STATUS.DONE) done++;
+        }
+
+        state.summary.total = total;
+        state.summary.open = open;
+        state.summary.progress = progress;
+        state.summary.done = done;
     }
 
     // ==========================================
-    // 10. PIPELINE STRUCTURED RENDER LAYER
+    // PIPELINE UNIFIED RENDER LAYER
     // ==========================================
     function render() {
         renderSummary();
@@ -262,8 +300,8 @@ BCS.Modules.register("history", (() => {
         }
 
         DOM.emptyState.addClass("d-none");
-        renderTable();       // Render View Desktop
-        renderMobileCards(); // Render View Mobile Card Adaptive View
+        renderTable();       
+        renderMobileCards(); 
         renderPagination();
     }
 
@@ -274,7 +312,6 @@ BCS.Modules.register("history", (() => {
         DOM.cardDone.text(state.summary.done);
     }
 
-    // Render Mode Desktop (Table HTML View)
     function renderTable() {
         const paginatedData = Pagination.getPaginatedData();
         let html = "";
@@ -291,9 +328,9 @@ BCS.Modules.register("history", (() => {
                     <td>${formatDate(report.tanggal || report.timestamp)}</td>
                     <td>
                         <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-primary btn-show-detail" data-id="${report.id}"><i class="bi bi-eye"></i></button>
-                            ${report.photo ? `<button class="btn btn-outline-secondary btn-show-photo" data-src="${report.photo}"><i class="bi bi-image"></i></button>` : ""}
-                            <button class="btn btn-outline-warning btn-show-update" data-id="${report.id}"><i class="bi bi-pencil-square"></i></button>
+                            <button class="btn btn-outline-primary btn-show-detail" data-id="${escapeHtml(report.id)}"><i class="bi bi-eye"></i></button>
+                            ${report.photo ? `<button class="btn btn-outline-secondary btn-show-photo" data-src="${escapeHtml(report.photo)}"><i class="bi bi-image"></i></button>` : ""}
+                            <button class="btn btn-outline-warning btn-show-update" data-id="${escapeHtml(report.id)}"><i class="bi bi-pencil-square"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -303,7 +340,6 @@ BCS.Modules.register("history", (() => {
         DOM.tableBody.html(html);
     }
 
-    // Target UI Mobile Adaptive View Implementation
     function renderMobileCards() {
         const paginatedData = Pagination.getPaginatedData();
         let html = "";
@@ -321,8 +357,8 @@ BCS.Modules.register("history", (() => {
                         <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                             <div>${formatPriority(report.prioritas)}</div>
                             <div class="btn-group btn-group-sm">
-                                <button class="btn btn-light text-primary btn-show-detail" data-id="${report.id}"><i class="bi bi-info-circle"></i> Detail</button>
-                                <button class="btn btn-light text-warning btn-show-update" data-id="${report.id}"><i class="bi bi-gear"></i> Status</button>
+                                <button class="btn btn-light text-primary btn-show-detail" data-id="${escapeHtml(report.id)}"><i class="bi bi-info-circle"></i> Detail</button>
+                                <button class="btn btn-light text-warning btn-show-update" data-id="${escapeHtml(report.id)}"><i class="bi bi-gear"></i> Status</button>
                             </div>
                         </div>
                     </div>
@@ -333,26 +369,27 @@ BCS.Modules.register("history", (() => {
         DOM.mobileContainer.html(html);
     }
 
+    // 1. DATA-ATTRIBUTE SPECIFIC PAGISTRATION (Inline Onclick Removal)
     function renderPagination() {
         const totalPages = Pagination.getTotalPages();
         let html = "";
 
         // First & Prev Buttons
-        html += `<li class="page-item ${state.pagination.page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="BCS.Modules.get('history').Pagination.first()"><i class="bi bi-chevron-double-left"></i></a></li>`;
-        html += `<li class="page-item ${state.pagination.page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="BCS.Modules.get('history').Pagination.prev()"><i class="bi bi-chevron-left"></i></a></li>`;
+        html += `<li class="page-item ${state.pagination.page === 1 ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-action="first"><i class="bi bi-chevron-double-left"></i></a></li>`;
+        html += `<li class="page-item ${state.pagination.page === 1 ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-action="prev"><i class="bi bi-chevron-left"></i></a></li>`;
 
         // Page Numbers Loop
         for (let i = 1; i <= totalPages; i++) {
             if (i === 1 || i === totalPages || (i >= state.pagination.page - 1 && i <= state.pagination.page + 1)) {
-                html += `<li class="page-item ${state.pagination.page === i ? 'active' : ''}"><a class="page-link" href="#" onclick="BCS.Modules.get('history').Pagination.goPage(${i})">${i}</a></li>`;
+                html += `<li class="page-item ${state.pagination.page === i ? 'active' : ''}"><a class="page-link page-link-nav" href="#" data-page="${i}">${i}</a></li>`;
             } else if (i === state.pagination.page - 2 || i === state.pagination.page + 2) {
                 html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
             }
         }
 
         // Next & Last Buttons
-        html += `<li class="page-item ${state.pagination.page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="BCS.Modules.get('history').Pagination.goPage(${state.pagination.page + 1})"><i class="bi bi-chevron-right"></i></a></li>`;
-        html += `<li class="page-item ${state.pagination.page === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="BCS.Modules.get('history').Pagination.last()"><i class="bi bi-chevron-double-right"></i></a></li>`;
+        html += `<li class="page-item ${state.pagination.page === totalPages ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-page="${state.pagination.page + 1}"><i class="bi bi-chevron-right"></i></a></li>`;
+        html += `<li class="page-item ${state.pagination.page === totalPages ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-action="last"><i class="bi bi-chevron-double-right"></i></a></li>`;
 
         DOM.paginationContainer.html(html);
     }
@@ -365,7 +402,7 @@ BCS.Modules.register("history", (() => {
     }
 
     // ==========================================
-    // MODAL WINDOW HANDLING & ACTION ENGINE
+    // MODAL WINDOW HANDLING & 6. PROVIDER API MATCH
     // ==========================================
     function openPhotoModal(src) {
         DOM.photoImg.attr("src", src);
@@ -376,9 +413,10 @@ BCS.Modules.register("history", (() => {
         const report = state.reports.find(r => r.id == id);
         if (!report) return;
 
+        // 2. STALWART INJECTION ESCAPING COMPLIANCE ON ALL SERVED DYNAMIC TEXT FIELDS
         let detailHtml = `
             <table class="table table-sm table-striped small">
-                <tr><th>ID Report</th><td>#${report.id}</td></tr>
+                <tr><th>ID Report</th><td>#${escapeHtml(report.id)}</td></tr>
                 <tr><th>Status</th><td>${formatBadge(report.status)}</td></tr>
                 <tr><th>Lokasi</th><td><strong>${escapeHtml(report.lokasi)}</strong></td></tr>
                 <tr><th>Kategori</th><td>${escapeHtml(report.kategori)}</td></tr>
@@ -397,7 +435,7 @@ BCS.Modules.register("history", (() => {
         if (!report) return;
 
         DOM.updateId.val(report.id || "");
-        DOM.updateStatus.val(report.status || "OPEN");
+        DOM.updateStatus.val(report.status || STATUS.OPEN);
         DOM.updateTeknisi.val(report.teknisi || "");
         DOM.updateCatatan.val(report.catatanTeknisi || "");
 
@@ -414,7 +452,6 @@ BCS.Modules.register("history", (() => {
                 catatan: DOM.updateCatatan.val()
             };
 
-            // 4. API Explicit Adapter Mapping Update Call
             const response = await BCS.Api.reportUpdate(payload);
 
             if (!response.success) {
@@ -424,9 +461,13 @@ BCS.Modules.register("history", (() => {
 
             BCS.App.Toast.success("Status berhasil diperbarui");
             
-            // Tutup Modal via Native CSS/Bootstrap Integration
-            const updateModalEl = document.getElementById("updateModal");
-            if (updateModalEl) bootstrap.Modal.getInstance(updateModalEl)?.hide();
+            // 6. Unified Modal Architecture Provider close execution call
+            if (typeof BCS.App.Modal.close === "function") {
+                BCS.App.Modal.close("updateModal");
+            } else {
+                const updateModalEl = document.getElementById("updateModal");
+                if (updateModalEl) bootstrap.Modal.getInstance(updateModalEl)?.hide();
+            }
 
             await loadReports();
 
@@ -440,9 +481,9 @@ BCS.Modules.register("history", (() => {
     // ==========================================
     function formatBadge(status) {
         const config = {
-            OPEN: { bg: "bg-light-primary text-primary", label: "🔵 OPEN" },
-            PROGRESS: { bg: "bg-light-warning text-warning", label: "🟡 PROGRESS" },
-            DONE: { bg: "bg-light-success text-success", label: "🟢 DONE" }
+            [STATUS.OPEN]: { bg: "bg-light-primary text-primary", label: "🔵 OPEN" },
+            [STATUS.PROGRESS]: { bg: "bg-light-warning text-warning", label: "🟡 PROGRESS" },
+            [STATUS.DONE]: { bg: "bg-light-success text-success", label: "🟢 DONE" }
         };
         const current = config[status] || { bg: "bg-secondary text-white", label: status };
         return `<span class="badge ${current.bg} border-0 px-2.5 py-1">${current.label}</span>`;
@@ -450,11 +491,11 @@ BCS.Modules.register("history", (() => {
 
     function formatPriority(priority) {
         const badges = {
-            TINGGI: '<span class="badge bg-danger">TINGGI</span>',
-            NORMAL: '<span class="badge bg-info">NORMAL</span>',
-            RENDAH: '<span class="badge bg-secondary">RENDAH</span>'
+            [PRIORITY.TINGGI]: '<span class="badge bg-danger">TINGGI</span>',
+            [PRIORITY.NORMAL]: '<span class="badge bg-info">NORMAL</span>',
+            [PRIORITY.RENDAH]: '<span class="badge bg-secondary">RENDAH</span>'
         };
-        return badges[priority] || `<span class="badge bg-light">${priority}</span>`;
+        return badges[priority] || `<span class="badge bg-light">${escapeHtml(priority)}</span>`;
     }
 
     function formatDate(dateStr) {
@@ -475,9 +516,15 @@ BCS.Modules.register("history", (() => {
         return `${diffDays} hari lalu`;
     }
 
+    // 2. SECURITY ENHANCED SECURE ESCAPER FOR SERVER DATA
     function escapeHtml(str) {
         if (!str) return "";
-        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     // ==========================================
@@ -490,6 +537,7 @@ BCS.Modules.register("history", (() => {
         DOM.statusFilter.off("change");
         DOM.sortTrigger.off("click");
         DOM.btnSaveUpdate.off("click");
+        DOM.paginationContainer.off("click", ".page-link-nav");
         $(document).off("click", ".btn-show-photo");
         $(document).off("click", ".btn-show-detail");
         $(document).off("click", ".btn-show-update");
@@ -497,17 +545,20 @@ BCS.Modules.register("history", (() => {
         // Unsubscribe Event Bus
         BCS.Events.off("report:created", handleReportCreated);
 
+        // 6. Close All Open Active Modals via Unified Provider interface if available
+        if (typeof BCS.App.Modal.closeAll === "function") {
+            BCS.App.Modal.closeAll();
+        }
+
         // Nullify Cache Containers
         DOM = {};
         state.reports = [];
         state.filtered = [];
     }
 
-    // Publikasi Antarmuka Internal Modul
     return {
         init,
-        destroy,
-        Pagination // Mengekspos objek Pagination agar onclick HTML dapat menjangkau scope
+        destroy
     };
 
 })());

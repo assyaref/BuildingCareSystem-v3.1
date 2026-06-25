@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Building Care System Enterprise</title>
     
     <link rel="manifest" href="assets/pwa/manifest.json">
@@ -59,6 +59,15 @@
             font-size: 14px;
             color: #6c757d;
         }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 
     <script src="assets/js/core/bootstrap.js" defer></script> 
@@ -67,7 +76,6 @@
         document.addEventListener("DOMContentLoaded", async () => {
             try {
                 if (typeof BCS !== 'undefined' && typeof BCS.bootstrap === 'function') {
-                    // Seluruh logika SW, Offline, Session, & Redirect dihandle di sini
                     await BCS.bootstrap();
                 } else {
                     throw new Error("BCS Core atau Bootstrap Engine gagal dimuat.");
@@ -75,7 +83,6 @@
             } catch (err) {
                 console.error("[BCS-Bootstrap-Fatal-Error]", err);
                 
-                // 7. Penanganan Bootstrap Error Interaktif (Bukan Redirect Berulang)
                 document.body.innerHTML = `
                     <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #F5F7FA;">
                         <div style="padding: 40px; text-align: center; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); max-width: 400px; width: 90%;">
@@ -100,7 +107,7 @@
         </div>
     </noscript>
 
-    <div id="app-loader">
+    <div id="app-loader" role="status" aria-live="polite">
         <div class="loader"></div>
         <h2>Building Care System</h2>
         <small>Initializing Enterprise Platform...</small>

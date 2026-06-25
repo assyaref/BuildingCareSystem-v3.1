@@ -71,15 +71,18 @@ const NotificationModule = (() => {
                 autoRefresh: null,
                 eventUnsubscribers: []
             },
+            // Penyempurnaan 6: Menambahkan pushCount, markReadCount, clearCount ke Metrics
             metrics: {
                 syncCount: 0,
                 renderTime: 0,
-                apiTime: 0
+                apiTime: 0,
+                pushCount: 0,
+                markReadCount: 0,
+                clearCount: 0
             }
         };
     }
 
-    // Saran 10: Optimasi Store Registration agar lebih elegan
     let state;
     if (BCS.Store && typeof BCS.Store.register === "function") {
         state = BCS.Store.register("notification", createInitialState());
@@ -109,7 +112,7 @@ const NotificationModule = (() => {
     };
 
     // =====================================================
-    // SARAN 6: MISSING HELPERS
+    // HELPERS & UTILITIES
     // =====================================================
     const Helpers = {
         escape(str) {
@@ -124,6 +127,11 @@ const NotificationModule = (() => {
                     default: return m;
                 }
             });
+        },
+
+        // Penyempurnaan 2: Ditambahkan helper timestamp() untuk keseragaman project
+        timestamp() {
+            return new Date().toISOString();
         },
 
         formatDate(dateObj) {
@@ -149,7 +157,43 @@ const NotificationModule = (() => {
     };
 
     // =====================================================
-    // SARAN 1: NOTIFICATION PIPELINE (RENDERER)
+    // PENYEMPURNAAN 1: UI COMPONENTS (NotificationCard)
+    // =====================================================
+    const NotificationCard = {
+        render(item) {
+            return `
+                <div class="notification-item ${item.status === STATUS.UNREAD ? 'unread' : ''}" data-id="${item.id}">
+                    <div class="noti-badge-type type-${item.type.toLowerCase()}"></div>
+                    <div class="noti-content">
+                        <div class="noti-title">${Helpers.escape(item.title)}</div>
+                        ${item.message ? `<div class="noti-message">${Helpers.escape(item.message)}</div>` : ''}
+                        <div class="noti-time">${Helpers.relativeTime(item.createdAt)}</div>
+                    </div>
+                </div>
+            `;
+        }
+    };
+
+    // =====================================================
+    // PENYEMPURNAAN 7: UI COMPONENTS (NotificationDrawer)
+    // =====================================================
+    const NotificationDrawer = {
+        open() {
+            state.ui.drawer = true;
+            DOM.drawer.addClass("active").show();
+            DOM.overlay.fadeIn(200);
+            Logger.info("Notification Drawer Opened");
+        },
+        close() {
+            state.ui.drawer = false;
+            DOM.drawer.removeClass("active").hide();
+            DOM.overlay.fadeOut(200);
+            Logger.info("Notification Drawer Closed");
+        }
+    };
+
+    // =====================================================
+    // NOTIFICATION PIPELINE (RENDERER)
     // =====================================================
     const NotificationPipeline = {
         render() {
@@ -164,28 +208,30 @@ const NotificationModule = (() => {
                 DOM.empty.hide();
                 DOM.list.show();
                 
-                // Update Badge
                 if (state.unread > 0) {
                     DOM.badge.show().text(state.unread > 99 ? "99+" : state.unread);
                 } else {
                     DOM.badge.hide();
                 }
 
-                // Render List Loop (Placeholder untuk Phase 3 UI)
-                let html = "";
+                // Penyempurnaan 5: Filter pencarian diperluas ke title, message, type, dan role
                 const filtered = state.notifications.filter(n => {
                     const matchType = state.filters.type === "ALL" || n.type === state.filters.type;
-                    const matchKey = !state.filters.keyword || n.title.toLowerCase().includes(state.filters.keyword.toLowerCase());
+                    
+                    const searchKey = state.filters.keyword.toLowerCase();
+                    const matchKey = !searchKey || 
+                        (n.title && n.title.toLowerCase().includes(searchKey)) ||
+                        (n.message && n.message.toLowerCase().includes(searchKey)) ||
+                        (n.type && n.type.toLowerCase().includes(searchKey)) ||
+                        (n.role && n.role.toLowerCase().includes(searchKey));
+
                     return matchType && matchKey;
                 });
 
+                // Penyempurnaan 1: pipeline memanggil NotificationCard.render()
+                let html = "";
                 filtered.forEach(item => {
-                    html += `
-                        <div class="notification-item ${item.status === STATUS.UNREAD ? 'unread' : ''}" data-id="${item.id}">
-                            <div class="noti-title">${Helpers.escape(item.title)}</div>
-                            <div class="noti-time">${Helpers.relativeTime(item.createdAt)}</div>
-                        </div>
-                    `;
+                    html += NotificationCard.render(item);
                 });
                 DOM.list.html(html);
             }
@@ -203,6 +249,7 @@ const NotificationModule = (() => {
             if (state.notifications.length > CONFIG.MAX_ITEMS) {
                 state.notifications.pop();
             }
+            state.metrics.pushCount++; // Penyempurnaan 6
             this.recalculateUnread();
             NotificationPipeline.render();
         },
@@ -213,11 +260,11 @@ const NotificationModule = (() => {
             NotificationPipeline.render();
         },
 
-        // Saran 3: Local state management untuk markRead
         markRead(id) {
             const item = state.notifications.find(n => n.id === id);
             if (item && item.status !== STATUS.READ) {
                 item.status = STATUS.READ;
+                state.metrics.markReadCount++; // Penyempurnaan 6
                 this.recalculateUnread();
                 NotificationPipeline.render();
             }
@@ -229,7 +276,7 @@ const NotificationModule = (() => {
     };
 
     // =====================================================
-    // SERVICE (API & CORE DATA FETCH)
+    // SERVICE (API INTEGRATION)
     // =====================================================
     const NotificationService = {
         async load(forceNoCache = false) {
@@ -238,15 +285,20 @@ const NotificationModule = (() => {
             const start = performance.now();
 
             try {
-                // Mock API / Integrasi API asli BCS
-                // const res = await BCS.Api.getNotifications({ force: forceNoCache });
-                // state.notifications = res.data;
-                // this.recalculateUnread();
+                // Penyempurnaan 4: Menggunakan kontrak API final BCS.Api.notification()
+                if (BCS.Api && typeof BCS.Api.notification === "function") {
+                    const res = await BCS.Api.notification({ force: forceNoCache });
+                    if (res && res.success) {
+                        state.notifications = res.data || [];
+                        NotificationEngine.recalculateUnread();
+                    }
+                }
                 
-                state.lastSync = new Date(); // Update sync timestamp
+                state.lastSync = Helpers.timestamp();
+                state.metrics.syncCount++;
                 NotificationPipeline.render();
             } catch (err) {
-                Logger.error("Failed to load notifications", err);
+                Logger.error("Failed to load notifications via BCS.Api.notification", err);
             } finally {
                 state.ui.loading = false;
                 DOM.loading.hide();
@@ -254,17 +306,14 @@ const NotificationModule = (() => {
             }
         },
 
-        // Saran 3: Sinkronisasi markRead local & server
         async markRead(id) {
             try {
-                // Pastikan BCS.Api tersedia sebelum dipanggil
                 if (BCS.Api?.markRead) {
                     const res = await BCS.Api.markRead(id);
                     if (res && res.success) {
                         NotificationEngine.markRead(id);
                     }
                 } else {
-                    // Fallback jika API belum siap
                     NotificationEngine.markRead(id);
                 }
             } catch (err) {
@@ -272,13 +321,15 @@ const NotificationModule = (() => {
             }
         },
 
-        // Saran 4: Update lastSync saat clearAll
         async clearAll() {
             try {
-                // await BCS.Api.clearAll();
+                if (BCS.Api?.clearAll) {
+                    await BCS.Api.clearAll();
+                }
                 state.notifications = [];
                 state.unread = 0;
-                state.lastSync = new Date(); // Saran 4
+                state.lastSync = Helpers.timestamp();
+                state.metrics.clearCount++; // Penyempurnaan 6
                 NotificationPipeline.render();
             } catch (err) {
                 Logger.error("Failed to clear notifications", err);
@@ -287,40 +338,42 @@ const NotificationModule = (() => {
     };
 
     // =====================================================
-    // SARAN 5, 7, & 8: EVENTS & AUTO SYNC MANAGEMENT
+    // EVENTS & AUTO SYNC MANAGEMENT
     // =====================================================
     
-    // Saran 5: Helper untuk mempermudah subscribe event
+    // Penyempurnaan 3: Penyeragaman menggunakan global event bus BCS.Events.on()
     function subscribe(event, title, type) {
-        if (BCS.Event && typeof BCS.Event.subscribe === "function") {
-            const unsub = BCS.Event.subscribe(event, (data) => {
-                Logger.info(`Event Triggered: ${event}`);
+        if (BCS.Events && typeof BCS.Events.on === "function") {
+            BCS.Events.on(event, (data) => {
+                Logger.info(`Event Triggered via BCS.Events: ${event}`);
                 NotificationEngine.push({
                     id: data?.id || Date.now(),
-                    title: data?.message || title,
-                    type: type,
+                    title: data?.title || title,
+                    message: data?.message || "",
+                    type: data?.type || type,
+                    role: data?.role || "ALL",
                     status: STATUS.UNREAD,
-                    createdAt: new Date()
+                    createdAt: Helpers.timestamp() // Penyempurnaan 2
                 });
             });
-            state.ui.eventUnsubscribers.push(unsub);
+
+            // Menyimpan referensi fungsi pembatalan jika architecture core mendukung unsubscriber token/name
+            state.ui.eventUnsubscribers.push({ event: event });
         }
     }
 
     function registerEvents() {
-        // Saran 7: Tambahan bind/subscribe untuk system error & warning
         subscribe("user:login", "User Logged In", TYPE.SYSTEM);
         subscribe("system:error", "System Error Detected", TYPE.ERROR);
         subscribe("system:warning", "System Warning Issued", TYPE.WARNING);
         subscribe("workorder:new", "New Work Order assigned", TYPE.WORKORDER);
 
-        // Saran 8: Handling visibilitychange agar hemat request
         $(document).on("visibilitychange.notification", () => {
             if (document.hidden) {
                 stopAutoSync();
             } else {
                 Logger.info("Tab active, syncing notifications once...");
-                NotificationService.load(false); // Sync sekali saat tab dibuka kembali
+                NotificationService.load(false);
                 startAutoSync();
             }
         });
@@ -329,7 +382,6 @@ const NotificationModule = (() => {
     function startAutoSync() {
         if (state.ui.autoRefresh) return;
         state.ui.autoRefresh = setInterval(() => {
-            // Saran 8: Proteksi ekstra jika running background tapi interval lolos
             if (!document.hidden) {
                 Logger.info("Auto syncing notifications...");
                 NotificationService.load(false);
@@ -344,24 +396,19 @@ const NotificationModule = (() => {
         }
     }
 
-    // =====================================================
-    // SARAN 2: MEMORY CLEANUP (DESTROY)
-    // =====================================================
     function destroy() {
         Logger.info("Destroying Notification Module...");
-        
-        // 1. Stop auto sync
         stopAutoSync();
 
-        // 2. Clear event unsubscribers
-        state.ui.eventUnsubscribers.forEach(fn => {
-            if (typeof fn === "function") fn();
-        });
+        // Penyempurnaan 3: Handler pembersihan event off jika bus core menyediakannya
+        if (BCS.Events && typeof BCS.Events.off === "function") {
+            state.ui.eventUnsubscribers.forEach(sub => {
+                BCS.Events.off(sub.event);
+            });
+        }
         state.ui.eventUnsubscribers = [];
 
-        // 3. Unbind DOM events namespace
         $(document).off(".notification");
-        
         state.ui.initialized = false;
     }
 
@@ -369,14 +416,28 @@ const NotificationModule = (() => {
     // INTERACTION / DOM EVENTS
     // =====================================================
     function bindUIEvents() {
+        // Penyempurnaan 7: Menggunakan NotificationDrawer component API
         DOM.bell.on("click.notification", () => {
-            state.ui.drawer = !state.ui.drawer;
-            DOM.drawer.toggle(state.ui.drawer);
+            if (state.ui.drawer) {
+                NotificationDrawer.close();
+            } else {
+                NotificationDrawer.open();
+            }
         });
 
         DOM.btnClose.on("click.notification", () => {
-            state.ui.drawer = false;
-            DOM.drawer.hide();
+            NotificationDrawer.close();
+        });
+
+        // Event handler pencarian dan filter untuk pipeline data yang diperluas
+        DOM.search.on("input.notification", function() {
+            state.filters.keyword = $(this).val();
+            NotificationPipeline.render();
+        });
+
+        DOM.filter.on("change.notification", function() {
+            state.filters.type = $(this).val();
+            NotificationPipeline.render();
         });
 
         DOM.list.on("click.notification", ".notification-item", function() {
@@ -401,13 +462,12 @@ const NotificationModule = (() => {
             bindUIEvents();
             registerEvents();
             
-            // Saran 9: Load dengan forceNoCache = true saat inisialisasi pertama
             await NotificationService.load(true);
             
             startAutoSync();
             state.ui.initialized = true;
         },
-        destroy: destroy // Saran 2 Export
+        destroy: destroy
     };
 
 })();

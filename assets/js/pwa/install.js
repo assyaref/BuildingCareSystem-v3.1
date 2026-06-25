@@ -1,70 +1,121 @@
 // ==========================================
-// BCS INTEGRATION & LOGGER
+// INSTALL.JS - Client Side (Browser Window)
 // ==========================================
-const Logger = {
-    info(...args) {
-        BCS.Logger?.info?.("PWA", ...args);
-    },
-    warn(...args) {
-        BCS.Logger?.warn?.("PWA", ...args);
-    },
-    error(...args) {
-        BCS.Logger?.error?.("PWA", ...args);
+
+// File ini berjalan di MAIN THREAD (browser window)
+// BUKAN di Service Worker!
+
+let deferredPrompt = null;
+
+// 1. Tangkap event beforeinstallprompt (hanya di window)
+window.addEventListener("beforeinstallprompt", event => {
+    // Mencegah browser menampilkan prompt otomatis
+    event.preventDefault();
+    
+    // Simpan event untuk digunakan nanti
+    deferredPrompt = event;
+    
+    // Beri tahu aplikasi bahwa PWA siap diinstall
+    if (typeof BCS !== 'undefined' && BCS.Events) {
+        BCS.Events.emit("pwa:install-available");
+    }
+    
+    console.log("[PWA] Install prompt available");
+});
+
+// 2. Tangkap event appinstalled (hanya di window)
+window.addEventListener("appinstalled", event => {
+    // Reset deferred prompt
+    deferredPrompt = null;
+    
+    // Beri tahu aplikasi bahwa PWA sudah terinstall
+    if (typeof BCS !== 'undefined' && BCS.Events) {
+        BCS.Events.emit("pwa:installed");
+    }
+    
+    console.log("[PWA] App installed successfully");
+});
+
+// 3. Fungsi untuk memicu install (dipanggil dari UI)
+window.installPWA = async function() {
+    if (!deferredPrompt) {
+        console.warn("[PWA] No install prompt available");
+        return false;
+    }
+    
+    try {
+        // Tampilkan prompt install
+        const result = await deferredPrompt.prompt();
+        
+        // Tunggu hasil pilihan user
+        const outcome = result.outcome;
+        
+        if (outcome === 'accepted') {
+            console.log("[PWA] User accepted the install");
+            // Reset prompt
+            deferredPrompt = null;
+            return true;
+        } else {
+            console.log("[PWA] User dismissed the install");
+            return false;
+        }
+    } catch (error) {
+        console.error("[PWA] Install failed:", error);
+        return false;
     }
 };
 
-// ==========================================
-// INSTALLATION lifecycle
-// ==========================================
-
-self.addEventListener("install", event => {
-    Logger.info("Memulai proses instalasi Service Worker dan caching App Shell...");
-
-    event.waitUntil(
-        caches.open(STATIC_CACHE)
-            .then(cache => {
-                Logger.info("Static cache berhasil dibuka. Mengunduh aset...");
-                return cache.addAll(APP_SHELL);
-            })
-            .then(() => {
-                Logger.info("Semua aset App Shell berhasil disimpan ke cache.");
-            })
-            .catch(err => {
-                Logger.error("Gagal melakukan caching App Shell saat install:", err);
-            })
-    );
-
-    self.skipWaiting();
-});
-
-// ==========================================
-// ACTIVATION & EVENT EMISSION
-// ==========================================
-
-self.addEventListener("activate", event => {
-    Logger.info("Service Worker aktif. Mengambil alih kontrol halaman...");
-    
-    // Memastikan modul lain tahu bahwa PWA telah aktif dan siap (Installed)
-    if (typeof BCS !== 'undefined') {
-        BCS.Events?.emit("pwa:installed");
-        Logger.info("Event 'pwa:installed' berhasil di-emit ke BCS.");
-    }
-
-    event.waitUntil(self.clients.claim());
-});
-
-// ==========================================
-// WINDOW EVENT LISTENERS (Dijalankan di Context Main Thread)
-// ==========================================
-// Catatan: 'beforeinstallprompt' hanya berjalan di main thread (window), 
-// bukan di dalam environment Service Worker (self).
-if (typeof window !== 'undefined') {
-    window.addEventListener("beforeinstallprompt", event => {
-        Logger.info("Prompt instalasi PWA tersedia.");
+// 4. Bridge: Menerima pesan dari Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener("message", event => {
+        const { type, payload } = event.data || {};
         
-        if (typeof BCS !== 'undefined') {
-            BCS.Events?.emit("pwa:install-available");
-            Logger.info("Event 'pwa:install-available' berhasil di-emit ke BCS.");
+        switch(type) {
+            case "pwa:activated":
+                // Service Worker sudah aktif, beri tahu BCS
+                if (typeof BCS !== 'undefined' && BCS.Events) {
+                    BCS.Events.emit("pwa:activated", payload);
+                }
+                console.log("[PWA] Service Worker activated");
+                break;
+                
+            case "pwa:update-available":
+                if (typeof BCS !== 'undefined' && BCS.Events) {
+                    BCS.Events.emit("pwa:update-available", payload);
+                }
+                console.log("[PWA] Update available");
+                break;
+                
+            case "pwa:update-downloaded":
+                if (typeof BCS !== 'undefined' && BCS.Events) {
+                    BCS.Events.emit("pwa:update-downloaded", payload);
+                }
+                console.log("[PWA] Update downloaded");
+                break;
+                
+            default:
+                // Forward other messages
+                if (typeof BCS !== 'undefined' && BCS.Events) {
+                    BCS.Events.emit(`pwa:${type}`, payload);
+                }
         }
     });
 }
+
+// 5. Optional: Cek apakah sudah terinstall sebagai PWA
+if (window.matchMedia('(display-mode: standalone)').matches) {
+    console.log("[PWA] Running as standalone PWA");
+    if (typeof BCS !== 'undefined' && BCS.Events) {
+        BCS.Events.emit("pwa:standalone");
+    }
+}
+
+// 6. Optional: Detect when PWA is launched from homescreen
+if (window.navigator.standalone === true) {
+    console.log("[PWA] Running in iOS standalone mode");
+    if (typeof BCS !== 'undefined' && BCS.Events) {
+        BCS.Events.emit("pwa:ios-standalone");
+    }
+}
+
+console.log("[PWA] Install handler ready");

@@ -37,7 +37,7 @@ const Offline = (() => {
     // =====================================================
     const Logger = {
         info(...args) {
-            BCS.Logger?.info?.(TAG, ...args);
+            if (CONFIG.DEBUG) BCS.Logger?.info?.(TAG, ...args);
         },
         warn(...args) {
             BCS.Logger?.warn?.(TAG, ...args);
@@ -46,12 +46,12 @@ const Offline = (() => {
             BCS.Logger?.error?.(TAG, ...args);
         },
         performance(name, time) {
-            BCS.Logger?.performance?.(TAG, name, time);
+            if (CONFIG.DEBUG) BCS.Logger?.performance?.(TAG, name, time);
         }
     };
 
     // =====================================================
-    // SECTION 3 : INITIAL STATE
+    // SECTION 3 : STATE
     // =====================================================
     function createInitialState() {
         return {
@@ -59,7 +59,6 @@ const Offline = (() => {
             online: navigator.onLine,
             syncing: false,
             lastSync: null,
-            retry: 0,
             database: null,
             ui: {
                 initialized: false,
@@ -79,33 +78,16 @@ const Offline = (() => {
     }
 
     // =====================================================
-    // STORE REGISTRY
+    // SECTION 4 : STORE (Registry Connection)
     // =====================================================
     if (BCS.Store && typeof BCS.Store.register === "function") {
         BCS.Store.register("offline", createInitialState());
     } else {
-        if (!BCS.Store) {
-            BCS.Store = {};
-        }
+        if (!BCS.Store) BCS.Store = {};
         BCS.Store.offline = createInitialState();
     }
 
     const state = BCS.Store.offline;
-
-    // =====================================================
-    // SECTION 4 : QUEUE MODEL
-    // =====================================================
-    function createQueueItem(action, payload) {
-        return {
-            id: crypto.randomUUID(),
-            action,
-            payload,
-            status: STATUS.PENDING,
-            retry: 0,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-    }
 
     // =====================================================
     // SECTION 5 : HELPERS
@@ -121,27 +103,29 @@ const Offline = (() => {
             if (window.crypto?.randomUUID) {
                 return crypto.randomUUID();
             }
-            return "BCS-" + Date.now() + "-" + Math.random();
+            return "BCS-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
+        },
+        createQueueItem(action, payload) {
+            return {
+                id: this.uuid(),
+                action,
+                payload,
+                status: STATUS.PENDING,
+                retry: 0,
+                createdAt: this.timestamp(),
+                updatedAt: this.timestamp()
+            };
         }
     };
-
-    // Placeholder untuk mengamankan fungsi yang dipanggil di kode asli Anda
-    const RetryManager = {
-        schedule(item) {
-            Logger.warn("RetryManager.schedule belum diimplementasikan sepenuhnya.", item.id);
-        }
-    };
-
-    function Notification() {
-        // Placeholder fungsi notifikasi bawaan dari enqueue
-    }
 
     // =====================================================
-    // SECTION 6 : INDEXED DB ENGINE
+    // SECTION 6 : INDEXEDDB (Database Engine)
     // =====================================================
     const Database = {
         async open() {
             return new Promise((resolve, reject) => {
+                if (state.database) return resolve(state.database);
+
                 const request = indexedDB.open(CONFIG.DATABASE, CONFIG.VERSION);
 
                 request.onupgradeneeded = event => {
@@ -167,63 +151,44 @@ const Offline = (() => {
         }
     };
 
-    // =====================================================
-    // SECTION 7 : STORAGE ENGINE
-    // =====================================================
     const Storage = {
-        async add(item) {
+        async execute(mode, callback) {
+            await Database.open();
             return new Promise((resolve, reject) => {
-                const tx = state.database.transaction(CONFIG.STORE, "readwrite");
+                const tx = state.database.transaction(CONFIG.STORE, mode);
                 const store = tx.objectStore(CONFIG.STORE);
-                const request = store.add(item);
-                request.onsuccess = () => resolve(true);
-                request.onerror = e => reject(e);
+                const request = callback(store);
+
+                request.onsuccess = () => resolve(request.result !== undefined ? request.result : true);
+                request.onerror = e => reject(e.target.error);
             });
+        },
+        async add(item) {
+            return this.execute("readwrite", store => store.add(item));
         },
         async update(item) {
-            return new Promise((resolve, reject) => {
-                const tx = state.database.transaction(CONFIG.STORE, "readwrite");
-                const store = tx.objectStore(CONFIG.STORE);
-                const request = store.put(item);
-                request.onsuccess = () => resolve(true);
-                request.onerror = e => reject(e);
-            });
+            return this.execute("readwrite", store => store.put(item));
         },
         async remove(id) {
-            return new Promise((resolve, reject) => {
-                const tx = state.database.transaction(CONFIG.STORE, "readwrite");
-                const store = tx.objectStore(CONFIG.STORE);
-                const request = store.delete(id);
-                request.onsuccess = () => resolve(true);
-                request.onerror = e => reject(e);
-            });
+            return this.execute("readwrite", store => store.delete(id));
         },
         async clear() {
-            return new Promise((resolve, reject) => {
-                const tx = state.database.transaction(CONFIG.STORE, "readwrite");
-                const store = tx.objectStore(CONFIG.STORE);
-                const request = store.clear();
-                request.onsuccess = () => resolve(true);
-                request.onerror = e => reject(e);
-            });
+            return this.execute("readwrite", store => store.clear());
         },
         async getAll() {
-            return new Promise((resolve, reject) => {
-                const tx = state.database.transaction(CONFIG.STORE, "readonly");
-                const store = tx.objectStore(CONFIG.STORE);
-                const request = store.getAll();
-                request.onsuccess = () => resolve(request.result || []);
-                request.onerror = e => reject(e);
-            });
+            return this.execute("readonly", store => store.getAll());
         }
     };
 
     // =====================================================
-    // SECTION 8 : QUEUE ENGINE
+    // SECTION 7 : QUEUE
     // =====================================================
     const Queue = {
         async add(action, payload) {
-            const item = createQueueItem(action, payload);
+            if (state.queue.length >= CONFIG.MAX_QUEUE) {
+                throw new Error("Queue Full: Maximum limit reached.");
+            }
+            const item = Helpers.createQueueItem(action, payload);
             await Storage.add(item);
             state.queue.push(item);
             state.metrics.queueCount = state.queue.length;
@@ -233,6 +198,7 @@ const Offline = (() => {
         async load() {
             state.queue = await Storage.getAll();
             state.metrics.queueCount = state.queue.length;
+            Logger.info("Queue Loaded from Storage:", state.queue.length);
         },
         async remove(id) {
             await Storage.remove(id);
@@ -242,6 +208,8 @@ const Offline = (() => {
         async update(item) {
             item.updatedAt = Helpers.timestamp();
             await Storage.update(item);
+            const index = state.queue.findIndex(x => x.id === item.id);
+            if (index !== -1) state.queue[index] = item;
         },
         async clear() {
             await Storage.clear();
@@ -254,7 +222,26 @@ const Offline = (() => {
     };
 
     // =====================================================
-    // SECTION 9 : SYNC MANAGER
+    // SECTION 8 : RETRY (Retry Manager)
+    // =====================================================
+    const RetryManager = {
+        schedule(item) {
+            if (item.retry >= CONFIG.MAX_RETRY) {
+                Logger.error(`Item ${item.id} mencapai batas maksimum retry. Sync dihentikan.`);
+                return;
+            }
+            Logger.warn(`Scheduling retry untuk ${item.id} dalam ${CONFIG.RETRY_DELAY}ms (Attempt ${item.retry})`);
+            setTimeout(async () => {
+                if (Helpers.isOnline() && !state.syncing) {
+                    state.metrics.retryCount++;
+                    await SyncManager.process(item);
+                }
+            }, CONFIG.RETRY_DELAY);
+        }
+    };
+
+    // =====================================================
+    // SECTION 9 : SYNC (Sync Manager)
     // =====================================================
     const SyncManager = {
         async sync(force = false) {
@@ -275,6 +262,8 @@ const Offline = (() => {
                 }
 
                 Logger.info(`Sync ${items.length} item...`);
+                state.metrics.syncCount++;
+
                 for (const item of items) {
                     await this.process(item);
                 }
@@ -322,34 +311,63 @@ const Offline = (() => {
     };
 
     // =====================================================
-    // SECTION 13 : PUBLIC API EXPORT
+    // SECTION 10 : NETWORK (Listeners)
     // =====================================================
-    return {
-        async init() {
-            await Database.open();
-            await Queue.load();
-            Logger.info("Offline Engine Loaded & Initialized");
-            state.ui.initialized = true;
+    const Network = {
+        init() {
+            window.addEventListener("online", this.handleOnline);
+            window.addEventListener("offline", this.handleOffline);
         },
+        destroy() {
+            window.removeEventListener("online", this.handleOnline);
+            window.removeEventListener("offline", this.handleOffline);
+        },
+        handleOnline() {
+            state.online = true;
+            Logger.info("Aplikasi kembali Online. Memicu Auto-Sync...");
+            SyncManager.sync();
+        },
+        handleOffline() {
+            state.online = false;
+            Logger.warn("Aplikasi beralih ke Offline mode.");
+        }
+    };
+
+    // =====================================================
+    // SECTION 11 : METRICS
+    // =====================================================
+    const Metrics = {
+        get() {
+            return { ...state.metrics };
+        },
+        reset() {
+            Object.keys(state.metrics).forEach(key => state.metrics[key] = 0);
+            state.metrics.queueCount = state.queue.length;
+        }
+    };
+
+    // =====================================================
+    // SECTION 12 : API
+    // =====================================================
+    const OfflineAPI = {
         async enqueue(action, payload) {
             if (Helpers.isOnline()) {
                 try {
                     const res = await BCS.Api.post(action, payload);
-                    if (res?.success) {
-                        return res;
-                    }
+                    if (res?.success) return res;
                 } catch (err) {
-                    Logger.warn("API gagal, masuk queue.");
+                    Logger.warn("API langsung gagal, dialihkan masuk queue.");
                 }
             }
 
-            await Queue.add(action, payload);
-            Notification();
+            const item = await Queue.add(action, payload);
+            Events.triggerNotification(item);
 
             return {
                 success: true,
                 offline: true,
-                message: "Data disimpan ke Offline Queue"
+                message: "Data disimpan ke Offline Queue",
+                id: item.id
             };
         },
         async flush() {
@@ -368,7 +386,92 @@ const Offline = (() => {
         }
     };
 
+    // =====================================================
+    // SECTION 13 : EVENTS (Subscribers & Emitters)
+    // =====================================================
+    const Events = {
+        init() {
+            if (BCS.Events) {
+                // Contoh tracking event global dari sistem luar jika dibutuhkan
+                const unsub = BCS.Events.on("app:ready", () => SyncManager.sync());
+                state.ui.eventUnsubscribers.push(unsub);
+            }
+        },
+        triggerNotification(item) {
+            // Memicu modul Notification jika terintegrasi global
+            if (typeof BCS.Notification?.show === "function") {
+                BCS.Notification.show("Mode Offline", "Koneksi terputus. Data disimpan di antrean lokal.");
+            }
+        },
+        destroy() {
+            state.ui.eventUnsubscribers.forEach(unsub => typeof unsub === "function" && unsub());
+            state.ui.eventUnsubscribers = [];
+        }
+    };
+
+    // =====================================================
+    // SECTION 14 : DESTROY
+    // =====================================================
+    const DestroyManager = {
+        execute() {
+            if (state.ui.autoSync) {
+                clearInterval(state.ui.autoSync);
+                state.ui.autoSync = null;
+            }
+            Network.destroy();
+            Events.destroy();
+            if (state.database) {
+                state.database.close();
+                state.database = null;
+            }
+            state.ui.initialized = false;
+            Logger.warn("Offline Engine Destroyed");
+        }
+    };
+
+    // =====================================================
+    // SECTION 15 : EXPORT
+    // =====================================================
+    return {
+        async init() {
+            if (state.ui.initialized) return;
+
+            Logger.info("Initializing Offline Engine...");
+            
+            try {
+                await Queue.load();
+                Network.init();
+                Events.init();
+
+                if (CONFIG.AUTO_SYNC > 0) {
+                    state.ui.autoSync = setInterval(() => {
+                        SyncManager.sync();
+                    }, CONFIG.AUTO_SYNC);
+                }
+
+                state.ui.initialized = true;
+                Logger.info("Offline Engine Fully Ready");
+
+                // Jalankan sync pertama jika online saat load awal
+                if (Helpers.isOnline()) SyncManager.sync();
+
+            } catch (error) {
+                Logger.error("Gagal menginisialisasi Offline Engine:", error);
+            }
+        },
+        enqueue: OfflineAPI.enqueue,
+        flush: OfflineAPI.flush,
+        status: OfflineAPI.status,
+        pending: OfflineAPI.pending,
+        getMetrics: Metrics.get,
+        resetMetrics: Metrics.reset,
+        destroy: DestroyManager.execute
+    };
+
 })();
 
-// Initialize Module on Load
-document.addEventListener("DOMContentLoaded", () => Offline.init());
+// Initialization Trigger
+document.addEventListener(
+    "DOMContentLoaded",
+    () => Offline.init()
+);

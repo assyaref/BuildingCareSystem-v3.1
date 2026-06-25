@@ -1,1 +1,290 @@
+/* ======================================================
+   Building Care System Enterprise v11.0
+   form.css
+   Enterprise Mobile Form System
+   Radiant Group Duri
+====================================================== */
 
+/* ======================================================
+   FORM GROUP
+====================================================== */
+
+.form-group{
+
+    display:flex;
+
+    flex-direction:column;
+
+    margin-bottom:18px;
+
+}
+
+/* ======================================================
+   LABEL
+====================================================== */
+
+.form-label{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    margin-bottom:10px;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    color:#1E293B;
+
+}
+
+.form-label i{
+
+    color:#2563EB;
+
+    font-size:15px;
+
+}
+
+/* ======================================================
+   INPUT
+====================================================== */
+
+.form-input{
+
+    width:100%;
+
+    min-height:52px;
+
+    padding:14px 16px;
+
+    border:1px solid #DCE3ED;
+
+    border-radius:14px;
+
+    background:#FFFFFF;
+
+    font-size:15px;
+
+    color:#1E293B;
+
+    outline:none;
+
+    transition:.25s;
+
+    box-sizing:border-box;
+
+}
+
+.form-input::placeholder{
+
+    color:#94A3B8;
+
+}
+
+.form-input:focus{
+
+    border-color:#2563EB;
+
+    box-shadow:
+        0 0 0 4px rgba(37,99,235,.10);
+
+}
+
+/* ======================================================
+   TEXTAREA
+====================================================== */
+
+.form-textarea{
+
+    width:100%;
+
+    min-height:130px;
+
+    resize:none;
+
+    padding:14px 16px;
+
+    border:1px solid #DCE3ED;
+
+    border-radius:14px;
+
+    background:#FFFFFF;
+
+    font-size:15px;
+
+    line-height:1.6;
+
+    color:#1E293B;
+
+    outline:none;
+
+    transition:.25s;
+
+    box-sizing:border-box;
+
+}
+
+.form-textarea:focus{
+
+    border-color:#2563EB;
+
+    box-shadow:
+        0 0 0 4px rgba(37,99,235,.10);
+
+}
+
+/* ======================================================
+   SEARCH
+====================================================== */
+
+.form-search{
+
+    position:relative;
+
+}
+
+.form-search input{
+
+    padding-left:46px;
+
+}
+
+.form-search i{
+
+    position:absolute;
+
+    left:16px;
+
+    top:50%;
+
+    transform:translateY(-50%);
+
+    color:#94A3B8;
+
+}
+
+/* ======================================================
+   CHARACTER COUNTER
+====================================================== */
+
+.form-counter{
+
+    margin-top:8px;
+
+    text-align:right;
+
+    font-size:12px;
+
+    color:#94A3B8;
+
+}
+
+/* ======================================================
+   HINT
+====================================================== */
+
+.form-hint{
+
+    margin-top:8px;
+
+    font-size:12px;
+
+    color:#64748B;
+
+}
+
+/* ======================================================
+   ERROR
+====================================================== */
+
+.form-error{
+
+    margin-top:8px;
+
+    color:#EF4444;
+
+    font-size:12px;
+
+    display:none;
+
+}
+
+.form-group.error .form-input,
+
+.form-group.error .form-textarea{
+
+    border-color:#EF4444;
+
+}
+
+.form-group.error .form-error{
+
+    display:block;
+
+}
+
+/* ======================================================
+   SUCCESS
+====================================================== */
+
+.form-group.success .form-input,
+
+.form-group.success .form-textarea{
+
+    border-color:#22C55E;
+
+}
+
+/* ======================================================
+   DISABLED
+====================================================== */
+
+.form-input:disabled,
+
+.form-textarea:disabled{
+
+    background:#F1F5F9;
+
+    cursor:not-allowed;
+
+}
+
+/* ======================================================
+   READONLY
+====================================================== */
+
+.form-input[readonly]{
+
+    background:#F8FAFC;
+
+}
+
+/* ======================================================
+   FILE INPUT
+====================================================== */
+
+.form-file{
+
+    display:none;
+
+}
+
+/* ======================================================
+   RESPONSIVE
+====================================================== */
+
+@media(max-width:380px){
+
+    .form-input,
+
+    .form-textarea{
+
+        font-size:14px;
+
+    }
+
+}

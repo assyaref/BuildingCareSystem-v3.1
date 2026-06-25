@@ -23,8 +23,8 @@ const PWAUpdate = (() => {
 
         logPrefix: "PWA.Update",
 
-        // Observer configuration
-        observerDebounce: 300,
+        // Throttle configuration
+        checkThrottle: 60000, // 1 minute minimum between checks
 
         maxRetries: 3,
 
@@ -122,9 +122,6 @@ const PWAUpdate = (() => {
 
         version: null,
 
-        // Observer state
-        isObserving: false,
-
         lifecyclePhase: 'idle', // idle | checking | found | installing | installed | waiting | activated
 
         retryCount: 0,
@@ -137,7 +134,7 @@ const PWAUpdate = (() => {
     // 4. STATE
     // ==========================================
 
-    const state = createState();
+    let state = createState();
 
     // ==========================================
     // 5. EVENT REGISTRY
@@ -216,506 +213,7 @@ const PWAUpdate = (() => {
     };
 
     // ==========================================
-    // 6. OBSERVER ENGINE
-    // ==========================================
-
-    const Observer = {
-
-        // Internal observers
-        _observers: [],
-
-        _mutationObserver: null,
-
-        _debounceTimer: null,
-
-        /**
-         * Initialize observer engine
-         */
-        init() {
-
-            if (state.isObserving) {
-
-                Logger.debug('Observer already initialized');
-
-                return;
-
-            }
-
-            try {
-
-                // Setup MutationObserver for DOM changes
-                if (window.MutationObserver) {
-
-                    this._mutationObserver = new MutationObserver(
-
-                        this._handleMutation.bind(this)
-
-                    );
-
-                    this._mutationObserver.observe(
-
-                        document.documentElement,
-
-                        {
-
-                            childList: true,
-
-                            subtree: true,
-
-                            attributes: true,
-
-                            attributeFilter: ['src', 'href', 'data-version']
-
-                        }
-
-                    );
-
-                }
-
-                // Setup window event listeners
-                eventRegistry.add(
-
-                    window,
-
-                    'online',
-
-                    this._handleOnline.bind(this)
-
-                );
-
-                eventRegistry.add(
-
-                    window,
-
-                    'offline',
-
-                    this._handleOffline.bind(this)
-
-                );
-
-                eventRegistry.add(
-
-                    window,
-
-                    'beforeunload',
-
-                    this._handleBeforeUnload.bind(this)
-
-                );
-
-                state.isObserving = true;
-
-                Logger.info('Observer engine initialized');
-
-            } catch (error) {
-
-                Logger.error('Failed to initialize observer:', error);
-
-                throw error;
-
-            }
-
-        },
-
-        /**
-         * Handle DOM mutations
-         */
-        _handleMutation(mutations) {
-
-            clearTimeout(this._debounceTimer);
-
-            this._debounceTimer = setTimeout(() => {
-
-                const hasUpdate = mutations.some(mutation =>
-
-                    mutation.type === 'attributes' &&
-
-                    (mutation.attributeName === 'src' ||
-
-                     mutation.attributeName === 'href' ||
-
-                     mutation.attributeName === 'data-version')
-
-                );
-
-                if (hasUpdate) {
-
-                    Logger.debug('DOM mutation detected, checking for updates');
-
-                    this._notify('pwa:dom-changed', {
-
-                        mutations,
-
-                        timestamp: Date.now()
-
-                    });
-
-                }
-
-            }, runtimeConfig.observerDebounce);
-
-        },
-
-        /**
-         * Handle online event
-         */
-        _handleOnline() {
-
-            Logger.info('Network online, checking for updates');
-
-            this._notify('pwa:online', {
-
-                timestamp: Date.now()
-
-            });
-
-            // Trigger update check when coming online
-
-            if (state.registration) {
-
-                PWAUpdate.checkForUpdates();
-
-            }
-
-        },
-
-        /**
-         * Handle offline event
-         */
-        _handleOffline() {
-
-            Logger.warn('Network offline');
-
-            this._notify('pwa:offline', {
-
-                timestamp: Date.now()
-
-            });
-
-        },
-
-        /**
-         * Handle beforeunload event
-         */
-        _handleBeforeUnload() {
-
-            Logger.debug('Page unloading, cleaning up observers');
-
-            this.destroy();
-
-        },
-
-        /**
-         * Add observer callback
-         */
-        addObserver(callback) {
-
-            if (typeof callback !== 'function') {
-
-                Logger.error('Observer callback must be a function');
-
-                return;
-
-            }
-
-            this._observers.push(callback);
-
-            Logger.debug('Observer added');
-
-        },
-
-        /**
-         * Remove observer callback
-         */
-        removeObserver(callback) {
-
-            this._observers = this._observers.filter(cb => cb !== callback);
-
-            Logger.debug('Observer removed');
-
-        },
-
-        /**
-         * Notify all observers
-         */
-        _notify(eventType, data = {}) {
-
-            const eventData = {
-
-                type: eventType,
-
-                data,
-
-                state: { ...state },
-
-                timestamp: Date.now()
-
-            };
-
-            // Dispatch custom event
-            const customEvent = new CustomEvent(eventType, {
-
-                detail: eventData,
-
-                bubbles: true,
-
-                cancelable: true
-
-            });
-
-            document.dispatchEvent(customEvent);
-
-            // Notify registered observers
-            this._observers.forEach(callback => {
-
-                try {
-
-                    callback(eventData);
-
-                } catch (error) {
-
-                    Logger.error('Observer callback error:', error);
-
-                }
-
-            });
-
-            Logger.debug(`Event dispatched: ${eventType}`);
-
-        },
-
-        /**
-         * Destroy observer engine
-         */
-        destroy() {
-
-            if (this._mutationObserver) {
-
-                this._mutationObserver.disconnect();
-
-                this._mutationObserver = null;
-
-            }
-
-            clearTimeout(this._debounceTimer);
-
-            eventRegistry.removeAll();
-
-            state.isObserving = false;
-
-            this._observers = [];
-
-            Logger.info('Observer engine destroyed');
-
-        }
-
-    };
-
-    // ==========================================
-    // 7. UPDATE ENGINE
-    // ==========================================
-
-    const UpdateEngine = {
-
-        /**
-         * Check for updates
-         */
-        async check() {
-
-            if (state.checking) {
-
-                Logger.debug('Update check already in progress');
-
-                return;
-
-            }
-
-            if (!state.registration) {
-
-                Logger.warn('No service worker registration found');
-
-                return;
-
-            }
-
-            state.checking = true;
-
-            state.lifecyclePhase = 'checking';
-
-            try {
-
-                Logger.info('Checking for updates...');
-
-                Observer._notify('pwa:update-checking', {
-
-                    registration: state.registration
-
-                });
-
-                // Force update check
-
-                await state.registration.update();
-
-                state.lastCheck = Date.now();
-
-                state.retryCount = 0;
-
-                Logger.info('Update check completed');
-
-                return true;
-
-            } catch (error) {
-
-                Logger.error('Update check failed:', error);
-
-                state.retryCount++;
-
-                // Retry logic
-
-                if (state.retryCount < runtimeConfig.maxRetries) {
-
-                    Logger.debug(`Retry ${state.retryCount}/${runtimeConfig.maxRetries}`);
-
-                    setTimeout(() => {
-
-                        this.check();
-
-                    }, runtimeConfig.retryDelay * state.retryCount);
-
-                } else {
-
-                    Logger.error('Max retries reached');
-
-                    Observer._notify('pwa:update-error', {
-
-                        error,
-
-                        retries: state.retryCount
-
-                    });
-
-                }
-
-                return false;
-
-            } finally {
-
-                state.checking = false;
-
-            }
-
-        },
-
-        /**
-         * Install update
-         */
-        async install() {
-
-            if (!state.waiting) {
-
-                Logger.warn('No waiting service worker to install');
-
-                return false;
-
-            }
-
-            state.installing = true;
-
-            state.lifecyclePhase = 'installing';
-
-            try {
-
-                Logger.info('Installing update...');
-
-                Observer._notify('pwa:update-installing', {
-
-                    registration: state.registration,
-
-                    version: state.version
-
-                });
-
-                // Post message to waiting service worker
-
-                if (state.controller) {
-
-                    state.controller.postMessage({
-
-                        type: 'SKIP_WAITING'
-
-                    });
-
-                }
-
-                Logger.info('Update installation initiated');
-
-                return true;
-
-            } catch (error) {
-
-                Logger.error('Update installation failed:', error);
-
-                Observer._notify('pwa:update-error', {
-
-                    error,
-
-                    phase: 'install'
-
-                });
-
-                return false;
-
-            } finally {
-
-                state.installing = false;
-
-            }
-
-        },
-
-        /**
-         * Reload application
-         */
-        reload() {
-
-            if (runtimeConfig.autoReload) {
-
-                Logger.info('Auto-reloading application...');
-
-                Observer._notify('pwa:update-reloading', {
-
-                    timestamp: Date.now()
-
-                });
-
-                // Small delay to allow event to be processed
-
-                setTimeout(() => {
-
-                    window.location.reload();
-
-                }, 500);
-
-            } else {
-
-                Logger.info('Update ready, manual reload required');
-
-                Observer._notify('pwa:update-ready', {
-
-                    version: state.version,
-
-                    registration: state.registration
-
-                });
-
-            }
-
-        }
-
-    };
-
-    // ==========================================
-    // 8. LIFECYCLE MANAGER
+    // 6. LIFECYCLE MANAGER
     // ==========================================
 
     const Lifecycle = {
@@ -747,19 +245,9 @@ const PWAUpdate = (() => {
 
                     state.controller = navigator.serviceWorker.controller;
 
-                    // Get version from controller script
+                    // Get version from BCS config or manifest
 
-                    if (state.controller) {
-
-                        const versionMatch = state.controller.scriptURL.match(/\?v=([^&]+)/);
-
-                        if (versionMatch) {
-
-                            state.version = versionMatch[1];
-
-                        }
-
-                    }
+                    state.version = this._getVersion();
 
                 }
 
@@ -786,6 +274,61 @@ const PWAUpdate = (() => {
                 throw error;
 
             }
+
+        },
+
+        /**
+         * Get version from BCS config or manifest
+         */
+        _getVersion() {
+
+            // Priority 1: BCS config
+            if (typeof BCS !== 'undefined' && BCS.config?.version) {
+
+                return BCS.config.version;
+
+            }
+
+            // Priority 2: Manifest
+            try {
+
+                const manifest = document.querySelector('link[rel="manifest"]');
+
+                if (manifest && manifest.href) {
+
+                    // Fetch manifest to get version
+                    // This is simplified - in production you'd cache this
+                    const manifestUrl = manifest.href;
+
+                    // Return a hash or use manifest URL as version
+                    return manifestUrl.split('/').pop() || null;
+
+                }
+
+            } catch (error) {
+
+                Logger.debug('Could not read manifest:', error);
+
+            }
+
+            // Priority 3: Meta tag
+            try {
+
+                const metaVersion = document.querySelector('meta[name="version"]');
+
+                if (metaVersion) {
+
+                    return metaVersion.getAttribute('content');
+
+                }
+
+            } catch (error) {
+
+                Logger.debug('Could not read meta version:', error);
+
+            }
+
+            return null;
 
         },
 
@@ -884,7 +427,7 @@ const PWAUpdate = (() => {
 
             state.lifecyclePhase = 'found';
 
-            Observer._notify('pwa:update-found', {
+            this._emit('pwa:update-found', {
 
                 registration,
 
@@ -913,7 +456,7 @@ const PWAUpdate = (() => {
 
             state.lifecyclePhase = 'installing';
 
-            Observer._notify('pwa:update-installing', {
+            this._emit('pwa:update-installing', {
 
                 worker,
 
@@ -944,7 +487,7 @@ const PWAUpdate = (() => {
 
             state.lifecyclePhase = 'installed';
 
-            Observer._notify('pwa:update-installed', {
+            this._emit('pwa:update-installed', {
 
                 worker,
 
@@ -981,17 +524,7 @@ const PWAUpdate = (() => {
 
             state.controller = worker;
 
-            // Extract version from script URL
-
-            const versionMatch = worker.scriptURL.match(/\?v=([^&]+)/);
-
-            if (versionMatch) {
-
-                state.version = versionMatch[1];
-
-            }
-
-            Observer._notify('pwa:update-ready', {
+            this._emit('pwa:update-ready', {
 
                 worker,
 
@@ -1028,17 +561,7 @@ const PWAUpdate = (() => {
 
             state.controller = worker;
 
-            // Extract version
-
-            const versionMatch = worker.scriptURL.match(/\?v=([^&]+)/);
-
-            if (versionMatch) {
-
-                state.version = versionMatch[1];
-
-            }
-
-            Observer._notify('pwa:update-activated', {
+            this._emit('pwa:update-activated', {
 
                 worker,
 
@@ -1100,7 +623,7 @@ const PWAUpdate = (() => {
 
                     Logger.info('Update available notification from SW');
 
-                    Observer._notify('pwa:update-found', payload);
+                    this._emit('pwa:update-found', payload);
 
                     break;
 
@@ -1108,7 +631,7 @@ const PWAUpdate = (() => {
 
                     Logger.info('Update activated notification from SW');
 
-                    Observer._notify('pwa:update-activated', payload);
+                    this._emit('pwa:update-activated', payload);
 
                     break;
 
@@ -1118,20 +641,287 @@ const PWAUpdate = (() => {
 
             }
 
+        },
+
+        /**
+         * Emit event through BCS event system if available
+         */
+        _emit(eventType, data = {}) {
+
+            const eventData = {
+
+                type: eventType,
+
+                data,
+
+                state: { ...state },
+
+                timestamp: Date.now()
+
+            };
+
+            // Use BCS Events if available
+            if (typeof BCS !== 'undefined' && BCS.Events) {
+
+                BCS.Events.emit(eventType, eventData);
+
+                Logger.debug(`Event emitted via BCS.Events: ${eventType}`);
+
+                return;
+
+            }
+
+            // Fallback to CustomEvent
+            const customEvent = new CustomEvent(eventType, {
+
+                detail: eventData,
+
+                bubbles: true,
+
+                cancelable: true
+
+            });
+
+            document.dispatchEvent(customEvent);
+
+            Logger.debug(`Event dispatched: ${eventType}`);
+
         }
 
     };
 
     // ==========================================
-    // 9. PUBLIC API
+    // 7. UPDATE ENGINE
     // ==========================================
 
-    const PublicAPI = {
+    const UpdateEngine = {
+
+        /**
+         * Check for updates with throttling
+         */
+        async check() {
+
+            // Throttle check
+            if (state.lastCheck && 
+
+                Date.now() - state.lastCheck < runtimeConfig.checkThrottle) {
+
+                Logger.debug('Update check throttled');
+
+                return false;
+
+            }
+
+            if (state.checking) {
+
+                Logger.debug('Update check already in progress');
+
+                return false;
+
+            }
+
+            if (!state.registration) {
+
+                Logger.warn('No service worker registration found');
+
+                return false;
+
+            }
+
+            state.checking = true;
+
+            state.lifecyclePhase = 'checking';
+
+            try {
+
+                Logger.info('Checking for updates...');
+
+                Lifecycle._emit('pwa:update-checking', {
+
+                    registration: state.registration
+
+                });
+
+                // Force update check
+
+                await state.registration.update();
+
+                state.lastCheck = Date.now();
+
+                state.retryCount = 0;
+
+                Logger.info('Update check completed');
+
+                return true;
+
+            } catch (error) {
+
+                Logger.error('Update check failed:', error);
+
+                state.retryCount++;
+
+                // Retry logic
+
+                if (state.retryCount < runtimeConfig.maxRetries) {
+
+                    Logger.debug(`Retry ${state.retryCount}/${runtimeConfig.maxRetries}`);
+
+                    setTimeout(() => {
+
+                        this.check();
+
+                    }, runtimeConfig.retryDelay * state.retryCount);
+
+                } else {
+
+                    Logger.error('Max retries reached');
+
+                    Lifecycle._emit('pwa:update-error', {
+
+                        error,
+
+                        retries: state.retryCount
+
+                    });
+
+                }
+
+                return false;
+
+            } finally {
+
+                state.checking = false;
+
+            }
+
+        },
+
+        /**
+         * Install update
+         */
+        async install() {
+
+            if (!state.waiting) {
+
+                Logger.warn('No waiting service worker to install');
+
+                return false;
+
+            }
+
+            state.installing = true;
+
+            state.lifecyclePhase = 'installing';
+
+            try {
+
+                Logger.info('Installing update...');
+
+                Lifecycle._emit('pwa:update-installing', {
+
+                    registration: state.registration,
+
+                    version: state.version
+
+                });
+
+                // Post message to waiting service worker
+
+                if (state.controller) {
+
+                    state.controller.postMessage({
+
+                        type: 'SKIP_WAITING'
+
+                    });
+
+                }
+
+                Logger.info('Update installation initiated');
+
+                return true;
+
+            } catch (error) {
+
+                Logger.error('Update installation failed:', error);
+
+                Lifecycle._emit('pwa:update-error', {
+
+                    error,
+
+                    phase: 'install'
+
+                });
+
+                return false;
+
+            } finally {
+
+                state.installing = false;
+
+            }
+
+        },
+
+        /**
+         * Reload application
+         */
+        reload() {
+
+            if (runtimeConfig.autoReload) {
+
+                Logger.info('Auto-reloading application...');
+
+                Lifecycle._emit('pwa:update-reloading', {
+
+                    timestamp: Date.now()
+
+                });
+
+                // Small delay to allow event to be processed
+
+                setTimeout(() => {
+
+                    window.location.reload();
+
+                }, 500);
+
+            } else {
+
+                Logger.info('Update ready, manual reload required');
+
+                Lifecycle._emit('pwa:update-ready', {
+
+                    version: state.version,
+
+                    registration: state.registration
+
+                });
+
+            }
+
+        }
+
+    };
+
+    // ==========================================
+    // 8. PUBLIC API
+    // ==========================================
+
+    const PublicAPI = Object.freeze({
 
         /**
          * Initialize the update manager
          */
         async init(config = {}) {
+
+            if (state.initialized) {
+
+                Logger.debug('Update manager already initialized');
+
+                return this;
+
+            }
 
             runtimeConfig = {
 
@@ -1140,10 +930,6 @@ const PWAUpdate = (() => {
                 ...config
 
             };
-
-            // Initialize observer
-
-            Observer.init();
 
             // Initialize lifecycle
 
@@ -1183,25 +969,45 @@ const PWAUpdate = (() => {
         },
 
         /**
-         * Add observer callback
+         * Listen to update events
          */
-        observe(callback) {
+        on(event, callback) {
 
-            Observer.addObserver(callback);
+            if (typeof BCS !== 'undefined' && BCS.Events) {
+
+                BCS.Events.on(event, callback);
+
+            } else {
+
+                document.addEventListener(event, callback);
+
+            }
+
+            return this;
 
         },
 
         /**
-         * Remove observer callback
+         * Remove event listener
          */
-        unobserve(callback) {
+        off(event, callback) {
 
-            Observer.removeObserver(callback);
+            if (typeof BCS !== 'undefined' && BCS.Events) {
+
+                BCS.Events.off(event, callback);
+
+            } else {
+
+                document.removeEventListener(event, callback);
+
+            }
+
+            return this;
 
         },
 
         /**
-         * Get current state
+         * Get current state (immutable copy)
          */
         getState() {
 
@@ -1210,7 +1016,7 @@ const PWAUpdate = (() => {
         },
 
         /**
-         * Get configuration
+         * Get configuration (immutable copy)
          */
         getConfig() {
 
@@ -1233,6 +1039,25 @@ const PWAUpdate = (() => {
 
             Logger.debug('Configuration updated');
 
+            return this;
+
+        },
+
+        /**
+         * Reset state to initial
+         */
+        reset() {
+
+            // Remove all event listeners
+            eventRegistry.removeAll();
+
+            // Reset state to factory defaults
+            state = createState();
+
+            Logger.info('Update manager state reset');
+
+            return this;
+
         },
 
         /**
@@ -1240,47 +1065,25 @@ const PWAUpdate = (() => {
          */
         destroy() {
 
-            Observer.destroy();
+            eventRegistry.removeAll();
 
-            state.initialized = false;
+            state = createState();
 
             Logger.info('PWA Update Manager destroyed');
 
+            return this;
+
         }
 
-    };
+    });
 
     // ==========================================
-    // 10. EXPORT
+    // 9. EXPORT
     // ==========================================
 
     return PublicAPI;
 
 })();
-
-// ======================================================
-// Auto-initialization
-// ======================================================
-
-if (typeof BCS !== 'undefined' && BCS.config?.pwa?.autoInit !== false) {
-
-    // Wait for DOM ready
-
-    if (document.readyState === 'loading') {
-
-        document.addEventListener('DOMContentLoaded', () => {
-
-            PWAUpdate.init(BCS.config?.pwa);
-
-        });
-
-    } else {
-
-        PWAUpdate.init(BCS.config?.pwa);
-
-    }
-
-}
 
 // ======================================================
 // End of update.js

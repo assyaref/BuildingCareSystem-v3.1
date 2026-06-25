@@ -1,1 +1,355 @@
+/* ======================================================
+   Building Care System Enterprise v11.0
+   button.css
+   Enterprise Mobile Button System
+   Radiant Group Duri
+====================================================== */
 
+/* ======================================================
+   BASE BUTTON
+====================================================== */
+
+.btn-mobile{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+
+    width:100%;
+
+    min-height:52px;
+
+    padding:0 18px;
+
+    border:none;
+
+    border-radius:14px;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:all .25s ease;
+
+    user-select:none;
+
+    text-decoration:none;
+
+}
+
+/* ======================================================
+   PRIMARY
+====================================================== */
+
+.btn-primary{
+
+    color:#FFFFFF;
+
+    background:linear-gradient(
+        135deg,
+        #2563EB,
+        #1D4ED8
+    );
+
+    box-shadow:
+        0 8px 20px rgba(37,99,235,.25);
+
+}
+
+.btn-primary:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 12px 24px rgba(37,99,235,.30);
+
+}
+
+.btn-primary:active{
+
+    transform:scale(.97);
+
+}
+
+/* ======================================================
+   SECONDARY
+====================================================== */
+
+.btn-secondary{
+
+    background:#F3F6FB;
+
+    color:#2563EB;
+
+    border:1px solid #D7E3FF;
+
+}
+
+.btn-secondary:hover{
+
+    background:#EAF1FF;
+
+}
+
+/* ======================================================
+   OUTLINE
+====================================================== */
+
+.btn-outline{
+
+    background:#FFFFFF;
+
+    color:#2563EB;
+
+    border:2px solid #2563EB;
+
+}
+
+.btn-outline:hover{
+
+    background:#F6F9FF;
+
+}
+
+/* ======================================================
+   SUCCESS
+====================================================== */
+
+.btn-success{
+
+    background:#22C55E;
+
+    color:#FFFFFF;
+
+}
+
+/* ======================================================
+   WARNING
+====================================================== */
+
+.btn-warning{
+
+    background:#F59E0B;
+
+    color:#FFFFFF;
+
+}
+
+/* ======================================================
+   DANGER
+====================================================== */
+
+.btn-danger{
+
+    background:#EF4444;
+
+    color:#FFFFFF;
+
+}
+
+/* ======================================================
+   ICON BUTTON
+====================================================== */
+
+.btn-icon{
+
+    width:48px;
+
+    height:48px;
+
+    padding:0;
+
+    border-radius:14px;
+
+}
+
+/* ======================================================
+   SMALL
+====================================================== */
+
+.btn-sm{
+
+    min-height:40px;
+
+    font-size:13px;
+
+}
+
+/* ======================================================
+   LARGE
+====================================================== */
+
+.btn-lg{
+
+    min-height:58px;
+
+    font-size:17px;
+
+}
+
+/* ======================================================
+   DISABLED
+====================================================== */
+
+.btn-mobile:disabled{
+
+    opacity:.55;
+
+    cursor:not-allowed;
+
+    transform:none;
+
+    box-shadow:none;
+
+}
+
+/* ======================================================
+   LOADING
+====================================================== */
+
+.btn-loading{
+
+    pointer-events:none;
+
+}
+
+.btn-loading::after{
+
+    content:"";
+
+    width:18px;
+
+    height:18px;
+
+    border:2px solid rgba(255,255,255,.45);
+
+    border-top-color:#FFFFFF;
+
+    border-radius:50%;
+
+    animation:btn-spin .8s linear infinite;
+
+}
+
+/* ======================================================
+   FULL WIDTH
+====================================================== */
+
+.btn-block{
+
+    width:100%;
+
+}
+
+/* ======================================================
+   FLOATING ACTION BUTTON
+====================================================== */
+
+.btn-fab{
+
+    position:fixed;
+
+    right:20px;
+
+    bottom:90px;
+
+    width:58px;
+
+    height:58px;
+
+    border:none;
+
+    border-radius:50%;
+
+    color:#FFFFFF;
+
+    background:#2563EB;
+
+    box-shadow:
+        0 10px 24px rgba(37,99,235,.30);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    cursor:pointer;
+
+    z-index:100;
+
+    transition:.25s;
+
+}
+
+.btn-fab:hover{
+
+    transform:translateY(-3px);
+
+}
+
+.btn-fab:active{
+
+    transform:scale(.95);
+
+}
+
+/* ======================================================
+   GROUP
+====================================================== */
+
+.btn-group{
+
+    display:flex;
+
+    gap:12px;
+
+}
+
+.btn-group .btn-mobile{
+
+    flex:1;
+
+}
+
+/* ======================================================
+   ANIMATION
+====================================================== */
+
+@keyframes btn-spin{
+
+    from{
+
+        transform:rotate(0deg);
+
+    }
+
+    to{
+
+        transform:rotate(360deg);
+
+    }
+
+}
+
+/* ======================================================
+   RESPONSIVE
+====================================================== */
+
+@media(max-width:380px){
+
+    .btn-mobile{
+
+        min-height:48px;
+
+        font-size:14px;
+
+    }
+
+}

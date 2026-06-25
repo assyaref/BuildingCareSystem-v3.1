@@ -7,6 +7,82 @@
 
 "use strict";
 
+/**
+ * ======================================================
+ * DOM HELPER FUNCTIONS (Vanilla JS - No jQuery)
+ * ======================================================
+ */
+const $ = (selector, context = document) => {
+    if (typeof selector === 'string') {
+        return context.querySelector(selector);
+    }
+    return selector;
+};
+
+const $$ = (selector, context = document) => {
+    return Array.from(context.querySelectorAll(selector));
+};
+
+// jQuery-like wrapper untuk memudahkan transisi
+function q(selector) {
+    const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
+    if (!el) return null;
+    
+    return {
+        el: el,
+        // DOM Manipulation
+        html: (content) => { if (content !== undefined) { el.innerHTML = content; return q(el); } return el.innerHTML; },
+        text: (content) => { if (content !== undefined) { el.textContent = content; return q(el); } return el.textContent; },
+        val: (value) => { if (value !== undefined) { el.value = value; return q(el); } return el.value; },
+        attr: (name, value) => { if (value !== undefined) { el.setAttribute(name, value); return q(el); } return el.getAttribute(name); },
+        data: (name) => el.dataset[name],
+        
+        // CSS Classes
+        addClass: (...classes) => { classes.forEach(c => el.classList.add(c)); return q(el); },
+        removeClass: (...classes) => { classes.forEach(c => el.classList.remove(c)); return q(el); },
+        toggleClass: (...classes) => { classes.forEach(c => el.classList.toggle(c)); return q(el); },
+        hasClass: (className) => el.classList.contains(className),
+        
+        // Events
+        on: (event, selector, handler) => {
+            if (typeof selector === 'function') {
+                // Direct event binding
+                el.addEventListener(event, selector);
+                return q(el);
+            }
+            // Event delegation
+            el.addEventListener(event, function(e) {
+                const target = e.target.closest(selector);
+                if (target) {
+                    handler.call(target, e);
+                }
+            });
+            return q(el);
+        },
+        off: (event, handler) => {
+            el.removeEventListener(event, handler);
+            return q(el);
+        },
+        
+        // Show/Hide
+        show: () => { el.style.display = ''; return q(el); },
+        hide: () => { el.style.display = 'none'; return q(el); },
+        
+        // Parent/Children
+        parent: () => q(el.parentElement),
+        find: (selector) => q(el.querySelector(selector)),
+        findAll: (selector) => $$(selector, el),
+        
+        // Data
+        get: () => el,
+        length: el ? 1 : 0
+    };
+}
+
+// Global $ function untuk kompatibilitas
+window.$ = (selector) => q(selector);
+
+// Register module ke BCS
 BCS.Modules.register("history", (() => {
 
     // 4. CENTRALIZED CONSTANTS ENGINE (Anti-Magic String & Object Freeze)
@@ -49,64 +125,38 @@ BCS.Modules.register("history", (() => {
 
     // DOM CACHE CONTAINER
     let DOM = {};
-    
-    /**
-     * ==========================================
-     * DOM HELPER FUNCTIONS (Vanilla JS)
-     * ==========================================
-     */
-    function $(selector, context = document) {
-        return context.querySelector(selector);
-    }
-
-    function $$(selector, context = document) {
-        return Array.from(context.querySelectorAll(selector));
-    }
-
-    function getElement(id) {
-        return document.getElementById(id);
-    }
-
-    function qs(selector) {
-        return document.querySelector(selector);
-    }
-
-    function qsa(selector) {
-        return document.querySelectorAll(selector);
-    }
-
     function initDOMCache() {
         DOM = {
             // Container & Wrappers
-            tableBody: getElement("historyTableBody"),
-            mobileContainer: getElement("historyMobileContainer"),
-            emptyState: getElement("historyEmptyState"),
-            paginationContainer: getElement("historyPagination"),
+            tableBody: q("#historyTableBody"),
+            mobileContainer: q("#historyMobileContainer"),
+            emptyState: q("#historyEmptyState"),
+            paginationContainer: q("#historyPagination"),
             
             // Filtering & Inputs
-            searchField: getElement("historySearch"),
-            statusFilter: getElement("historyStatusFilter"),
-            sortTrigger: getElement("historySortTrigger"),
+            searchField: q("#historySearch"),
+            statusFilter: q("#historyStatusFilter"),
+            sortTrigger: q("#historySortTrigger"),
             
             // Summary Widgets
-            cardTotal: getElement("cardTotal"),
-            cardOpen: getElement("cardOpen"),
-            cardProgress: getElement("cardProgress"),
-            cardDone: getElement("cardDone"),
+            cardTotal: q("#cardTotal"),
+            cardOpen: q("#cardOpen"),
+            cardProgress: q("#cardProgress"),
+            cardDone: q("#cardDone"),
             
             // Modals Form Cache
-            photoModal: getElement("photoModal"),
-            detailModal: getElement("detailModal"),
-            updateModal: getElement("updateModal"),
+            photoModal: q("#photoModal"),
+            detailModal: q("#detailModal"),
+            updateModal: q("#updateModal"),
             
             // Modal Inputs & Fields
-            photoImg: getElement("photoImg"),
-            detailContent: getElement("detailContent"),
-            updateId: getElement("updateId"),
-            updateStatus: getElement("updateStatus"),
-            updateTeknisi: getElement("updateTeknisi"),
-            updateCatatan: getElement("updateCatatan"),
-            btnSaveUpdate: getElement("btnSaveUpdate")
+            photoImg: q("#photoImg"),
+            detailContent: q("#detailContent"),
+            updateId: q("#updateId"),
+            updateStatus: q("#updateStatus"),
+            updateTeknisi: q("#updateTeknisi"),
+            updateCatatan: q("#updateCatatan"),
+            btnSaveUpdate: q("#btnSaveUpdate")
         };
     }
 
@@ -126,14 +176,14 @@ BCS.Modules.register("history", (() => {
     }
 
     // ==========================================
-    // EVENTS BINDING ENGINE (Vanilla JS)
+    // EVENTS BINDING ENGINE
     // ==========================================
     function bindEvents() {
         BCS.Logger.trace(TAG, "Melakukan binding event listener filters.");
 
         // Search Trigger
-        if (DOM.searchField) {
-            DOM.searchField.addEventListener("input", function() {
+        if (DOM.searchField && DOM.searchField.el) {
+            DOM.searchField.el.addEventListener("input", function() {
                 state.search = this.value.toLowerCase();
                 state.pagination.page = 1;
                 executeProcessingPipeline();
@@ -141,8 +191,8 @@ BCS.Modules.register("history", (() => {
         }
 
         // Filter Status Trigger
-        if (DOM.statusFilter) {
-            DOM.statusFilter.addEventListener("change", function() {
+        if (DOM.statusFilter && DOM.statusFilter.el) {
+            DOM.statusFilter.el.addEventListener("change", function() {
                 state.status = this.value;
                 state.pagination.page = 1;
                 executeProcessingPipeline();
@@ -150,16 +200,16 @@ BCS.Modules.register("history", (() => {
         }
 
         // Sort Sorting Order Trigger
-        if (DOM.sortTrigger) {
-            DOM.sortTrigger.addEventListener("click", function() {
+        if (DOM.sortTrigger && DOM.sortTrigger.el) {
+            DOM.sortTrigger.el.addEventListener("click", function() {
                 state.sort = state.sort === "desc" ? "asc" : "desc";
                 executeProcessingPipeline();
             });
         }
 
         // 1. HIGH-PERFORMANCE EVENT DELEGATION (CSP-Ready Security compliance)
-        if (DOM.paginationContainer) {
-            DOM.paginationContainer.addEventListener("click", function(e) {
+        if (DOM.paginationContainer && DOM.paginationContainer.el) {
+            DOM.paginationContainer.el.addEventListener("click", function(e) {
                 const target = e.target.closest(".page-link-nav");
                 if (!target) return;
                 
@@ -196,8 +246,8 @@ BCS.Modules.register("history", (() => {
             }
         });
 
-        if (DOM.btnSaveUpdate) {
-            DOM.btnSaveUpdate.addEventListener("click", saveUpdate);
+        if (DOM.btnSaveUpdate && DOM.btnSaveUpdate.el) {
+            DOM.btnSaveUpdate.el.addEventListener("click", saveUpdate);
         }
     }
 
@@ -220,7 +270,13 @@ BCS.Modules.register("history", (() => {
         const startTime = performance.now();
 
         try {
-            const response = await BCS.Api.history();
+            // Pastikan BCS.Api tersedia
+            const api = window.BCS.Api || window.Api;
+            if (!api) {
+                throw new Error("API tidak tersedia");
+            }
+
+            const response = await api.post("getHistory", {});
 
             if (!response || !response.success) {
                 BCS.App.Toast.error(response?.message || "Gagal memuat riwayat");
@@ -231,12 +287,13 @@ BCS.Modules.register("history", (() => {
             
             // 5. PERFORMANCE BENCHMARK LOGGER END
             const elapsedTime = (performance.now() - startTime).toFixed(2);
-            BCS.Logger.performance(TAG, `Data riwayat berhasil dimuat dari API.`, `${elapsedTime}ms`);
+            BCS.Logger.info(TAG, `Data riwayat berhasil dimuat dari API. ${elapsedTime}ms`);
 
             executeProcessingPipeline();
 
         } catch (err) {
-            BCS.Error.handle(err);
+            BCS.Logger.error(TAG, "Error loading reports:", err);
+            BCS.App.Toast.error("Gagal memuat data riwayat");
         } finally {
             state.ui.loading = false;
             BCS.App.Loading.hide();
@@ -329,7 +386,6 @@ BCS.Modules.register("history", (() => {
         let progress = 0;
         let done = 0;
 
-        // Eksekusi iterasi tunggal linear berskala besar untuk menghindari multi-filtering array
         for (let i = 0; i < total; i++) {
             const currentStatus = state.reports[i].status;
             if (currentStatus === STATUS.OPEN) open++;
@@ -354,21 +410,23 @@ BCS.Modules.register("history", (() => {
             return;
         }
 
-        if (DOM.emptyState) DOM.emptyState.classList.add("d-none");
+        if (DOM.emptyState && DOM.emptyState.el) {
+            DOM.emptyState.el.classList.remove("d-none");
+        }
         renderTable();       
         renderMobileCards(); 
         renderPagination();
     }
 
     function renderSummary() {
-        if (DOM.cardTotal) DOM.cardTotal.textContent = state.summary.total;
-        if (DOM.cardOpen) DOM.cardOpen.textContent = state.summary.open;
-        if (DOM.cardProgress) DOM.cardProgress.textContent = state.summary.progress;
-        if (DOM.cardDone) DOM.cardDone.textContent = state.summary.done;
+        if (DOM.cardTotal && DOM.cardTotal.el) DOM.cardTotal.el.textContent = state.summary.total;
+        if (DOM.cardOpen && DOM.cardOpen.el) DOM.cardOpen.el.textContent = state.summary.open;
+        if (DOM.cardProgress && DOM.cardProgress.el) DOM.cardProgress.el.textContent = state.summary.progress;
+        if (DOM.cardDone && DOM.cardDone.el) DOM.cardDone.el.textContent = state.summary.done;
     }
 
     function renderTable() {
-        if (!DOM.tableBody) return;
+        if (!DOM.tableBody || !DOM.tableBody.el) return;
         
         const paginatedData = Pagination.getPaginatedData();
         let html = "";
@@ -394,11 +452,11 @@ BCS.Modules.register("history", (() => {
             `;
         });
 
-        DOM.tableBody.innerHTML = html;
+        DOM.tableBody.el.innerHTML = html;
     }
 
     function renderMobileCards() {
-        if (!DOM.mobileContainer) return;
+        if (!DOM.mobileContainer || !DOM.mobileContainer.el) return;
         
         const paginatedData = Pagination.getPaginatedData();
         let html = "";
@@ -425,21 +483,18 @@ BCS.Modules.register("history", (() => {
             `;
         });
 
-        DOM.mobileContainer.innerHTML = html;
+        DOM.mobileContainer.el.innerHTML = html;
     }
 
-    // 1. DATA-ATTRIBUTE SPECIFIC PAGISTRATION (Inline Onclick Removal)
     function renderPagination() {
-        if (!DOM.paginationContainer) return;
+        if (!DOM.paginationContainer || !DOM.paginationContainer.el) return;
         
         const totalPages = Pagination.getTotalPages();
         let html = "";
 
-        // First & Prev Buttons
         html += `<li class="page-item ${state.pagination.page === 1 ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-action="first"><i class="bi bi-chevron-double-left"></i></a></li>`;
         html += `<li class="page-item ${state.pagination.page === 1 ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-action="prev"><i class="bi bi-chevron-left"></i></a></li>`;
 
-        // Page Numbers Loop
         for (let i = 1; i <= totalPages; i++) {
             if (i === 1 || i === totalPages || (i >= state.pagination.page - 1 && i <= state.pagination.page + 1)) {
                 html += `<li class="page-item ${state.pagination.page === i ? 'active' : ''}"><a class="page-link page-link-nav" href="#" data-page="${i}">${i}</a></li>`;
@@ -448,25 +503,24 @@ BCS.Modules.register("history", (() => {
             }
         }
 
-        // Next & Last Buttons
         html += `<li class="page-item ${state.pagination.page === totalPages ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-page="${state.pagination.page + 1}"><i class="bi bi-chevron-right"></i></a></li>`;
         html += `<li class="page-item ${state.pagination.page === totalPages ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-action="last"><i class="bi bi-chevron-double-right"></i></a></li>`;
 
-        DOM.paginationContainer.innerHTML = html;
+        DOM.paginationContainer.el.innerHTML = html;
     }
 
     function renderEmpty() {
-        if (DOM.tableBody) DOM.tableBody.innerHTML = "";
-        if (DOM.mobileContainer) DOM.mobileContainer.innerHTML = "";
-        if (DOM.emptyState) DOM.emptyState.classList.remove("d-none");
-        if (DOM.paginationContainer) DOM.paginationContainer.innerHTML = "";
+        if (DOM.tableBody && DOM.tableBody.el) DOM.tableBody.el.innerHTML = "";
+        if (DOM.mobileContainer && DOM.mobileContainer.el) DOM.mobileContainer.el.innerHTML = "";
+        if (DOM.emptyState && DOM.emptyState.el) DOM.emptyState.el.classList.remove("d-none");
+        if (DOM.paginationContainer && DOM.paginationContainer.el) DOM.paginationContainer.el.innerHTML = "";
     }
 
     // ==========================================
-    // MODAL WINDOW HANDLING & 6. PROVIDER API MATCH
+    // MODAL WINDOW HANDLING
     // ==========================================
     function openPhotoModal(src) {
-        if (DOM.photoImg) DOM.photoImg.src = src;
+        if (DOM.photoImg && DOM.photoImg.el) DOM.photoImg.el.src = src;
         BCS.App.Modal.open("photoModal");
     }
 
@@ -474,7 +528,6 @@ BCS.Modules.register("history", (() => {
         const report = state.reports.find(r => r.id == id);
         if (!report) return;
 
-        // 2. STALWART INJECTION ESCAPING COMPLIANCE ON ALL SERVED DYNAMIC TEXT FIELDS
         let detailHtml = `
             <table class="table table-sm table-striped small">
                 <tr><th>ID Report</th><td>#${escapeHtml(report.id)}</td></tr>
@@ -487,7 +540,7 @@ BCS.Modules.register("history", (() => {
                 <tr><th>Catatan Teknisi</th><td>${escapeHtml(report.catatanTeknisi || "-")}</td></tr>
             </table>
         `;
-        if (DOM.detailContent) DOM.detailContent.innerHTML = detailHtml;
+        if (DOM.detailContent && DOM.detailContent.el) DOM.detailContent.el.innerHTML = detailHtml;
         BCS.App.Modal.open("detailModal");
     }
 
@@ -495,10 +548,10 @@ BCS.Modules.register("history", (() => {
         const report = state.reports.find(r => r.id == id);
         if (!report) return;
 
-        if (DOM.updateId) DOM.updateId.value = report.id || "";
-        if (DOM.updateStatus) DOM.updateStatus.value = report.status || STATUS.OPEN;
-        if (DOM.updateTeknisi) DOM.updateTeknisi.value = report.teknisi || "";
-        if (DOM.updateCatatan) DOM.updateCatatan.value = report.catatanTeknisi || "";
+        if (DOM.updateId && DOM.updateId.el) DOM.updateId.el.value = report.id || "";
+        if (DOM.updateStatus && DOM.updateStatus.el) DOM.updateStatus.el.value = report.status || STATUS.OPEN;
+        if (DOM.updateTeknisi && DOM.updateTeknisi.el) DOM.updateTeknisi.el.value = report.teknisi || "";
+        if (DOM.updateCatatan && DOM.updateCatatan.el) DOM.updateCatatan.el.value = report.catatanTeknisi || "";
 
         BCS.App.Modal.open("updateModal");
     }
@@ -507,22 +560,26 @@ BCS.Modules.register("history", (() => {
         BCS.Logger.info(TAG, "Mengeksekusi penyimpanan update status report.");
         try {
             const payload = {
-                id: DOM.updateId ? DOM.updateId.value : "",
-                status: DOM.updateStatus ? DOM.updateStatus.value : "",
-                teknisi: DOM.updateTeknisi ? DOM.updateTeknisi.value : "",
-                catatan: DOM.updateCatatan ? DOM.updateCatatan.value : ""
+                id: DOM.updateId ? DOM.updateId.el.value : "",
+                status: DOM.updateStatus ? DOM.updateStatus.el.value : "",
+                teknisi: DOM.updateTeknisi ? DOM.updateTeknisi.el.value : "",
+                catatan: DOM.updateCatatan ? DOM.updateCatatan.el.value : ""
             };
 
-            const response = await BCS.Api.reportUpdate(payload);
+            const api = window.BCS.Api || window.Api;
+            if (!api) {
+                throw new Error("API tidak tersedia");
+            }
 
-            if (!response.success) {
-                BCS.App.Toast.error(response.message);
+            const response = await api.post("updateReport", payload);
+
+            if (!response || !response.success) {
+                BCS.App.Toast.error(response?.message || "Gagal update status");
                 return;
             }
 
             BCS.App.Toast.success("Status berhasil diperbarui");
             
-            // 6. Unified Modal Architecture Provider close execution call
             if (typeof BCS.App.Modal.close === "function") {
                 BCS.App.Modal.close("updateModal");
             } else {
@@ -536,7 +593,8 @@ BCS.Modules.register("history", (() => {
             await loadReports();
 
         } catch (err) {
-            BCS.Error.handle(err);
+            BCS.Logger.error(TAG, "Error saving update:", err);
+            BCS.App.Toast.error("Terjadi kesalahan saat update");
         }
     }
 
@@ -580,7 +638,6 @@ BCS.Modules.register("history", (() => {
         return `${diffDays} hari lalu`;
     }
 
-    // 2. SECURITY ENHANCED SECURE ESCAPER FOR SERVER DATA
     function escapeHtml(str) {
         if (!str) return "";
         return String(str)
@@ -597,19 +654,13 @@ BCS.Modules.register("history", (() => {
     function destroy() {
         BCS.Logger.debug(TAG, "Membongkar modul history, membersihkan event listeners.");
         
-        // Remove event listeners - cleanup
-        // Note: With Vanilla JS, we need to use removeEventListener with same function reference
-        // For simplicity, we'll just clear DOM references
-        
         // Unsubscribe Event Bus
         BCS.Events.off("report:created", handleReportCreated);
 
-        // 6. Close All Open Active Modals via Unified Provider interface if available
         if (typeof BCS.App.Modal.closeAll === "function") {
             BCS.App.Modal.closeAll();
         }
 
-        // Nullify Cache Containers
         DOM = {};
         state.reports = [];
         state.filtered = [];
@@ -625,14 +676,13 @@ BCS.Modules.register("history", (() => {
 // ==========================================
 // AUTOMATIC TRIGGER VIA BCS CORE SYSTEM
 // ==========================================
-// Tunggu BCS siap sebelum inisialisasi
-if (window.BCS && window.BCS.Modules) {
-    document.addEventListener("DOMContentLoaded", () => {
-        // Beri waktu untuk BCS siap
-        setTimeout(() => {
-            if (BCS.Modules && typeof BCS.Modules.init === "function") {
-                BCS.Modules.init("history");
-            }
-        }, 100);
-    });
-}
+document.addEventListener("DOMContentLoaded", () => {
+    // Tunggu BCS siap
+    setTimeout(() => {
+        if (BCS.Modules && typeof BCS.Modules.init === "function") {
+            BCS.Modules.init("history").catch(err => {
+                BCS.Logger.error("History", "Failed to initialize:", err);
+            });
+        }
+    }, 100);
+});

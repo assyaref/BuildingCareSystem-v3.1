@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; }
     html, body { margin:0; padding:0; height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-serif; background:#f3f4f6; }
@@ -65,6 +64,7 @@
 
   <!-- Content -->
   <div class="scroll-content bg-white rounded-t-2xl px-5 pt-5 pb-4">
+    <!-- Search -->
     <div class="flex gap-3 mb-5">
       <div class="search-wrap">
         <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
@@ -72,6 +72,8 @@
       </div>
       <button class="filter-btn" id="filterBtn"><i class="fa-solid fa-sliders"></i></button>
     </div>
+
+    <!-- List -->
     <div id="historyList">
       <div class="text-center text-gray-400 py-8">
         <i class="fa-regular fa-clock text-3xl block mb-2"></i>
@@ -88,8 +90,8 @@
   </div>
 </div>
 
-<!-- Modal Preview Foto -->
-<div class="modal fade" id="photoModal" tabindex="-1" aria-hidden="true">
+<!-- Modal Preview Foto (Bootstrap) -->
+<div class="modal fade" id="photoModal" tabindex="-1" aria-hidden="true" style="display:none;">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="background:transparent;border:none;">
       <div class="modal-body p-0 text-center">
@@ -100,7 +102,7 @@
 </div>
 
 <!-- ============================================ -->
-<!-- SCRIPT ENTERPRISE + jQuery                   -->
+<!-- SCRIPT ENTERPRISE + jQuery (untuk modal)     -->
 <!-- ============================================ -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -110,21 +112,193 @@
 <script src="assets/js/core/api.js"></script>
 <script src="assets/js/core/storage.js"></script>
 <script src="assets/js/modules/auth.js"></script>
-<script src="assets/js/modules/userHistory.js"></script>
 
 <script>
   (function() {
     'use strict';
 
-    $(document).ready(function() {
-      if (typeof UserHistoryModule !== 'undefined' && UserHistoryModule.init) {
-        UserHistoryModule.init();
+    // =============================================
+    // 1. LOAD USER DATA
+    // =============================================
+    function loadUser() {
+      try {
+        const session = BCS.Storage.getSession();
+        const user = session?.user || {};
+        const nama = user.nama || user.name || 'User';
+        const dept = user.departemen || user.department || '';
+        const nik = session?.nik || user.nik || '';
+
+        document.getElementById('userName').textContent = `Halo ${nama} 👋`;
+        document.getElementById('userDept').textContent = dept || nik || 'Building Care';
+        const avatar = document.getElementById('userAvatar');
+        avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
+
+        // Simpan user info untuk filter
+        window._user = { nama, nik, dept };
+      } catch (e) {
+        console.warn('Gagal load user:', e);
+        window._user = { nama: 'User', nik: '', dept: '' };
+      }
+    }
+
+    // =============================================
+    // 2. LOAD HISTORY
+    // =============================================
+    let allReports = [];
+    let filteredReports = [];
+
+    async function loadHistory() {
+      const list = document.getElementById('historyList');
+      list.innerHTML = '<div class="text-center text-gray-400 py-8"><i class="fa-regular fa-clock text-3xl block mb-2"></i><span>Memuat data...</span></div>';
+
+      try {
+        const response = await BCS.Api.post('getReport', {});
+        console.log('📥 History response:', response);
+
+        if (!response || !response.success) {
+          list.innerHTML = `<div class="text-center text-red-400 py-8">Gagal memuat data: ${response?.message || 'Unknown error'}</div>`;
+          return;
+        }
+
+        // Ambil array reports dari response.data.reports
+        const reports = response.data?.reports || [];
+        if (!reports.length) {
+          list.innerHTML = `<div class="text-center text-gray-400 py-8"><i class="fa-regular fa-file-lines text-3xl block mb-2"></i><span>Belum ada laporan</span></div>`;
+          return;
+        }
+
+        // Filter berdasarkan pelapor (case-insensitive)
+        const userNama = window._user?.nama || '';
+        const filtered = reports.filter(r => {
+          const pelapor = String(r.nama || r.pelapor || '').toLowerCase();
+          return pelapor === userNama.toLowerCase();
+        });
+
+        allReports = filtered;
+        filteredReports = [...allReports];
+        renderReports(filteredReports);
+
+      } catch (err) {
+        console.error('Load history error:', err);
+        list.innerHTML = `<div class="text-center text-red-400 py-8">Terjadi kesalahan: ${err.message}</div>`;
+      }
+    }
+
+    // =============================================
+    // 3. RENDER REPORTS
+    // =============================================
+    function renderReports(reports) {
+      const list = document.getElementById('historyList');
+      if (!reports.length) {
+        list.innerHTML = `<div class="text-center text-gray-400 py-8"><i class="fa-regular fa-file-lines text-3xl block mb-2"></i><span>Tidak ada laporan yang cocok</span></div>`;
+        return;
+      }
+
+      let html = '';
+      reports.forEach(r => {
+        const status = r.status || 'OPEN';
+        let statusClass = 'status-open';
+        if (status === 'DONE') statusClass = 'status-done';
+        else if (status === 'PROGRESS') statusClass = 'status-progress';
+
+        // Foto thumbnail
+        const foto = r.foto || '';
+        const fotoHtml = foto
+          ? `<img src="${foto}" alt="foto" />`
+          : `<i class="fa-regular fa-image"></i>`;
+
+        const tanggal = r.tanggal || r.createdAt || '';
+        const formattedDate = tanggal ? new Date(tanggal).toLocaleString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+
+        html += `
+          <div class="history-item border border-gray-100 rounded-2xl p-4 flex items-center justify-between shadow-sm bg-white mb-3">
+            <div class="space-y-1 flex-1 pr-2">
+              <span class="status-badge ${statusClass}">${status}</span>
+              <h4 class="font-bold text-sm text-gray-800 flex items-center gap-1.5 pt-1">
+                <i class="fa-solid fa-building text-[#1e5eff] text-xs"></i> ${r.kategori || '-'}
+              </h4>
+              <p class="text-xs text-gray-500 font-medium">📍 ${r.lokasi || '-'}</p>
+              <p class="text-[11px] text-gray-400 flex items-center gap-1">
+                <i class="fa-regular fa-calendar"></i> ${formattedDate || '-'}
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="img-thumb" data-foto="${foto}" onclick="openPhoto(this)">
+                ${fotoHtml}
+              </div>
+              <i class="fa-solid fa-chevron-right text-gray-300 text-sm"></i>
+            </div>
+          </div>
+        `;
+      });
+      list.innerHTML = html;
+    }
+
+    // =============================================
+    // 4. SEARCH / FILTER
+    // =============================================
+    document.getElementById('searchHistory').addEventListener('input', function() {
+      const keyword = this.value.toLowerCase().trim();
+      if (!keyword) {
+        filteredReports = [...allReports];
       } else {
-        console.error('UserHistoryModule tidak ditemukan!');
+        filteredReports = allReports.filter(r =>
+          (r.lokasi || '').toLowerCase().includes(keyword) ||
+          (r.kategori || '').toLowerCase().includes(keyword) ||
+          (r.deskripsi || '').toLowerCase().includes(keyword)
+        );
+      }
+      renderReports(filteredReports);
+    });
+
+    // Filter button (filter by status)
+    document.getElementById('filterBtn').addEventListener('click', function() {
+      const status = prompt('Filter berdasarkan status (ketik: DONE, PROGRESS, OPEN, atau kosongkan untuk reset)');
+      if (status === null) return;
+      const val = status.trim().toUpperCase();
+      if (!val) {
+        document.getElementById('searchHistory').value = '';
+        filteredReports = [...allReports];
+        renderReports(filteredReports);
+        return;
+      }
+      const filtered = allReports.filter(r => (r.status || '').toUpperCase() === val);
+      filteredReports = filtered;
+      renderReports(filtered);
+    });
+
+    // =============================================
+    // 5. PHOTO MODAL
+    // =============================================
+    window.openPhoto = function(el) {
+      const foto = el.dataset.foto;
+      if (!foto) {
+        alert('Tidak ada foto untuk laporan ini');
+        return;
+      }
+      const modal = document.getElementById('photoModal');
+      const img = document.getElementById('photoPreview');
+      img.src = foto;
+      modal.style.display = 'flex';
+      // Bootstrap modal if needed
+      try {
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+      } catch(e) {
+        modal.style.display = 'flex';
+      }
+    };
+
+    // Close modal
+    document.getElementById('photoModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.style.display = 'none';
       }
     });
 
-    // Navigasi
+    // =============================================
+    // 6. NAVIGASI
+    // =============================================
     document.getElementById('navReport').addEventListener('click', function(e) {
       e.preventDefault();
       window.location.href = 'user-report.html';
@@ -135,34 +309,16 @@
       window.location.href = 'user-history.html';
     });
 
-    // Filter
-    document.getElementById('filterBtn').addEventListener('click', function() {
-      const status = prompt('Filter status (DONE / PROGRESS / OPEN) atau kosongkan untuk reset');
-      if (status === null) return;
-      const val = status.trim().toUpperCase();
-      if (!val) {
-        document.getElementById('searchHistory').value = '';
-        document.getElementById('searchHistory').dispatchEvent(new Event('keyup'));
-        return;
-      }
-      document.getElementById('searchHistory').value = val;
-      document.getElementById('searchHistory').dispatchEvent(new Event('keyup'));
-    });
-
-    // Notifikasi
     document.getElementById('notifBtn').addEventListener('click', function() {
       alert('Anda memiliki 3 notifikasi');
     });
 
     // =============================================
-    // LOGOUT – Perbaikan menggunakan removeSession
+    // 7. LOGOUT
     // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
-
-      if (!confirm('Apakah Anda yakin ingin keluar?')) {
-        return;
-      }
+      if (!confirm('Apakah Anda yakin ingin keluar?')) return;
 
       if (window.auth && typeof window.auth.logout === 'function') {
         window.auth.logout();
@@ -175,16 +331,18 @@
         } else if (window.Session && typeof Session.clear === 'function') {
           Session.clear();
         }
-      } catch (e) {}
+      } catch(e) {}
 
       const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
-      keys.forEach(key => {
-        localStorage.removeItem(key);
-        sessionStorage.removeItem(key);
-      });
-
+      keys.forEach(key => { localStorage.removeItem(key); sessionStorage.removeItem(key); });
       window.location.href = 'login.html';
     });
+
+    // =============================================
+    // 8. INIT
+    // =============================================
+    loadUser();
+    loadHistory();
 
   })();
 </script>

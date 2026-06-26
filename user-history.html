@@ -37,6 +37,10 @@
     .search-wrap input:focus { outline:none; }
     .filter-btn { background:#eff3ff; color:#1e5eff; width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:18px; border:none; cursor:pointer; transition:background 0.2s; flex-shrink:0; }
     .filter-btn:active { background:#dbe3ff; transform:scale(0.95); }
+    .header-btn { background:transparent; border:none; color:#fff; cursor:pointer; padding:4px; font-size:18px; transition:opacity 0.2s; }
+    .header-btn:hover { opacity:0.8; }
+    .header-btn:active { transform:scale(0.95); }
+    .avatar-circle { width:36px; height:36px; border-radius:50%; background:#4b7bec; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; }
   </style>
 </head>
 <body>
@@ -44,9 +48,23 @@
   <!-- Header -->
   <div class="flex-shrink-0" style="background:#1e5eff;">
     <div style="height:6px;"></div>
-    <div class="px-5 pb-4 pt-2 text-center text-white">
-      <h2 class="font-bold text-lg m-0">Riwayat Laporan</h2>
-      <p class="text-xs text-blue-200 m-0" id="totalReports">0 laporan</p>
+    <div class="px-5 pb-4 pt-2 flex items-center justify-between text-white">
+      <div class="flex items-center gap-3">
+        <div class="avatar-circle" id="userAvatar">U</div>
+        <div>
+          <h2 class="font-bold text-lg flex items-center gap-1.5 m-0" id="userName">Halo, User 👋</h2>
+          <p class="text-xs text-blue-200 m-0" id="userDept">Departemen</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="header-btn" id="notifBtn">
+          <i class="fa-solid fa-bell"></i>
+          <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center" style="position:relative; top:-10px; right:6px;">3</span>
+        </button>
+        <button class="header-btn" id="logoutBtn" title="Keluar">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -63,7 +81,6 @@
 
     <!-- List -->
     <div id="historyList">
-      <!-- Akan diisi oleh userHistory.js -->
       <div class="text-center text-gray-400 py-8">
         <i class="fa-regular fa-clock text-3xl block mb-2"></i>
         <span>Memuat data...</span>
@@ -74,8 +91,8 @@
 
   <!-- Bottom Nav -->
   <div class="bottom-nav">
-    <a href="#" class="text-gray-400" id="navReport"><i class="fa-solid fa-file-invoice"></i><span>Report</span></a>
-    <a href="#" class="text-[#1e5eff]" id="navHistory"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
+    <a href="#" id="navReport" class="text-gray-400"><i class="fa-solid fa-file-invoice"></i><span>Report</span></a>
+    <a href="#" id="navHistory" class="text-[#1e5eff]"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
   </div>
 </div>
 
@@ -100,6 +117,7 @@
 <script src="assets/js/core/app.js"></script>
 <script src="assets/js/core/api.js"></script>
 <script src="assets/js/core/storage.js"></script>
+<script src="assets/js/modules/auth.js"></script>
 <script src="assets/js/modules/userHistory.js"></script>
 
 <script>
@@ -127,23 +145,44 @@
       window.location.href = 'user-history.html';
     });
 
-    // Filter button (opsional – bisa dipakai untuk filter tambahan)
+    // Filter button (opsional)
     document.getElementById('filterBtn').addEventListener('click', function() {
-      // Contoh sederhana: minta input status
       const status = prompt('Filter status (DONE / PROGRESS / OPEN) atau kosongkan untuk reset');
       if (status === null) return;
       const val = status.trim().toUpperCase();
       if (!val) {
-        // reset dengan memicu search kosong
         document.getElementById('searchHistory').value = '';
         document.getElementById('searchHistory').dispatchEvent(new Event('keyup'));
         return;
       }
-      // Kita bisa tambahkan logika filter di userHistory.js,
-      // tetapi untuk demo, kita trigger pencarian dengan keyword status
       document.getElementById('searchHistory').value = val;
       document.getElementById('searchHistory').dispatchEvent(new Event('keyup'));
     });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      if (window.auth && typeof window.auth.logout === 'function') {
+        window.auth.logout();
+      } else {
+        if (window.Session && typeof Session.clear === 'function') {
+          Session.clear();
+        }
+        localStorage.removeItem('BCS_SESSION');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('nik');
+        localStorage.removeItem('role');
+        sessionStorage.removeItem('BCS_SESSION');
+        window.location.href = 'login.html';
+      }
+    });
+
+    // Notifikasi
+    document.getElementById('notifBtn').addEventListener('click', function() {
+      alert('Anda memiliki 3 notifikasi');
+    });
+
   })();
 </script>
 </body>

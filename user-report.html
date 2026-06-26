@@ -37,7 +37,6 @@
     .photo-btn:active { transform:scale(0.96); }
     .photo-btn.primary { background:#1e5eff; color:#fff; }
     .photo-btn.secondary { background:#f3f4f6; color:#4b5563; }
-    /* Prioritas badge */
     #priorityBadge { transition: all 0.2s; }
   </style>
 </head>
@@ -84,7 +83,7 @@
       </div>
     </div>
 
-    <!-- ========== PRIORITAS DENGAN BADGE WARNA ========== -->
+    <!-- Prioritas dengan Badge Warna -->
     <div class="mb-4">
       <label class="block text-sm font-bold text-gray-800 mb-1.5">Prioritas</label>
       <div id="priorityBadge" class="text-sm font-bold px-4 py-2 rounded-lg mb-2 inline-block" style="background:#dcfce7; color:#16a34a;">
@@ -135,7 +134,7 @@
 </div>
 
 <!-- ============================================ -->
-<!-- SCRIPT ENTERPRISE                            -->
+<!-- SCRIPT                                      -->
 <!-- ============================================ -->
 <script src="config/config.js"></script>
 <script src="assets/js/core/session.js"></script>
@@ -145,9 +144,6 @@
 <script src="assets/js/modules/auth.js"></script>
 <script src="assets/js/modules/userReport.js"></script>
 
-<!-- ============================================ -->
-<!-- FALLBACK & NAVIGASI                          -->
-<!-- ============================================ -->
 <script>
   (function() {
     'use strict';
@@ -174,12 +170,10 @@
     if (prioritySelect) {
       prioritySelect.addEventListener('change', function() {
         updatePriorityBadge(this.value);
-        // Sinkronkan dengan modul jika ada
         if (window.UserReportModule && window.UserReportModule.state) {
           window.UserReportModule.state.form.prioritas = this.value;
         }
       });
-      // Set default
       updatePriorityBadge(prioritySelect.value);
     }
 
@@ -216,7 +210,6 @@
         });
       });
 
-      // Set default
       updateCategoryUI('LISTRIK');
     });
 
@@ -277,23 +270,38 @@
       alert('Anda memiliki 3 notifikasi');
     });
 
-    // Logout
+    // =============================================
+    // 6. LOGOUT DENGAN KONFIRMASI
+    // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
+
+      if (!confirm('Apakah Anda yakin ingin keluar?')) {
+        return;
+      }
+
       if (window.auth && typeof window.auth.logout === 'function') {
         window.auth.logout();
-      } else {
+        return;
+      }
+
+      // Fallback manual
+      try {
+        if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
+          BCS.Storage.removeSession();
+        }
         if (window.Session && typeof Session.clear === 'function') {
           Session.clear();
         }
-        localStorage.removeItem('BCS_SESSION');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('nik');
-        localStorage.removeItem('role');
-        sessionStorage.removeItem('BCS_SESSION');
-        window.location.href = 'login.html';
-      }
+      } catch (e) {}
+
+      const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
+      keys.forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
+
+      window.location.href = 'login.html';
     });
 
   })();

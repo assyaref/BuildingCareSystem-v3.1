@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <!-- Bootstrap 5 CSS (untuk modal) -->
+  <!-- Bootstrap 5 CSS untuk modal -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; }
@@ -108,7 +108,7 @@
 </div>
 
 <!-- ============================================ -->
-<!-- SCRIPT ENTERPRISE + jQuery (untuk userHistory) -->
+<!-- SCRIPT                                      -->
 <!-- ============================================ -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -124,7 +124,7 @@
   (function() {
     'use strict';
 
-    // Inisialisasi modul setelah DOM ready
+    // Inisialisasi modul
     $(document).ready(function() {
       if (typeof UserHistoryModule !== 'undefined' && UserHistoryModule.init) {
         UserHistoryModule.init();
@@ -133,19 +133,18 @@
       }
     });
 
-    // Navigasi ke Report
+    // Navigasi
     document.getElementById('navReport').addEventListener('click', function(e) {
       e.preventDefault();
       window.location.href = 'user-report.html';
     });
 
-    // Navigasi ke History (refresh)
     document.getElementById('navHistory').addEventListener('click', function(e) {
       e.preventDefault();
       window.location.href = 'user-history.html';
     });
 
-    // Filter button (opsional)
+    // Filter
     document.getElementById('filterBtn').addEventListener('click', function() {
       const status = prompt('Filter status (DONE / PROGRESS / OPEN) atau kosongkan untuk reset');
       if (status === null) return;
@@ -159,28 +158,43 @@
       document.getElementById('searchHistory').dispatchEvent(new Event('keyup'));
     });
 
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', function(e) {
-      e.preventDefault();
-      if (window.auth && typeof window.auth.logout === 'function') {
-        window.auth.logout();
-      } else {
-        if (window.Session && typeof Session.clear === 'function') {
-          Session.clear();
-        }
-        localStorage.removeItem('BCS_SESSION');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('nik');
-        localStorage.removeItem('role');
-        sessionStorage.removeItem('BCS_SESSION');
-        window.location.href = 'login.html';
-      }
-    });
-
     // Notifikasi
     document.getElementById('notifBtn').addEventListener('click', function() {
       alert('Anda memiliki 3 notifikasi');
+    });
+
+    // =============================================
+    // LOGOUT DENGAN KONFIRMASI
+    // =============================================
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+
+      if (!confirm('Apakah Anda yakin ingin keluar?')) {
+        return;
+      }
+
+      if (window.auth && typeof window.auth.logout === 'function') {
+        window.auth.logout();
+        return;
+      }
+
+      // Fallback manual
+      try {
+        if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
+          BCS.Storage.removeSession();
+        }
+        if (window.Session && typeof Session.clear === 'function') {
+          Session.clear();
+        }
+      } catch (e) {}
+
+      const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
+      keys.forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
+
+      window.location.href = 'login.html';
     });
 
   })();

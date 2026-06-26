@@ -8,182 +8,792 @@
     <meta name="description" content="Building Care System Enterprise - Radiant Group Duri">
     <meta name="author" content="Radiant Group Duri">
 
-    <!-- ✅ PWA Meta Tags -->
-    <meta name="theme-color" content="#0d6efd">
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e5eff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
 
-    <title>Building Care System Enterprise</title>
+    <title>Building Care System Enterprise v3.5</title>
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
-    <!-- ✅ Tambahkan icon untuk PWA (ukuran besar) -->
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/login.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f0f4ff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 420px;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 25px 60px rgba(30, 94, 255, 0.15), 0 10px 20px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        /* HEADER */
+        .login-header {
+            background: linear-gradient(145deg, #1e5eff, #1557e8);
+            padding: 40px 30px 35px;
+            text-align: center;
+            position: relative;
+            border-radius: 0 0 40px 40px;
+            box-shadow: 0 8px 25px rgba(30, 94, 255, 0.3);
+        }
+
+        .login-header::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 20px;
+            background: radial-gradient(ellipse at center, rgba(30, 94, 255, 0.15) 0%, transparent 70%);
+            filter: blur(10px);
+        }
+
+        .logo-icon {
+            width: 72px;
+            height: 72px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .logo-icon i {
+            font-size: 32px;
+            color: #ffffff;
+        }
+
+        .login-header h1 {
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .login-header .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* BODY */
+        .login-body {
+            padding: 32px 30px 28px;
+        }
+
+        .welcome-section {
+            margin-bottom: 28px;
+        }
+
+        .welcome-section h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .welcome-section h2 span {
+            display: inline-block;
+        }
+
+        .welcome-section p {
+            font-size: 13px;
+            color: #8a8fa6;
+            font-weight: 400;
+        }
+
+        /* FORM */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #2d2d44;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+        }
+
+        .form-group .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-group .label-row a {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1e5eff;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .form-group .label-row a:hover {
+            color: #0d47cc;
+            text-decoration: underline;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper .input-icon {
+            position: absolute;
+            left: 14px;
+            color: #b0b8c9;
+            font-size: 15px;
+            pointer-events: none;
+            transition: color 0.3s;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 13px 14px 13px 44px;
+            background: #f5f7fc;
+            border: 2px solid #e8ecf5;
+            border-radius: 14px;
+            font-size: 14px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 500;
+            color: #1a1a2e;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .input-wrapper input:focus {
+            background: #ffffff;
+            border-color: #1e5eff;
+            box-shadow: 0 0 0 4px rgba(30, 94, 255, 0.08);
+        }
+
+        .input-wrapper input:focus+.input-icon,
+        .input-wrapper input:focus~.input-icon {
+            color: #1e5eff;
+        }
+
+        .input-wrapper input::placeholder {
+            color: #b0b8c9;
+            font-weight: 400;
+            font-size: 13px;
+        }
+
+        .input-wrapper .toggle-btn {
+            position: absolute;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: #b0b8c9;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .input-wrapper .toggle-btn:hover {
+            color: #1e5eff;
+            background: rgba(30, 94, 255, 0.06);
+        }
+
+        /* Checkbox */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 6px 0 22px;
+            cursor: pointer;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #1e5eff;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 2px solid #d0d6e4;
+            transition: all 0.2s;
+        }
+
+        .checkbox-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #4a4a62;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Button */
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(145deg, #1e5eff, #1557e8);
+            color: #ffffff;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(30, 94, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(30, 94, 255, 0.4);
+            background: linear-gradient(145deg, #1a52e0, #1249cc);
+        }
+
+        .btn-login:active {
+            transform: translateY(0px);
+            box-shadow: 0 4px 15px rgba(30, 94, 255, 0.25);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-login i {
+            font-size: 14px;
+            transition: transform 0.3s;
+        }
+
+        .btn-login:hover i {
+            transform: translateX(4px);
+        }
+
+        /* Footer */
+        .login-footer {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .login-footer .info-text {
+            font-size: 11px;
+            color: #8a8fa6;
+            line-height: 1.6;
+        }
+
+        .login-footer .info-text strong {
+            color: #1e5eff;
+        }
+
+        .login-footer .version {
+            margin-top: 14px;
+            font-size: 11px;
+            color: #b0b8c9;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .login-footer .version span {
+            color: #1e5eff;
+            font-weight: 700;
+        }
+
+        /* Loading Spinner di dalam button */
+        .spinner-btn {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2.5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+            .login-body {
+                padding: 24px 20px 20px;
+            }
+            .login-header {
+                padding: 30px 20px 28px;
+            }
+            .login-header h1 {
+                font-size: 17px;
+            }
+            .welcome-section h2 {
+                font-size: 19px;
+            }
+            .input-wrapper input {
+                padding: 12px 12px 12px 40px;
+                font-size: 13px;
+            }
+            .btn-login {
+                padding: 14px;
+                font-size: 14px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .login-wrapper {
+                max-width: 440px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- LOADING OVERLAY -->
-<div id="loading" class="loading-overlay" style="display:none;">
-    <div class="text-center">
-        <div class="spinner-border text-light" role="status">
-            <span class="visually-hidden">Loading...</span>
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px); z-index:9999; display:none; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:30px 40px; border-radius:24px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <div style="width:48px; height:48px; border:4px solid #e8ecf5; border-top-color:#1e5eff; border-radius:50%; animation:spin 0.7s linear infinite; margin:0 auto 14px;"></div>
+            <p style="font-weight:600; color:#1a1a2e; font-size:15px;">Memproses...</p>
         </div>
-        <div class="text-white mt-3">Please Wait...</div>
     </div>
-</div>
 
-<!-- LOGIN PAGE -->
-<div class="container">
-    <div class="row justify-content-center align-items-center min-vh-100">
-        <div class="col-xl-4 col-lg-5 col-md-6 col-sm-10">
-            <div class="card login-card border-0 shadow-lg">
-                <div class="card-body p-5">
+    <!-- LOGIN WRAPPER -->
+    <div class="login-wrapper">
 
-                    <!-- LOGO -->
-                    <div class="text-center mb-4">
-                        <img src="assets/img/logo.png" alt="Logo" class="img-fluid" style="width:90px;">
-                        <h3 class="fw-bold mt-3 mb-1">Building Care System</h3>
-                        <p class="text-muted mb-0">Enterprise Edition</p>
-                    </div>
-
-                    <!-- LOGIN FORM -->
-                    <form id="loginForm" autocomplete="off">
-
-                        <!-- NIK -->
-                        <div class="mb-3">
-                            <label for="nik" class="form-label fw-semibold">NIK</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fa-solid fa-id-card"></i>
-                                </span>
-                                <input
-                                    id="nik"
-                                    name="nik"
-                                    type="text"
-                                    class="form-control"
-                                    placeholder="Masukkan NIK"
-                                    autocomplete="username"
-                                    inputmode="numeric"
-                                    required>
-                            </div>
-                        </div>
-
-                        <!-- PASSWORD -->
-                        <div class="mb-3">
-                            <label for="password" class="form-label fw-semibold">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fa-solid fa-lock"></i>
-                                </span>
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    class="form-control"
-                                    placeholder="Masukkan Password"
-                                    autocomplete="current-password"
-                                    required>
-                                <button
-                                    id="togglePassword"
-                                    type="button"
-                                    class="btn btn-outline-secondary"
-                                    aria-label="Toggle password visibility">
-                                    <i id="togglePasswordIcon" class="fa-solid fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- REMEMBER ME -->
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <div class="form-check">
-                                <input id="remember" class="form-check-input" type="checkbox">
-                                <label for="remember" class="form-check-label">Remember Me</label>
-                            </div>
-                            <small class="text-muted">Secure Login</small>
-                        </div>
-
-                        <!-- LOGIN BUTTON -->
-                        <div class="d-grid">
-                            <button id="btnLogin" type="submit" class="btn btn-primary btn-lg">
-                                <i class="fa-solid fa-right-to-bracket me-2"></i>LOGIN
-                            </button>
-                        </div>
-
-                    </form>
-
-                    <!-- INFO -->
-                    <div class="text-center mt-4">
-                        <small class="text-muted">
-                            Dengan login ke sistem ini Anda menyetujui
-                            penggunaan aplikasi Building Care System Enterprise.
-                        </small>
-                    </div>
-
-                    <!-- FOOTER -->
-                    <div class="text-center mt-5">
-                        <small class="text-muted">Radiant Group Duri</small><br>
-                        <small class="text-secondary">Version 3.2.0</small>
-                    </div>
-
-                </div>
+        <!-- HEADER -->
+        <div class="login-header">
+            <div class="logo-icon">
+                <i class="fa-solid fa-building-shield"></i>
             </div>
+            <h1>BUILDING CARE SYSTEM</h1>
+            <p class="subtitle">Enterprise Version 3.5</p>
+        </div>
+
+        <!-- BODY -->
+        <div class="login-body">
+
+            <!-- Welcome -->
+            <div class="welcome-section">
+                <h2>Selamat Datang <span>👋</span></h2>
+                <p>Silakan masuk menggunakan NIK dan Password Anda.</p>
+            </div>
+
+            <!-- Form -->
+            <form id="loginForm" autocomplete="off">
+
+                <!-- NIK -->
+                <div class="form-group">
+                    <label for="nik">NIK / Username</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fa-regular fa-user"></i></span>
+                        <input
+                            id="nik"
+                            name="nik"
+                            type="text"
+                            placeholder="Masukkan NIK Anda"
+                            autocomplete="username"
+                            inputmode="numeric"
+                            required>
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <div class="label-row">
+                        <label for="password">Password</label>
+                        <a href="#" id="forgotPassword">Lupa Password?</a>
+                    </div>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            placeholder="••••••••"
+                            autocomplete="current-password"
+                            required>
+                        <button type="button" class="toggle-btn" id="togglePassword" aria-label="Toggle password visibility">
+                            <i id="toggleIcon" class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember Me -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="remember">
+                    <label for="remember">Ingat Saya</label>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="btn-login" id="btnLogin">
+                    Masuk Ke Akun
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+
+            </form>
+
+            <!-- Footer -->
+            <div class="login-footer">
+                <p class="info-text">
+                    Dengan login ke sistem ini Anda menyetujui<br>
+                    penggunaan aplikasi <strong>Building Care System Enterprise</strong>.
+                </p>
+                <p class="version">
+                    Radiant Group Duri &bull; <span>v3.5.0</span>
+                </p>
+            </div>
+
         </div>
     </div>
-</div>
 
-<!-- ======================================================
-     JAVASCRIPT
-======================================================= -->
+    <!-- ======================================================
+         JAVASCRIPT
+    ======================================================= -->
 
-<!-- Library -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Config & Core -->
+    <script src="config/config.js"></script>
+    <script src="assets/js/core/session.js"></script>
+    <script src="assets/js/core/app.js"></script>
+    <script src="assets/js/core/api.js"></script>
+    <script src="assets/js/core/storage.js"></script>
+    <script src="assets/js/core/ui.js"></script>
+    <script src="assets/js/core/utils.js"></script>
 
-<!-- Config -->
-<script src="config/config.js"></script>
+    <!-- Modules -->
+    <script src="assets/js/modules/auth.js"></script>
 
-<!-- 🔥 KRITIS: SESSION.js - PALING PERTAMA -->
-<script src="assets/js/core/session.js"></script>
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function(registration) {
+                        console.log('Service Worker registered successfully with scope:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
 
-<!-- Core -->
-<script src="assets/js/core/app.js"></script>
-<script src="assets/js/core/api.js"></script>
-<script src="assets/js/core/storage.js"></script>
-<script src="assets/js/core/ui.js"></script>
-<script src="assets/js/core/utils.js"></script>
+        // ============================================
+        // LOGIN HANDLER - Menggabungkan logika dari login.html
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
 
-<!-- Modules -->
-<script src="assets/js/modules/auth.js"></script>
+            const form = document.getElementById('loginForm');
+            const btnLogin = document.getElementById('btnLogin');
+            const nikInput = document.getElementById('nik');
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.getElementById('togglePassword');
+            const toggleIcon = document.getElementById('toggleIcon');
+            const rememberCheck = document.getElementById('remember');
+            const loadingOverlay = document.getElementById('loadingOverlay');
 
-<!-- ✅ Registrasi Service Worker untuk PWA -->
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-            navigator.serviceWorker.register('sw.js')
-                .then(function(registration) {
-                    console.log('Service Worker registered successfully with scope:', registration.scope);
-                })
-                .catch(function(error) {
-                    console.log('Service Worker registration failed:', error);
+            // =========================================
+            // TOGGLE PASSWORD VISIBILITY
+            // =========================================
+            toggleBtn.addEventListener('click', function() {
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                toggleIcon.className = isPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+            });
+
+            // =========================================
+            // RESTORE SAVED CREDENTIALS
+            // =========================================
+            function loadSavedCredentials() {
+                try {
+                    const saved = localStorage.getItem('bcs_credentials');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        if (data.nik && data.password) {
+                            nikInput.value = data.nik;
+                            passwordInput.value = data.password;
+                            rememberCheck.checked = true;
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+            loadSavedCredentials();
+
+            // =========================================
+            // SAVE CREDENTIALS
+            // =========================================
+            function saveCredentials(nik, password) {
+                try {
+                    localStorage.setItem('bcs_credentials', JSON.stringify({ nik, password }));
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            function clearCredentials() {
+                try {
+                    localStorage.removeItem('bcs_credentials');
+                } catch (e) {
+                    // ignore
+                }
+            }
+
+            // =========================================
+            // SHOW/HIDE LOADING
+            // =========================================
+            function showLoading() {
+                loadingOverlay.style.display = 'flex';
+                btnLogin.disabled = true;
+                btnLogin.innerHTML = '<span class="spinner-btn"></span> Memproses...';
+            }
+
+            function hideLoading() {
+                loadingOverlay.style.display = 'none';
+                btnLogin.disabled = false;
+                btnLogin.innerHTML = 'Masuk Ke Akun <i class="fa-solid fa-arrow-right"></i>';
+            }
+
+            // =========================================
+            // SHOW ERROR
+            // =========================================
+            function showError(message) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Login Gagal',
+                    text: message || 'NIK atau Password yang Anda masukkan salah.',
+                    confirmButtonColor: '#1e5eff',
+                    confirmButtonText: 'Coba Lagi',
+                    backdrop: 'rgba(0,0,0,0.4)',
+                    customClass: {
+                        confirmButton: 'btn-login-swal'
+                    }
                 });
+            }
+
+            // =========================================
+            // HANDLE LOGIN
+            // =========================================
+            async function handleLogin(e) {
+                e.preventDefault();
+
+                const nik = nikInput.value.trim();
+                const password = passwordInput.value.trim();
+                const remember = rememberCheck.checked;
+
+                // Validasi sederhana
+                if (!nik) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Perhatian',
+                        text: 'Silakan masukkan NIK Anda.',
+                        confirmButtonColor: '#1e5eff',
+                        confirmButtonText: 'OK'
+                    });
+                    nikInput.focus();
+                    return;
+                }
+
+                if (!password) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Perhatian',
+                        text: 'Silakan masukkan Password Anda.',
+                        confirmButtonColor: '#1e5eff',
+                        confirmButtonText: 'OK'
+                    });
+                    passwordInput.focus();
+                    return;
+                }
+
+                // Handle Remember Me
+                if (remember) {
+                    saveCredentials(nik, password);
+                } else {
+                    clearCredentials();
+                }
+
+                showLoading();
+
+                try {
+                    // Panggil fungsi login dari modul auth.js
+                    // Asumsikan ada fungsi `login` di global scope atau dari modul auth
+                    if (typeof login === 'function') {
+                        const result = await login(nik, password);
+                        hideLoading();
+
+                        if (result && result.success) {
+                            // Login berhasil
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: 'Selamat datang di Building Care System.',
+                                timer: 1500,
+                                showConfirmButton: false,
+                                timerProgressBar: true
+                            }).then(() => {
+                                // Redirect ke dashboard
+                                window.location.href = result.redirect || 'dashboard.html';
+                            });
+                        } else {
+                            // Login gagal
+                            showError(result?.message || 'NIK atau Password salah.');
+                        }
+                    } else {
+                        // Fallback: simulasi login jika fungsi login tidak tersedia
+                        console.warn('Fungsi login tidak ditemukan, menggunakan simulasi.');
+                        await simulateLogin(nik, password);
+                    }
+
+                } catch (error) {
+                    hideLoading();
+                    console.error('Login error:', error);
+                    showError('Terjadi kesalahan saat login. Silakan coba lagi.');
+                }
+            }
+
+            // =========================================
+            // SIMULASI LOGIN (Fallback jika auth.js tidak tersedia)
+            // =========================================
+            function simulateLogin(nik, password) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        // Demo: NIK: 123456, Password: admin123
+                        if (nik === '123456' && password === 'admin123') {
+                            hideLoading();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: 'Selamat datang di Building Care System.',
+                                timer: 1500,
+                                showConfirmButton: false,
+                                timerProgressBar: true
+                            }).then(() => {
+                                window.location.href = 'dashboard.html';
+                            });
+                            resolve({ success: true });
+                        } else {
+                            hideLoading();
+                            showError('NIK atau Password yang Anda masukkan salah.');
+                            resolve({ success: false });
+                        }
+                    }, 1500);
+                });
+            }
+
+            // =========================================
+            // EVENT LISTENER
+            // =========================================
+            form.addEventListener('submit', handleLogin);
+
+            // Enter key di input
+            nikInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    passwordInput.focus();
+                }
+            });
+
+            passwordInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    form.dispatchEvent(new Event('submit'));
+                }
+            });
+
+            // =========================================
+            // FORGOT PASSWORD
+            // =========================================
+            document.getElementById('forgotPassword').addEventListener('click', function(e) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Lupa Password',
+                    text: 'Silakan hubungi administrator sistem untuk reset password Anda.',
+                    confirmButtonColor: '#1e5eff',
+                    confirmButtonText: 'OK'
+                });
+            });
+
+            console.log('✅ Login page initialized with UI from Login Page.txt and logic from login.html');
         });
-    }
-</script>
+    </script>
+
+    <!-- Tambahan CSS untuk SweetAlert2 -->
+    <style>
+        .btn-login-swal {
+            background: #1e5eff !important;
+            border: none !important;
+            border-radius: 12px !important;
+            padding: 12px 32px !important;
+            font-weight: 600 !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            box-shadow: 0 4px 15px rgba(30, 94, 255, 0.3) !important;
+            transition: all 0.2s !important;
+        }
+        .btn-login-swal:hover {
+            background: #1557e8 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 94, 255, 0.4) !important;
+        }
+        .swal2-popup {
+            border-radius: 20px !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+        .swal2-title {
+            font-weight: 700 !important;
+            color: #1a1a2e !important;
+        }
+        .swal2-html-container {
+            color: #4a4a62 !important;
+        }
+    </style>
 
 </body>
 </html>

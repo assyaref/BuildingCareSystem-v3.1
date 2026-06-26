@@ -1,18 +1,21 @@
 // ======================================================
 // Building Care System Enterprise v7.1
-// dashboard.js - Dashboard Controller (Fixed)
+// dashboard.js - Dashboard Controller (Fix Data)
+// Radiant Group Duri
 // ======================================================
 
 "use strict";
 
 (function() {
     if (typeof BCS === 'undefined') {
-        console.error('BCS framework not loaded');
+        console.error('❌ BCS framework not loaded');
         return;
     }
 
-    // DOM elements
-    const elements = {
+    // =============================================
+    // DOM REFS (ID sesuai dengan dashboard.html)
+    // =============================================
+    const DOM = {
         totalReport: document.getElementById('totalReport'),
         acTotal: document.getElementById('acTotal'),
         listrikTotal: document.getElementById('listrikTotal'),
@@ -36,59 +39,62 @@
         lastLogin: document.getElementById('lastLogin')
     };
 
-    // Default values
-    function setDefaultValues() {
-        if (elements.totalReport) elements.totalReport.textContent = '0';
-        if (elements.acTotal) elements.acTotal.textContent = '0';
-        if (elements.listrikTotal) elements.listrikTotal.textContent = '0';
-        if (elements.gedungTotal) elements.gedungTotal.textContent = '0';
-        if (elements.totalOpen) elements.totalOpen.textContent = '0';
-        if (elements.totalProgress) elements.totalProgress.textContent = '0';
-        if (elements.totalDone) elements.totalDone.textContent = '0';
-        if (elements.fastCount) elements.fastCount.textContent = '0';
-        if (elements.normalCount) elements.normalCount.textContent = '0';
-        if (elements.lateCount) elements.lateCount.textContent = '0';
-        if (elements.todayReport) elements.todayReport.textContent = '0';
-        if (elements.pendingApproval) elements.pendingApproval.textContent = '0';
-        if (elements.onlineUser) elements.onlineUser.textContent = '1';
+    // =============================================
+    // DEFAULT VALUES
+    // =============================================
+    function setDefaults() {
+        const defaults = {
+            totalReport: '0',
+            acTotal: '0',
+            listrikTotal: '0',
+            gedungTotal: '0',
+            totalOpen: '0',
+            totalProgress: '0',
+            totalDone: '0',
+            fastCount: '0',
+            normalCount: '0',
+            lateCount: '0',
+            todayReport: '0',
+            pendingApproval: '0',
+            onlineUser: '1'
+        };
+        Object.keys(defaults).forEach(key => {
+            if (DOM[key]) DOM[key].textContent = defaults[key];
+        });
     }
 
-    // Load user info from session
-    function loadUserInfo() {
+    // =============================================
+    // LOAD USER INFO
+    // =============================================
+    function loadUser() {
         try {
             const session = BCS.Storage.getSession();
             if (session && session.user) {
                 const user = session.user;
-                if (elements.userName) {
-                    elements.userName.textContent = user.nama || user.name || 'User';
-                }
-                if (elements.userNik) {
-                    elements.userNik.textContent = session.nik || user.nik || '-';
-                }
-                if (elements.userRole) {
-                    elements.userRole.textContent = user.role || 'User';
-                }
-                if (elements.lastLogin) {
-                    elements.lastLogin.textContent = user.lastLogin || '-';
-                }
+                if (DOM.userName) DOM.userName.textContent = user.nama || user.name || 'User';
+                if (DOM.userNik) DOM.userNik.textContent = session.nik || user.nik || '-';
+                if (DOM.userRole) DOM.userRole.textContent = user.role || 'User';
+                if (DOM.lastLogin) DOM.lastLogin.textContent = user.lastLogin || '-';
             }
         } catch (e) {
-            console.warn('Load user info error:', e);
+            console.warn('Load user error:', e);
         }
     }
 
-    // Update date & time
+    // =============================================
+    // UPDATE DATE & TIME
+    // =============================================
     function updateDateTime() {
         const now = new Date();
-        if (elements.todayDate) {
-            elements.todayDate.textContent = now.toLocaleDateString('id-ID', {
+        if (DOM.todayDate) {
+            DOM.todayDate.textContent = now.toLocaleDateString('id-ID', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric'
             });
         }
-        if (elements.currentTime) {
-            elements.currentTime.textContent = now.toLocaleTimeString('id-ID', {
+        if (DOM.currentTime) {
+            DOM.currentTime.textContent = now.toLocaleTimeString('id-ID', {
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit'
@@ -96,48 +102,50 @@
         }
     }
 
-    // Fetch dashboard data
+    // =============================================
+    // LOAD DASHBOARD DATA
+    // =============================================
     async function loadDashboard() {
         try {
             BCS.App.Loading.show();
 
-            // ✅ Use getSummary action (available in Code.gs)
+            // Gunakan action 'getSummary' (ada di Code.gs)
             const response = await BCS.Api.post('getSummary', {});
-            console.log('Dashboard response:', response);
+            console.log('📊 Dashboard response:', response);
 
             if (!response || !response.success) {
-                console.error('Failed to load dashboard:', response?.message);
+                console.error('Gagal load dashboard:', response?.message);
                 BCS.App.Toast.danger('Gagal memuat data dashboard');
                 return;
             }
 
             const data = response.data || {};
 
-            // Update all stats
-            if (elements.totalReport) elements.totalReport.textContent = data.total || 0;
-            if (elements.acTotal) elements.acTotal.textContent = data.ac || 0;
-            if (elements.listrikTotal) elements.listrikTotal.textContent = data.listrik || 0;
-            if (elements.gedungTotal) elements.gedungTotal.textContent = data.bangunan || data.gedung || 0;
+            // Update semua card
+            if (DOM.totalReport) DOM.totalReport.textContent = data.total || 0;
+            if (DOM.acTotal) DOM.acTotal.textContent = data.ac || 0;
+            if (DOM.listrikTotal) DOM.listrikTotal.textContent = data.listrik || 0;
+            if (DOM.gedungTotal) DOM.gedungTotal.textContent = data.bangunan || data.gedung || 0;
 
-            if (elements.totalOpen) elements.totalOpen.textContent = data.open || 0;
-            if (elements.totalProgress) elements.totalProgress.textContent = data.progress || 0;
-            if (elements.totalDone) elements.totalDone.textContent = data.done || 0;
+            if (DOM.totalOpen) DOM.totalOpen.textContent = data.open || 0;
+            if (DOM.totalProgress) DOM.totalProgress.textContent = data.progress || 0;
+            if (DOM.totalDone) DOM.totalDone.textContent = data.done || 0;
 
-            if (elements.fastCount) elements.fastCount.textContent = data.fast || 0;
-            if (elements.normalCount) elements.normalCount.textContent = data.normal || 0;
-            if (elements.lateCount) elements.lateCount.textContent = data.late || 0;
+            if (DOM.fastCount) DOM.fastCount.textContent = data.fast || 0;
+            if (DOM.normalCount) DOM.normalCount.textContent = data.normal || 0;
+            if (DOM.lateCount) DOM.lateCount.textContent = data.late || 0;
 
-            if (elements.todayReport) elements.todayReport.textContent = data.todayReport || 0;
-            if (elements.pendingApproval) elements.pendingApproval.textContent = data.pendingApproval || 0;
-            if (elements.onlineUser) elements.onlineUser.textContent = data.onlineUser || 1;
+            if (DOM.todayReport) DOM.todayReport.textContent = data.todayReport || 0;
+            if (DOM.pendingApproval) DOM.pendingApproval.textContent = data.pendingApproval || 0;
+            if (DOM.onlineUser) DOM.onlineUser.textContent = data.onlineUser || 1;
 
-            if (elements.lastUpdate) elements.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
+            if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
 
-            // Recent activity
-            if (elements.recentActivity && data.activity && data.activity.length > 0) {
+            // Recent Activity
+            if (DOM.recentActivity && data.activity && data.activity.length > 0) {
                 let html = '';
                 data.activity.forEach(item => {
-                    const statusClass = item.status === 'DONE' ? 'success' : 
+                    const statusClass = item.status === 'DONE' ? 'success' :
                                        item.status === 'PROGRESS' ? 'warning' : 'secondary';
                     html += `
                         <div class="activity-item d-flex justify-content-between align-items-center border-bottom py-2">
@@ -150,45 +158,57 @@
                         </div>
                     `;
                 });
-                elements.recentActivity.innerHTML = html;
-            } else if (elements.recentActivity) {
-                elements.recentActivity.innerHTML = '<div class="text-muted text-center py-3">Belum ada aktivitas</div>';
+                DOM.recentActivity.innerHTML = html;
+            } else if (DOM.recentActivity) {
+                DOM.recentActivity.innerHTML = '<div class="text-muted text-center py-3">Belum ada aktivitas</div>';
             }
 
         } catch (error) {
-            console.error('Load dashboard error:', error);
+            console.error('Dashboard error:', error);
             BCS.App.Toast.danger('Terjadi kesalahan saat memuat data');
         } finally {
             BCS.App.Loading.hide();
         }
     }
 
-    // Auto refresh every 60 seconds
+    // =============================================
+    // REFRESH & AUTO REFRESH
+    // =============================================
     let refreshInterval = null;
+
+    function refresh() {
+        loadDashboard();
+        updateDateTime();
+    }
 
     function startAutoRefresh() {
         if (refreshInterval) clearInterval(refreshInterval);
-        refreshInterval = setInterval(() => {
-            loadDashboard();
-            updateDateTime();
-        }, 60000);
+        refreshInterval = setInterval(refresh, 60000); // setiap 60 detik
     }
 
-    // Initialize
+    // =============================================
+    // INIT
+    // =============================================
     function init() {
-        setDefaultValues();
-        loadUserInfo();
+        setDefaults();
+        loadUser();
         updateDateTime();
         loadDashboard();
         startAutoRefresh();
 
-        // Update time every second
+        // Update jam setiap detik
         setInterval(updateDateTime, 1000);
 
-        console.log('Dashboard initialized');
+        console.log('✅ Dashboard initialized');
     }
 
-    // Run when DOM ready
+    // Ekspos ke global
+    window.DashboardController = {
+        init,
+        refresh
+    };
+
+    // Jalankan saat DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

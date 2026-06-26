@@ -26,7 +26,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
 
     <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+    </script>
 
     <style>
         * {
@@ -50,85 +51,76 @@
             max-width: 420px;
             background: #ffffff;
             border-radius: 32px;
-            box-shadow: 0 25px 60px rgba(30, 94, 255, 0.15), 0 10px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 25px 60px rgba(30, 94, 255, 0.12), 0 10px 20px rgba(0, 0, 0, 0.04);
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
         }
 
-        /* HEADER */
+        /* ===== HEADER — PUTIH ===== */
         .login-header {
-            background: linear-gradient(145deg, #1e5eff, #1557e8);
-            padding: 40px 30px 35px;
+            background: #ffffff;
+            padding: 36px 30px 30px;
             text-align: center;
             position: relative;
-            border-radius: 0 0 40px 40px;
-            box-shadow: 0 8px 25px rgba(30, 94, 255, 0.3);
+            border-radius: 32px 32px 0 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
+        /* Hilangkan efek glow biru di bawah header */
         .login-header::after {
-            content: '';
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            height: 20px;
-            background: radial-gradient(ellipse at center, rgba(30, 94, 255, 0.15) 0%, transparent 70%);
-            filter: blur(10px);
+            display: none;
         }
 
+        /* Container logo */
         .logo-icon {
             width: 72px;
             height: 72px;
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(12px);
+            background: #f5f7fc;
             border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 16px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-        }
-.logo-image{
-    width:60px;
-    height:60px;
-    object-fit:contain;
-    background:#ffffff;
-
-    border-radius:22px;
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
-
-    margin:0 auto 18px;
-
-    box-shadow:0 10px 25px rgba(0,0,0,.15);
-}
-        .logo-icon i {
-            font-size: 32px;
-            color: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s ease;
         }
 
+        .logo-icon:hover {
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+        }
+
+        .logo-image {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            background: #ffffff;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Judul — gelap */
         .login-header h1 {
-            color: #ffffff;
+            color: #1a1a2e;
             font-weight: 800;
             font-size: 20px;
             letter-spacing: 0.5px;
             margin-bottom: 4px;
         }
 
+        /* Subtitle — abu-abu */
         .login-header .subtitle {
-            color: rgba(255, 255, 255, 0.7);
+            color: #8a8fa6;
             font-size: 10px;
             font-weight: 600;
             letter-spacing: 3px;
             text-transform: uppercase;
         }
 
-        /* BODY */
+        /* ===== BODY ===== */
         .login-body {
             padding: 32px 30px 28px;
         }
@@ -383,7 +375,7 @@
                 padding: 24px 20px 20px;
             }
             .login-header {
-                padding: 30px 20px 28px;
+                padding: 28px 20px 24px;
             }
             .login-header h1 {
                 font-size: 17px;
@@ -399,6 +391,14 @@
                 padding: 14px;
                 font-size: 14px;
             }
+            .logo-icon {
+                width: 64px;
+                height: 64px;
+            }
+            .logo-image {
+                width: 48px;
+                height: 48px;
+            }
         }
 
         @media (min-width: 768px) {
@@ -406,13 +406,41 @@
                 max-width: 440px;
             }
         }
+
+        /* SweetAlert2 custom */
+        .btn-login-swal {
+            background: #1e5eff !important;
+            border: none !important;
+            border-radius: 12px !important;
+            padding: 12px 32px !important;
+            font-weight: 600 !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            box-shadow: 0 4px 15px rgba(30, 94, 255, 0.3) !important;
+            transition: all 0.2s !important;
+        }
+        .btn-login-swal:hover {
+            background: #1557e8 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 94, 255, 0.4) !important;
+        }
+        .swal2-popup {
+            border-radius: 20px !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+        .swal2-title {
+            font-weight: 700 !important;
+            color: #1a1a2e !important;
+        }
+        .swal2-html-container {
+            color: #4a4a62 !important;
+        }
     </style>
 </head>
 
 <body>
 
     <!-- LOADING OVERLAY -->
-    <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px); z-index:9999; display:none; align-items:center; justify-content:center;">
+    <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center;">
         <div style="background:#fff; padding:30px 40px; border-radius:24px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
             <div style="width:48px; height:48px; border:4px solid #e8ecf5; border-top-color:#1e5eff; border-radius:50%; animation:spin 0.7s linear infinite; margin:0 auto 14px;"></div>
             <p style="font-weight:600; color:#1a1a2e; font-size:15px;">Memproses...</p>
@@ -422,13 +450,13 @@
     <!-- LOGIN WRAPPER -->
     <div class="login-wrapper">
 
-        <!-- HEADER -->
+        <!-- HEADER — PUTIH -->
         <div class="login-header">
             <div class="logo-icon">
-    <img src="assets/img/logo.png"
-         alt="Building Care System Logo"
-         class="logo-image">
-</div>
+                <img src="assets/img/logo.png"
+                alt="Building Care System Logo"
+                class="logo-image">
+            </div>
             <h1>BUILDING CARE SYSTEM</h1>
             <p class="subtitle">Enterprise Version 3.5</p>
         </div>
@@ -450,14 +478,7 @@
                     <label for="nik">NIK / Username</label>
                     <div class="input-wrapper">
                         <span class="input-icon"><i class="fa-regular fa-user"></i></span>
-                        <input
-                            id="nik"
-                            name="nik"
-                            type="text"
-                            placeholder="Masukkan NIK Anda"
-                            autocomplete="username"
-                            inputmode="numeric"
-                            required>
+                        <input id="nik" name="nik" type="text" placeholder="Masukkan NIK Anda" autocomplete="username" inputmode="numeric" required>
                     </div>
                 </div>
 
@@ -469,13 +490,7 @@
                     </div>
                     <div class="input-wrapper">
                         <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            placeholder="••••••••"
-                            autocomplete="current-password"
-                            required>
+                        <input id="password" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required>
                         <button type="button" class="toggle-btn" id="togglePassword" aria-label="Toggle password visibility">
                             <i id="toggleIcon" class="fa-regular fa-eye"></i>
                         </button>
@@ -511,20 +526,28 @@
     </div>
 
     <!-- ======================================================
-         JAVASCRIPT
+    JAVASCRIPT
     ======================================================= -->
 
     <!-- Config & Core -->
-    <script src="config/config.js"></script>
-    <script src="assets/js/core/session.js"></script>
-    <script src="assets/js/core/app.js"></script>
-    <script src="assets/js/core/api.js"></script>
-    <script src="assets/js/core/storage.js"></script>
-    <script src="assets/js/core/ui.js"></script>
-    <script src="assets/js/core/utils.js"></script>
+    <script src="config/config.js">
+    </script>
+    <script src="assets/js/core/session.js">
+    </script>
+    <script src="assets/js/core/app.js">
+    </script>
+    <script src="assets/js/core/api.js">
+    </script>
+    <script src="assets/js/core/storage.js">
+    </script>
+    <script src="assets/js/core/ui.js">
+    </script>
+    <script src="assets/js/core/utils.js">
+    </script>
 
     <!-- Modules -->
-    <script src="assets/js/modules/auth.js"></script>
+    <script src="assets/js/modules/auth.js">
+    </script>
 
     <!-- PWA Service Worker Registration -->
     <script>
@@ -541,7 +564,7 @@
         }
 
         // ============================================
-        // LOGIN HANDLER - Menggabungkan logika dari login.html
+        // LOGIN HANDLER
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
 
@@ -584,26 +607,22 @@
             loadSavedCredentials();
 
             // =========================================
-            // SAVE CREDENTIALS
+            // SAVE / CLEAR CREDENTIALS
             // =========================================
             function saveCredentials(nik, password) {
                 try {
                     localStorage.setItem('bcs_credentials', JSON.stringify({ nik, password }));
-                } catch (e) {
-                    // ignore
-                }
+                } catch (e) { /* ignore */ }
             }
 
             function clearCredentials() {
                 try {
                     localStorage.removeItem('bcs_credentials');
-                } catch (e) {
-                    // ignore
-                }
+                } catch (e) { /* ignore */ }
             }
 
             // =========================================
-            // SHOW/HIDE LOADING
+            // SHOW / HIDE LOADING
             // =========================================
             function showLoading() {
                 loadingOverlay.style.display = 'flex';
@@ -644,7 +663,6 @@
                 const password = passwordInput.value.trim();
                 const remember = rememberCheck.checked;
 
-                // Validasi sederhana
                 if (!nik) {
                     Swal.fire({
                         icon: 'warning',
@@ -669,7 +687,6 @@
                     return;
                 }
 
-                // Handle Remember Me
                 if (remember) {
                     saveCredentials(nik, password);
                 } else {
@@ -679,14 +696,11 @@
                 showLoading();
 
                 try {
-                    // Panggil fungsi login dari modul auth.js
-                    // Asumsikan ada fungsi `login` di global scope atau dari modul auth
                     if (typeof login === 'function') {
                         const result = await login(nik, password);
                         hideLoading();
 
                         if (result && result.success) {
-                            // Login berhasil
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil!',
@@ -695,19 +709,15 @@
                                 showConfirmButton: false,
                                 timerProgressBar: true
                             }).then(() => {
-                                // Redirect ke dashboard
                                 window.location.href = result.redirect || 'dashboard.html';
                             });
                         } else {
-                            // Login gagal
                             showError(result?.message || 'NIK atau Password salah.');
                         }
                     } else {
-                        // Fallback: simulasi login jika fungsi login tidak tersedia
                         console.warn('Fungsi login tidak ditemukan, menggunakan simulasi.');
                         await simulateLogin(nik, password);
                     }
-
                 } catch (error) {
                     hideLoading();
                     console.error('Login error:', error);
@@ -716,12 +726,11 @@
             }
 
             // =========================================
-            // SIMULASI LOGIN (Fallback jika auth.js tidak tersedia)
+            // SIMULASI LOGIN (fallback)
             // =========================================
             function simulateLogin(nik, password) {
                 return new Promise((resolve, reject) => {
                     setTimeout(() => {
-                        // Demo: NIK: 123456, Password: admin123
                         if (nik === '123456' && password === 'admin123') {
                             hideLoading();
                             Swal.fire({
@@ -749,7 +758,6 @@
             // =========================================
             form.addEventListener('submit', handleLogin);
 
-            // Enter key di input
             nikInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -778,39 +786,9 @@
                 });
             });
 
-            console.log('✅ Login page initialized with UI from Login Page.txt and logic from login.html');
+            console.log('✅ Login page initialized — header white UI');
         });
     </script>
-
-    <!-- Tambahan CSS untuk SweetAlert2 -->
-    <style>
-        .btn-login-swal {
-            background: #1e5eff !important;
-            border: none !important;
-            border-radius: 12px !important;
-            padding: 12px 32px !important;
-            font-weight: 600 !important;
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
-            box-shadow: 0 4px 15px rgba(30, 94, 255, 0.3) !important;
-            transition: all 0.2s !important;
-        }
-        .btn-login-swal:hover {
-            background: #1557e8 !important;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(30, 94, 255, 0.4) !important;
-        }
-        .swal2-popup {
-            border-radius: 20px !important;
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
-        }
-        .swal2-title {
-            font-weight: 700 !important;
-            color: #1a1a2e !important;
-        }
-        .swal2-html-container {
-            color: #4a4a62 !important;
-        }
-    </style>
 
 </body>
 </html>

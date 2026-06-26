@@ -8,7 +8,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    /* ===== style sama seperti sebelumnya, tetapi dengan penyesuaian kecil ===== */
     * { box-sizing: border-box; }
     html, body { margin:0; padding:0; height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-serif; background:#f3f4f6; }
     .app-card { width:100%; max-width:420px; height:100vh; max-height:900px; background:#1e5eff; border-radius:28px; box-shadow:0 20px 60px rgba(30,94,255,0.25); display:flex; flex-direction:column; overflow:hidden; margin:0 auto; }
@@ -31,6 +30,15 @@
     input:focus, textarea:focus { outline:none; border-color:#1e5eff !important; box-shadow:0 0 0 3px rgba(30,94,255,0.12); }
     .char-counter { font-size:11px; color:#9ca3af; margin-top:4px; text-align:right; }
     .avatar-circle { width:36px; height:36px; border-radius:50%; background:#4b7bec; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; }
+    .header-btn { background:transparent; border:none; color:#fff; cursor:pointer; padding:4px; font-size:18px; transition:opacity 0.2s; }
+    .header-btn:hover { opacity:0.8; }
+    .header-btn:active { transform:scale(0.95); }
+    .photo-btn { padding:12px; border-radius:14px; font-size:13px; font-weight:600; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; -webkit-tap-highlight-color:transparent; }
+    .photo-btn:active { transform:scale(0.96); }
+    .photo-btn.primary { background:#1e5eff; color:#fff; }
+    .photo-btn.secondary { background:#f3f4f6; color:#4b5563; }
+    /* Prioritas badge */
+    #priorityBadge { transition: all 0.2s; }
   </style>
 </head>
 <body>
@@ -46,10 +54,15 @@
           <p class="text-xs text-blue-200 m-0" id="userDept">Departemen</p>
         </div>
       </div>
-      <button class="text-lg leading-none relative" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;" id="notifBtn">
-        <i class="fa-solid fa-bell"></i>
-        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">3</span>
-      </button>
+      <div class="flex items-center gap-3">
+        <button class="header-btn" id="notifBtn">
+          <i class="fa-solid fa-bell"></i>
+          <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center" style="position:relative; top:-10px; right:6px;">3</span>
+        </button>
+        <button class="header-btn" id="logoutBtn" title="Keluar">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -71,13 +84,16 @@
       </div>
     </div>
 
-    <!-- Prioritas (dropdown) -->
+    <!-- ========== PRIORITAS DENGAN BADGE WARNA ========== -->
     <div class="mb-4">
       <label class="block text-sm font-bold text-gray-800 mb-1.5">Prioritas</label>
+      <div id="priorityBadge" class="text-sm font-bold px-4 py-2 rounded-lg mb-2 inline-block" style="background:#dcfce7; color:#16a34a;">
+        NORMAL
+      </div>
       <select id="prioritySelect" class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white">
-        <option value="NORMAL">NORMAL</option>
-        <option value="HIGH">HIGH</option>
-        <option value="URGENT">URGENT</option>
+        <option value="NORMAL" style="color:#16a34a;">🟢 NORMAL</option>
+        <option value="HIGH" style="color:#d97706;">🟡 HIGH</option>
+        <option value="URGENT" style="color:#dc2626;">🔴 URGENT</option>
       </select>
     </div>
 
@@ -91,6 +107,10 @@
     <!-- Foto -->
     <div class="mb-5">
       <label class="block text-sm font-bold text-gray-800 mb-1.5">Foto Kerusakan</label>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <button id="cameraBtn" class="photo-btn primary"><i class="fa-solid fa-camera"></i> Ambil Foto</button>
+        <button id="galleryBtn" class="photo-btn secondary"><i class="fa-solid fa-image"></i> Galeri</button>
+      </div>
       <input type="file" id="photo" accept="image/*" style="display:none;" />
       <div id="previewWrapper" class="drop-zone" style="cursor:pointer;">
         <div id="previewPlaceholder">
@@ -122,37 +142,160 @@
 <script src="assets/js/core/app.js"></script>
 <script src="assets/js/core/api.js"></script>
 <script src="assets/js/core/storage.js"></script>
+<script src="assets/js/modules/auth.js"></script>
 <script src="assets/js/modules/userReport.js"></script>
 
+<!-- ============================================ -->
+<!-- FALLBACK & NAVIGASI                          -->
+<!-- ============================================ -->
 <script>
   (function() {
     'use strict';
 
-    // Inisialisasi modul setelah DOM ready
+    // =============================================
+    // 1. PRIORITAS BADGE
+    // =============================================
+    const prioritySelect = document.getElementById('prioritySelect');
+    const priorityBadge = document.getElementById('priorityBadge');
+
+    const priorityColors = {
+      'NORMAL': { bg: '#dcfce7', text: '#16a34a', label: 'NORMAL' },
+      'HIGH':   { bg: '#fef3c7', text: '#d97706', label: 'HIGH' },
+      'URGENT': { bg: '#fee2e2', text: '#dc2626', label: 'URGENT' }
+    };
+
+    function updatePriorityBadge(value) {
+      const color = priorityColors[value] || priorityColors['NORMAL'];
+      priorityBadge.textContent = color.label;
+      priorityBadge.style.backgroundColor = color.bg;
+      priorityBadge.style.color = color.text;
+    }
+
+    if (prioritySelect) {
+      prioritySelect.addEventListener('change', function() {
+        updatePriorityBadge(this.value);
+        // Sinkronkan dengan modul jika ada
+        if (window.UserReportModule && window.UserReportModule.state) {
+          window.UserReportModule.state.form.prioritas = this.value;
+        }
+      });
+      // Set default
+      updatePriorityBadge(prioritySelect.value);
+    }
+
+    // =============================================
+    // 2. FALLBACK KATEGORI
+    // =============================================
+    document.addEventListener('DOMContentLoaded', function() {
+      const categoryCards = document.querySelectorAll('.cat-card');
+      let selectedCategory = 'LISTRIK';
+
+      function updateCategoryUI(value) {
+        categoryCards.forEach(card => {
+          const val = card.dataset.value;
+          if (val === value) {
+            card.classList.add('selected');
+            card.classList.remove('border-gray-200', 'text-gray-600');
+            card.classList.add('border-[#1e5eff]', 'bg-blue-50/30', 'text-[#1e5eff]');
+          } else {
+            card.classList.remove('selected', 'border-[#1e5eff]', 'bg-blue-50/30', 'text-[#1e5eff]');
+            card.classList.add('border-gray-200', 'text-gray-600');
+          }
+        });
+        selectedCategory = value;
+        if (window.UserReportModule && window.UserReportModule.state) {
+          window.UserReportModule.state.form.kategori = value;
+        }
+        console.log('✅ Kategori dipilih:', value);
+      }
+
+      categoryCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+          const value = this.dataset.value;
+          updateCategoryUI(value);
+        });
+      });
+
+      // Set default
+      updateCategoryUI('LISTRIK');
+    });
+
+    // =============================================
+    // 3. KAMERA & GALERI
+    // =============================================
+    const photoInput = document.getElementById('photo');
+    const cameraBtn  = document.getElementById('cameraBtn');
+    const galleryBtn = document.getElementById('galleryBtn');
+
+    if (cameraBtn) {
+      cameraBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        photoInput.setAttribute('capture', 'environment');
+        photoInput.click();
+        setTimeout(() => photoInput.removeAttribute('capture'), 100);
+      });
+    }
+
+    if (galleryBtn) {
+      galleryBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        photoInput.removeAttribute('capture');
+        photoInput.click();
+      });
+    }
+
+    // =============================================
+    // 4. INISIALISASI MODUL
+    // =============================================
     document.addEventListener('DOMContentLoaded', function() {
       if (typeof UserReportModule !== 'undefined' && UserReportModule.init) {
-        UserReportModule.init();
+        try {
+          UserReportModule.init();
+          console.log('✅ UserReportModule berhasil diinisialisasi');
+        } catch (e) {
+          console.warn('⚠️ UserReportModule gagal init:', e);
+        }
       } else {
-        console.error('UserReportModule tidak ditemukan!');
+        console.warn('⚠️ UserReportModule tidak ditemukan');
       }
     });
 
-    // Navigasi ke History
+    // =============================================
+    // 5. NAVIGASI
+    // =============================================
     document.getElementById('navHistory').addEventListener('click', function(e) {
       e.preventDefault();
       window.location.href = 'user-history.html';
     });
 
-    // Navigasi ke Report (refresh)
     document.getElementById('navReport').addEventListener('click', function(e) {
       e.preventDefault();
       window.location.href = 'user-report.html';
     });
 
-    // Notifikasi (contoh)
     document.getElementById('notifBtn').addEventListener('click', function() {
       alert('Anda memiliki 3 notifikasi');
     });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      if (window.auth && typeof window.auth.logout === 'function') {
+        window.auth.logout();
+      } else {
+        if (window.Session && typeof Session.clear === 'function') {
+          Session.clear();
+        }
+        localStorage.removeItem('BCS_SESSION');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('nik');
+        localStorage.removeItem('role');
+        sessionStorage.removeItem('BCS_SESSION');
+        window.location.href = 'login.html';
+      }
+    });
+
   })();
 </script>
 </body>

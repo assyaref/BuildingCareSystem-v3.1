@@ -2,32 +2,41 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>History | Building Care System Enterprise</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/css/style.css" rel="stylesheet">
+  <style>
+    body { background: #f3f6fc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .card { border-radius: 16px; border: none; }
+    .card-header { background: white; border-bottom: 1px solid #e9ecef; }
+    .table th { background: #f8f9fa; font-weight: 600; }
+    .status-badge { font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+    .status-open { background: #fff3cd; color: #856404; }
+    .status-progress { background: #cce5ff; color: #004085; }
+    .status-done { background: #d4edda; color: #155724; }
+    .btn-outline-primary { border-radius: 20px; }
+    .pagination .page-link { border-radius: 8px; margin: 0 2px; }
+    .pagination .active .page-link { background: #0d6efd; border-color: #0d6efd; color: white; }
+  </style>
 </head>
-
-<body class="bg-light">
+<body>
 
 <div class="container-fluid py-4">
 
+  <!-- HEADER -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h2 class="fw-bold mb-1">
-        <i class="bi bi-clock-history"></i> Riwayat Laporan
-      </h2>
-      <small class="text-muted">
-        Monitoring seluruh laporan Building Care System Enterprise
-      </small>
+      <h2 class="fw-bold mb-1"><i class="bi bi-clock-history"></i> Riwayat Laporan</h2>
+      <small class="text-muted">Monitoring seluruh laporan Building Care System Enterprise</small>
     </div>
     <a href="dashboard.html" class="btn btn-outline-primary rounded-pill shadow-sm px-4">
       <i class="bi bi-house-door"></i> Dashboard
     </a>
   </div>
 
+  <!-- SUMMARY CARDS -->
   <div class="row g-3 mb-4">
     <div class="col-md-3">
       <div class="card border-0 shadow-sm">
@@ -63,13 +72,14 @@
     </div>
   </div>
 
+  <!-- FILTER & TABLE -->
   <div class="card border-0 shadow-sm">
     <div class="card-header bg-white">
       <div class="row g-2 align-items-center">
         <div class="col-lg-4">
           <div class="input-group">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control" id="searchReport" placeholder="Cari ID, pelapor, kategori atau lokasi">
+            <input type="text" class="form-control" id="searchInput" placeholder="Cari ID, pelapor, kategori atau lokasi">
           </div>
         </div>
         <div class="col-lg-2">
@@ -81,13 +91,14 @@
           </select>
         </div>
         <div class="col-lg-2">
-          <select class="form-select" id="sortReport">
+          <select class="form-select" id="sortOrder">
             <option value="desc">Terbaru</option>
             <option value="asc">Terlama</option>
           </select>
         </div>
         <div class="col-lg-4 text-end">
-          <small class="text-muted">Total : <strong id="totalReport">0</strong></small>
+          <small class="text-muted">Total : <strong id="totalReports">0</strong></small>
+          <button class="btn btn-sm btn-outline-secondary ms-2" id="refreshBtn"><i class="bi bi-arrow-clockwise"></i></button>
         </div>
       </div>
     </div>
@@ -102,7 +113,7 @@
               <th>Pelapor</th>
               <th>Kategori</th>
               <th>Lokasi</th>
-              <th style="min-width:300px">Deskripsi</th>
+              <th style="min-width:200px">Deskripsi</th>
               <th>Status</th>
               <th class="text-center">Foto</th>
               <th class="text-center">Action</th>
@@ -126,13 +137,16 @@
 
 </div>
 
+<!-- ============================================= -->
+<!-- MODALS -->
+<!-- ============================================= -->
+
+<!-- Update Modal -->
 <div class="modal fade" id="updateModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content border-0 shadow">
       <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="bi bi-pencil-square"></i> Update Status Laporan
-        </h5>
+        <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Update Status Laporan</h5>
         <button class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -159,14 +173,13 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-primary" onclick="HistoryModule.saveUpdate()">
-          <i class="bi bi-check-circle"></i> Simpan
-        </button>
+        <button class="btn btn-primary" id="saveUpdateBtn"><i class="bi bi-check-circle"></i> Simpan</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Photo Modal -->
 <div class="modal fade" id="photoModal" tabindex="-1">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content border-0 shadow">
@@ -181,6 +194,7 @@
   </div>
 </div>
 
+<!-- Detail Modal -->
 <div class="modal fade" id="detailModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content border-0 shadow">
@@ -195,11 +209,389 @@
   </div>
 </div>
 
+<!-- ============================================= -->
+<!-- JAVASCRIPT -->
+<!-- ============================================= -->
 <script src="config/config.js"></script>
 <script src="assets/js/core/app.js"></script>
 <script src="assets/js/core/api.js"></script>
-<script src="assets/js/modules/history.js"></script>
+<script src="assets/js/core/storage.js"></script>
+<script src="assets/js/core/session.js"></script>
+<script src="assets/js/modules/auth.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+<script>
+(function() {
+  'use strict';
+
+  // ----------------------------------------------
+  // STATE
+  // ----------------------------------------------
+  let allReports = [];
+  let filteredReports = [];
+  let currentUser = {};
+
+  // Pagination
+  let currentPage = 1;
+  const perPage = 10;
+
+  // DOM refs
+  const tableBody = document.getElementById('historyTable');
+  const paginationEl = document.getElementById('pagination');
+  const searchInput = document.getElementById('searchInput');
+  const filterStatus = document.getElementById('filterStatus');
+  const sortOrder = document.getElementById('sortOrder');
+  const cardTotal = document.getElementById('cardTotal');
+  const cardOpen = document.getElementById('cardOpen');
+  const cardProgress = document.getElementById('cardProgress');
+  const cardDone = document.getElementById('cardDone');
+  const totalReportsSpan = document.getElementById('totalReports');
+
+  // ----------------------------------------------
+  // LOAD USER
+  // ----------------------------------------------
+  function loadUser() {
+    try {
+      const session = BCS.Storage.getSession();
+      if (session && session.user) {
+        currentUser = session.user;
+        currentUser.nik = session.nik || currentUser.nik || '';
+      }
+    } catch (e) {
+      console.warn('Load user error:', e);
+    }
+  }
+
+  // ----------------------------------------------
+  // FETCH DATA
+  // ----------------------------------------------
+  async function fetchReports() {
+    try {
+      tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Memuat data...</td></tr>`;
+      BCS.App.Loading.show();
+
+      const response = await BCS.Api.post('getReport', {});
+      console.log('📥 History response:', response);
+
+      if (!response || !response.success) {
+        tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Gagal memuat data: ${response?.message || 'Unknown error'}</td></tr>`;
+        return;
+      }
+
+      // Ambil data dari response.data.reports
+      const reports = response.data?.reports || [];
+      console.log('📊 Total reports from server:', reports.length);
+
+      // Jika user biasa (bukan admin), filter berdasarkan NIK atau NAMA
+      // (asumsi admin memiliki role 'ADMIN' atau 'ADMINISTRATOR')
+      const role = (currentUser.role || '').toUpperCase();
+      let filtered = reports;
+      if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
+        const userNik = (currentUser.nik || '').trim();
+        const userNama = (currentUser.nama || currentUser.name || '').toLowerCase().trim();
+        filtered = reports.filter(r => {
+          const rNik = String(r.nik || '').trim();
+          const rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
+          if (userNik && rNik) return rNik === userNik;
+          if (userNama && rNama) return rNama === userNama;
+          return false;
+        });
+        console.log('🔍 Filtered for user:', filtered.length);
+      }
+
+      allReports = filtered;
+      applyFilters();
+
+    } catch (err) {
+      console.error('Fetch error:', err);
+      tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Terjadi kesalahan: ${err.message}</td></tr>`;
+    } finally {
+      BCS.App.Loading.hide();
+    }
+  }
+
+  // ----------------------------------------------
+  // FILTER & SORT
+  // ----------------------------------------------
+  function applyFilters() {
+    const keyword = searchInput.value.toLowerCase().trim();
+    const status = filterStatus.value;
+
+    let result = allReports;
+
+    // Search
+    if (keyword) {
+      result = result.filter(r =>
+        (r.id || '').toLowerCase().includes(keyword) ||
+        (r.nama || r.pelapor || '').toLowerCase().includes(keyword) ||
+        (r.kategori || '').toLowerCase().includes(keyword) ||
+        (r.lokasi || '').toLowerCase().includes(keyword) ||
+        (r.deskripsi || '').toLowerCase().includes(keyword)
+      );
+    }
+
+    // Status filter
+    if (status) {
+      result = result.filter(r => (r.status || '').toUpperCase() === status);
+    }
+
+    // Sort
+    const sort = sortOrder.value;
+    result.sort((a, b) => {
+      const dateA = new Date(a.tanggal || a.createdAt || 0);
+      const dateB = new Date(b.tanggal || b.createdAt || 0);
+      return sort === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+
+    filteredReports = result;
+    updateSummary();
+    currentPage = 1;
+    renderTable();
+    renderPagination();
+  }
+
+  // ----------------------------------------------
+  // SUMMARY
+  // ----------------------------------------------
+  function updateSummary() {
+    const total = filteredReports.length;
+    const open = filteredReports.filter(r => (r.status || '').toUpperCase() === 'OPEN').length;
+    const progress = filteredReports.filter(r => (r.status || '').toUpperCase() === 'PROGRESS').length;
+    const done = filteredReports.filter(r => (r.status || '').toUpperCase() === 'DONE').length;
+
+    cardTotal.textContent = total;
+    cardOpen.textContent = open;
+    cardProgress.textContent = progress;
+    cardDone.textContent = done;
+    totalReportsSpan.textContent = total;
+  }
+
+  // ----------------------------------------------
+  // RENDER TABLE
+  // ----------------------------------------------
+  function renderTable() {
+    const start = (currentPage - 1) * perPage;
+    const pageData = filteredReports.slice(start, start + perPage);
+
+    if (pageData.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Tidak ada data</td></tr>`;
+      return;
+    }
+
+    let html = '';
+    pageData.forEach((r, index) => {
+      const statusClass = (r.status || '').toUpperCase();
+      let badgeClass = 'status-open';
+      if (statusClass === 'PROGRESS') badgeClass = 'status-progress';
+      else if (statusClass === 'DONE') badgeClass = 'status-done';
+
+      const hasPhoto = r.foto && r.foto.trim() !== '';
+      const tanggal = r.tanggal || r.createdAt || '';
+      const formattedDate = tanggal ? new Date(tanggal).toLocaleString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '-';
+
+      html += `
+        <tr>
+          <td><strong>${r.id || '-'}</strong></td>
+          <td>${formattedDate}</td>
+          <td>${r.nama || r.pelapor || '-'}</td>
+          <td>${r.kategori || '-'}</td>
+          <td>${r.lokasi || '-'}</td>
+          <td>${(r.deskripsi || '').substring(0, 80)}${(r.deskripsi || '').length > 80 ? '…' : ''}</td>
+          <td><span class="status-badge ${badgeClass}">${r.status || 'OPEN'}</span></td>
+          <td class="text-center">
+            ${hasPhoto ? `<button class="btn btn-sm btn-outline-secondary view-photo" data-src="${r.foto}"><i class="bi bi-image"></i></button>` : '-'}
+          </td>
+          <td class="text-center">
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-primary view-detail" data-id="${r.id}"><i class="bi bi-eye"></i></button>
+              <button class="btn btn-outline-warning edit-report" data-id="${r.id}"><i class="bi bi-pencil-square"></i></button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+    tableBody.innerHTML = html;
+
+    // Attach event listeners for dynamic buttons
+    document.querySelectorAll('.view-photo').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const src = this.dataset.src;
+        document.getElementById('modalPhoto').src = src;
+        const modal = new bootstrap.Modal(document.getElementById('photoModal'));
+        modal.show();
+      });
+    });
+
+    document.querySelectorAll('.view-detail').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        openDetail(id);
+      });
+    });
+
+    document.querySelectorAll('.edit-report').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        openUpdate(id);
+      });
+    });
+  }
+
+  // ----------------------------------------------
+  // PAGINATION
+  // ----------------------------------------------
+  function renderPagination() {
+    const totalPages = Math.ceil(filteredReports.length / perPage);
+    if (totalPages <= 1) {
+      paginationEl.innerHTML = '';
+      return;
+    }
+
+    let html = '';
+    // Prev
+    html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a></li>`;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+        html += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+      } else if (i === currentPage - 2 || i === currentPage + 2) {
+        html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
+      }
+    }
+
+    html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a></li>`;
+
+    paginationEl.innerHTML = html;
+
+    // Event delegation for pagination
+    paginationEl.querySelectorAll('.page-link').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const page = parseInt(this.dataset.page);
+        if (page && page >= 1 && page <= totalPages) {
+          currentPage = page;
+          renderTable();
+          renderPagination();
+          // scroll to top of table
+          document.querySelector('.card-body').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  }
+
+  // ----------------------------------------------
+  // DETAIL MODAL
+  // ----------------------------------------------
+  function openDetail(id) {
+    const report = allReports.find(r => r.id == id);
+    if (!report) return;
+
+    let html = `
+      <table class="table table-sm table-striped">
+        <tr><th>ID</th><td>${report.id || '-'}</td></tr>
+        <tr><th>Tanggal</th><td>${report.tanggal || report.createdAt || '-'}</td></tr>
+        <tr><th>Pelapor</th><td>${report.nama || report.pelapor || '-'}</td></tr>
+        <tr><th>Departemen</th><td>${report.departemen || '-'}</td></tr>
+        <tr><th>Kategori</th><td>${report.kategori || '-'}</td></tr>
+        <tr><th>Lokasi</th><td>${report.lokasi || '-'}</td></tr>
+        <tr><th>Prioritas</th><td>${report.prioritas || '-'}</td></tr>
+        <tr><th>Status</th><td>${report.status || '-'}</td></tr>
+        <tr><th>Deskripsi</th><td>${report.deskripsi || '-'}</td></tr>
+        <tr><th>Teknisi</th><td>${report.teknisi || '-'}</td></tr>
+        <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || '-'}</td></tr>
+        <tr><th>Foto</th><td>${report.foto ? `<a href="${report.foto}" target="_blank">Lihat Foto</a>` : '-'}</td></tr>
+      </table>
+    `;
+    document.getElementById('detailContent').innerHTML = html;
+    const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+    modal.show();
+  }
+
+  // ----------------------------------------------
+  // UPDATE MODAL
+  // ----------------------------------------------
+  let currentEditId = null;
+
+  function openUpdate(id) {
+    const report = allReports.find(r => r.id == id);
+    if (!report) return;
+
+    currentEditId = id;
+    document.getElementById('updateId').value = report.id || '';
+    document.getElementById('updateStatus').value = report.status || 'OPEN';
+    document.getElementById('updateTeknisi').value = report.teknisi || '';
+    document.getElementById('updateCatatan').value = report.catatanTeknisi || '';
+
+    const modal = new bootstrap.Modal(document.getElementById('updateModal'));
+    modal.show();
+  }
+
+  document.getElementById('saveUpdateBtn').addEventListener('click', async function() {
+    const id = document.getElementById('updateId').value;
+    const status = document.getElementById('updateStatus').value;
+    const teknisi = document.getElementById('updateTeknisi').value.trim();
+    const catatan = document.getElementById('updateCatatan').value.trim();
+
+    if (!id) {
+      alert('ID tidak valid');
+      return;
+    }
+
+    try {
+      this.disabled = true;
+      this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
+
+      const payload = { id, status, teknisi, catatan };
+      const response = await BCS.Api.post('updateReport', payload);
+      console.log('Update response:', response);
+
+      if (response && response.success) {
+        alert('✅ Status berhasil diperbarui!');
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
+        if (modal) modal.hide();
+        // Refresh data
+        await fetchReports();
+      } else {
+        alert('❌ Gagal update: ' + (response?.message || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Update error:', err);
+      alert('❌ Terjadi kesalahan: ' + err.message);
+    } finally {
+      this.disabled = false;
+      this.innerHTML = '<i class="bi bi-check-circle"></i> Simpan';
+    }
+  });
+
+  // ----------------------------------------------
+  // EVENT BINDING
+  // ----------------------------------------------
+  searchInput.addEventListener('input', applyFilters);
+  filterStatus.addEventListener('change', applyFilters);
+  sortOrder.addEventListener('change', applyFilters);
+
+  document.getElementById('refreshBtn').addEventListener('click', function() {
+    fetchReports();
+  });
+
+  // ----------------------------------------------
+  // INIT
+  // ----------------------------------------------
+  async function init() {
+    loadUser();
+    await fetchReports();
+    console.log('✅ History page initialized');
+  }
+
+  // Jalankan
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
 </body>
 </html>

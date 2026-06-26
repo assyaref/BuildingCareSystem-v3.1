@@ -3,153 +3,455 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>History | Building Care System Enterprise</title>
+  <title>Riwayat Laporan | Building Care System Enterprise</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <style>
-    body { background: #f3f6fc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    .card { border-radius: 16px; border: none; }
-    .card-header { background: white; border-bottom: 1px solid #e9ecef; }
-    .table th { background: #f8f9fa; font-weight: 600; }
-    .status-badge { font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
-    .status-open { background: #fff3cd; color: #856404; }
-    .status-progress { background: #cce5ff; color: #004085; }
-    .status-done { background: #d4edda; color: #155724; }
-    .btn-outline-primary { border-radius: 20px; }
-    .pagination .page-link { border-radius: 8px; margin: 0 2px; }
-    .pagination .active .page-link { background: #0d6efd; border-color: #0d6efd; color: white; }
+    :root {
+      --primary-color: #0d6efd;
+      --bg-main: #f4f7fe;
+      --sidebar-width: 260px;
+    }
+    body { 
+      background: var(--bg-main); 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      color: #333;
+    }
+    
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-width);
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      background: white;
+      padding: 24px;
+      border-right: 1px solid #eef2f8;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      z-index: 100;
+    }
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: #eef2f8;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-color);
+      font-size: 20px;
+    }
+    .nav-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .nav-item {
+      margin-bottom: 8px;
+    }
+    .nav-link-custom {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: #6c757d;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .nav-link-custom:hover {
+      background: #f8f9fa;
+      color: #333;
+    }
+    .nav-link-custom.active {
+      background: var(--primary-color);
+      color: white;
+    }
+    .sidebar-footer-card {
+      background: #f8fafc;
+      border: 1px dashed #dee2e6;
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      padding: 32px;
+    }
+
+    /* TOPBAR */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #ddd;
+      object-fit: cover;
+    }
+
+    /* CARDS STATS */
+    .card-stat {
+      border: none;
+      border-radius: 20px;
+      padding: 24px;
+      background: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+      position: relative;
+      overflow: hidden;
+    }
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+    .icon-total { background: #e6f0ff; color: #0d6efd; }
+    .icon-open { background: #fff9e6; color: #ffb800; }
+    .icon-progress { background: #e8f4ff; color: #17a2b8; }
+    .icon-done { background: #e6f7ed; color: #28a745; }
+    
+    /* Fake Chart BG Curves to mimic Image */
+    .card-stat::after {
+      content: "";
+      position: absolute;
+      bottom: 10px;
+      right: 15px;
+      width: 80px;
+      height: 35px;
+      opacity: 0.15;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+    .card-stat.c-total::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 20'%3E%3Cpath d='M0,15 Q12,5 25,12 T50,2' fill='none' stroke='%230d6efd' stroke-width='2'/%3E%3C/svg%3E"); }
+    .card-stat.c-open::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 20'%3E%3Cpath d='M0,18 Q15,2 30,15 T50,5' fill='none' stroke='%23ffb800' stroke-width='2'/%3E%3C/svg%3E"); }
+    .card-stat.c-progress::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 20'%3E%3Cpath d='M0,10 Q10,18 25,5 T50,12' fill='none' stroke='%2317a2b8' stroke-width='2'/%3E%3C/svg%3E"); }
+    .card-stat.c-done::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 20'%3E%3Cpath d='M0,15 Q15,15 25,2 T50,10' fill='none' stroke='%2328a745' stroke-width='2'/%3E%3C/svg%3E"); }
+
+    /* FILTERS & TABLES */
+    .content-container {
+      background: white;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.01);
+    }
+    .form-control, .form-select {
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      padding: 10px 16px;
+      font-size: 14px;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--primary-color);
+      box-shadow: none;
+    }
+    
+    /* TABLE STYLING */
+    .table-responsive { overflow-x: auto; }
+    .table th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #a0aec0;
+      font-weight: 700;
+      border-bottom: 1px solid #edf2f7;
+      padding: 16px;
+    }
+    .table td {
+      padding: 16px;
+      font-size: 14px;
+      color: #4a5568;
+      border-bottom: 1px solid #edf2f7;
+      vertical-align: middle;
+    }
+
+    /* CUSTOM BADGES */
+    .status-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      text-transform: uppercase;
+    }
+    .status-open { background: #fff9e6; color: #ffb800; }
+    .status-progress { background: #e8f4ff; color: #17a2b8; }
+    .status-done { background: #e6f7ed; color: #28a745; }
+    
+    .status-open::before { content: "●"; color: #ffb800; }
+    .status-progress::before { content: "●"; color: #17a2b8; }
+    .status-done::before { content: "✓"; color: #28a745; font-weight: 900; }
+
+    /* Category Tag Colors */
+    .tag-category {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .tag-listrik { background: #f3e8ff; color: #9333ea; }
+    .tag-gedung { background: #e0f2fe; color: #0369a1; }
+    .tag-kondisi { background: #ffedd5; color: #c2410c; }
+    .tag-ac { background: #e0f7fa; color: #00838f; }
+    .tag-default { background: #f1f5f9; color: #475569; }
+
+    /* Image Thumbnail rounded */
+    .img-thumb {
+      width: 44px;
+      height: 32px;
+      object-fit: cover;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-action {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 1px solid #e2e8f0;
+      background: white;
+      color: #4a5568;
+    }
+    .btn-action:hover { background: #f8fafc; }
+    .btn-action.view { color: #0d6efd; }
+    .btn-action.edit { color: #ffb800; }
+
+    /* PAGINATION */
+    .pagination .page-link {
+      border: none;
+      color: #718096;
+      margin: 0 4px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    .pagination .page-item.active .page-link {
+      background: var(--primary-color);
+      color: white;
+    }
   </style>
 </head>
 <body>
 
-<div class="container-fluid py-4">
+<div class="sidebar">
+  <div>
+    <div class="brand-section">
+      <div class="brand-logo"><i class="bi bi-building-gear"></i></div>
+      <div>
+        <h6 class="fw-bold mb-0">BCS Enterprise</h6>
+        <small class="text-muted" style="font-size: 11px;">Building Care System</small>
+      </div>
+    </div>
+    
+    <ul class="nav-menu">
+      <li class="nav-item">
+        <a href="#" class="nav-link-custom active">
+          <i class="bi bi-clock-history"></i> Riwayat Laporan
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="dashboard.html" class="nav-link-custom">
+          <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link-custom">
+          <i class="bi bi-plus-circle"></i> Laporan Baru
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link-custom">
+          <i class="bi bi-briefcase"></i> Work Order
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link-custom">
+          <i class="bi bi-display"></i> Monitoring Center
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link-custom">
+          <i class="bi bi-boxes"></i> Aset & Inventaris
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link-custom">
+          <i class="bi bi-gear"></i> Pengaturan
+        </a>
+      </li>
+    </ul>
+  </div>
 
-  <!-- HEADER -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="sidebar-footer-card">
+    <div class="mb-2"><i class="bi bi-headset text-primary fs-4"></i></div>
+    <h6 class="fw-bold mb-1" style="font-size: 13px;">Butuh Bantuan?</h6>
+    <p class="text-muted mb-3" style="font-size: 11px;">Hubungi tim support jika mengalami kendala.</p>
+    <button class="btn btn-sm btn-primary w-100 rounded-pill py-2" id="helpBtn">Hubungi Support</button>
+  </div>
+</div>
+
+<div class="main-content">
+
+  <div class="top-header">
     <div>
-      <h2 class="fw-bold mb-1"><i class="bi bi-clock-history"></i> Riwayat Laporan</h2>
-      <small class="text-muted">Monitoring seluruh laporan Building Care System Enterprise</small>
+      <h3 class="fw-bold mb-1">Riwayat Laporan</h3>
+      <p class="text-muted mb-0" style="font-size: 14px;">Monitoring seluruh laporan Building Care System Enterprise</p>
     </div>
-    <a href="dashboard.html" class="btn btn-outline-primary rounded-pill shadow-sm px-4">
-      <i class="bi bi-house-door"></i> Dashboard
-    </a>
-  </div>
-
-  <!-- SUMMARY CARDS -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body">
-          <h6 class="text-muted">Total Laporan</h6>
-          <h2 class="fw-bold" id="cardTotal">0</h2>
-        </div>
+    <div class="d-flex align-items-center gap-4">
+      <a href="dashboard.html" class="btn btn-white border rounded-pill px-4 shadow-sm bg-white" style="font-size: 14px; text-decoration:none; color:#333;">
+        <i class="bi bi-house-door me-2"></i> Dashboard
+      </a>
+      <div class="position-relative">
+        <i class="bi bi-bell fs-5 text-muted"></i>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 9px; padding: 3px 5px;">3</span>
       </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body">
-          <h6 class="text-warning">OPEN</h6>
-          <h2 class="fw-bold text-warning" id="cardOpen">0</h2>
+      <div class="user-profile">
+        <div class="text-end">
+          <h6 class="fw-bold mb-0" style="font-size: 14px;">Syarif Hidayatullah</h6>
+          <small class="text-muted" style="font-size: 12px;">Administrator</small>
         </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body">
-          <h6 class="text-primary">PROGRESS</h6>
-          <h2 class="fw-bold text-primary" id="cardProgress">0</h2>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body">
-          <h6 class="text-success">DONE</h6>
-          <h2 class="fw-bold text-success" id="cardDone">0</h2>
-        </div>
+        <div class="avatar bg-secondary text-white d-flex align-items-center justify-content-center fw-bold">S</div>
       </div>
     </div>
   </div>
 
-  <!-- FILTER & TABLE -->
-  <div class="card border-0 shadow-sm">
-    <div class="card-header bg-white">
-      <div class="row g-2 align-items-center">
-        <div class="col-lg-4">
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control" id="searchInput" placeholder="Cari ID, pelapor, kategori atau lokasi">
-          </div>
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="card-stat c-total">
+        <div class="icon-box icon-total"><i class="bi bi-file-earmark-text"></i></div>
+        <span class="text-muted d-block mb-1" style="font-size: 12px; font-weight:600;">TOTAL LAPORAN</span>
+        <h2 class="fw-bold mb-0" id="cardTotal">0</h2>
+        <small class="text-muted" style="font-size: 11px;">Semua laporan</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card-stat c-open">
+        <div class="icon-box icon-open"><i class="bi bi-folder2-open"></i></div>
+        <span class="text-warning d-block mb-1" style="font-size: 12px; font-weight:600;">OPEN</span>
+        <h2 class="fw-bold mb-0 text-warning" id="cardOpen">0</h2>
+        <small class="text-muted" style="font-size: 11px;">Laporan terbuka</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card-stat c-progress">
+        <div class="icon-box icon-progress"><i class="bi bi-gear-wide-connected"></i></div>
+        <span class="text-primary d-block mb-1" style="font-size: 12px; font-weight:600;">PROGRESS</span>
+        <h2 class="fw-bold mb-0 text-primary" id="cardProgress">0</h2>
+        <small class="text-muted" style="font-size: 11px;">Sedang diproses</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card-stat c-done">
+        <div class="icon-box icon-done"><i class="bi bi-check2-circle"></i></div>
+        <span class="text-success d-block mb-1" style="font-size: 12px; font-weight:600;">DONE</span>
+        <h2 class="fw-bold mb-0 text-success" id="cardDone">0</h2>
+        <small class="text-muted" style="font-size: 11px;">Selesai</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-container">
+    <div class="row g-3 align-items-center mb-4">
+      <div class="col-lg-4">
+        <div class="input-group">
+          <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control border-start-0 ps-0" id="searchInput" placeholder="Cari ID, pelapor, kategori atau lokasi...">
         </div>
-        <div class="col-lg-2">
-          <select class="form-select" id="filterStatus">
-            <option value="">Semua Status</option>
-            <option value="OPEN">OPEN</option>
-            <option value="PROGRESS">PROGRESS</option>
-            <option value="DONE">DONE</option>
-          </select>
-        </div>
-        <div class="col-lg-2">
-          <select class="form-select" id="sortOrder">
-            <option value="desc">Terbaru</option>
-            <option value="asc">Terlama</option>
-          </select>
-        </div>
-        <div class="col-lg-4 text-end">
-          <small class="text-muted">Total : <strong id="totalReports">0</strong></small>
-          <button class="btn btn-sm btn-outline-secondary ms-2" id="refreshBtn"><i class="bi bi-arrow-clockwise"></i></button>
-        </div>
+      </div>
+      <div class="col-lg-2">
+        <select class="form-select" id="filterStatus">
+          <option value="">Semua Status</option>
+          <option value="OPEN">OPEN</option>
+          <option value="PROGRESS">PROGRESS</option>
+          <option value="DONE">DONE</option>
+        </select>
+      </div>
+      <div class="col-lg-2">
+        <select class="form-select" id="sortOrder">
+          <option value="desc">Terbaru</option>
+          <option value="asc">Terlama</option>
+        </select>
+      </div>
+      <div class="col-lg-4 text-end d-flex align-items-center justify-content-end gap-2">
+        <small class="text-muted fw-semibold">Total: <span id="totalReports" class="text-dark">0</span></small>
+        <button class="btn btn-light border ms-2 rounded-3" id="refreshBtn"><i class="bi bi-arrow-clockwise"></i></button>
       </div>
     </div>
 
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>ID</th>
-              <th>Tanggal</th>
-              <th>Pelapor</th>
-              <th>Kategori</th>
-              <th>Lokasi</th>
-              <th style="min-width:200px">Deskripsi</th>
-              <th>Status</th>
-              <th class="text-center">Foto</th>
-              <th class="text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody id="historyTable">
-            <tr>
-              <td colspan="9" class="text-center py-5 text-muted">
-                <div class="spinner-border spinner-border-sm mb-2"></div><br>
-                Memuat data...
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <nav class="mt-4">
-        <ul class="pagination justify-content-center" id="pagination"></ul>
-      </nav>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>ID Laporan</th>
+            <th>Tanggal</th>
+            <th>Pelapor</th>
+            <th>Kategori</th>
+            <th>Lokasi</th>
+            <th style="min-width:180px">Deskripsi</th>
+            <th>Status</th>
+            <th class="text-center">Foto</th>
+            <th class="text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody id="historyTable">
+          <tr>
+            <td colspan="9" class="text-center py-5 text-muted">
+              <div class="spinner-border spinner-border-sm mb-2 text-primary"></div><br>
+              Memuat data...
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+
+    <nav class="d-flex justify-content-between align-items-center mt-4">
+      <small class="text-muted" id="entriesInfo">Menampilkan data...</small>
+      <ul class="pagination mb-0" id="pagination"></ul>
+    </nav>
   </div>
 
 </div>
 
-<!-- ============================================= -->
-<!-- MODALS -->
-<!-- ============================================= -->
-
-<!-- Update Modal -->
 <div class="modal fade" id="updateModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content border-0 shadow">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Update Status Laporan</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square text-warning me-2"></i> Update Status Laporan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body py-4">
         <div class="mb-3">
           <label class="form-label fw-semibold">ID Laporan</label>
           <input type="text" class="form-control fw-bold bg-light" id="updateId" readonly>
@@ -168,50 +470,45 @@
         </div>
         <div class="mb-3">
           <label class="form-label fw-semibold">Catatan Teknisi</label>
-          <textarea class="form-control" id="updateCatatan" rows="5" placeholder="Masukkan catatan pekerjaan"></textarea>
+          <textarea class="form-control" id="updateCatatan" rows="4" placeholder="Masukkan catatan pekerjaan teknisi secara detail..."></textarea>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-primary" id="saveUpdateBtn"><i class="bi bi-check-circle"></i> Simpan</button>
+      <div class="modal-footer border-0">
+        <button class="btn btn-light rounded-3 px-4" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary rounded-3 px-4" id="saveUpdateBtn"><i class="bi bi-check-circle me-1"></i> Simpan</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Photo Modal -->
 <div class="modal fade" id="photoModal" tabindex="-1">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
+  <div class="modal-dialog modal-md modal-dialog-centered">
     <div class="modal-content border-0 shadow">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-image"></i> Preview Foto</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="bi bi-image text-primary me-2"></i> Preview Foto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body text-center bg-light">
-        <img id="modalPhoto" class="img-fluid rounded shadow" style="max-width:100%; max-height:80vh; object-fit:contain">
+      <div class="modal-body text-center bg-white p-4">
+        <img id="modalPhoto" class="img-fluid rounded-3 shadow-sm" style="max-height:65vh; object-fit:contain; width:100%;">
       </div>
     </div>
   </div>
 </div>
 
-<!-- Detail Modal -->
 <div class="modal fade" id="detailModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
     <div class="modal-content border-0 shadow">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-file-earmark-text"></i> Detail Laporan</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-text text-primary me-2"></i> Detail Laporan Lengkap</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body p-4">
         <div id="detailContent"></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ============================================= -->
-<!-- JAVASCRIPT -->
-<!-- ============================================= -->
 <script src="config/config.js"></script>
 <script src="assets/js/core/app.js"></script>
 <script src="assets/js/core/api.js"></script>
@@ -224,18 +521,13 @@
 (function() {
   'use strict';
 
-  // ----------------------------------------------
-  // STATE
-  // ----------------------------------------------
   let allReports = [];
   let filteredReports = [];
   let currentUser = {};
 
-  // Pagination
   let currentPage = 1;
   const perPage = 10;
 
-  // DOM refs
   const tableBody = document.getElementById('historyTable');
   const paginationEl = document.getElementById('pagination');
   const searchInput = document.getElementById('searchInput');
@@ -246,54 +538,34 @@
   const cardProgress = document.getElementById('cardProgress');
   const cardDone = document.getElementById('cardDone');
   const totalReportsSpan = document.getElementById('totalReports');
+  const entriesInfo = document.getElementById('entriesInfo');
 
-  // ----------------------------------------------
-  // LOAD USER
-  // ----------------------------------------------
   function loadUser() {
     try {
       const session = BCS.Storage.getSession();
       if (session && session.user) {
         currentUser = session.user;
         currentUser.nik = session.nik || currentUser.nik || '';
-        // Pastikan nama tersedia
         currentUser.nama = currentUser.nama || currentUser.name || '';
-        console.log('👤 Current user:', {
-          nama: currentUser.nama,
-          nik: currentUser.nik,
-          role: currentUser.role
-        });
-      } else {
-        console.warn('⚠️ Session tidak ditemukan');
       }
     } catch (e) {
       console.warn('Load user error:', e);
     }
   }
 
-  // ----------------------------------------------
-  // FETCH DATA
-  // ----------------------------------------------
   async function fetchReports() {
     try {
-      tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Memuat data...</td></tr>`;
-      BCS.App.Loading.show();
+      tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2 text-primary"></div><br>Memuat data...</td></tr>`;
+      if(window.BCS && BCS.App && BCS.App.Loading) BCS.App.Loading.show();
 
       const response = await BCS.Api.post('getReport', {});
-      console.log('📥 History response:', response);
 
       if (!response || !response.success) {
         tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Gagal memuat data: ${response?.message || 'Unknown error'}</td></tr>`;
         return;
       }
 
-      // Ambil data dari response.data.reports
       const reports = response.data?.reports || [];
-      console.log('📊 Total reports from server:', reports.length);
-
-      // ==========================================
-      // FILTER BERDASARKAN USER (jika bukan admin)
-      // ==========================================
       const role = (currentUser.role || '').toUpperCase();
       let filtered = reports;
 
@@ -301,25 +573,16 @@
         const userNik = (currentUser.nik || '').trim();
         const userNama = (currentUser.nama || '').toLowerCase().trim();
 
-        console.log('🔍 Filter user - NIK:', userNik, 'NAMA:', userNama);
-
         if (userNik || userNama) {
           filtered = reports.filter(r => {
             const rNik = String(r.nik || '').trim();
             const rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
-
             let match = false;
             if (userNik && rNik) match = rNik === userNik;
             if (!match && userNama && rNama) match = rNama === userNama;
             return match;
           });
-          console.log('🔍 Filtered reports count (by user):', filtered.length);
-        } else {
-          console.warn('⚠️ User has no NIK or NAMA, showing all reports');
-          filtered = reports; // fallback tampilkan semua
         }
-      } else {
-        console.log('👑 Admin: showing all reports');
       }
 
       allReports = filtered;
@@ -329,20 +592,16 @@
       console.error('Fetch error:', err);
       tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Terjadi kesalahan: ${err.message}</td></tr>`;
     } finally {
-      BCS.App.Loading.hide();
+      if(window.BCS && BCS.App && BCS.App.Loading) BCS.App.Loading.hide();
     }
   }
 
-  // ----------------------------------------------
-  // FILTER & SORT
-  // ----------------------------------------------
   function applyFilters() {
     const keyword = searchInput.value.toLowerCase().trim();
     const status = filterStatus.value;
 
     let result = allReports;
 
-    // Search
     if (keyword) {
       result = result.filter(r =>
         (r.id || '').toLowerCase().includes(keyword) ||
@@ -353,12 +612,10 @@
       );
     }
 
-    // Status filter
     if (status) {
       result = result.filter(r => (r.status || '').toUpperCase() === status);
     }
 
-    // Sort
     const sort = sortOrder.value;
     result.sort((a, b) => {
       const dateA = new Date(a.tanggal || a.createdAt || 0);
@@ -373,9 +630,6 @@
     renderPagination();
   }
 
-  // ----------------------------------------------
-  // SUMMARY
-  // ----------------------------------------------
   function updateSummary() {
     const total = filteredReports.length;
     const open = filteredReports.filter(r => (r.status || '').toUpperCase() === 'OPEN').length;
@@ -389,20 +643,32 @@
     totalReportsSpan.textContent = total;
   }
 
-  // ----------------------------------------------
-  // RENDER TABLE
-  // ----------------------------------------------
+  // Helper untuk menentukan warna tag kategori sesuai gambar UI mockup
+  function getCategoryTagClass(category) {
+    const cat = (category || '').toLowerCase();
+    if(cat.includes('listrik')) return 'tag-listrik';
+    if(cat.includes('kondisi')) return 'tag-kondisi';
+    if(cat.includes('gedung')) return 'tag-gedung';
+    if(cat.includes('ac')) return 'tag-ac';
+    return 'tag-default';
+  }
+
   function renderTable() {
     const start = (currentPage - 1) * perPage;
     const pageData = filteredReports.slice(start, start + perPage);
 
     if (pageData.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Tidak ada data</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Tidak ada data ditemukan</td></tr>`;
+      entriesInfo.textContent = "Menampilkan 0 data";
       return;
     }
 
+    // Update bottom left table label text
+    const endCount = start + pageData.length;
+    entriesInfo.textContent = `Tampilkan ${start + 1} - ${endCount} dari ${filteredReports.length} data`;
+
     let html = '';
-    pageData.forEach((r, index) => {
+    pageData.forEach((r) => {
       const statusClass = (r.status || '').toUpperCase();
       let badgeClass = 'status-open';
       if (statusClass === 'PROGRESS') badgeClass = 'status-progress';
@@ -411,23 +677,28 @@
       const hasPhoto = r.foto && r.foto.trim() !== '';
       const tanggal = r.tanggal || r.createdAt || '';
       const formattedDate = tanggal ? new Date(tanggal).toLocaleString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '-';
+      
+      const tagClass = getCategoryTagClass(r.kategori);
+
+      // Gambar default/placeholder jika tidak ada foto asli dari API
+      const photoSrc = hasPhoto ? r.foto : 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2244%22%20height%3D%2232%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org/2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23e2e8f0%22%2F%3E%3C%2Fsvg%3E';
 
       html += `
         <tr>
-          <td><strong>${r.id || '-'}</strong></td>
-          <td>${formattedDate}</td>
-          <td>${r.nama || r.pelapor || '-'}</td>
-          <td>${r.kategori || '-'}</td>
-          <td>${r.lokasi || '-'}</td>
-          <td>${(r.deskripsi || '').substring(0, 80)}${(r.deskripsi || '').length > 80 ? '…' : ''}</td>
+          <td><strong class="text-dark">${r.id || '-'}</strong></td>
+          <td style="font-size:13px; color:#718096;"><i class="bi bi-clock me-1"></i> ${formattedDate}</td>
+          <td><i class="bi bi-person me-1 text-muted"></i> ${r.nama || r.pelapor || '-'}</td>
+          <td><span class="tag-category ${tagClass}">${r.kategori || '-'}</span></td>
+          <td style="font-size:13px;"><i class="bi bi-geo-alt text-muted me-1"></i> ${r.lokasi || '-'}</td>
+          <td class="text-truncate" style="max-width: 220px;">${r.deskripsi || '-'}</td>
           <td><span class="status-badge ${badgeClass}">${r.status || 'OPEN'}</span></td>
           <td class="text-center">
-            ${hasPhoto ? `<button class="btn btn-sm btn-outline-secondary view-photo" data-src="${r.foto}"><i class="bi bi-image"></i></button>` : '-'}
+            <img src="${photoSrc}" class="img-thumb view-photo-thumb" data-src="${photoSrc}" alt="Foto">
           </td>
           <td class="text-center">
-            <div class="btn-group btn-group-sm">
-              <button class="btn btn-outline-primary view-detail" data-id="${r.id}"><i class="bi bi-eye"></i></button>
-              <button class="btn btn-outline-warning edit-report" data-id="${r.id}"><i class="bi bi-pencil-square"></i></button>
+            <div class="d-flex justify-content-center gap-1">
+              <button class="btn btn-action view view-detail" data-id="${r.id}" title="Detail"><i class="bi bi-eye"></i></button>
+              <button class="btn btn-action edit edit-report" data-id="${r.id}" title="Edit Status"><i class="bi bi-pencil"></i></button>
             </div>
           </td>
         </tr>
@@ -435,34 +706,23 @@
     });
     tableBody.innerHTML = html;
 
-    // Attach event listeners for dynamic buttons
-    document.querySelectorAll('.view-photo').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const src = this.dataset.src;
-        document.getElementById('modalPhoto').src = src;
-        const modal = new bootstrap.Modal(document.getElementById('photoModal'));
-        modal.show();
+    // Attach Action Events
+    document.querySelectorAll('.view-photo-thumb').forEach(img => {
+      img.addEventListener('click', function() {
+        document.getElementById('modalPhoto').src = this.dataset.src;
+        new bootstrap.Modal(document.getElementById('photoModal')).show();
       });
     });
 
     document.querySelectorAll('.view-detail').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const id = this.dataset.id;
-        openDetail(id);
-      });
+      btn.addEventListener('click', function() { openDetail(this.dataset.id); });
     });
 
     document.querySelectorAll('.edit-report').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const id = this.dataset.id;
-        openUpdate(id);
-      });
+      btn.addEventListener('click', function() { openUpdate(this.dataset.id); });
     });
   }
 
-  // ----------------------------------------------
-  // PAGINATION
-  // ----------------------------------------------
   function renderPagination() {
     const totalPages = Math.ceil(filteredReports.length / perPage);
     if (totalPages <= 1) {
@@ -471,7 +731,6 @@
     }
 
     let html = '';
-    // Prev
     html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a></li>`;
 
     for (let i = 1; i <= totalPages; i++) {
@@ -483,10 +742,8 @@
     }
 
     html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a></li>`;
-
     paginationEl.innerHTML = html;
 
-    // Event delegation for pagination
     paginationEl.querySelectorAll('.page-link').forEach(link => {
       link.addEventListener('click', function(e) {
         e.preventDefault();
@@ -495,58 +752,47 @@
           currentPage = page;
           renderTable();
           renderPagination();
-          // scroll to top of table
-          document.querySelector('.card-body').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       });
     });
   }
 
-  // ----------------------------------------------
-  // DETAIL MODAL
-  // ----------------------------------------------
   function openDetail(id) {
     const report = allReports.find(r => r.id == id);
     if (!report) return;
 
     let html = `
-      <table class="table table-sm table-striped">
-        <tr><th>ID</th><td>${report.id || '-'}</td></tr>
-        <tr><th>Tanggal</th><td>${report.tanggal || report.createdAt || '-'}</td></tr>
-        <tr><th>Pelapor</th><td>${report.nama || report.pelapor || '-'}</td></tr>
-        <tr><th>Departemen</th><td>${report.departemen || '-'}</td></tr>
-        <tr><th>Kategori</th><td>${report.kategori || '-'}</td></tr>
-        <tr><th>Lokasi</th><td>${report.lokasi || '-'}</td></tr>
-        <tr><th>Prioritas</th><td>${report.prioritas || '-'}</td></tr>
-        <tr><th>Status</th><td>${report.status || '-'}</td></tr>
-        <tr><th>Deskripsi</th><td>${report.deskripsi || '-'}</td></tr>
-        <tr><th>Teknisi</th><td>${report.teknisi || '-'}</td></tr>
-        <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || '-'}</td></tr>
-        <tr><th>Foto</th><td>${report.foto ? `<a href="${report.foto}" target="_blank">Lihat Foto</a>` : '-'}</td></tr>
-      </table>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+          <tr><th width="30%" class="bg-light">ID Laporan</th><td><strong>${report.id || '-'}</strong></td></tr>
+          <tr><th class="bg-light">Tanggal Masuk</th><td>${report.tanggal || report.createdAt || '-'}</td></tr>
+          <tr><th class="bg-light">Pelapor</th><td>${report.nama || report.pelapor || '-'}</td></tr>
+          <tr><th class="bg-light">Departemen</th><td>${report.departemen || '-'}</td></tr>
+          <tr><th class="bg-light">Kategori</th><td><span class="badge bg-secondary">${report.kategori || '-'}</span></td></tr>
+          <tr><th class="bg-light">Lokasi Spesifik</th><td>${report.lokasi || '-'}</td></tr>
+          <tr><th class="bg-light">Prioritas Tingkat</th><td>${report.prioritas || '-'}</td></tr>
+          <tr><th class="bg-light">Status Sekarang</th><td><span class="badge bg-dark">${report.status || 'OPEN'}</span></td></tr>
+          <tr><th class="bg-light">Deskripsi Masalah</th><td>${report.deskripsi || '-'}</td></tr>
+          <tr><th class="bg-light">Teknisi Bertugas</th><td>${report.teknisi || '-'}</td></tr>
+          <tr><th class="bg-light">Catatan Penanganan</th><td>${report.catatanTeknisi || '-'}</td></tr>
+          <tr><th class="bg-light">Lampiran Foto</th><td>${report.foto ? `<a href="${report.foto}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-box-arrow-up-right"></i> Buka Link Foto</a>` : '-'}</td></tr>
+        </table>
+      </div>
     `;
     document.getElementById('detailContent').innerHTML = html;
-    const modal = new bootstrap.Modal(document.getElementById('detailModal'));
-    modal.show();
+    new bootstrap.Modal(document.getElementById('detailModal')).show();
   }
-
-  // ----------------------------------------------
-  // UPDATE MODAL
-  // ----------------------------------------------
-  let currentEditId = null;
 
   function openUpdate(id) {
     const report = allReports.find(r => r.id == id);
     if (!report) return;
 
-    currentEditId = id;
     document.getElementById('updateId').value = report.id || '';
     document.getElementById('updateStatus').value = report.status || 'OPEN';
     document.getElementById('updateTeknisi').value = report.teknisi || '';
     document.getElementById('updateCatatan').value = report.catatanTeknisi || '';
 
-    const modal = new bootstrap.Modal(document.getElementById('updateModal'));
-    modal.show();
+    new bootstrap.Modal(document.getElementById('updateModal')).show();
   }
 
   document.getElementById('saveUpdateBtn').addEventListener('click', async function() {
@@ -555,10 +801,7 @@
     const teknisi = document.getElementById('updateTeknisi').value.trim();
     const catatan = document.getElementById('updateCatatan').value.trim();
 
-    if (!id) {
-      alert('ID tidak valid');
-      return;
-    }
+    if (!id) return alert('ID tidak valid');
 
     try {
       this.disabled = true;
@@ -566,54 +809,39 @@
 
       const payload = { id, status, teknisi, catatan };
       const response = await BCS.Api.post('updateReport', payload);
-      console.log('Update response:', response);
 
       if (response && response.success) {
-        alert('✅ Status berhasil diperbarui!');
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
+        alert('✅ Status laporan berhasil diperbarui!');
+        const mEl = document.getElementById('updateModal');
+        const modal = bootstrap.Modal.getInstance(mEl);
         if (modal) modal.hide();
-        // Refresh data
         await fetchReports();
       } else {
         alert('❌ Gagal update: ' + (response?.message || 'Unknown error'));
       }
     } catch (err) {
-      console.error('Update error:', err);
       alert('❌ Terjadi kesalahan: ' + err.message);
     } finally {
       this.disabled = false;
-      this.innerHTML = '<i class="bi bi-check-circle"></i> Simpan';
+      this.innerHTML = '<i class="bi bi-check-circle me-1"></i> Simpan';
     }
   });
 
-  // ----------------------------------------------
-  // EVENT BINDING
-  // ----------------------------------------------
   searchInput.addEventListener('input', applyFilters);
   filterStatus.addEventListener('change', applyFilters);
   sortOrder.addEventListener('change', applyFilters);
+  document.getElementById('refreshBtn').addEventListener('click', fetchReports);
 
-  document.getElementById('refreshBtn').addEventListener('click', function() {
-    fetchReports();
-  });
-
-  // ----------------------------------------------
-  // INIT
-  // ----------------------------------------------
   async function init() {
     loadUser();
     await fetchReports();
-    console.log('✅ History page initialized');
   }
 
-  // Jalankan
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
   }
-
 })();
 </script>
 </body>

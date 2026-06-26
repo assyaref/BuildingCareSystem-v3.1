@@ -90,7 +90,7 @@
     <main class="content">
         <div class="container-fluid">
 
-            <!-- TOPBAR (SAMA PERSIS DENGAN DASHBOARD) -->
+            <!-- TOPBAR – BADGE USER MINIMALIS -->
             <header class="topbar">
                 <div>
                     <h3>Riwayat Laporan</h3>
@@ -100,39 +100,20 @@
                         <span class="brand-location">Radiant Group Duri</span>
                     </small>
                 </div>
-                <div class="user-profile-card">
 
-                    <div class="profile-top">
-                        <div class="avatar">
-                            <i class="bi bi-person-fill"></i>
-                        </div>
-                        <div>
-                            <div class="profile-name" id="userName">Loading...</div>
-                            <div class="role-badge" id="userRole">Administrator</div>
-                        </div>
+                <!-- MINIMALIS BADGE: HANYA AVATAR, NAMA, ROLE -->
+                <div class="d-flex align-items-center gap-3">
+                    <div class="avatar-sm" id="userAvatar" style="width:40px;height:40px;border-radius:50%;background:#4b7bec;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;">U</div>
+                    <div>
+                        <div class="fw-bold" id="userName" style="font-size:14px;color:#1a1a2e;">Loading...</div>
+                        <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
                     </div>
-
-                    <div class="profile-detail">
-                        <div>
-                            🪪 <span>ID :</span>
-                            <strong id="userNik">-</strong>
-                        </div>
-                        <div>
-                            🕒 <span>Last Login :</span>
-                            <strong id="lastLogin">-</strong>
-                        </div>
-                    </div>
-
-                    <div class="profile-footer">
-                        Building Care System Enterprise
-                        <small>Radiant Group Duri</small>
-                    </div>
-
                 </div>
+
             </header>
 
             <!-- ======================================================
-                 SUMMARY CARDS (SAMA DENGAN HISTORY SEBELUMNYA)
+                 SUMMARY CARDS
             ======================================================= -->
             <section class="row g-4 mt-2">
 
@@ -394,17 +375,22 @@
     'use strict';
 
     // =============================================
-    // LOAD USER INFO
+    // LOAD USER INFO (BADGE MINIMALIS)
     // =============================================
     function loadUserInfo() {
         try {
             const session = BCS.Storage.getSession();
             if (session && session.user) {
                 const user = session.user;
-                document.getElementById('userName').textContent = user.nama || user.name || 'User';
-                document.getElementById('userRole').textContent = user.role || 'User';
-                document.getElementById('userNik').textContent = session.nik || user.nik || '-';
-                document.getElementById('lastLogin').textContent = user.lastLogin || '-';
+                const nama = user.nama || user.name || 'User';
+                const role = user.role || 'User';
+
+                document.getElementById('userName').textContent = nama;
+                document.getElementById('userRole').textContent = role;
+
+                // Avatar inisial
+                const avatar = document.getElementById('userAvatar');
+                avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
             }
         } catch (e) {
             console.warn('Load user info error:', e);

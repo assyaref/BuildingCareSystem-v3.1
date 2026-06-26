@@ -18,18 +18,14 @@
     .bottom-nav { background:#fff; border-top:1px solid rgba(0,0,0,0.05); padding:10px 0 12px; display:grid; grid-template-columns:1fr 1fr; text-align:center; flex-shrink:0; }
     .bottom-nav a { text-decoration:none; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11px; font-weight:700; transition:color 0.2s; }
     .bottom-nav a i { font-size:20px; }
-
     .status-badge { font-size:10px; font-weight:700; padding:2px 10px; border-radius:6px; display:inline-block; letter-spacing:0.3px; }
     .status-done { background:#dcfce7; color:#16a34a; }
     .status-progress { background:#fef3c7; color:#d97706; }
     .status-open { background:#fee2e2; color:#dc2626; }
-
     .history-item { transition:all 0.2s; cursor:default; -webkit-tap-highlight-color:transparent; }
     .history-item:active { transform:scale(0.99); }
-
     .img-thumb { width:60px; height:60px; background:#f3f4f6; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#d1d5db; font-size:22px; flex-shrink:0; overflow:hidden; cursor:pointer; }
     .img-thumb img { width:100%; height:100%; object-fit:cover; }
-
     .search-wrap { background:#f3f4f6; border-radius:14px; display:flex; align-items:center; padding:0 16px; gap:12px; flex:1; }
     .search-wrap input { background:transparent; border:none; width:100%; padding:12px 0; font-size:14px; color:#1f2937; }
     .search-wrap input::placeholder { color:#9ca3af; font-weight:400; }
@@ -69,7 +65,6 @@
 
   <!-- Content -->
   <div class="scroll-content bg-white rounded-t-2xl px-5 pt-5 pb-4">
-    <!-- Search -->
     <div class="flex gap-3 mb-5">
       <div class="search-wrap">
         <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
@@ -77,8 +72,6 @@
       </div>
       <button class="filter-btn" id="filterBtn"><i class="fa-solid fa-sliders"></i></button>
     </div>
-
-    <!-- List -->
     <div id="historyList">
       <div class="text-center text-gray-400 py-8">
         <i class="fa-regular fa-clock text-3xl block mb-2"></i>
@@ -107,7 +100,7 @@
 </div>
 
 <!-- ============================================ -->
-<!-- SCRIPT ENTERPRISE                            -->
+<!-- SCRIPT ENTERPRISE + jQuery                   -->
 <!-- ============================================ -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -123,7 +116,6 @@
   (function() {
     'use strict';
 
-    // Inisialisasi modul
     $(document).ready(function() {
       if (typeof UserHistoryModule !== 'undefined' && UserHistoryModule.init) {
         UserHistoryModule.init();
@@ -163,7 +155,7 @@
     });
 
     // =============================================
-    // LOGOUT DENGAN KONFIRMASI (FIXED)
+    // LOGOUT – Perbaikan menggunakan removeSession
     // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
@@ -180,16 +172,15 @@
       try {
         if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
           BCS.Storage.removeSession();
-        }
-        if (window.Session && typeof Session.clear === 'function') {
+        } else if (window.Session && typeof Session.clear === 'function') {
           Session.clear();
         }
       } catch (e) {}
 
       const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
       keys.forEach(key => {
-        try { localStorage.removeItem(key); } catch(e) {}
-        try { sessionStorage.removeItem(key); } catch(e) {}
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
       });
 
       window.location.href = 'login.html';

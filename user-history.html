@@ -64,7 +64,6 @@
 
   <!-- Content -->
   <div class="scroll-content bg-white rounded-t-2xl px-5 pt-5 pb-4">
-    <!-- Search -->
     <div class="flex gap-3 mb-5">
       <div class="search-wrap">
         <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
@@ -72,8 +71,6 @@
       </div>
       <button class="filter-btn" id="filterBtn"><i class="fa-solid fa-sliders"></i></button>
     </div>
-
-    <!-- List -->
     <div id="historyList">
       <div class="text-center text-gray-400 py-8">
         <i class="fa-regular fa-clock text-3xl block mb-2"></i>
@@ -133,11 +130,11 @@
         const avatar = document.getElementById('userAvatar');
         avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
 
-        // Simpan user info untuk filter
-        window._user = { nama, nik, dept };
+        // 🔥 Simpan NIK dan NAMA untuk filter
+        window._user = { nama: nama.toLowerCase().trim(), nik: nik.trim(), dept };
       } catch (e) {
         console.warn('Gagal load user:', e);
-        window._user = { nama: 'User', nik: '', dept: '' };
+        window._user = { nama: '', nik: '', dept: '' };
       }
     }
 
@@ -167,11 +164,24 @@
           return;
         }
 
-        // Filter berdasarkan pelapor (case-insensitive)
+        const userNik = window._user?.nik || '';
         const userNama = window._user?.nama || '';
+
+        // 🔥 FILTER BY NIK (jika ada) atau NAMA
         const filtered = reports.filter(r => {
-          const pelapor = String(r.nama || r.pelapor || '').toLowerCase();
-          return pelapor === userNama.toLowerCase();
+          const reportNik = String(r.nik || '').trim();
+          const reportNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
+
+          // Prioritas: filter pakai NIK jika ada
+          if (userNik && reportNik) {
+            return reportNik === userNik;
+          }
+          // Fallback: filter pakai NAMA
+          if (userNama && reportNama) {
+            return reportNama === userNama;
+          }
+          // Jika tidak ada data identitas, tampilkan semua (fallback)
+          return false;
         });
 
         allReports = filtered;
@@ -201,7 +211,6 @@
         if (status === 'DONE') statusClass = 'status-done';
         else if (status === 'PROGRESS') statusClass = 'status-progress';
 
-        // Foto thumbnail
         const foto = r.foto || '';
         const fotoHtml = foto
           ? `<img src="${foto}" alt="foto" />`
@@ -251,7 +260,6 @@
       renderReports(filteredReports);
     });
 
-    // Filter button (filter by status)
     document.getElementById('filterBtn').addEventListener('click', function() {
       const status = prompt('Filter berdasarkan status (ketik: DONE, PROGRESS, OPEN, atau kosongkan untuk reset)');
       if (status === null) return;
@@ -280,7 +288,6 @@
       const img = document.getElementById('photoPreview');
       img.src = foto;
       modal.style.display = 'flex';
-      // Bootstrap modal if needed
       try {
         const bsModal = new bootstrap.Modal(modal);
         bsModal.show();
@@ -289,7 +296,6 @@
       }
     };
 
-    // Close modal
     document.getElementById('photoModal').addEventListener('click', function(e) {
       if (e.target === this) {
         this.style.display = 'none';

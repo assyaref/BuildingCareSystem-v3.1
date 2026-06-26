@@ -73,6 +73,12 @@
       <input type="text" id="lokasi" placeholder="Contoh : Ruang Meeting" class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm transition" />
     </div>
 
+    <!-- ========== DEPARTEMEN (TAMBAHAN) ========== -->
+    <div class="mb-4">
+      <label class="block text-sm font-bold text-gray-800 mb-1.5">Departemen</label>
+      <input type="text" id="departemen" placeholder="Contoh : General Affair" class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm transition" />
+    </div>
+
     <!-- Kategori -->
     <div class="mb-4">
       <label class="block text-sm font-bold text-gray-800 mb-1.5">Kategori Kerusakan</label>
@@ -163,6 +169,12 @@
         document.getElementById('userDept').textContent = dept || nik || 'Building Care';
         const avatar = document.getElementById('userAvatar');
         avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
+
+        // Isi otomatis field departemen jika ada dari session
+        const deptInput = document.getElementById('departemen');
+        if (deptInput && dept) {
+          deptInput.value = dept;
+        }
       } catch (e) {
         console.warn('Gagal load user:', e);
       }
@@ -248,7 +260,7 @@
     const previewWrapper = document.getElementById('previewWrapper');
     const removePhotoBtn = document.getElementById('photoRemove');
 
-    let currentFile = null; // simpan file untuk upload
+    let currentFile = null;
 
     function showPreview(file) {
       if (!file) return;
@@ -310,6 +322,14 @@
         return;
       }
 
+      // 🔥 Validasi DEPARTEMEN
+      const departemen = document.getElementById('departemen').value.trim();
+      if (!departemen) {
+        alert('Departemen wajib diisi');
+        document.getElementById('departemen').focus();
+        return;
+      }
+
       const kategori = document.getElementById('selectedCategory').value;
       if (!kategori) {
         alert('Pilih kategori kerusakan');
@@ -330,7 +350,6 @@
       const user = session?.user || {};
       const nama = user.nama || user.name || 'User';
       const nik = session?.nik || user.nik || '';
-      const departemen = user.departemen || user.department || '';
 
       // Konversi foto ke base64 jika ada
       let photoBase64 = '';
@@ -355,7 +374,7 @@
       const payload = {
         nama: nama,
         nik: nik,
-        departemen: departemen,
+        departemen: departemen, // 🔥 ambil dari input, bukan dari session
         lokasi: lokasi,
         kategori: kategori,
         prioritas: prioritas,
@@ -378,6 +397,7 @@
           alert('✅ Report berhasil dikirim!');
           // Reset form
           document.getElementById('lokasi').value = '';
+          document.getElementById('departemen').value = '';
           document.getElementById('deskripsi').value = '';
           document.getElementById('charCount').textContent = '0';
           clearPreview();

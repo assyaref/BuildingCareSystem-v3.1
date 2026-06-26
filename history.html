@@ -256,6 +256,7 @@
       if (session && session.user) {
         currentUser = session.user;
         currentUser.nik = session.nik || currentUser.nik || '';
+        console.log('👤 Current user:', currentUser);
       }
     } catch (e) {
       console.warn('Load user error:', e);
@@ -283,7 +284,6 @@
       console.log('📊 Total reports from server:', reports.length);
 
       // Jika user biasa (bukan admin), filter berdasarkan NIK atau NAMA
-      // (asumsi admin memiliki role 'ADMIN' atau 'ADMINISTRATOR')
       const role = (currentUser.role || '').toUpperCase();
       let filtered = reports;
       if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {

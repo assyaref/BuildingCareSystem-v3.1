@@ -256,7 +256,15 @@
       if (session && session.user) {
         currentUser = session.user;
         currentUser.nik = session.nik || currentUser.nik || '';
-        console.log('👤 Current user:', currentUser);
+        // Pastikan nama tersedia
+        currentUser.nama = currentUser.nama || currentUser.name || '';
+        console.log('👤 Current user:', {
+          nama: currentUser.nama,
+          nik: currentUser.nik,
+          role: currentUser.role
+        });
+      } else {
+        console.warn('⚠️ Session tidak ditemukan');
       }
     } catch (e) {
       console.warn('Load user error:', e);
@@ -283,20 +291,35 @@
       const reports = response.data?.reports || [];
       console.log('📊 Total reports from server:', reports.length);
 
-      // Jika user biasa (bukan admin), filter berdasarkan NIK atau NAMA
+      // ==========================================
+      // FILTER BERDASARKAN USER (jika bukan admin)
+      // ==========================================
       const role = (currentUser.role || '').toUpperCase();
       let filtered = reports;
+
       if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
         const userNik = (currentUser.nik || '').trim();
-        const userNama = (currentUser.nama || currentUser.name || '').toLowerCase().trim();
-        filtered = reports.filter(r => {
-          const rNik = String(r.nik || '').trim();
-          const rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
-          if (userNik && rNik) return rNik === userNik;
-          if (userNama && rNama) return rNama === userNama;
-          return false;
-        });
-        console.log('🔍 Filtered for user:', filtered.length);
+        const userNama = (currentUser.nama || '').toLowerCase().trim();
+
+        console.log('🔍 Filter user - NIK:', userNik, 'NAMA:', userNama);
+
+        if (userNik || userNama) {
+          filtered = reports.filter(r => {
+            const rNik = String(r.nik || '').trim();
+            const rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
+
+            let match = false;
+            if (userNik && rNik) match = rNik === userNik;
+            if (!match && userNama && rNama) match = rNama === userNama;
+            return match;
+          });
+          console.log('🔍 Filtered reports count (by user):', filtered.length);
+        } else {
+          console.warn('⚠️ User has no NIK or NAMA, showing all reports');
+          filtered = reports; // fallback tampilkan semua
+        }
+      } else {
+        console.log('👑 Admin: showing all reports');
       }
 
       allReports = filtered;

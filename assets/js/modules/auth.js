@@ -1,5 +1,4 @@
-// auth.js - Building Care System v7.2
-// Support multiple login call styles
+// auth.js - Building Care System v7.2 (fixed logout)
 
 (function() {
     "use strict";
@@ -9,32 +8,19 @@
         return;
     }
 
-    /**
-     * Login function – mendukung dua cara pemanggilan:
-     * - login(nik, password)
-     * - login({ nik, password })
-     */
     async function login(nikOrPayload, password) {
         let payload = {};
-
-        // Deteksi tipe argumen pertama
         if (typeof nikOrPayload === 'string') {
-            // Cara 1: login(nik, password)
             payload.nik = nikOrPayload;
             payload.password = password || '';
         } else if (typeof nikOrPayload === 'object' && nikOrPayload !== null) {
-            // Cara 2: login({ nik, password })
             payload = { ...nikOrPayload };
         } else {
-            // Fallback kosong
             payload = { nik: '', password: '' };
         }
-
-        // Pastikan selalu string
         payload.nik = String(payload.nik || '');
         payload.password = String(payload.password || '');
 
-        // Validasi sederhana (opsional)
         if (!payload.nik || !payload.password) {
             BCS.App.Toast.danger("NIK dan Password wajib diisi.");
             return { success: false, message: "NIK dan Password wajib diisi." };
@@ -44,11 +30,9 @@
 
         try {
             BCS.Logger.info("Login Request", payload);
-
             if (!BCS.Api || typeof BCS.Api.post !== 'function') {
                 throw new Error("API client not available");
             }
-
             const response = await BCS.Api.post("login", payload);
             BCS.Logger.info("Login Response", response);
 
@@ -90,7 +74,6 @@
             console.log(`✅ [LOGIN] Redirecting to: ${targetPage}`);
 
             window.location.replace(targetPage);
-
             return response;
 
         } catch (err) {
@@ -103,33 +86,45 @@
         }
     }
 
-    /**
-     * Logout – hapus session dan redirect
-     */
-    function logout(redirectTo = "index.html") {
+    // =============================================
+    // LOGOUT - FIXED: gunakan removeSession
+    // =============================================
+    function logout(redirectTo = "login.html") {
         BCS.Logger.info("Logout");
-        BCS.Storage.clearSession();
+
+        // Gunakan removeSession (bukan clearSession)
+        try {
+            if (BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
+                BCS.Storage.removeSession();
+            }
+            if (window.Session && typeof Session.clear === 'function') {
+                Session.clear();
+            }
+        } catch (e) {
+            console.warn("Logout fallback:", e);
+        }
+
+        // Hapus manual semua key
+        const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
+        keys.forEach(key => {
+            try { localStorage.removeItem(key); } catch(e) {}
+            try { sessionStorage.removeItem(key); } catch(e) {}
+        });
+
         BCS.App.Toast.info("Anda telah keluar");
         if (redirectTo) {
             window.location.replace(redirectTo);
         }
     }
 
-    /**
-     * Cek status login
-     */
     function isLoggedIn() {
         return BCS.Session?.isLoggedIn?.() || false;
     }
 
-    /**
-     * Ambil session saat ini
-     */
     function getSession() {
         return BCS.Storage.getSession();
     }
 
-    // Ekspos ke global
     window.auth = { login, logout, isLoggedIn, getSession };
     window.login = login;
 

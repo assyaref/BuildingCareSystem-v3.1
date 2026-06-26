@@ -81,7 +81,6 @@
         <div class="cat-card" data-value="AC"><i class="fa-solid fa-snowflake text-xl block"></i><span class="text-xs font-bold">AC</span></div>
         <div class="cat-card" data-value="KONDISI GEDUNG" style="grid-column:span 2;"><i class="fa-solid fa-building text-xl block"></i><span class="text-xs font-bold">KONDISI GEDUNG</span></div>
       </div>
-      <!-- Hidden input untuk menyimpan kategori yang dipilih -->
       <input type="hidden" id="selectedCategory" value="LISTRIK" />
     </div>
 
@@ -180,7 +179,7 @@
     }
 
     // =============================================
-    // 2. KATEGORI – dengan hidden input & modul state
+    // 2. KATEGORI
     // =============================================
     const categoryCards = document.querySelectorAll('.cat-card');
     const hiddenCategory = document.getElementById('selectedCategory');
@@ -198,7 +197,6 @@
         }
       });
       hiddenCategory.value = value;
-      // Sinkronkan dengan modul
       if (window.UserReportModule && window.UserReportModule.state) {
         window.UserReportModule.state.form.kategori = value;
       }
@@ -211,8 +209,6 @@
         updateCategoryUI(value);
       });
     });
-
-    // Set default
     updateCategoryUI('LISTRIK');
 
     // =============================================
@@ -240,7 +236,62 @@
     }
 
     // =============================================
-    // 4. INISIALISASI MODUL
+    // 4. PREVIEW FOTO (FIX)
+    // =============================================
+    const previewImage = document.getElementById('previewImage');
+    const previewPlaceholder = document.getElementById('previewPlaceholder');
+    const previewWrapper = document.getElementById('previewWrapper');
+    const removePhotoBtn = document.getElementById('photoRemove');
+
+    function showPreview(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        previewImage.src = e.target.result;
+        previewImage.style.display = 'block';
+        previewPlaceholder.style.display = 'none';
+        previewWrapper.classList.add('has-image');
+        removePhotoBtn.style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearPreview() {
+      previewImage.src = '';
+      previewImage.style.display = 'none';
+      previewPlaceholder.style.display = 'flex';
+      previewWrapper.classList.remove('has-image');
+      removePhotoBtn.style.display = 'none';
+      photoInput.value = '';
+    }
+
+    photoInput.addEventListener('change', function(e) {
+      const file = this.files[0];
+      if (file) {
+        // Validasi ukuran (opsional)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Ukuran foto maksimal 5 MB');
+          this.value = '';
+          return;
+        }
+        showPreview(file);
+      }
+    });
+
+    removePhotoBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      clearPreview();
+    });
+
+    // Klik pada drop-zone juga bisa memicu galeri (fallback)
+    previewWrapper.addEventListener('click', function(e) {
+      // Jika yang diklik adalah tombol hapus, jangan trigger
+      if (e.target.closest('#photoRemove')) return;
+      galleryBtn.click();
+    });
+
+    // =============================================
+    // 5. INISIALISASI MODUL
     // =============================================
     document.addEventListener('DOMContentLoaded', function() {
       if (typeof UserReportModule !== 'undefined' && UserReportModule.init) {
@@ -256,7 +307,7 @@
     });
 
     // =============================================
-    // 5. NAVIGASI
+    // 6. NAVIGASI
     // =============================================
     document.getElementById('navHistory').addEventListener('click', function(e) {
       e.preventDefault();
@@ -273,7 +324,7 @@
     });
 
     // =============================================
-    // 6. LOGOUT – Perbaikan menggunakan removeSession
+    // 7. LOGOUT
     // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
@@ -282,13 +333,11 @@
         return;
       }
 
-      // Coba gunakan auth.logout jika ada
       if (window.auth && typeof window.auth.logout === 'function') {
         window.auth.logout();
         return;
       }
 
-      // Fallback manual dengan removeSession yang benar
       try {
         if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
           BCS.Storage.removeSession();
@@ -297,7 +346,6 @@
         }
       } catch (e) {}
 
-      // Hapus semua key terkait session
       const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
       keys.forEach(key => {
         localStorage.removeItem(key);

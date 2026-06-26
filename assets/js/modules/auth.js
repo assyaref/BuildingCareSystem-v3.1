@@ -1,5 +1,5 @@
-// auth.js - Building Care System v7.1
-// Fully compatible with api.js (Google Script integration)
+// auth.js - Building Care System v7.2
+// Support multiple login call styles
 
 (function() {
     "use strict";
@@ -10,68 +10,74 @@
     }
 
     /**
-     * Login function
-     * @param {Object} payload - { username, password } or { nik, password }
-     * @returns {Promise<Object>} response from API
+     * Login function – mendukung dua cara pemanggilan:
+     * - login(nik, password)
+     * - login({ nik, password })
      */
-    async function login(payload = {}) {
-        // Tampilkan loading (opsional – api.js juga punya overlay sendiri)
+    async function login(nikOrPayload, password) {
+        let payload = {};
+
+        // Deteksi tipe argumen pertama
+        if (typeof nikOrPayload === 'string') {
+            // Cara 1: login(nik, password)
+            payload.nik = nikOrPayload;
+            payload.password = password || '';
+        } else if (typeof nikOrPayload === 'object' && nikOrPayload !== null) {
+            // Cara 2: login({ nik, password })
+            payload = { ...nikOrPayload };
+        } else {
+            // Fallback kosong
+            payload = { nik: '', password: '' };
+        }
+
+        // Pastikan selalu string
+        payload.nik = String(payload.nik || '');
+        payload.password = String(payload.password || '');
+
+        // Validasi sederhana (opsional)
+        if (!payload.nik || !payload.password) {
+            BCS.App.Toast.danger("NIK dan Password wajib diisi.");
+            return { success: false, message: "NIK dan Password wajib diisi." };
+        }
+
         BCS.App.Loading.show();
 
         try {
             BCS.Logger.info("Login Request", payload);
 
-            // Pastikan BCS.Api tersedia
             if (!BCS.Api || typeof BCS.Api.post !== 'function') {
                 throw new Error("API client not available");
             }
 
-            // Panggil endpoint "login" via BCS.Api
             const response = await BCS.Api.post("login", payload);
             BCS.Logger.info("Login Response", response);
 
-            // Debug
             console.log("🔍 [LOGIN] Response:", response);
             console.log("🔍 [LOGIN] Response.data:", response?.data);
             console.log("🔍 [LOGIN] Response.success:", response?.success);
 
-            // Cek sukses
             if (!response || !response.success) {
                 console.error("❌ [LOGIN] Login gagal:", response?.message);
                 BCS.App.Toast.danger(response?.message || "Login gagal.");
                 return response || { success: false, message: "Login gagal." };
             }
 
-            // Ekstrak data session (support berbagai struktur response)
             const rawData = response.data || {};
             const sessionData = {
                 token: rawData.token || response.token || "",
                 user: rawData.user || response.user || {},
-                nik: rawData.nik || response.nik || rawData.user?.nik || "",
+                nik: rawData.nik || response.nik || rawData.user?.nik || payload.nik || "",
                 role: rawData.role || response.role || rawData.user?.role || ""
             };
 
             console.log("✅ [LOGIN] Session data akan disimpan:", sessionData);
 
-            // Simpan session menggunakan BCS.Storage (satu baris!)
-            const saved = BCS.Storage.setSession(sessionData);
-            console.log("✅ [LOGIN] BCS.Storage.setSession() result:", saved);
+            BCS.Storage.setSession(sessionData);
 
-            // Verifikasi (opsional)
-            setTimeout(() => {
-                const session = BCS.Storage.getSession();
-                console.log("✅ [LOGIN] Verifikasi session:", session ? "ADA" : "TIDAK ADA");
-                console.log("✅ [LOGIN] BCS.Session?.isLoggedIn?.():", BCS.Session?.isLoggedIn?.());
-                console.log("✅ [LOGIN] BCS.Session?.getToken?.():", BCS.Session?.getToken?.());
-            }, 100);
-
-            // Notifikasi sukses
             BCS.App.Toast.success("Login berhasil");
 
-            // Tunggu sebentar agar session benar-benar tersimpan
             await new Promise(resolve => setTimeout(resolve, 300));
 
-            // Redirect berdasarkan role
             const role = sessionData.role || sessionData.user?.role || "USER";
             const routeMap = {
                 "USER": "user-report.html",
@@ -124,15 +130,8 @@
     }
 
     // Ekspos ke global
-    window.auth = {
-        login,
-        logout,
-        isLoggedIn,
-        getSession
-    };
-
-    // Kompatibilitas dengan panggilan `login()` langsung
+    window.auth = { login, logout, isLoggedIn, getSession };
     window.login = login;
 
-    console.log("✅ auth.js v7.1 loaded (compatible with api.js)");
+    console.log("✅ auth.js v7.2 loaded (compatible with api.js)");
 })();

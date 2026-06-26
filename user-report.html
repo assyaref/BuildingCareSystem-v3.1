@@ -236,7 +236,7 @@
     }
 
     // =============================================
-    // 4. PREVIEW FOTO (FIX)
+    // 4. PREVIEW FOTO
     // =============================================
     const previewImage = document.getElementById('previewImage');
     const previewPlaceholder = document.getElementById('previewPlaceholder');
@@ -268,7 +268,6 @@
     photoInput.addEventListener('change', function(e) {
       const file = this.files[0];
       if (file) {
-        // Validasi ukuran (opsional)
         if (file.size > 5 * 1024 * 1024) {
           alert('Ukuran foto maksimal 5 MB');
           this.value = '';
@@ -283,31 +282,50 @@
       clearPreview();
     });
 
-    // Klik pada drop-zone juga bisa memicu galeri (fallback)
     previewWrapper.addEventListener('click', function(e) {
-      // Jika yang diklik adalah tombol hapus, jangan trigger
       if (e.target.closest('#photoRemove')) return;
       galleryBtn.click();
     });
 
     // =============================================
-    // 5. INISIALISASI MODUL
+    // 5. INISIALISASI MODUL (hanya sekali)
     // =============================================
-    document.addEventListener('DOMContentLoaded', function() {
-      if (typeof UserReportModule !== 'undefined' && UserReportModule.init) {
-        try {
-          UserReportModule.init();
-          console.log('✅ UserReportModule berhasil diinisialisasi');
-        } catch (e) {
-          console.warn('⚠️ UserReportModule gagal init:', e);
+    if (!window._reportInit) {
+      window._reportInit = true;
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof UserReportModule !== 'undefined' && UserReportModule.init) {
+          try {
+            UserReportModule.init();
+            console.log('✅ UserReportModule berhasil diinisialisasi');
+          } catch (e) {
+            console.warn('⚠️ UserReportModule gagal init:', e);
+          }
+        } else {
+          console.warn('⚠️ UserReportModule tidak ditemukan');
         }
-      } else {
-        console.warn('⚠️ UserReportModule tidak ditemukan');
-      }
-    });
+      });
+    }
 
     // =============================================
-    // 6. NAVIGASI
+    // 6. FIX VALIDASI KATEGORI (useCapture = true)
+    // =============================================
+    const submitBtn = document.getElementById('submitReport');
+    submitBtn.addEventListener('click', function(e) {
+      // Set state modul sebelum event bawaan dijalankan
+      if (window.UserReportModule && window.UserReportModule.state) {
+        const kategori = document.getElementById('selectedCategory').value;
+        const prioritas = document.getElementById('prioritySelect').value;
+        window.UserReportModule.state.form.kategori = kategori;
+        window.UserReportModule.state.form.prioritas = prioritas;
+        console.log('🔧 State modul diperbarui:', {
+          kategori: kategori,
+          prioritas: prioritas
+        });
+      }
+    }, true); // useCapture = true => dijalankan lebih dulu
+
+    // =============================================
+    // 7. NAVIGASI
     // =============================================
     document.getElementById('navHistory').addEventListener('click', function(e) {
       e.preventDefault();
@@ -324,7 +342,7 @@
     });
 
     // =============================================
-    // 7. LOGOUT
+    // 8. LOGOUT
     // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();

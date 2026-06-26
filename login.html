@@ -91,7 +91,22 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
         }
+.logo-image{
+    width:60px;
+    height:60px;
+    object-fit:contain;
+    background:#ffffff;
 
+    border-radius:22px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    margin:0 auto 18px;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
+}
         .logo-icon i {
             font-size: 32px;
             color: #ffffff;
@@ -410,8 +425,10 @@
         <!-- HEADER -->
         <div class="login-header">
             <div class="logo-icon">
-                <i class="fa-solid fa-building-shield"></i>
-            </div>
+    <img src="assets/images/logo.png"
+         alt="Building Care System Logo"
+         class="logo-image">
+</div>
             <h1>BUILDING CARE SYSTEM</h1>
             <p class="subtitle">Enterprise Version 3.5</p>
         </div>

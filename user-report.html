@@ -8,193 +8,29 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
+    /* ===== style sama seperti sebelumnya, tetapi dengan penyesuaian kecil ===== */
     * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background: #f3f4f6;
-    }
-    .app-card {
-      width: 100%;
-      max-width: 420px;
-      height: 100vh;
-      max-height: 900px;
-      background: #1e5eff;
-      border-radius: 28px;
-      box-shadow: 0 20px 60px rgba(30,94,255,0.25);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      margin: 0 auto;
-    }
-    @media (max-width: 480px) {
-      .app-card { border-radius: 0; max-height: 100vh; }
-    }
-    .scroll-content {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-      scroll-behavior: smooth;
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    .scroll-content::-webkit-scrollbar { display: none; }
-
-    .bottom-nav {
-      background: #fff;
-      border-top: 1px solid rgba(0,0,0,0.05);
-      padding: 10px 0 12px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      text-align: center;
-      flex-shrink: 0;
-    }
-    .bottom-nav a {
-      text-decoration: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      font-size: 11px;
-      font-weight: 700;
-      transition: color 0.2s;
-    }
-    .bottom-nav a i { font-size: 20px; }
-
-    .priority-radio {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-      padding: 12px 16px;
-      border-radius: 14px;
-      border: 1.5px solid #e5e7eb;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: #fff;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .priority-radio:active { transform: scale(0.98); }
-    .priority-radio.selected { border-color: #1e5eff; background: #f0f4ff; }
-    .priority-radio .dot {
-      width: 14px; height: 14px; border-radius: 50%;
-      flex-shrink: 0;
-      border: 2px solid #d1d5db;
-      transition: all 0.2s;
-    }
-    .priority-radio.selected .dot { border-color: #1e5eff; background: #1e5eff; }
-    .priority-radio .dot.green { background: #22c55e; border-color: #22c55e; }
-    .priority-radio .dot.amber { background: #f59e0b; border-color: #f59e0b; }
-    .priority-radio .dot.red { background: #ef4444; border-color: #ef4444; }
-
-    .cat-card {
-      transition: all 0.2s;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    .cat-card:active { transform: scale(0.97); }
-    .cat-card.selected {
-      border-color: #1e5eff !important;
-      background: #f0f4ff !important;
-      color: #1e5eff !important;
-    }
-
-    .photo-btn {
-      padding: 12px;
-      border-radius: 14px;
-      font-size: 13px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .photo-btn:active { transform: scale(0.96); }
-    .photo-btn.primary { background: #1e5eff; color: #fff; }
-    .photo-btn.secondary { background: #f3f4f6; color: #4b5563; }
-
-    .drop-zone {
-      border: 2px dashed #d1d5db;
-      border-radius: 14px;
-      padding: 28px 16px;
-      background: #fafbfc;
-      text-align: center;
-      color: #9ca3af;
-      position: relative;
-      transition: all 0.2s;
-      min-height: 140px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .drop-zone.has-image {
-      border-color: #1e5eff;
-      background: #f0f4ff;
-      padding: 8px;
-    }
-    .drop-zone i { font-size: 32px; display: block; margin-bottom: 6px; }
-    .drop-zone p { font-size: 12px; font-weight: 500; margin: 0; }
-    .drop-zone span { font-size: 11px; }
-    .drop-zone .preview-img {
-      max-width: 100%;
-      max-height: 200px;
-      border-radius: 10px;
-      object-fit: contain;
-    }
-    .drop-zone .remove-photo {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(239,68,68,0.9);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.2s;
-    }
-    .drop-zone .remove-photo:hover { background: #dc2626; }
-
-    .submit-btn {
-      width: 100%;
-      background: #1e5eff;
-      color: #fff;
-      padding: 16px;
-      border-radius: 14px;
-      font-weight: 700;
-      font-size: 15px;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-    }
-    .submit-btn:active { transform: scale(0.97); background: #1a4fd6; }
-    .submit-btn:disabled { opacity: 0.6; pointer-events: none; }
-
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: #1e5eff !important;
-      box-shadow: 0 0 0 3px rgba(30,94,255,0.12);
-    }
-    .char-counter { font-size: 11px; color: #9ca3af; margin-top: 4px; text-align: right; }
+    html, body { margin:0; padding:0; height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-serif; background:#f3f4f6; }
+    .app-card { width:100%; max-width:420px; height:100vh; max-height:900px; background:#1e5eff; border-radius:28px; box-shadow:0 20px 60px rgba(30,94,255,0.25); display:flex; flex-direction:column; overflow:hidden; margin:0 auto; }
+    @media (max-width:480px){ .app-card { border-radius:0; max-height:100vh; } }
+    .scroll-content { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scroll-behavior:smooth; -ms-overflow-style:none; scrollbar-width:none; }
+    .scroll-content::-webkit-scrollbar { display:none; }
+    .bottom-nav { background:#fff; border-top:1px solid rgba(0,0,0,0.05); padding:10px 0 12px; display:grid; grid-template-columns:1fr 1fr; text-align:center; flex-shrink:0; }
+    .bottom-nav a { text-decoration:none; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11px; font-weight:700; transition:color 0.2s; }
+    .bottom-nav a i { font-size:20px; }
+    .cat-card { transition:all 0.2s; cursor:pointer; -webkit-tap-highlight-color:transparent; user-select:none; border:2px solid #e5e7eb; border-radius:14px; padding:12px; text-align:center; background:#fff; }
+    .cat-card:active { transform:scale(0.97); }
+    .cat-card.selected { border-color:#1e5eff; background:#f0f4ff; color:#1e5eff; }
+    .drop-zone { border:2px dashed #d1d5db; border-radius:14px; padding:20px; background:#fafbfc; text-align:center; position:relative; transition:all 0.2s; min-height:140px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .drop-zone.has-image { border-color:#1e5eff; background:#f0f4ff; padding:8px; }
+    .drop-zone .preview-img { max-width:100%; max-height:200px; border-radius:10px; object-fit:contain; }
+    .drop-zone .remove-photo { position:absolute; top:8px; right:8px; background:rgba(239,68,68,0.9); color:#fff; border:none; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; }
+    .submit-btn { width:100%; background:#1e5eff; color:#fff; padding:16px; border-radius:14px; font-weight:700; font-size:15px; border:none; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; transition:background 0.2s; }
+    .submit-btn:active { transform:scale(0.97); background:#1a4fd6; }
+    .submit-btn:disabled { opacity:0.6; pointer-events:none; }
+    input:focus, textarea:focus { outline:none; border-color:#1e5eff !important; box-shadow:0 0 0 3px rgba(30,94,255,0.12); }
+    .char-counter { font-size:11px; color:#9ca3af; margin-top:4px; text-align:right; }
+    .avatar-circle { width:36px; height:36px; border-radius:50%; background:#4b7bec; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; }
   </style>
 </head>
 <body>
@@ -204,17 +40,15 @@
     <div style="height:6px;"></div>
     <div class="px-5 pb-4 pt-2 flex items-center justify-between text-white">
       <div class="flex items-center gap-3">
-        <button class="text-xl leading-none" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;">
-          <i class="fa-solid fa-bars"></i>
-        </button>
+        <div class="avatar-circle" id="userAvatar">U</div>
         <div>
-          <h2 class="font-bold text-lg flex items-center gap-1.5 m-0" id="userGreeting">Halo, Tukang Lapor <span>👋</span></h2>
-          <p class="text-xs text-blue-200 m-0" id="userDept">General Affair</p>
+          <h2 class="font-bold text-lg flex items-center gap-1.5 m-0" id="userName">Halo, User 👋</h2>
+          <p class="text-xs text-blue-200 m-0" id="userDept">Departemen</p>
         </div>
       </div>
       <button class="text-lg leading-none relative" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;" id="notifBtn">
         <i class="fa-solid fa-bell"></i>
-        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center" id="notifBadge">3</span>
+        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">3</span>
       </button>
     </div>
   </div>
@@ -230,39 +64,21 @@
     <!-- Kategori -->
     <div class="mb-4">
       <label class="block text-sm font-bold text-gray-800 mb-1.5">Kategori Kerusakan</label>
-      <div class="grid grid-cols-2 gap-3 mb-3" id="categoryGrid">
-        <div class="cat-card border-2 border-[#1e5eff] rounded-xl p-4 flex flex-col items-center justify-center bg-blue-50/30 text-[#1e5eff] selected" data-value="LISTRIK">
-          <i class="fa-solid fa-bolt text-xl mb-1"></i>
-          <span class="text-xs font-bold">LISTRIK</span>
-        </div>
-        <div class="cat-card border border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center text-gray-600" data-value="AC">
-          <i class="fa-solid fa-snowflake text-xl mb-1"></i>
-          <span class="text-xs font-bold">AC</span>
-        </div>
-        <div class="cat-card border border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center text-gray-600" data-value="KONDISI GEDUNG" style="grid-column: span 2;">
-          <i class="fa-solid fa-building text-xl mb-1"></i>
-          <span class="text-xs font-bold">KONDISI GEDUNG</span>
-        </div>
+      <div class="grid grid-cols-2 gap-3" id="categoryGrid">
+        <div class="cat-card selected" data-value="LISTRIK"><i class="fa-solid fa-bolt text-xl block"></i><span class="text-xs font-bold">LISTRIK</span></div>
+        <div class="cat-card" data-value="AC"><i class="fa-solid fa-snowflake text-xl block"></i><span class="text-xs font-bold">AC</span></div>
+        <div class="cat-card" data-value="KONDISI GEDUNG" style="grid-column:span 2;"><i class="fa-solid fa-building text-xl block"></i><span class="text-xs font-bold">KONDISI GEDUNG</span></div>
       </div>
     </div>
 
-    <!-- Prioritas -->
+    <!-- Prioritas (dropdown) -->
     <div class="mb-4">
       <label class="block text-sm font-bold text-gray-800 mb-1.5">Prioritas</label>
-      <div class="space-y-2" id="priorityGroup">
-        <div class="priority-radio selected" data-value="NORMAL">
-          <span class="dot green"></span>
-          <span class="text-sm font-bold text-gray-700">NORMAL</span>
-        </div>
-        <div class="priority-radio" data-value="HIGH">
-          <span class="dot amber"></span>
-          <span class="text-sm font-bold text-gray-700">HIGH</span>
-        </div>
-        <div class="priority-radio" data-value="URGENT">
-          <span class="dot red"></span>
-          <span class="text-sm font-bold text-gray-700">URGENT</span>
-        </div>
-      </div>
+      <select id="prioritySelect" class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white">
+        <option value="NORMAL">NORMAL</option>
+        <option value="HIGH">HIGH</option>
+        <option value="URGENT">URGENT</option>
+      </select>
     </div>
 
     <!-- Deskripsi -->
@@ -275,339 +91,68 @@
     <!-- Foto -->
     <div class="mb-5">
       <label class="block text-sm font-bold text-gray-800 mb-1.5">Foto Kerusakan</label>
-      <div class="grid grid-cols-2 gap-3 mb-3">
-        <button class="photo-btn primary" id="cameraBtn"><i class="fa-solid fa-camera"></i> Ambil Foto</button>
-        <button class="photo-btn secondary" id="galleryBtn"><i class="fa-solid fa-image"></i> Galeri</button>
-      </div>
-      <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none;">
-      <input type="file" id="galleryInput" accept="image/*" style="display:none;">
-
-      <div class="drop-zone" id="dropZone">
-        <i class="fa-regular fa-image" id="dropIcon"></i>
-        <p class="font-semibold text-gray-500" id="dropText">Belum Ada Foto</p>
-        <span id="dropSub">Ambil foto atau pilih dari galeri</span>
-        <button class="remove-photo" id="removePhoto" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
-        <img id="previewImg" class="preview-img" style="display:none;" />
+      <input type="file" id="photo" accept="image/*" style="display:none;" />
+      <div id="previewWrapper" class="drop-zone" style="cursor:pointer;">
+        <div id="previewPlaceholder">
+          <i class="fa-regular fa-image text-3xl text-gray-300"></i>
+          <p class="text-sm text-gray-400 mt-1">Klik untuk pilih foto</p>
+        </div>
+        <img id="previewImage" class="preview-img" style="display:none;" />
+        <button id="photoRemove" class="remove-photo" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
       </div>
     </div>
 
     <!-- Submit -->
-    <button class="submit-btn" id="submitBtn"><i class="fa-solid fa-paper-plane text-sm"></i> Kirim Report</button>
+    <button class="submit-btn" id="submitReport"><i class="fa-solid fa-paper-plane text-sm"></i> Kirim Report</button>
     <div style="height:8px;"></div>
   </div>
 
   <!-- Bottom Nav -->
   <div class="bottom-nav">
-    <a href="#" class="text-[#1e5eff]" id="navReport">
-      <i class="fa-solid fa-file-invoice"></i>
-      <span>Report</span>
-    </a>
-    <a href="#" class="text-gray-400" id="navHistory">
-      <i class="fa-solid fa-clock-rotate-left"></i>
-      <span>History</span>
-    </a>
+    <a href="#" class="text-[#1e5eff]" id="navReport"><i class="fa-solid fa-file-invoice"></i><span>Report</span></a>
+    <a href="#" class="text-gray-400" id="navHistory"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
   </div>
 </div>
+
+<!-- ============================================ -->
+<!-- SCRIPT ENTERPRISE                            -->
+<!-- ============================================ -->
+<script src="config/config.js"></script>
+<script src="assets/js/core/session.js"></script>
+<script src="assets/js/core/app.js"></script>
+<script src="assets/js/core/api.js"></script>
+<script src="assets/js/core/storage.js"></script>
+<script src="assets/js/modules/userReport.js"></script>
 
 <script>
   (function() {
     'use strict';
 
-    // =============================================
-    // 1. DOM REFS
-    // =============================================
-    const lokasi      = document.getElementById('lokasi');
-    const deskripsi   = document.getElementById('deskripsi');
-    const charCount   = document.getElementById('charCount');
-    const categoryGrid= document.getElementById('categoryGrid');
-    const priorityGroup= document.getElementById('priorityGroup');
-    const cameraBtn   = document.getElementById('cameraBtn');
-    const galleryBtn  = document.getElementById('galleryBtn');
-    const photoInput  = document.getElementById('photoInput');
-    const galleryInput= document.getElementById('galleryInput');
-    const dropZone    = document.getElementById('dropZone');
-    const previewImg  = document.getElementById('previewImg');
-    const dropIcon    = document.getElementById('dropIcon');
-    const dropText    = document.getElementById('dropText');
-    const dropSub     = document.getElementById('dropSub');
-    const removePhoto = document.getElementById('removePhoto');
-    const submitBtn   = document.getElementById('submitBtn');
-    const notifBadge  = document.getElementById('notifBadge');
-
-    // =============================================
-    // 2. USER SESSION (simulasi dari localStorage)
-    // =============================================
-    function loadUser() {
-      const userData = JSON.parse(localStorage.getItem('user') || 'null');
-      if (userData) {
-        document.getElementById('userGreeting').innerHTML = `Halo, ${userData.name || 'Tukang Lapor'} 👋`;
-        document.getElementById('userDept').textContent = userData.department || 'General Affair';
-      }
-    }
-    loadUser();
-
-    // =============================================
-    // 3. PRIORITY TOGGLE
-    // =============================================
-    document.querySelectorAll('.priority-radio').forEach(el => {
-      el.addEventListener('click', function() {
-        document.querySelectorAll('.priority-radio').forEach(r => r.classList.remove('selected'));
-        this.classList.add('selected');
-      });
-    });
-
-    // =============================================
-    // 4. CATEGORY TOGGLE
-    // =============================================
-    document.querySelectorAll('.cat-card').forEach(el => {
-      el.addEventListener('click', function() {
-        document.querySelectorAll('.cat-card').forEach(c => {
-          c.classList.remove('selected', 'border-[#1e5eff]', 'bg-blue-50/30', 'text-[#1e5eff]');
-          c.classList.add('border-gray-200', 'text-gray-600');
-        });
-        this.classList.add('selected', 'border-[#1e5eff]', 'bg-blue-50/30', 'text-[#1e5eff]');
-        this.classList.remove('border-gray-200', 'text-gray-600');
-      });
-    });
-
-    // =============================================
-    // 5. CHAR COUNTER
-    // =============================================
-    deskripsi.addEventListener('input', function() {
-      charCount.textContent = this.value.length;
-    });
-
-    // =============================================
-    // 6. PHOTO HANDLING
-    // =============================================
-    let currentFile = null;
-
-    function showPreview(file) {
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        previewImg.src = e.target.result;
-        previewImg.style.display = 'block';
-        dropIcon.style.display = 'none';
-        dropText.style.display = 'none';
-        dropSub.style.display = 'none';
-        removePhoto.style.display = 'flex';
-        dropZone.classList.add('has-image');
-        currentFile = file;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function clearPreview() {
-      previewImg.src = '';
-      previewImg.style.display = 'none';
-      dropIcon.style.display = 'block';
-      dropText.style.display = 'block';
-      dropSub.style.display = 'block';
-      removePhoto.style.display = 'none';
-      dropZone.classList.remove('has-image');
-      currentFile = null;
-      photoInput.value = '';
-      galleryInput.value = '';
-    }
-
-    function handleFileSelect(file) {
-      if (!file) return;
-      // validasi ukuran (maks 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Ukuran foto maksimal 5 MB');
-        return;
-      }
-      showPreview(file);
-    }
-
-    cameraBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      photoInput.click();
-    });
-
-    galleryBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      galleryInput.click();
-    });
-
-    photoInput.addEventListener('change', function() {
-      if (this.files && this.files[0]) {
-        handleFileSelect(this.files[0]);
+    // Inisialisasi modul setelah DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof UserReportModule !== 'undefined' && UserReportModule.init) {
+        UserReportModule.init();
+      } else {
+        console.error('UserReportModule tidak ditemukan!');
       }
     });
 
-    galleryInput.addEventListener('change', function() {
-      if (this.files && this.files[0]) {
-        handleFileSelect(this.files[0]);
-      }
-    });
-
-    removePhoto.addEventListener('click', function(e) {
-      e.stopPropagation();
-      clearPreview();
-    });
-
-    // Drag & drop support (opsional)
-    dropZone.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      this.style.borderColor = '#1e5eff';
-    });
-    dropZone.addEventListener('dragleave', function(e) {
-      e.preventDefault();
-      this.style.borderColor = '#d1d5db';
-    });
-    dropZone.addEventListener('drop', function(e) {
-      e.preventDefault();
-      this.style.borderColor = '#d1d5db';
-      const files = e.dataTransfer.files;
-      if (files && files[0]) {
-        handleFileSelect(files[0]);
-      }
-    });
-
-    // =============================================
-    // 7. SUBMIT REPORT
-    // =============================================
-    function getSelectedPriority() {
-      const sel = document.querySelector('.priority-radio.selected');
-      return sel ? sel.dataset.value : 'NORMAL';
-    }
-
-    function getSelectedCategory() {
-      const sel = document.querySelector('.cat-card.selected');
-      return sel ? sel.dataset.value : 'LISTRIK';
-    }
-
-    function buildPayload() {
-      const location = lokasi.value.trim();
-      const category = getSelectedCategory();
-      const priority = getSelectedPriority();
-      const description = deskripsi.value.trim();
-
-      // validasi
-      if (!location) {
-        alert('Lokasi kerusakan wajib diisi');
-        return null;
-      }
-      if (!description) {
-        alert('Deskripsi kerusakan wajib diisi');
-        return null;
-      }
-
-      const formData = new FormData();
-      formData.append('lokasi', location);
-      formData.append('kategori', category);
-      formData.append('prioritas', priority);
-      formData.append('deskripsi', description);
-      if (currentFile) {
-        formData.append('foto', currentFile, currentFile.name);
-      }
-
-      return formData;
-    }
-
-    async function submitReport(formData) {
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...';
-
-      try {
-        // ========== SIMULASI API CALL ==========
-        // Ganti dengan endpoint API Anda
-        // const response = await fetch('/api/reports', {
-        //   method: 'POST',
-        //   body: formData,
-        //   headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
-        // });
-        // if (!response.ok) throw new Error('Gagal mengirim laporan');
-        // const result = await response.json();
-
-        // Simulasi delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        // ========== SUKSES ==========
-        alert('✅ Laporan berhasil dikirim!');
-        // reset form
-        lokasi.value = '';
-        deskripsi.value = '';
-        charCount.textContent = '0';
-        clearPreview();
-        // reset kategori ke LISTRIK
-        document.querySelectorAll('.cat-card').forEach(c => {
-          c.classList.remove('selected', 'border-[#1e5eff]', 'bg-blue-50/30', 'text-[#1e5eff]');
-          c.classList.add('border-gray-200', 'text-gray-600');
-        });
-        const firstCat = document.querySelector('.cat-card[data-value="LISTRIK"]');
-        if (firstCat) {
-          firstCat.classList.add('selected', 'border-[#1e5eff]', 'bg-blue-50/30', 'text-[#1e5eff]');
-          firstCat.classList.remove('border-gray-200', 'text-gray-600');
-        }
-        // reset prioritas ke NORMAL
-        document.querySelectorAll('.priority-radio').forEach(r => r.classList.remove('selected'));
-        const normal = document.querySelector('.priority-radio[data-value="NORMAL"]');
-        if (normal) normal.classList.add('selected');
-
-        // (opsional) arahkan ke halaman history
-        // window.location.href = 'user-history.html';
-
-      } catch (err) {
-        alert('❌ Gagal mengirim laporan: ' + err.message);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane text-sm"></i> Kirim Report';
-      }
-    }
-
-    submitBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      const payload = buildPayload();
-      if (payload) {
-        submitReport(payload);
-      }
-    });
-
-    // =============================================
-    // 8. NAVIGASI (simulasi)
-    // =============================================
-    document.getElementById('navReport').addEventListener('click', function(e) {
-      e.preventDefault();
-      this.classList.add('text-[#1e5eff]');
-      this.classList.remove('text-gray-400');
-      document.getElementById('navHistory').classList.remove('text-[#1e5eff]');
-      document.getElementById('navHistory').classList.add('text-gray-400');
-      // scroll ke atas
-      document.querySelector('.scroll-content').scrollTop = 0;
-    });
-
+    // Navigasi ke History
     document.getElementById('navHistory').addEventListener('click', function(e) {
       e.preventDefault();
-      this.classList.add('text-[#1e5eff]');
-      this.classList.remove('text-gray-400');
-      document.getElementById('navReport').classList.remove('text-[#1e5eff]');
-      document.getElementById('navReport').classList.add('text-gray-400');
-      alert('Halaman History (belum tersedia)');
+      window.location.href = 'user-history.html';
     });
 
-    // =============================================
-    // 9. NOTIFIKASI (contoh)
-    // =============================================
+    // Navigasi ke Report (refresh)
+    document.getElementById('navReport').addEventListener('click', function(e) {
+      e.preventDefault();
+      window.location.href = 'user-report.html';
+    });
+
+    // Notifikasi (contoh)
     document.getElementById('notifBtn').addEventListener('click', function() {
       alert('Anda memiliki 3 notifikasi');
     });
-
-    // =============================================
-    // 10. INISIALISASI AWAL
-    // =============================================
-    // pastikan kategori LISTRIK selected
-    const defaultCat = document.querySelector('.cat-card[data-value="LISTRIK"]');
-    if (defaultCat) {
-      defaultCat.classList.add('selected', 'border-[#1e5eff]', 'bg-blue-50/30', 'text-[#1e5eff]');
-      defaultCat.classList.remove('border-gray-200', 'text-gray-600');
-    }
-    // pastikan prioritas NORMAL selected
-    const defaultPri = document.querySelector('.priority-radio[data-value="NORMAL"]');
-    if (defaultPri) defaultPri.classList.add('selected');
-
   })();
 </script>
 </body>

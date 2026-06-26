@@ -83,7 +83,7 @@
       </div>
     </div>
 
-    <!-- Prioritas dengan Badge Warna -->
+    <!-- Prioritas -->
     <div class="mb-4">
       <label class="block text-sm font-bold text-gray-800 mb-1.5">Prioritas</label>
       <div id="priorityBadge" class="text-sm font-bold px-4 py-2 rounded-lg mb-2 inline-block" style="background:#dcfce7; color:#16a34a;">
@@ -134,7 +134,7 @@
 </div>
 
 <!-- ============================================ -->
-<!-- SCRIPT                                      -->
+<!-- SCRIPT ENTERPRISE                            -->
 <!-- ============================================ -->
 <script src="config/config.js"></script>
 <script src="assets/js/core/session.js"></script>
@@ -271,7 +271,7 @@
     });
 
     // =============================================
-    // 6. LOGOUT DENGAN KONFIRMASI
+    // 6. LOGOUT DENGAN KONFIRMASI (FIXED)
     // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
@@ -280,6 +280,7 @@
         return;
       }
 
+      // Gunakan auth.logout jika tersedia (sudah diperbaiki di auth.js)
       if (window.auth && typeof window.auth.logout === 'function') {
         window.auth.logout();
         return;
@@ -287,6 +288,7 @@
 
       // Fallback manual
       try {
+        // gunakan removeSession (bukan clearSession)
         if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
           BCS.Storage.removeSession();
         }
@@ -297,8 +299,8 @@
 
       const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
       keys.forEach(key => {
-        localStorage.removeItem(key);
-        sessionStorage.removeItem(key);
+        try { localStorage.removeItem(key); } catch(e) {}
+        try { sessionStorage.removeItem(key); } catch(e) {}
       });
 
       window.location.href = 'login.html';

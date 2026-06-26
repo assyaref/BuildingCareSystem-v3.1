@@ -143,14 +143,33 @@
 <script src="assets/js/core/api.js"></script>
 <script src="assets/js/core/storage.js"></script>
 <script src="assets/js/modules/auth.js"></script>
-<script src="assets/js/modules/userReport.js"></script>
 
 <script>
   (function() {
     'use strict';
 
     // =============================================
-    // 1. PRIORITAS BADGE
+    // 1. LOAD USER DATA
+    // =============================================
+    function loadUser() {
+      try {
+        const session = BCS.Storage.getSession();
+        const user = session?.user || {};
+        const nama = user.nama || user.name || 'User';
+        const dept = user.departemen || user.department || '';
+        const nik = session?.nik || user.nik || '';
+
+        document.getElementById('userName').textContent = `Halo ${nama} 👋`;
+        document.getElementById('userDept').textContent = dept || nik || 'Building Care';
+        const avatar = document.getElementById('userAvatar');
+        avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
+      } catch (e) {
+        console.warn('Gagal load user:', e);
+      }
+    }
+
+    // =============================================
+    // 2. PRIORITAS BADGE
     // =============================================
     const prioritySelect = document.getElementById('prioritySelect');
     const priorityBadge = document.getElementById('priorityBadge');
@@ -168,18 +187,13 @@
       priorityBadge.style.color = color.text;
     }
 
-    if (prioritySelect) {
-      prioritySelect.addEventListener('change', function() {
-        updatePriorityBadge(this.value);
-        if (window.UserReportModule && window.UserReportModule.state) {
-          window.UserReportModule.state.form.prioritas = this.value;
-        }
-      });
-      updatePriorityBadge(prioritySelect.value);
-    }
+    prioritySelect.addEventListener('change', function() {
+      updatePriorityBadge(this.value);
+    });
+    updatePriorityBadge(prioritySelect.value);
 
     // =============================================
-    // 2. KATEGORI
+    // 3. KATEGORI
     // =============================================
     const categoryCards = document.querySelectorAll('.cat-card');
     const hiddenCategory = document.getElementById('selectedCategory');
@@ -197,51 +211,44 @@
         }
       });
       hiddenCategory.value = value;
-      if (window.UserReportModule && window.UserReportModule.state) {
-        window.UserReportModule.state.form.kategori = value;
-      }
-      console.log('✅ Kategori dipilih:', value);
     }
 
     categoryCards.forEach(card => {
-      card.addEventListener('click', function(e) {
-        const value = this.dataset.value;
-        updateCategoryUI(value);
+      card.addEventListener('click', function() {
+        updateCategoryUI(this.dataset.value);
       });
     });
     updateCategoryUI('LISTRIK');
 
     // =============================================
-    // 3. KAMERA & GALERI
+    // 4. KAMERA & GALERI
     // =============================================
     const photoInput = document.getElementById('photo');
     const cameraBtn  = document.getElementById('cameraBtn');
     const galleryBtn = document.getElementById('galleryBtn');
 
-    if (cameraBtn) {
-      cameraBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        photoInput.setAttribute('capture', 'environment');
-        photoInput.click();
-        setTimeout(() => photoInput.removeAttribute('capture'), 100);
-      });
-    }
+    cameraBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      photoInput.setAttribute('capture', 'environment');
+      photoInput.click();
+      setTimeout(() => photoInput.removeAttribute('capture'), 100);
+    });
 
-    if (galleryBtn) {
-      galleryBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        photoInput.removeAttribute('capture');
-        photoInput.click();
-      });
-    }
+    galleryBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      photoInput.removeAttribute('capture');
+      photoInput.click();
+    });
 
     // =============================================
-    // 4. PREVIEW FOTO
+    // 5. PREVIEW FOTO
     // =============================================
     const previewImage = document.getElementById('previewImage');
     const previewPlaceholder = document.getElementById('previewPlaceholder');
     const previewWrapper = document.getElementById('previewWrapper');
     const removePhotoBtn = document.getElementById('photoRemove');
+
+    let currentFile = null; // simpan file untuk upload
 
     function showPreview(file) {
       if (!file) return;
@@ -252,6 +259,7 @@
         previewPlaceholder.style.display = 'none';
         previewWrapper.classList.add('has-image');
         removePhotoBtn.style.display = 'flex';
+        currentFile = file;
       };
       reader.readAsDataURL(file);
     }
@@ -263,9 +271,10 @@
       previewWrapper.classList.remove('has-image');
       removePhotoBtn.style.display = 'none';
       photoInput.value = '';
+      currentFile = null;
     }
 
-    photoInput.addEventListener('change', function(e) {
+    photoInput.addEventListener('change', function() {
       const file = this.files[0];
       if (file) {
         if (file.size > 5 * 1024 * 1024) {
@@ -288,44 +297,116 @@
     });
 
     // =============================================
-    // 5. INISIALISASI MODUL (hanya sekali)
-    // =============================================
-    if (!window._reportInit) {
-      window._reportInit = true;
-      document.addEventListener('DOMContentLoaded', function() {
-        if (typeof UserReportModule !== 'undefined' && UserReportModule.init) {
-          try {
-            UserReportModule.init();
-            console.log('✅ UserReportModule berhasil diinisialisasi');
-          } catch (e) {
-            console.warn('⚠️ UserReportModule gagal init:', e);
-          }
-        } else {
-          console.warn('⚠️ UserReportModule tidak ditemukan');
-        }
-      });
-    }
-
-    // =============================================
-    // 6. FIX VALIDASI KATEGORI (useCapture = true)
+    // 6. SUBMIT REPORT
     // =============================================
     const submitBtn = document.getElementById('submitReport');
-    submitBtn.addEventListener('click', function(e) {
-      // Set state modul sebelum event bawaan dijalankan
-      if (window.UserReportModule && window.UserReportModule.state) {
-        const kategori = document.getElementById('selectedCategory').value;
-        const prioritas = document.getElementById('prioritySelect').value;
-        window.UserReportModule.state.form.kategori = kategori;
-        window.UserReportModule.state.form.prioritas = prioritas;
-        console.log('🔧 State modul diperbarui:', {
-          kategori: kategori,
-          prioritas: prioritas
-        });
+
+    async function submitReport() {
+      // Validasi
+      const lokasi = document.getElementById('lokasi').value.trim();
+      if (!lokasi) {
+        alert('Lokasi kerusakan wajib diisi');
+        document.getElementById('lokasi').focus();
+        return;
       }
-    }, true); // useCapture = true => dijalankan lebih dulu
+
+      const kategori = document.getElementById('selectedCategory').value;
+      if (!kategori) {
+        alert('Pilih kategori kerusakan');
+        return;
+      }
+
+      const deskripsi = document.getElementById('deskripsi').value.trim();
+      if (!deskripsi || deskripsi.length < 5) {
+        alert('Deskripsi wajib diisi minimal 5 karakter');
+        document.getElementById('deskripsi').focus();
+        return;
+      }
+
+      const prioritas = document.getElementById('prioritySelect').value;
+
+      // Ambil data user dari Session
+      const session = BCS.Storage.getSession();
+      const user = session?.user || {};
+      const nama = user.nama || user.name || 'User';
+      const nik = session?.nik || user.nik || '';
+      const departemen = user.departemen || user.department || '';
+
+      // Konversi foto ke base64 jika ada
+      let photoBase64 = '';
+      let filename = '';
+      if (currentFile) {
+        try {
+          const reader = new FileReader();
+          const result = await new Promise((resolve, reject) => {
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(currentFile);
+          });
+          photoBase64 = result;
+          filename = currentFile.name;
+        } catch (e) {
+          alert('Gagal membaca foto: ' + e.message);
+          return;
+        }
+      }
+
+      // Buat payload
+      const payload = {
+        nama: nama,
+        nik: nik,
+        departemen: departemen,
+        lokasi: lokasi,
+        kategori: kategori,
+        prioritas: prioritas,
+        deskripsi: deskripsi,
+        photo: photoBase64,
+        filename: filename
+      };
+
+      console.log('📤 Payload:', payload);
+
+      // Nonaktifkan tombol
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...';
+
+      try {
+        const response = await BCS.Api.post('saveReport', payload);
+        console.log('📥 Response:', response);
+
+        if (response && response.success) {
+          alert('✅ Report berhasil dikirim!');
+          // Reset form
+          document.getElementById('lokasi').value = '';
+          document.getElementById('deskripsi').value = '';
+          document.getElementById('charCount').textContent = '0';
+          clearPreview();
+          updateCategoryUI('LISTRIK');
+          prioritySelect.value = 'NORMAL';
+          updatePriorityBadge('NORMAL');
+        } else {
+          alert('❌ Gagal mengirim report: ' + (response?.message || 'Unknown error'));
+        }
+      } catch (err) {
+        console.error('Submit error:', err);
+        alert('❌ Terjadi kesalahan: ' + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane text-sm"></i> Kirim Report';
+      }
+    }
+
+    submitBtn.addEventListener('click', submitReport);
 
     // =============================================
-    // 7. NAVIGASI
+    // 7. CHAR COUNTER
+    // =============================================
+    document.getElementById('deskripsi').addEventListener('input', function() {
+      document.getElementById('charCount').textContent = this.value.length;
+    });
+
+    // =============================================
+    // 8. NAVIGASI
     // =============================================
     document.getElementById('navHistory').addEventListener('click', function(e) {
       e.preventDefault();
@@ -342,7 +423,7 @@
     });
 
     // =============================================
-    // 8. LOGOUT
+    // 9. LOGOUT
     // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
@@ -372,6 +453,11 @@
 
       window.location.href = 'login.html';
     });
+
+    // =============================================
+    // 10. INIT
+    // =============================================
+    loadUser();
 
   })();
 </script>

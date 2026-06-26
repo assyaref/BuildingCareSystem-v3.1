@@ -81,6 +81,8 @@
         <div class="cat-card" data-value="AC"><i class="fa-solid fa-snowflake text-xl block"></i><span class="text-xs font-bold">AC</span></div>
         <div class="cat-card" data-value="KONDISI GEDUNG" style="grid-column:span 2;"><i class="fa-solid fa-building text-xl block"></i><span class="text-xs font-bold">KONDISI GEDUNG</span></div>
       </div>
+      <!-- Hidden input untuk menyimpan kategori yang dipilih -->
+      <input type="hidden" id="selectedCategory" value="LISTRIK" />
     </div>
 
     <!-- Prioritas -->
@@ -178,40 +180,40 @@
     }
 
     // =============================================
-    // 2. FALLBACK KATEGORI
+    // 2. KATEGORI – dengan hidden input & modul state
     // =============================================
-    document.addEventListener('DOMContentLoaded', function() {
-      const categoryCards = document.querySelectorAll('.cat-card');
-      let selectedCategory = 'LISTRIK';
+    const categoryCards = document.querySelectorAll('.cat-card');
+    const hiddenCategory = document.getElementById('selectedCategory');
 
-      function updateCategoryUI(value) {
-        categoryCards.forEach(card => {
-          const val = card.dataset.value;
-          if (val === value) {
-            card.classList.add('selected');
-            card.classList.remove('border-gray-200', 'text-gray-600');
-            card.classList.add('border-[#1e5eff]', 'bg-blue-50/30', 'text-[#1e5eff]');
-          } else {
-            card.classList.remove('selected', 'border-[#1e5eff]', 'bg-blue-50/30', 'text-[#1e5eff]');
-            card.classList.add('border-gray-200', 'text-gray-600');
-          }
-        });
-        selectedCategory = value;
-        if (window.UserReportModule && window.UserReportModule.state) {
-          window.UserReportModule.state.form.kategori = value;
-        }
-        console.log('✅ Kategori dipilih:', value);
-      }
-
+    function updateCategoryUI(value) {
       categoryCards.forEach(card => {
-        card.addEventListener('click', function(e) {
-          const value = this.dataset.value;
-          updateCategoryUI(value);
-        });
+        const val = card.dataset.value;
+        if (val === value) {
+          card.classList.add('selected');
+          card.classList.remove('border-gray-200', 'text-gray-600');
+          card.classList.add('border-[#1e5eff]', 'bg-blue-50/30', 'text-[#1e5eff]');
+        } else {
+          card.classList.remove('selected', 'border-[#1e5eff]', 'bg-blue-50/30', 'text-[#1e5eff]');
+          card.classList.add('border-gray-200', 'text-gray-600');
+        }
       });
+      hiddenCategory.value = value;
+      // Sinkronkan dengan modul
+      if (window.UserReportModule && window.UserReportModule.state) {
+        window.UserReportModule.state.form.kategori = value;
+      }
+      console.log('✅ Kategori dipilih:', value);
+    }
 
-      updateCategoryUI('LISTRIK');
+    categoryCards.forEach(card => {
+      card.addEventListener('click', function(e) {
+        const value = this.dataset.value;
+        updateCategoryUI(value);
+      });
     });
+
+    // Set default
+    updateCategoryUI('LISTRIK');
 
     // =============================================
     // 3. KAMERA & GALERI
@@ -271,7 +273,7 @@
     });
 
     // =============================================
-    // 6. LOGOUT DENGAN KONFIRMASI (FIXED)
+    // 6. LOGOUT – Perbaikan menggunakan removeSession
     // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
@@ -280,27 +282,26 @@
         return;
       }
 
-      // Gunakan auth.logout jika tersedia (sudah diperbaiki di auth.js)
+      // Coba gunakan auth.logout jika ada
       if (window.auth && typeof window.auth.logout === 'function') {
         window.auth.logout();
         return;
       }
 
-      // Fallback manual
+      // Fallback manual dengan removeSession yang benar
       try {
-        // gunakan removeSession (bukan clearSession)
         if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
           BCS.Storage.removeSession();
-        }
-        if (window.Session && typeof Session.clear === 'function') {
+        } else if (window.Session && typeof Session.clear === 'function') {
           Session.clear();
         }
       } catch (e) {}
 
+      // Hapus semua key terkait session
       const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
       keys.forEach(key => {
-        try { localStorage.removeItem(key); } catch(e) {}
-        try { sessionStorage.removeItem(key); } catch(e) {}
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
       });
 
       window.location.href = 'login.html';

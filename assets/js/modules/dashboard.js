@@ -1,328 +1,198 @@
 // ======================================================
-// Building Care System Enterprise v1.0
-// File : assets/js/modules/dashboard.js
-// Radiant Group Duri
+// Building Care System Enterprise v7.1
+// dashboard.js - Dashboard Controller (Fixed)
 // ======================================================
 
 "use strict";
 
-/**
- * ======================================================
- * DASHBOARD CONTROLLER
- * ======================================================
- */
-const DashboardController = (() => {
-    let initialized = false;
-    let dashboardData = null;
-
-    // DOM Elements
-    function getElements() {
-        return {
-            // Statistik Cards
-            totalReports: document.getElementById('totalReports'),
-            pendingReports: document.getElementById('pendingReports'),
-            completedReports: document.getElementById('completedReports'),
-            totalWorkOrders: document.getElementById('totalWorkOrders'),
-            
-            // Charts Container
-            chartContainer: document.getElementById('dashboardChart'),
-            
-            // Tables
-            recentActivities: document.getElementById('recentActivities'),
-            
-            // Loading
-            loadingOverlay: document.getElementById('dashboardLoading')
-        };
+(function() {
+    if (typeof BCS === 'undefined') {
+        console.error('BCS framework not loaded');
+        return;
     }
 
-    /**
-     * ======================================================
-     * HANDLER METHODS
-     * ======================================================
-     */
-    function handleDashboardData(data) {
-        try {
-            Logger.info('[DASHBOARD] Data received:', data);
-            
-            // Simpan data
-            dashboardData = data?.data || data || {};
-            
-            // Update UI
-            updateStats(dashboardData);
-            updateChart(dashboardData);
-            updateActivities(dashboardData);
-            
-            // Hide loading
-            hideLoading();
-            
-            // Emit event sukses
-            if (window.BCS?.Events) {
-                window.BCS.Events.emit('dashboard:loaded', dashboardData);
-            }
-        } catch (error) {
-            Logger.error('[DASHBOARD] Error handling data:', error);
-            showError('Gagal memuat data dashboard');
-        }
-    }
-
-    function handleDashboardError(error) {
-        Logger.error('[DASHBOARD] Error:', error);
-        showError('Terjadi kesalahan saat memuat dashboard');
-        hideLoading();
-    }
-
-    function handleWorkOrderUpdate(data) {
-        Logger.info('[DASHBOARD] Work Order updated:', data);
-        // Refresh data jika diperlukan
-        refreshDashboard();
-    }
-
-    function handleReportUpdate(data) {
-        Logger.info('[DASHBOARD] Report updated:', data);
-        // Refresh data jika diperlukan
-        refreshDashboard();
-    }
-
-    /**
-     * ======================================================
-     * UI UPDATE METHODS
-     * ======================================================
-     */
-    function updateStats(data) {
-        const elements = getElements();
-        
-        // Update statistik dengan aman
-        if (elements.totalReports) {
-            elements.totalReports.textContent = data?.totalReports || 0;
-        }
-        if (elements.pendingReports) {
-            elements.pendingReports.textContent = data?.pendingReports || 0;
-        }
-        if (elements.completedReports) {
-            elements.completedReports.textContent = data?.completedReports || 0;
-        }
-        if (elements.totalWorkOrders) {
-            elements.totalWorkOrders.textContent = data?.totalWorkOrders || 0;
-        }
-    }
-
-    function updateChart(data) {
-        const container = getElements().chartContainer;
-        if (!container) {
-            Logger.warn('[DASHBOARD] Chart container not found');
-            return;
-        }
-
-        try {
-            // Render chart jika ada library chart
-            if (window.Chart) {
-                // Implementasi chart jika menggunakan Chart.js
-                const ctx = container.getContext('2d');
-                if (ctx) {
-                    // Chart rendering logic di sini
-                }
-            } else {
-                // Fallback: tampilkan data sederhana
-                container.innerHTML = `
-                    <div class="chart-placeholder">
-                        <p>Statistik Laporan</p>
-                        <div class="chart-simple">
-                            <span>Total: ${data?.totalReports || 0}</span>
-                            <span>Pending: ${data?.pendingReports || 0}</span>
-                            <span>Completed: ${data?.completedReports || 0}</span>
-                        </div>
-                    </div>
-                `;
-            }
-        } catch (error) {
-            Logger.error('[DASHBOARD] Chart error:', error);
-        }
-    }
-
-    function updateActivities(data) {
-        const container = getElements().recentActivities;
-        if (!container) return;
-
-        const activities = data?.recentActivities || [];
-        
-        if (activities.length === 0) {
-            container.innerHTML = `
-                <tr>
-                    <td colspan="3" class="text-center text-muted">
-                        <i class="fas fa-inbox"></i> Belum ada aktivitas
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        let html = '';
-        activities.forEach(activity => {
-            html += `
-                <tr>
-                    <td>${activity.date || '-'}</td>
-                    <td>${activity.description || '-'}</td>
-                    <td>
-                        <span class="badge badge-${getStatusBadge(activity.status)}">
-                            ${activity.status || 'Unknown'}
-                        </span>
-                    </td>
-                </tr>
-            `;
-        });
-        container.innerHTML = html;
-    }
-
-    function getStatusBadge(status) {
-        const statusMap = {
-            'COMPLETED': 'success',
-            'PENDING': 'warning',
-            'IN_PROGRESS': 'info',
-            'REJECTED': 'danger',
-            'APPROVED': 'primary'
-        };
-        return statusMap[status?.toUpperCase()] || 'secondary';
-    }
-
-    function showLoading() {
-        const overlay = getElements().loadingOverlay;
-        if (overlay) overlay.style.display = 'flex';
-    }
-
-    function hideLoading() {
-        const overlay = getElements().loadingOverlay;
-        if (overlay) overlay.style.display = 'none';
-    }
-
-    function showError(message) {
-        // Gunakan toast jika tersedia
-        if (window.App?.toast) {
-            window.App.toast(message, 'danger');
-        } else {
-            alert(message);
-        }
-    }
-
-    /**
-     * ======================================================
-     * DATA FETCHING
-     * ======================================================
-     */
-    async function fetchDashboardData() {
-        try {
-            showLoading();
-            
-            // Cek API tersedia
-            const api = window.BCS?.Api || window.Api;
-            if (!api) {
-                throw new Error('API not available');
-            }
-
-            // Gunakan service registry jika ada
-            let response;
-            if (window.BCS?.Services?.get) {
-                const systemService = window.BCS.Services.get('system');
-                if (systemService?.getDashboard) {
-                    response = await systemService.getDashboard({});
-                }
-            }
-
-            // Fallback ke Api langsung
-            if (!response) {
-                response = await api.post('dashboard', {});
-            }
-
-            if (response && response.success) {
-                handleDashboardData(response);
-            } else {
-                throw new Error(response?.message || 'Failed to load dashboard');
-            }
-        } catch (error) {
-            handleDashboardError(error);
-        }
-    }
-
-    async function refreshDashboard() {
-        await fetchDashboardData();
-    }
-
-    /**
-     * ======================================================
-     * EVENT BINDING
-     * ======================================================
-     */
-    function bindEvents() {
-        // Bind ke Event Bus jika tersedia
-        if (window.BCS?.Events) {
-            // Cek apakah handler sudah terdaftar
-            if (!window.BCS._dashboardHandlers) {
-                window.BCS._dashboardHandlers = {
-                    handleDashboardData,
-                    handleDashboardError,
-                    handleWorkOrderUpdate,
-                    handleReportUpdate
-                };
-                
-                // Register event listeners
-                window.BCS.Events.on('dashboard:data', handleDashboardData);
-                window.BCS.Events.on('dashboard:error', handleDashboardError);
-                window.BCS.Events.on('workorder:updated', handleWorkOrderUpdate);
-                window.BCS.Events.on('report:updated', handleReportUpdate);
-                
-                Logger.info('[DASHBOARD] Event handlers registered');
-            }
-        }
-    }
-
-    /**
-     * ======================================================
-     * INITIALIZATION
-     * ======================================================
-     */
-    async function init() {
-        if (initialized) {
-            Logger.info('[DASHBOARD] Already initialized');
-            return;
-        }
-        
-        Logger.info('[DASHBOARD] Initializing...');
-        initialized = true;
-
-        // Bind events
-        bindEvents();
-
-        // Load data
-        await fetchDashboardData();
-
-        // Auto-refresh setiap 5 menit
-        setInterval(refreshDashboard, 300000);
-
-        Logger.info('[DASHBOARD] Ready');
-    }
-
-    // Public API
-    return {
-        init,
-        refresh: refreshDashboard,
-        getData: () => dashboardData
+    // DOM elements
+    const elements = {
+        totalReport: document.getElementById('totalReport'),
+        acTotal: document.getElementById('acTotal'),
+        listrikTotal: document.getElementById('listrikTotal'),
+        gedungTotal: document.getElementById('gedungTotal'),
+        totalOpen: document.getElementById('totalOpen'),
+        totalProgress: document.getElementById('totalProgress'),
+        totalDone: document.getElementById('totalDone'),
+        fastCount: document.getElementById('fastCount'),
+        normalCount: document.getElementById('normalCount'),
+        lateCount: document.getElementById('lateCount'),
+        todayDate: document.getElementById('todayDate'),
+        currentTime: document.getElementById('currentTime'),
+        onlineUser: document.getElementById('onlineUser'),
+        todayReport: document.getElementById('todayReport'),
+        pendingApproval: document.getElementById('pendingApproval'),
+        lastUpdate: document.getElementById('lastUpdate'),
+        recentActivity: document.getElementById('recentActivity'),
+        userName: document.getElementById('userName'),
+        userNik: document.getElementById('userNik'),
+        userRole: document.getElementById('userRole'),
+        lastLogin: document.getElementById('lastLogin')
     };
+
+    // Default values
+    function setDefaultValues() {
+        if (elements.totalReport) elements.totalReport.textContent = '0';
+        if (elements.acTotal) elements.acTotal.textContent = '0';
+        if (elements.listrikTotal) elements.listrikTotal.textContent = '0';
+        if (elements.gedungTotal) elements.gedungTotal.textContent = '0';
+        if (elements.totalOpen) elements.totalOpen.textContent = '0';
+        if (elements.totalProgress) elements.totalProgress.textContent = '0';
+        if (elements.totalDone) elements.totalDone.textContent = '0';
+        if (elements.fastCount) elements.fastCount.textContent = '0';
+        if (elements.normalCount) elements.normalCount.textContent = '0';
+        if (elements.lateCount) elements.lateCount.textContent = '0';
+        if (elements.todayReport) elements.todayReport.textContent = '0';
+        if (elements.pendingApproval) elements.pendingApproval.textContent = '0';
+        if (elements.onlineUser) elements.onlineUser.textContent = '1';
+    }
+
+    // Load user info from session
+    function loadUserInfo() {
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const user = session.user;
+                if (elements.userName) {
+                    elements.userName.textContent = user.nama || user.name || 'User';
+                }
+                if (elements.userNik) {
+                    elements.userNik.textContent = session.nik || user.nik || '-';
+                }
+                if (elements.userRole) {
+                    elements.userRole.textContent = user.role || 'User';
+                }
+                if (elements.lastLogin) {
+                    elements.lastLogin.textContent = user.lastLogin || '-';
+                }
+            }
+        } catch (e) {
+            console.warn('Load user info error:', e);
+        }
+    }
+
+    // Update date & time
+    function updateDateTime() {
+        const now = new Date();
+        if (elements.todayDate) {
+            elements.todayDate.textContent = now.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+        if (elements.currentTime) {
+            elements.currentTime.textContent = now.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+    }
+
+    // Fetch dashboard data
+    async function loadDashboard() {
+        try {
+            BCS.App.Loading.show();
+
+            // ✅ Use getSummary action (available in Code.gs)
+            const response = await BCS.Api.post('getSummary', {});
+            console.log('Dashboard response:', response);
+
+            if (!response || !response.success) {
+                console.error('Failed to load dashboard:', response?.message);
+                BCS.App.Toast.danger('Gagal memuat data dashboard');
+                return;
+            }
+
+            const data = response.data || {};
+
+            // Update all stats
+            if (elements.totalReport) elements.totalReport.textContent = data.total || 0;
+            if (elements.acTotal) elements.acTotal.textContent = data.ac || 0;
+            if (elements.listrikTotal) elements.listrikTotal.textContent = data.listrik || 0;
+            if (elements.gedungTotal) elements.gedungTotal.textContent = data.bangunan || data.gedung || 0;
+
+            if (elements.totalOpen) elements.totalOpen.textContent = data.open || 0;
+            if (elements.totalProgress) elements.totalProgress.textContent = data.progress || 0;
+            if (elements.totalDone) elements.totalDone.textContent = data.done || 0;
+
+            if (elements.fastCount) elements.fastCount.textContent = data.fast || 0;
+            if (elements.normalCount) elements.normalCount.textContent = data.normal || 0;
+            if (elements.lateCount) elements.lateCount.textContent = data.late || 0;
+
+            if (elements.todayReport) elements.todayReport.textContent = data.todayReport || 0;
+            if (elements.pendingApproval) elements.pendingApproval.textContent = data.pendingApproval || 0;
+            if (elements.onlineUser) elements.onlineUser.textContent = data.onlineUser || 1;
+
+            if (elements.lastUpdate) elements.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
+
+            // Recent activity
+            if (elements.recentActivity && data.activity && data.activity.length > 0) {
+                let html = '';
+                data.activity.forEach(item => {
+                    const statusClass = item.status === 'DONE' ? 'success' : 
+                                       item.status === 'PROGRESS' ? 'warning' : 'secondary';
+                    html += `
+                        <div class="activity-item d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <strong>${item.kategori || 'Report'}</strong>
+                                <small class="d-block text-muted">${item.lokasi || ''}</small>
+                                <small class="text-muted">${item.tanggal || ''} ${item.waktu || ''}</small>
+                            </div>
+                            <span class="badge bg-${statusClass}">${item.status || 'OPEN'}</span>
+                        </div>
+                    `;
+                });
+                elements.recentActivity.innerHTML = html;
+            } else if (elements.recentActivity) {
+                elements.recentActivity.innerHTML = '<div class="text-muted text-center py-3">Belum ada aktivitas</div>';
+            }
+
+        } catch (error) {
+            console.error('Load dashboard error:', error);
+            BCS.App.Toast.danger('Terjadi kesalahan saat memuat data');
+        } finally {
+            BCS.App.Loading.hide();
+        }
+    }
+
+    // Auto refresh every 60 seconds
+    let refreshInterval = null;
+
+    function startAutoRefresh() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(() => {
+            loadDashboard();
+            updateDateTime();
+        }, 60000);
+    }
+
+    // Initialize
+    function init() {
+        setDefaultValues();
+        loadUserInfo();
+        updateDateTime();
+        loadDashboard();
+        startAutoRefresh();
+
+        // Update time every second
+        setInterval(updateDateTime, 1000);
+
+        console.log('Dashboard initialized');
+    }
+
+    // Run when DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
 })();
-
-// Register service ke BCS
-if (window.BCS?.Services?.register) {
-    window.BCS.Services.register('dashboard', DashboardController);
-    Logger.info('[DASHBOARD] Service registered to BCS');
-}
-
-// Auto-initialize jika halaman dashboard
-if (document.getElementById('dashboardPage') || document.querySelector('.dashboard-page')) {
-    document.addEventListener('DOMContentLoaded', () => {
-        // Tunggu sedikit agar API siap
-        setTimeout(DashboardController.init, 200);
-    });
-}
-
-// Export untuk modular
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = DashboardController;
-}

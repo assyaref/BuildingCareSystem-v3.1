@@ -1,4 +1,4 @@
-// auth.js - Building Care System v7.3 (fixed logout with server sync)
+// auth.js - Building Care System v7.4 (fixed logout with server sync & better logging)
 
 (function() {
     "use strict";
@@ -98,6 +98,9 @@
             const session = BCS.Storage.getSession();
             if (session && session.token) {
                 token = session.token;
+                console.log("📤 Token found:", token.substring(0, 12) + "...");
+            } else {
+                console.warn("⚠️ No session found, skipping server logout");
             }
         } catch (e) {
             console.warn("Failed to get token:", e);
@@ -106,19 +109,22 @@
         // 2. Send logout request to server (if token exists)
         if (token && BCS.Api && typeof BCS.Api.post === 'function') {
             try {
+                console.log("📤 Sending logout request to server...");
                 const response = await BCS.Api.post('logout', { token: token });
                 console.log('📤 Logout response from server:', response);
+
                 if (response && response.success) {
                     console.log('✅ Logout recorded on server');
                 } else {
                     console.warn('⚠️ Server logout failed:', response?.message);
+                    // Continue with local cleanup anyway
                 }
             } catch (e) {
                 console.warn('⚠️ Logout API call failed (continuing local cleanup):', e);
                 // Continue with local logout anyway
             }
         } else {
-            console.warn('⚠️ No token found, skipping server logout');
+            console.warn('⚠️ No token or API available, skipping server logout');
         }
 
         // 3. Clear local session (always)
@@ -157,5 +163,5 @@
     window.auth = { login, logout, isLoggedIn, getSession };
     window.login = login;
 
-    console.log("✅ auth.js v7.3 loaded (fixed logout with server sync)");
+    console.log("✅ auth.js v7.4 loaded (fixed logout with server sync)");
 })();

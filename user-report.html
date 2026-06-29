@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <!-- SweetAlert2 untuk Toast -->
+  <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     * { box-sizing: border-box; }
@@ -41,18 +41,94 @@
     .photo-btn.secondary { background:#f3f4f6; color:#4b5563; }
     #priorityBadge { transition: all 0.2s; }
 
-    /* Toast custom style */
-    .swal2-toast {
-      border-radius: 16px !important;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important;
-      padding: 16px 24px !important;
+    /* Custom style untuk Toast SweetAlert2 di tengah */
+    .swal2-popup.swal2-toast {
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 20px !important;
+      border-radius: 20px !important;
+      min-width: 280px !important;
+      max-width: 90% !important;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
+      background: #ffffff !important;
     }
-    .swal2-toast .swal2-title {
-      font-size: 15px !important;
+    .swal2-popup.swal2-toast .swal2-title {
+      font-size: 16px !important;
       font-weight: 600 !important;
+      margin-top: 8px !important;
     }
-    .swal2-toast .swal2-icon {
-      margin: 0 12px 0 0 !important;
+    .swal2-popup.swal2-toast .swal2-icon {
+      margin: 0 !important;
+      width: 56px !important;
+      height: 56px !important;
+      font-size: 24px !important;
+    }
+    .swal2-popup.swal2-toast .swal2-icon.swal2-success {
+      border-color: #22c55e !important;
+      background: #dcfce7 !important;
+    }
+    .swal2-popup.swal2-toast .swal2-icon.swal2-success .swal2-success-ring {
+      border-color: #22c55e !important;
+    }
+    .swal2-popup.swal2-toast .swal2-icon.swal2-error {
+      border-color: #ef4444 !important;
+      background: #fee2e2 !important;
+    }
+    .swal2-popup.swal2-toast .swal2-icon.swal2-warning {
+      border-color: #f59e0b !important;
+      background: #fef3c7 !important;
+    }
+    .swal2-popup.swal2-toast .swal2-icon.swal2-info {
+      border-color: #3b82f6 !important;
+      background: #dbeafe !important;
+    }
+
+    /* Logout modal lebih berwarna */
+    .swal2-popup {
+      border-radius: 24px !important;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.15) !important;
+      padding: 32px 24px !important;
+    }
+    .swal2-title {
+      font-weight: 700 !important;
+      font-size: 22px !important;
+    }
+    .swal2-html-container {
+      font-size: 15px !important;
+      color: #4b5563 !important;
+    }
+    .swal2-confirm {
+      background: linear-gradient(145deg, #ef4444, #dc2626) !important;
+      border: none !important;
+      border-radius: 12px !important;
+      padding: 12px 32px !important;
+      font-weight: 600 !important;
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3) !important;
+      transition: all 0.2s !important;
+    }
+    .swal2-confirm:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 12px 32px rgba(239, 68, 68, 0.4) !important;
+    }
+    .swal2-cancel {
+      background: #e5e7eb !important;
+      border: none !important;
+      border-radius: 12px !important;
+      padding: 12px 32px !important;
+      font-weight: 600 !important;
+      color: #374151 !important;
+      transition: all 0.2s !important;
+    }
+    .swal2-cancel:hover {
+      background: #d1d5db !important;
+    }
+    .swal2-icon.swal2-question {
+      border-color: #3b82f6 !important;
+      background: #dbeafe !important;
+    }
+    .swal2-icon.swal2-question .swal2-icon-content {
+      color: #3b82f6 !important;
     }
   </style>
 </head>
@@ -169,6 +245,34 @@
 <script>
   (function() {
     'use strict';
+
+    // =============================================
+    // Toast Custom Function (di tengah, berwarna)
+    // =============================================
+    function showCustomToast(icon, title, timer = 2500) {
+      const iconMap = {
+        'success': { color: '#22c55e', bg: '#dcfce7' },
+        'error': { color: '#ef4444', bg: '#fee2e2' },
+        'warning': { color: '#f59e0b', bg: '#fef3c7' },
+        'info': { color: '#3b82f6', bg: '#dbeafe' }
+      };
+      const style = iconMap[icon] || iconMap['info'];
+
+      Swal.fire({
+        toast: true,
+        position: 'center',
+        icon: icon,
+        title: title,
+        showConfirmButton: false,
+        timer: timer,
+        timerProgressBar: true,
+        background: '#ffffff',
+        customClass: {
+          popup: 'swal2-toast',
+          timerProgressBar: 'bg-' + (icon === 'success' ? 'success' : icon === 'error' ? 'danger' : icon === 'warning' ? 'warning' : 'info')
+        }
+      });
+    }
 
     // =============================================
     // 1. LOAD USER DATA
@@ -305,7 +409,7 @@
       const file = this.files[0];
       if (file) {
         if (file.size > 5 * 1024 * 1024) {
-          BCS.App.Toast.danger('Ukuran foto maksimal 5 MB');
+          showCustomToast('error', 'Ukuran foto maksimal 5 MB');
           this.value = '';
           return;
         }
@@ -324,7 +428,7 @@
     });
 
     // =============================================
-    // 6. SUBMIT REPORT – TOAST SMOOTH
+    // 6. SUBMIT REPORT
     // =============================================
     const submitBtn = document.getElementById('submitReport');
 
@@ -332,27 +436,27 @@
       // Validasi
       const lokasi = document.getElementById('lokasi').value.trim();
       if (!lokasi) {
-        BCS.App.Toast.warning('Lokasi kerusakan wajib diisi');
+        showCustomToast('warning', 'Lokasi kerusakan wajib diisi');
         document.getElementById('lokasi').focus();
         return;
       }
 
       const departemen = document.getElementById('departemen').value.trim();
       if (!departemen) {
-        BCS.App.Toast.warning('Departemen wajib diisi');
+        showCustomToast('warning', 'Departemen wajib diisi');
         document.getElementById('departemen').focus();
         return;
       }
 
       const kategori = document.getElementById('selectedCategory').value;
       if (!kategori) {
-        BCS.App.Toast.warning('Pilih kategori kerusakan');
+        showCustomToast('warning', 'Pilih kategori kerusakan');
         return;
       }
 
       const deskripsi = document.getElementById('deskripsi').value.trim();
       if (!deskripsi || deskripsi.length < 5) {
-        BCS.App.Toast.warning('Deskripsi wajib diisi minimal 5 karakter');
+        showCustomToast('warning', 'Deskripsi wajib diisi minimal 5 karakter');
         document.getElementById('deskripsi').focus();
         return;
       }
@@ -379,7 +483,7 @@
           photoBase64 = result;
           filename = currentFile.name;
         } catch (e) {
-          BCS.App.Toast.danger('Gagal membaca foto: ' + e.message);
+          showCustomToast('error', 'Gagal membaca foto: ' + e.message);
           return;
         }
       }
@@ -399,7 +503,7 @@
 
       console.log('📤 Payload:', payload);
 
-      // 🔥 Nonaktifkan tombol & tampilkan spinner
+      // Nonaktifkan tombol & tampilkan spinner
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...';
 
@@ -408,8 +512,8 @@
         console.log('📥 Response:', response);
 
         if (response && response.success) {
-          // ✅ TOAST SUKSES – smooth & elegan
-          BCS.App.Toast.success('✅ Report berhasil dikirim!');
+          // ✅ Toast tengah berwarna hijau
+          showCustomToast('success', '✅ Report berhasil dikirim!');
 
           // Reset form
           document.getElementById('lokasi').value = '';
@@ -421,13 +525,12 @@
           prioritySelect.value = 'NORMAL';
           updatePriorityBadge('NORMAL');
         } else {
-          BCS.App.Toast.danger('❌ Gagal mengirim report: ' + (response?.message || 'Unknown error'));
+          showCustomToast('error', '❌ Gagal mengirim report: ' + (response?.message || 'Unknown error'));
         }
       } catch (err) {
         console.error('Submit error:', err);
-        BCS.App.Toast.danger('❌ Terjadi kesalahan: ' + err.message);
+        showCustomToast('error', '❌ Terjadi kesalahan: ' + err.message);
       } finally {
-        // 🔥 Aktifkan kembali tombol
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane text-sm"></i> Kirim Report';
       }
@@ -456,35 +559,46 @@
     });
 
     document.getElementById('notifBtn').addEventListener('click', function() {
-      BCS.App.Toast.info('Anda memiliki 3 notifikasi');
+      showCustomToast('info', 'Anda memiliki 3 notifikasi');
     });
 
     // =============================================
-    // 9. LOGOUT DENGAN SWEETALERT2
+    // 9. LOGOUT - LEBIH BAGUS & BERWARNA
     // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
 
       Swal.fire({
-        title: 'Konfirmasi Logout',
-        text: 'Apakah Anda yakin ingin keluar dari sistem?',
+        title: '🚪 Keluar dari Sistem',
+        text: 'Apakah Anda yakin ingin keluar?',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, Logout!',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Ya, Keluar',
         cancelButtonText: 'Batal',
         reverseButtons: true,
         customClass: {
-          popup: 'rounded-3',
-          confirmButton: 'btn btn-danger px-4',
-          cancelButton: 'btn btn-secondary px-4'
+          popup: 'rounded-4',
+          confirmButton: 'btn btn-danger px-5 py-2 fw-bold',
+          cancelButton: 'btn btn-light px-5 py-2 fw-bold',
+          title: 'fw-bold text-dark',
+          htmlContainer: 'text-secondary'
+        },
+        backdrop: 'rgba(0,0,0,0.4)',
+        showClass: {
+          popup: 'animate__animated animate__fadeInUp animate__faster'
+        },
+        hideClass: {
+          popup: 'animate__animated animate__fadeOutDown animate__faster'
         }
       }).then((result) => {
         if (result.isConfirmed) {
+          // Proses logout
           if (window.auth && typeof window.auth.logout === 'function') {
             window.auth.logout();
           } else {
+            // Fallback manual
             try {
               if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
                 BCS.Storage.removeSession();

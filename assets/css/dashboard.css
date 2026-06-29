@@ -1,468 +1,353 @@
-/* =====================================================
-   Building Care System Enterprise v3.1
-   Radiant Group Duri
-   dashboard.css (Premium Dark Centric Architecture)
-===================================================== */
+/* ==========================================================================
+   1. CORE ECOSYSTEM VARIABLES (LIGHT & DARK THEME)
+   ========================================================================== */
+:root {
+    /* DEFAULT THEME (DARK MODE) */
+    --bg-app: #0b0f19;
+    --bg-surface: #131a2c;
+    --bg-sidebar: #0f1624;
+    --border-color: rgba(255, 255, 255, 0.08);
+    
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    
+    --accent-color: #3b82f6;
+    --accent-soft: rgba(59, 130, 246, 0.15);
+    
+    --purple-icon: #a855f7;
+    --purple-soft: rgba(168, 85, 247, 0.15);
+    
+    --card-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.3);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
+[data-theme="light"] {
+    /* LIGHT MODE OVERRIDES */
+    --bg-app: #f4f6f9;
+    --bg-surface: #ffffff;
+    --bg-sidebar: #ffffff;
+    --border-color: rgba(0, 0, 0, 0.08);
+    
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    
+    --accent-color: #2563eb;
+    --accent-soft: rgba(37, 99, 235, 0.1);
+    
+    --card-shadow: 0 4px 18px 0 rgba(15, 23, 42, 0.05);
+}
+
+/* ==========================================================================
+   2. SYSTEM GLOBAL RESET & BASE STYLES
+   ========================================================================== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
 }
 
-/* ======================================================
-   DESIGN SYSTEM & THEME VARIABLES
-======================================================= */
-:root {
-    /* Base Status Colors */
-    --info: #0ea5e9;
-    --warning: #f59e0b;
-    --success: #10b981;
-    --danger: #ef4444;
-    --purple: #8b5cf6;
-    --radius: 20px;
-    --transition: .3s ease;
-
-    /* Theme: Deep Premium Dark (As per Reference Screenshot) */
-    --bg-main: #090d16;          /* Latar belakang utama aplikasi */
-    --bg-surface: #0f1422;       /* Latar belakang kartu / cards */
-    --bg-card-upload: #171e30;   /* Area sekunder / form */
-    --border-color: #1e2638;     /* Garis batas tipis elegant */
-    --text-primary: #f3f4f6;     /* Putih bersih untuk teks utama */
-    --text-secondary: #9ca3af;   /* Abu-abu lembut untuk sub-teks */
-    --accent-color: #3b82f6;     /* Biru elektrik untuk aksen aktif */
-    --accent-hover: #2563eb;
-    --accent-soft: rgba(59, 130, 246, 0.12);
-    --shadow-elegant: 0 12px 32px rgba(3, 5, 10, 0.4);
-    --sidebar-gradient: linear-gradient(180deg, #090d16 0%, #0f1422 100%);
-}
-
-[data-theme="light"] {
-    /* Optional Light Mode (Alabaster Sophistication) */
-    --bg-main: #f9f8f6;
-    --bg-surface: #ffffff;
-    --bg-card-upload: #f4f3f0;
-    --border-color: #e4e2dd;
-    --text-primary: #1e2229;
-    --text-secondary: #6b7280;
-    --accent-color: #0D47A1;
-    --accent-hover: #1565C0;
-    --accent-soft: rgba(13, 71, 161, 0.08);
-    --shadow-elegant: 0 10px 30px rgba(0, 0, 0, 0.03);
-    --sidebar-gradient: linear-gradient(180deg, #0D47A1 0%, #1565C0 100%);
-}
-
-/* ======================================================
-   BASE STYLES
-======================================================= */
 body {
-    background: var(--bg-main);
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-app);
     color: var(--text-primary);
     overflow-x: hidden;
-    line-height: 1.6;
-    transition: background-color 0.4s ease, color 0.4s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Custom Scrollbar for modern enterprise interface */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-app);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* ==========================================================================
+   3. SYSTEM STRUCTURE LAYOUT (WRAPPER, SIDEBAR, CONTENT)
+   ========================================================================== */
 .wrapper {
     display: flex;
     min-height: 100vh;
-    background-color: var(--bg-main);
+    width: 100vw;
 }
 
-/* ======================================================
-   SIDEBAR
-======================================================= */
+/* SIDEBAR STYLES */
 .sidebar {
-    width: 280px;
-    background: var(--sidebar-gradient);
+    width: 260px;
+    background-color: var(--bg-sidebar);
     border-right: 1px solid var(--border-color);
-    color: #fff;
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    padding: 28px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    box-shadow: var(--shadow-elegant);
-    transition: var(--transition), background 0.4s ease;
-    z-index: 1000;
+    flex-shrink: 0;
+    transition: var(--transition);
+    z-index: 100;
 }
 
-.logo-area {
+.sidebar .logo-area {
+    padding: 24px;
+    border-bottom: 1px solid var(--border-color);
     text-align: center;
-    margin-bottom: 45px;
 }
 
-.logo {
-    width: 82px;
-    height: 82px;
+.sidebar .logo-area .logo {
+    height: 50px;
+    margin-bottom: 12px;
     object-fit: contain;
 }
 
-.logo-area h5 {
-    margin-top: 14px;
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: .3px;
-    color: #fff !important;
+.sidebar .logo-area h5 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
 }
 
-.logo-area small {
-    display: block;
-    margin-top: 5px;
-    opacity: .75;
-    font-size: 13px;
-    color: var(--text-secondary) !important;
+.sidebar .logo-area small {
+    color: var(--text-muted);
+    font-size: 12px;
+    letter-spacing: 0.5px;
 }
 
 .sidebar nav {
+    padding: 20px 14px;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.menu {
+.sidebar nav .menu {
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 15px 18px;
-    border-radius: 16px;
-    text-decoration: none;
+    padding: 12px 16px;
     color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 10px;
+    font-size: 14px;
     font-weight: 500;
     transition: var(--transition);
 }
 
-.menu i {
-    font-size: 20px;
-    width: 22px;
+.sidebar nav .menu i {
+    font-size: 1.2rem;
 }
 
-.menu:hover {
-    transform: translateX(6px);
-    background: rgba(255, 255, 255, .05);
-    color: #fff;
+.sidebar nav .menu:hover {
+    background-color: var(--accent-soft);
+    color: var(--accent-color);
 }
 
-.menu.active {
-    background: linear-gradient(90deg, #0D47A1 0%, #1565C0 100%);
-    color: #fff !important;
-    font-weight: 600;
-    box-shadow: 0 4px 15px rgba(13, 71, 161, 0.4);
+.sidebar nav .menu.active {
+    background-color: var(--accent-color);
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.menu.text-danger {
-    margin-top: 30px;
-    background: rgba(239, 68, 68, 0.08);
-    color: var(--danger) !important;
-}
-
-/* ======================================================
-   CONTENT AREA & TOPBAR
-======================================================= */
+/* MAIN CONTENT STYLES */
 .content {
-    margin-left: 280px;
-    width: 100%;
-    padding: 40px;
-    background-color: var(--bg-main);
-    transition: var(--transition), background-color 0.4s ease;
+    flex-grow: 1;
+    padding: 30px;
+    min-width: 0; /* Webkit fix for text-truncate inside flexbox */
 }
 
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 48px;
-}
-
+/* TOPBAR STYLES */
 .topbar h3 {
-    font-size: 34px;
     font-weight: 700;
     color: var(--text-primary);
+    margin-bottom: 0;
 }
 
 .topbar small {
-    display: block;
-    margin-top: 5px;
     color: var(--text-secondary);
-    font-size: 15px;
-}
-
-/* ======================================================
-   CARDS COMPONENT (ENTERPRISE & BOOTSTRAP)
-======================================================= */
-.card, .enterprise-card, .summary-card, .status-card, .user-profile-card {
-    background: var(--bg-surface) !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: var(--radius);
-    padding: 24px;
-    box-shadow: var(--shadow-elegant);
-    transition: var(--transition), background-color 0.4s ease, border-color 0.4s ease;
-    overflow: hidden;
-}
-
-.summary-card:hover, .status-card:hover, .user-profile-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-elegant);
-}
-
-.card-header {
-    background: transparent !important;
-    border-bottom: 1px solid var(--border-color) !important;
-    color: var(--text-primary) !important;
-    font-weight: 600;
-    padding: 18px 22px;
-}
-
-.card-body {
-    min-height: 300px;
-}
-
-/* Header Text Rules inside Cards */
-.summary-card h6, .status-header h6 {
-    color: var(--text-secondary) !important;
-    font-size: 14px;
-    margin-bottom: 4px;
-}
-
-.summary-card h2, .status-header h2 {
-    font-size: 38px;
-    font-weight: 700;
-    color: var(--text-primary) !important;
-}
-
-/* ======================================================
-   STATUS & STATISTICS EXTENSION
-======================================================= */
-.status-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.status-percent {
-    margin-top: 10px;
     font-size: 13px;
-    color: var(--text-secondary);
 }
 
-.status-icon, .summary-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: white;
-    flex-shrink: 0;
+.topbar .brand-location {
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+/* User Profile Quick View Card */
+.user-profile-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    min-width: 220px;
+    box-shadow: var(--card-shadow);
+}
+
+/* ==========================================================================
+   4. ENTERPRISE CARDS & METRICS ARCHITECTURE
+   ========================================================================== */
+.enterprise-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
     transition: var(--transition);
 }
 
-.summary-card:hover .summary-icon {
-    transform: rotate(-6deg) scale(1.08);
-}
-
-/* Soft Alert Backgrounds as per Screenshot */
-.bg-warning-soft { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-.bg-info-soft { background: rgba(14, 165, 233, 0.12); color: #0ea5e9; }
-.bg-success-soft { background: rgba(16, 185, 129, 0.12); color: #10b981; }
-
-.bg-primary { background: var(--accent-color); }
-.bg-info { background: var(--info); }
-.bg-warning { background: var(--warning); }
-.bg-purple { background: var(--purple); }
-
-/* Sparkline Utilities */
-.sparkline {
-    height: 34px;
-    margin-top: 18px;
-    border-radius: 30px;
-}
-
-.spark-orange {
-    background: radial-gradient(circle at 10% 80%,#f59e0b 2px,transparent 3px), radial-gradient(circle at 25% 40%,#f59e0b 2px,transparent 3px), radial-gradient(circle at 40% 70%,#f59e0b 2px,transparent 3px), radial-gradient(circle at 60% 50%,#f59e0b 2px,transparent 3px), radial-gradient(circle at 80% 75%,#f59e0b 2px,transparent 3px);
-}
-
-.spark-blue {
-    background: radial-gradient(circle at 10% 70%,#3b82f6 2px,transparent 3px), radial-gradient(circle at 30% 30%,#3b82f6 2px,transparent 3px), radial-gradient(circle at 50% 60%,#3b82f6 2px,transparent 3px), radial-gradient(circle at 70% 45%,#3b82f6 2px,transparent 3px), radial-gradient(circle at 90% 75%,#3b82f6 2px,transparent 3px);
-}
-
-.spark-green {
-    background: radial-gradient(circle at 10% 70%,#10b981 2px,transparent 3px), radial-gradient(circle at 30% 40%,#10b981 2px,transparent 3px), radial-gradient(circle at 55% 75%,#10b981 2px,transparent 3px), radial-gradient(circle at 75% 45%,#10b981 2px,transparent 3px), radial-gradient(circle at 92% 20%,#10b981 2px,transparent 3px);
-}
-
-/* ======================================================
-   FORMS & UPLOADS
-======================================================= */
-.form-label {
-    font-weight: 600;
-    font-size: 13px;
+.enterprise-card .card-header {
+    background-color: transparent !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 18px 24px !important;
+    font-size: 15px;
     color: var(--text-primary);
 }
 
-.form-control, .form-select {
-    background-color: var(--bg-main);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    border-radius: 12px;
-    padding: 12px 16px;
-    transition: all 0.3s ease;
-}
-
-.form-control:focus, .form-select:focus {
+/* SUMMARY TOP CARDS (Row 4 Kolom) */
+.summary-card {
     background-color: var(--bg-surface);
-    color: var(--text-primary);
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px var(--accent-soft);
-}
-
-.upload-card, .preview-wrapper {
-    background: var(--bg-card-upload);
-    border: 2px dashed var(--border-color);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 24px;
-    transition: all 0.3s;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition);
 }
 
-/* Buttons */
-.btn-upload.primary, .btn-primary {
-    background: var(--accent-color) !important;
-    color: #ffffff !important;
-    border: none;
-    font-weight: 600;
-    border-radius: 12px;
-    transition: all 0.3s ease;
+.summary-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-color);
 }
 
-.btn-upload.secondary, .btn-light {
-    background: var(--bg-card-upload) !important;
-    color: var(--text-primary) !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: 12px;
+.bg-purple {
+    background-color: var(--purple-icon) !important;
 }
 
-/* ======================================================
-   TIMELINE & USER PROFILE
-======================================================= */
-.activity-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.activity-item:last-child { border: none; }
-.activity-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    flex-shrink: 0;
-}
-.activity-icon.success { background: var(--success); }
-.activity-icon.warning { background: var(--warning); }
-.activity-icon.primary { background: var(--accent-color); }
-.activity-icon.purple { background: var(--purple); }
-
-.avatar {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #0D47A1, #2563EB);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-size: 28px;
-}
-
-.role-badge {
-    background: var(--accent-soft);
-    color: var(--accent-color);
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-weight: 700;
-    display: inline-block;
-}
-
-.profile-detail {
-    margin-top: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    color: var(--text-secondary);
-    font-size: 14px;
-}
-
-.profile-footer {
-    margin-top: 18px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-color);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-/* Global Semantic Helpers */
-.text-success { color: var(--success) !important; }
-.text-danger { color: var(--danger) !important; }
-.text-warning { color: var(--warning) !important; }
-.brand-location { color: var(--accent-color); font-weight: 500; }
-
-/* ======================================================
-   INTERFACE FLOATING SWITCHER BUTTON
-======================================================= */
-.theme-switcher {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    z-index: 9999;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: var(--bg-surface);
+/* STATUS & SLA CARDS (Row 3 Kolom) */
+.status-card {
+    background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-elegant);
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.status-card:hover {
+    transform: translateY(-3px);
+}
+
+.status-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    color: var(--text-primary);
-    font-size: 20px;
-}
-.theme-switcher:hover { transform: scale(1.1); }
-
-/* Scrollbar Customization */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 20px;
+    font-size: 1.2rem;
 }
 
-/* ======================================================
-   RESPONSIVE DESIGN (MEDIA QUERIES)
-======================================================= */
-@media(max-width: 991px) {
-    .sidebar { width: 85px; padding: 15px; }
-    .logo-area h5, .logo-area small, .menu span { display: none; }
-    .logo { width: 55px; height: 55px; }
-    .content { margin-left: 85px; padding: 20px; }
+/* Soft Color Tokens for Status Icons */
+.bg-warning-soft { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.bg-info-soft    { background: rgba(6, 182, 212, 0.12);  color: #06b6d4; }
+.bg-success-soft { background: rgba(16, 185, 129, 0.12); color: #10b73a; }
+
+/* Abstract Sparkline Representation via CSS */
+.sparkline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    opacity: 0.6;
+}
+.spark-orange { background: linear-gradient(90deg, transparent, #f59e0b); }
+.spark-blue   { background: linear-gradient(90deg, transparent, #06b6d4); }
+.spark-green  { background: linear-gradient(90deg, transparent, #10b73a); }
+
+/* ==========================================================================
+   5. RECENT ACTIVITY FEED COMPONENTS
+   ========================================================================== */
+.activity-item {
+    padding: 12px;
+    border-radius: 10px;
+    transition: var(--transition);
+    border-left: 3px solid transparent;
 }
 
-@media(max-width: 768px) {
-    .wrapper { flex-direction: column; }
-    .sidebar { position: relative; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); }
-    .content { margin-left: 0; padding: 15px; }
-    .topbar { flex-direction: column; align-items: flex-start; gap: 15px; }
-    .summary-card, .user-profile-card { margin-bottom: 15px; width: 100%; min-width: 100%; }
-    .summary-card h2 { font-size: 28px; }
+.activity-item:hover {
+    background-color: var(--bg-app);
+}
+
+.activity-item.open { border-left-color: #f59e0b; }
+.activity-item.progress { border-left-color: #06b6d4; }
+.activity-item.done { border-left-color: #10b73a; }
+
+/* ==========================================================================
+   6. LOADING OVERLAY & UTILITIES
+   ========================================================================== */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(11, 15, 25, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Theme Switcher Hover state */
+.theme-switcher-btn:hover {
+    background-color: var(--accent-soft) !important;
+    border-color: var(--accent-color) !important;
+    transform: rotate(15deg);
+}
+
+/* ==========================================================================
+   7. RESPONSIVE BREAKPOINTS (MEDIA QUERIES)
+   ========================================================================== */
+@media (max-width: 1200px) {
+    .wrapper {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .sidebar nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 12px;
+    }
+    .sidebar .logo-area {
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .sidebar .logo-area .logo {
+        margin-bottom: 0;
+        height: 35px;
+    }
+    .content {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .topbar {
+        text-align: center;
+        justify-content: center !important;
+    }
+    .user-profile-card {
+        width: 100%;
+    }
 }

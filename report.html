@@ -155,6 +155,22 @@
         [data-theme="dark"] .dark-toggle:hover {
             background: #2a2a42;
         }
+
+        /* History table styling */
+        .history-table td, .history-table th {
+            vertical-align: middle;
+        }
+        .history-table .btn-sm {
+            padding: 2px 8px;
+            font-size: 12px;
+        }
+        .history-table .badge {
+            font-size: 11px;
+        }
+        #historyContainer .card-body {
+            max-height: 400px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 
@@ -246,89 +262,6 @@
                 </div>
 
             </header>
-
-            <!-- ======================================================
-                 SUMMARY CARDS
-            ======================================================= -->
-            <section class="row g-4 mt-2">
-
-                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card total-card">
-                        <div class="summary-top">
-                            <div class="summary-icon bg-primary">
-                                <i class="bi bi-file-earmark-text-fill"></i>
-                            </div>
-                            <div>
-                                <h6>Total Report</h6>
-                                <h2 id="totalReport">0</h2>
-                            </div>
-                        </div>
-                        <div class="summary-trend success">
-                            <i class="bi bi-arrow-up"></i>
-                            <span id="totalTrend">0</span>
-                            <small>dari minggu lalu</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card ac-card">
-                        <div class="summary-top">
-                            <div class="summary-icon bg-success-soft">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div>
-                                <h6>Completed</h6>
-                                <h2 id="doneReport">0</h2>
-                            </div>
-                        </div>
-                        <div class="summary-trend success">
-                            <i class="bi bi-arrow-up"></i>
-                            <span id="doneTrend">0</span>
-                            <small>dari minggu lalu</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card listrik-card">
-                        <div class="summary-top">
-                            <div class="summary-icon bg-warning-soft">
-                                <i class="bi bi-hourglass-split"></i>
-                            </div>
-                            <div>
-                                <h6>Progress</h6>
-                                <h2 id="progressReport">0</h2>
-                            </div>
-                        </div>
-                        <div class="summary-trend danger">
-                            <i class="bi bi-arrow-down"></i>
-                            <span id="progressTrend">0</span>
-                            <small>dari minggu lalu</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card gedung-card">
-                        <div class="summary-top">
-                            <div class="summary-icon bg-danger-soft">
-                                <i class="bi bi-exclamation-circle-fill"></i>
-                            </div>
-                            <div>
-                                <h6>Pending</h6>
-                                <h2 id="pendingReport">0</h2>
-                            </div>
-                        </div>
-                        <div class="summary-trend success">
-                            <i class="bi bi-arrow-up"></i>
-                            <span id="pendingTrend">0</span>
-                            <small>dari minggu lalu</small>
-                        </div>
-                    </div>
-                </div>
-
-            </section>
 
             <!-- ======================================================
                  FORM REPORT
@@ -444,7 +377,50 @@
                 </div>
             </section>
 
-            <!-- INFO BOXES -->
+            <!-- ======================================================
+                 HISTORY SECTION (Baru)
+            ======================================================= -->
+            <section class="row g-4 mt-4">
+                <div class="col-12">
+                    <div class="card enterprise-card" id="historyContainer">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Riwayat Laporan Saya</h5>
+                                <small class="text-muted">5 laporan terakhir yang Anda kirim</small>
+                            </div>
+                            <a href="history.html" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle history-table mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Tanggal</th>
+                                            <th>Kategori</th>
+                                            <th>Lokasi</th>
+                                            <th>Status</th>
+                                            <th class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historyTableBody">
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">
+                                                <div class="spinner-border spinner-border-sm mb-2"></div><br>
+                                                Memuat riwayat...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================================
+                 INFO BOXES
+            ======================================================= -->
             <section class="row g-4 mt-3">
                 <div class="col-lg-4">
                     <div class="card enterprise-card h-100">
@@ -514,6 +490,21 @@
     </div>
 </div>
 
+<!-- Detail Modal untuk History -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-text"></i> Detail Laporan</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="detailContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Toast -->
 <div class="toast-container position-fixed top-0 end-0 p-4">
     <div id="reportToast" class="toast border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
@@ -548,11 +539,6 @@
     // DOM REFS
     // =============================================
     const DOM = {
-        totalReport: document.getElementById('totalReport'),
-        doneReport: document.getElementById('doneReport'),
-        progressReport: document.getElementById('progressReport'),
-        pendingReport: document.getElementById('pendingReport'),
-
         userName: document.getElementById('userName'),
         userRole: document.getElementById('userRole'),
         userAvatar: document.getElementById('userAvatar'),
@@ -571,18 +557,19 @@
         takePhotoBtn: document.getElementById('takePhotoBtn'),
         galleryBtn: document.getElementById('galleryBtn'),
         resetBtn: document.getElementById('resetReport'),
-        submitBtn: document.querySelector('#reportForm button[type="submit"]'),
         form: document.getElementById('reportForm'),
         loadingModal: new bootstrap.Modal(document.getElementById('loadingModal')),
         successModal: new bootstrap.Modal(document.getElementById('successModal')),
         toast: new bootstrap.Toast(document.getElementById('reportToast')),
-        toastMessage: document.getElementById('toastMessage')
+        toastMessage: document.getElementById('toastMessage'),
+        historyTableBody: document.getElementById('historyTableBody')
     };
 
     // =============================================
     // STATE
     // =============================================
     let currentFile = null;
+    let userInfo = { nama: '', nik: '' };
 
     // =============================================
     // DARK MODE
@@ -639,6 +626,10 @@
 
                 if (DOM.nama) DOM.nama.value = nama;
                 if (DOM.departemen) DOM.departemen.value = user.departemen || user.department || '';
+
+                // Simpan untuk filter history
+                userInfo.nama = nama;
+                userInfo.nik = session.nik || user.nik || '';
             }
         } catch (e) {
             console.warn('Load user info error:', e);
@@ -646,21 +637,124 @@
     }
 
     // =============================================
-    // LOAD SUMMARY DATA
+    // LOAD USER HISTORY
     // =============================================
-    async function loadSummary() {
+    async function loadUserHistory() {
         try {
-            const response = await BCS.Api.post('getSummary', {});
-            if (response && response.success) {
-                const data = response.data || {};
-                DOM.totalReport.textContent = data.total || 0;
-                DOM.doneReport.textContent = data.done || 0;
-                DOM.progressReport.textContent = data.progress || 0;
-                DOM.pendingReport.textContent = data.open || 0;
+            DOM.historyTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        <div class="spinner-border spinner-border-sm mb-2"></div><br>
+                        Memuat riwayat...
+                    </td>
+                </tr>
+            `;
+
+            const response = await BCS.Api.post('getReport', {});
+            if (!response || !response.success) {
+                DOM.historyTableBody.innerHTML = `
+                    <tr><td colspan="6" class="text-center text-danger py-4">Gagal memuat riwayat</td></tr>
+                `;
+                return;
             }
-        } catch (e) {
-            console.warn('Load summary error:', e);
+
+            const allReports = response.data?.reports || [];
+            // Filter berdasarkan NIK atau nama
+            const userNik = userInfo.nik.trim();
+            const userNama = userInfo.nama.toLowerCase().trim();
+
+            let myReports = allReports.filter(r => {
+                const rNik = String(r.nik || '').trim();
+                const rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
+                if (userNik && rNik) return rNik === userNik;
+                if (userNama && rNama) return rNama === userNama;
+                return false;
+            });
+
+            // Urutkan terbaru dan ambil 5 terakhir
+            myReports.sort((a, b) => {
+                const dateA = new Date(a.tanggal || a.createdAt || 0);
+                const dateB = new Date(b.tanggal || b.createdAt || 0);
+                return dateB - dateA;
+            });
+            myReports = myReports.slice(0, 5);
+
+            if (myReports.length === 0) {
+                DOM.historyTableBody.innerHTML = `
+                    <tr><td colspan="6" class="text-center text-muted py-4">Belum ada laporan yang Anda kirim</td></tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            myReports.forEach(r => {
+                const status = r.status || 'OPEN';
+                let badgeClass = 'status-open';
+                if (status === 'DONE') badgeClass = 'status-done';
+                else if (status === 'PROGRESS') badgeClass = 'status-progress';
+
+                const tanggal = r.tanggal || r.createdAt || '';
+                const formattedDate = tanggal ? new Date(tanggal).toLocaleString('id-ID', {
+                    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                }) : '-';
+
+                html += `
+                    <tr>
+                        <td><strong>${r.id || '-'}</strong></td>
+                        <td>${formattedDate}</td>
+                        <td>${r.kategori || '-'}</td>
+                        <td>${r.lokasi || '-'}</td>
+                        <td><span class="status-badge ${badgeClass}">${status}</span></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary view-detail" data-id="${r.id}" title="Detail">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            DOM.historyTableBody.innerHTML = html;
+
+            // Attach event untuk tombol detail
+            document.querySelectorAll('.view-detail').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const report = allReports.find(r => r.id == id);
+                    if (report) openDetail(report);
+                });
+            });
+
+        } catch (err) {
+            console.error('Load history error:', err);
+            DOM.historyTableBody.innerHTML = `
+                <tr><td colspan="6" class="text-center text-danger py-4">Terjadi kesalahan: ${err.message}</td></tr>
+            `;
         }
+    }
+
+    // =============================================
+    // OPEN DETAIL MODAL
+    // =============================================
+    function openDetail(report) {
+        let html = `
+            <table class="table table-sm table-striped">
+                <tr><th>ID</th><td>${report.id || '-'}</td></tr>
+                <tr><th>Tanggal</th><td>${report.tanggal || report.createdAt || '-'}</td></tr>
+                <tr><th>Pelapor</th><td>${report.nama || report.pelapor || '-'}</td></tr>
+                <tr><th>Departemen</th><td>${report.departemen || '-'}</td></tr>
+                <tr><th>Kategori</th><td>${report.kategori || '-'}</td></tr>
+                <tr><th>Lokasi</th><td>${report.lokasi || '-'}</td></tr>
+                <tr><th>Prioritas</th><td>${report.prioritas || '-'}</td></tr>
+                <tr><th>Status</th><td>${report.status || '-'}</td></tr>
+                <tr><th>Deskripsi</th><td>${report.deskripsi || '-'}</td></tr>
+                <tr><th>Teknisi</th><td>${report.teknisi || '-'}</td></tr>
+                <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || '-'}</td></tr>
+                <tr><th>Foto</th><td>${report.foto ? `<a href="${report.foto}" target="_blank">Lihat Foto</a>` : '-'}</td></tr>
+            </table>
+        `;
+        document.getElementById('detailContent').innerHTML = html;
+        const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+        modal.show();
     }
 
     // =============================================
@@ -759,7 +853,8 @@
             if (response && response.success) {
                 DOM.successModal.show();
                 resetForm();
-                await loadSummary();
+                // Refresh history setelah submit sukses
+                await loadUserHistory();
             } else {
                 alert('❌ Gagal mengirim report: ' + (response?.message || 'Unknown error'));
             }
@@ -779,7 +874,7 @@
         DOM.prioritas.value = '';
         DOM.deskripsi.value = '';
         clearPreview();
-        loadUserInfo();
+        loadUserInfo(); // reset nama & departemen dari session
     }
 
     // =============================================
@@ -835,8 +930,8 @@
     async function init() {
         initDarkMode();
         loadUserInfo();
-        await loadSummary();
-        console.log('✅ Report page initialized with Dark Mode');
+        await loadUserHistory();
+        console.log('✅ Report page initialized with history');
     }
 
     if (document.readyState === 'loading') {

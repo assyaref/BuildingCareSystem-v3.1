@@ -1,11 +1,11 @@
-// auth.js - Building Care System v7.3 (fixed logout with server sync)
+// auth.js - Building Care System v7.4 FINAL
+// Logout now sends email along with token for reliable logging
 
 (function() {
     "use strict";
 
     if (typeof BCS === "undefined") {
         console.error("❌ BCS framework not loaded!");
-        // Fallback: buat BCS sementara
         if (!window.BCS) window.BCS = {};
         if (!BCS.Storage) BCS.Storage = {
             getSession: function() { return null; },
@@ -16,6 +16,9 @@
         if (!BCS.Logger) BCS.Logger = { info: console.log, error: console.error, warn: console.warn };
     }
 
+    // =============================================
+    // LOGIN
+    // =============================================
     async function login(nikOrPayload, password) {
         let payload = {};
         if (typeof nikOrPayload === 'string') {
@@ -54,8 +57,14 @@
                 token: rawData.token || response.token || "",
                 user: rawData.user || response.user || {},
                 nik: rawData.nik || response.nik || rawData.user?.nik || payload.nik || "",
-                role: rawData.role || response.role || rawData.user?.role || ""
+                role: rawData.role || response.role || rawData.user?.role || "",
+                email: rawData.user?.email || rawData.email || ""  // Pastikan email tersimpan
             };
+
+            // Simpan email secara terpisah untuk kemudahan
+            if (sessionData.user && sessionData.user.email) {
+                sessionData.email = sessionData.user.email;
+            }
 
             BCS.Storage.setSession(sessionData);
             BCS.App.Toast.success("Login berhasil");
@@ -84,34 +93,54 @@
     }
 
     // =============================================
-    // LOGOUT - Sync with server before clearing
+    // LOGOUT - FIXED: send email + token
     // =============================================
     async function logout(redirectTo = "login.html") {
         BCS.Logger.info("Logout");
 
         let token = '';
-        let session = null;
+        let email = '';
         try {
-            session = BCS.Storage.getSession();
-            if (session && session.token) {
-                token = session.token;
+            const session = BCS.Storage.getSession();
+            if (session) {
+                token = session.token || '';
+                // Ambil email dari berbagai kemungkinan
+                email = session.user?.email || session.email || '';
+                if (!email && session.user && session.user.email) {
+                    email = session.user.email;
+                }
+            }
+            // Jika masih kosong, coba dari localStorage langsung
+            if (!email) {
+                const user = BCS.Storage.get('user');
+                if (user && user.email) email = user.email;
+                if (!email) {
+                    const raw = localStorage.getItem('user');
+                    if (raw) {
+                        try {
+                            const parsed = JSON.parse(raw);
+                            if (parsed && parsed.email) email = parsed.email;
+                        } catch (e) {}
+                    }
+                }
             }
         } catch (e) {}
 
-        // Kirim ke server - pastikan token dikirim
-        if (token && BCS.Api && typeof BCS.Api.post === 'function') {
+        // Kirim ke server dengan token dan email
+        if (BCS.Api && typeof BCS.Api.post === 'function') {
             try {
-                const response = await BCS.Api.post('logout', { token: token });
-                console.log('✅ Logout recorded on server:', response);
+                const payload = { token: token };
+                if (email) payload.email = email;
+                const response = await BCS.Api.post('logout', payload);
+                console.log('✅ Logout recorded on server', response);
             } catch (e) {
                 console.warn('⚠️ Server logout failed:', e);
             }
         } else {
-            // Jika tidak ada token, kita tetap logout secara lokal
-            console.warn('⚠️ No token found, skipping server logout.');
+            console.warn('⚠️ API not available, skipping server logout');
         }
 
-        // Clear local
+        // Clear local session
         try {
             if (BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
                 BCS.Storage.removeSession();
@@ -142,7 +171,7 @@
     }
 
     // =============================================
-    // EKSPOS KE GLOBAL DENGAN GUARD
+    // EKSPOS KE GLOBAL
     // =============================================
     window.auth = {
         login: login,
@@ -152,15 +181,15 @@
     };
     window.login = login;
 
-    // ❗ GUARD: Pastikan window.auth selalu tersedia
+    // Guard
     if (!window.auth.logout) {
         window.auth.logout = logout;
     }
 
-    console.log("✅ auth.js v7.3 loaded (with guard)");
+    console.log("✅ auth.js v7.4 FINAL loaded");
 })();
 
-// ❗ EXTRA GUARD: Jika window.auth masih undefined (misal error di atas), buat fallback
+// Fallback ekstra
 if (typeof window.auth === 'undefined') {
     window.auth = {
         login: function() { console.warn('auth.js not loaded'); },

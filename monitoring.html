@@ -410,10 +410,11 @@
                 </div>
             </section>
 
-            <!-- ====== STATUS CARDS (OPEN, PROGRESS, DONE) ====== -->
+            <!-- ====== STATUS CARDS (dengan class open, progress-card, done-card) ====== -->
             <section class="row g-4 mt-2">
+                <!-- OPEN -->
                 <div class="col-xl-4 col-md-6">
-                    <div class="status-card p-4">
+                    <div class="status-card open p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
                             <div class="status-icon bg-warning-soft"><i class="bi bi-folder2-open"></i></div>
                             <div>
@@ -426,8 +427,9 @@
                     </div>
                 </div>
 
+                <!-- PROGRESS -->
                 <div class="col-xl-4 col-md-6">
-                    <div class="status-card p-4">
+                    <div class="status-card progress-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
                             <div class="status-icon bg-info-soft"><i class="bi bi-arrow-repeat"></i></div>
                             <div>
@@ -440,8 +442,9 @@
                     </div>
                 </div>
 
+                <!-- DONE -->
                 <div class="col-xl-4 col-md-12">
-                    <div class="status-card p-4">
+                    <div class="status-card done-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
                             <div class="status-icon bg-success-soft"><i class="bi bi-check-circle-fill"></i></div>
                             <div>
@@ -631,7 +634,7 @@
 
         const savedTheme = localStorage.getItem('bcs_theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
-        
+
         if (icon) {
             if (savedTheme === 'dark') {
                 icon.className = 'bi bi-sun-fill';
@@ -799,7 +802,7 @@
     }
 
     // =============================================
-    // UPDATE STATUS PERCENTAGES
+    // UPDATE STATUS PERCENTAGES (FIX SELECTOR)
     // =============================================
     function updateStatusPercentages(data) {
         const open = data.open || 0;
@@ -807,11 +810,11 @@
         const done = data.done || 0;
         const total = open + progress + done;
 
+        const openPercentEl = document.querySelector('.status-card.open .status-percent');
+        const progressPercentEl = document.querySelector('.status-card.progress-card .status-percent');
+        const donePercentEl = document.querySelector('.status-card.done-card .status-percent');
+
         if (total === 0) {
-            const openPercentEl = document.querySelector('.status-card.open .status-percent');
-            const progressPercentEl = document.querySelector('.status-card.progress-card .status-percent');
-            const donePercentEl = document.querySelector('.status-card.done-card .status-percent');
-            
             if (openPercentEl) openPercentEl.textContent = '0% dari total report';
             if (progressPercentEl) progressPercentEl.textContent = '0% dari total report';
             if (donePercentEl) donePercentEl.textContent = '0% dari total report';
@@ -821,10 +824,6 @@
         const openPct = Math.round((open / total) * 100);
         const progressPct = Math.round((progress / total) * 100);
         const donePct = Math.round((done / total) * 100);
-
-        const openPercentEl = document.querySelector('.status-card.open .status-percent');
-        const progressPercentEl = document.querySelector('.status-card.progress-card .status-percent');
-        const donePercentEl = document.querySelector('.status-card.done-card .status-percent');
 
         if (openPercentEl) openPercentEl.textContent = openPct + '% dari total report';
         if (progressPercentEl) progressPercentEl.textContent = progressPct + '% dari total report';
@@ -1024,6 +1023,7 @@
             if (DOM.normalCount) DOM.normalCount.textContent = data.normal || 0;
             if (DOM.lateCount) DOM.lateCount.textContent = data.late || 0;
 
+            // Percentages
             updateStatusPercentages(data);
             updateSLAPercentages(data);
 
@@ -1034,9 +1034,12 @@
                 DOM.onlineUserCount.textContent = data.onlineUser || Math.floor(Math.random() * 5) + 1;
             }
 
+            // Charts
             renderCategoryChart(data);
             renderReportChart(data);
             renderMonthlyChart(data.monthly || []);
+
+            // Activity
             renderActivity(data.activity || []);
 
             // System Health - static online

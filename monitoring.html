@@ -844,129 +844,114 @@
     }
 
     // =============================================
-    // RENDER ONLINE USERS (FIX)
-    // =============================================
-    function renderOnlineUsers(data) {
-        if (!DOM.onlineUserList) return;
+// RENDER ONLINE USERS (REAL - TANPA DUMMY)
+// =============================================
+function renderOnlineUsers(data) {
+    if (!DOM.onlineUserList) return;
 
-        let onlineUsers = [];
-        let currentUser = null;
+    let onlineUsers = [];
 
-        // 1. Ambil user dari session
-        try {
-            const session = BCS.Storage.getSession();
-            if (session && session.user) {
-                const user = session.user;
-                const nama = user.nama || user.name || 'User';
-                const role = user.role || 'User';
-                const nik = session.nik || user.nik || '';
+    // 1. Ambil user dari session (current user)
+    try {
+        const session = BCS.Storage.getSession();
+        if (session && session.user) {
+            const user = session.user;
+            const nama = user.nama || user.name || 'User';
+            const role = user.role || 'User';
+            const nik = session.nik || user.nik || '';
 
-                currentUser = {
+            onlineUsers.push({
+                nama: nama,
+                role: role,
+                nik: nik,
+                isCurrent: true,
+                lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+            });
+        }
+    } catch (e) {
+        console.warn('Gagal ambil session user:', e);
+    }
+
+    // 2. Ambil pelapor unik dari data.reports (jika ada)
+    if (data && data.reports && data.reports.length > 0) {
+        const uniqueReporters = {};
+        // Ambil semua laporan, filter unik berdasarkan nama (case-insensitive)
+        data.reports.forEach(r => {
+            const nama = r.nama || r.pelapor || '';
+            if (!nama || nama === 'User' || nama === '') return;
+            const key = nama.toLowerCase().trim();
+            if (!uniqueReporters[key]) {
+                uniqueReporters[key] = {
                     nama: nama,
-                    role: role,
-                    nik: nik,
-                    isCurrent: true,
-                    lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                    role: r.role || 'User',
+                    nik: r.nik || '',
+                    lastActive: r.tanggal || r.createdAt || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                    isCurrent: false
                 };
-                onlineUsers.push(currentUser);
             }
-        } catch (e) {
-            console.warn('Gagal ambil session user:', e);
-        }
+        });
+        // Tambahkan ke onlineUsers (max 5)
+        const reporterList = Object.values(uniqueReporters).slice(0, 5);
+        reporterList.forEach(u => {
+            if (!onlineUsers.some(x => x.nama.toLowerCase() === u.nama.toLowerCase())) {
+                onlineUsers.push(u);
+            }
+        });
+    }
 
-        // 2. Ambil dari reports (jika ada)
-        if (data && data.reports && data.reports.length > 0) {
-            const uniqueReporters = {};
-            data.reports.slice(0, 10).forEach(r => {
-                const nama = r.nama || r.pelapor || '';
-                if (!nama || nama === 'User' || nama === '') return;
-                const key = r.nik || nama;
-                if (!uniqueReporters[key] && !onlineUsers.some(x => x.nama === nama)) {
-                    uniqueReporters[key] = {
-                        nama: nama,
-                        role: r.role || 'User',
-                        nik: r.nik || '',
-                        lastActive: r.tanggal || r.createdAt || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-                        isCurrent: false
-                    };
-                }
-            });
-            Object.values(uniqueReporters).forEach(u => {
-                if (!onlineUsers.some(x => x.nama === u.nama)) {
-                    onlineUsers.push(u);
-                }
-            });
-        }
+    // 3. Ambil dari data.activity jika ada field nama/pelapor
+    if (data && data.activity && data.activity.length > 0) {
+        data.activity.forEach(item => {
+            const nama = item.nama || item.pelapor || '';
+            if (!nama || nama === 'User' || nama === '') return;
+            if (!onlineUsers.some(x => x.nama.toLowerCase() === nama.toLowerCase())) {
+                onlineUsers.push({
+                    nama: nama,
+                    role: 'User',
+                    lastActive: item.waktu || item.tanggal || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                    isCurrent: false
+                });
+            }
+        });
+    }
 
-        // 3. Ambil dari activity (jika ada field nama/pelapor)
-        if (data && data.activity && data.activity.length > 0) {
-            data.activity.forEach(item => {
-                const nama = item.nama || item.pelapor || '';
-                if (!nama || nama === 'User' || nama === '') return;
-                if (!onlineUsers.some(x => x.nama === nama)) {
-                    onlineUsers.push({
-                        nama: nama,
-                        role: 'User',
-                        lastActive: item.waktu || item.tanggal || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-                        isCurrent: false
-                    });
-                }
-            });
-        }
+    // Update badge & counter
+    if (DOM.onlineCountBadge) DOM.onlineCountBadge.textContent = onlineUsers.length;
+    if (DOM.onlineUserCount) DOM.onlineUserCount.textContent = onlineUsers.length;
 
-        // 4. Jika hanya ada 1 user, tambahkan dummy untuk demo (agar terlihat lebih real)
-        //    (karena Bowo Indratno sedang login, dia akan muncul sebagai current user)
-        //    Tambahkan dummy untuk keperluan tampilan
-        if (onlineUsers.length === 1) {
-            const dummyUsers = [
-                { nama: 'Bowo Indratno', role: 'Technician', isCurrent: false },
-                { nama: 'Siti Rahayu', role: 'General Affair', isCurrent: false }
-            ];
-            dummyUsers.forEach(dummy => {
-                if (!onlineUsers.some(x => x.nama === dummy.nama)) {
-                    dummy.lastActive = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                    onlineUsers.push(dummy);
-                }
-            });
-        }
+    if (onlineUsers.length === 0) {
+        DOM.onlineUserList.innerHTML = '<div class="col-12 text-center text-muted py-3">Tidak ada user online</div>';
+        return;
+    }
 
-        // Update badge & counter
-        if (DOM.onlineCountBadge) DOM.onlineCountBadge.textContent = onlineUsers.length;
-        if (DOM.onlineUserCount) DOM.onlineUserCount.textContent = onlineUsers.length;
+    let html = '';
+    onlineUsers.slice(0, 6).forEach(user => {
+        const initial = user.nama.charAt(0).toUpperCase();
+        const isCurrent = user.isCurrent === true;
+        const avatarClass = isCurrent ? 'current' : 'other';
 
-        if (onlineUsers.length === 0) {
-            DOM.onlineUserList.innerHTML = '<div class="col-12 text-center text-muted py-3">Tidak ada user online</div>';
-            return;
-        }
-
-        let html = '';
-        onlineUsers.slice(0, 6).forEach(user => {
-            const initial = user.nama.charAt(0).toUpperCase();
-            const isCurrent = user.isCurrent === true;
-            const avatarClass = isCurrent ? 'current' : 'other';
-
-            html += `
-                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-                    <div class="d-flex align-items-center p-3 rounded-3 online-user-item">
-                        <div class="avatar-online ${avatarClass}">${initial}</div>
-                        <div class="ms-3 flex-grow-1">
-                            <div class="fw-semibold" style="font-size: 14px; color: var(--text-primary);">${user.nama}</div>
-                            <div class="text-muted" style="font-size: 12px;">${user.role}</div>
-                            <div class="d-flex align-items-center gap-1 mt-1">
-                                <span class="badge bg-success" style="font-size: 8px; padding: 2px 8px; border-radius: 10px;">
-                                    <span class="live-dot" style="width:6px;height:6px;display:inline-block;margin-right:4px;"></span> Online
-                                </span>
-                                <span class="text-muted" style="font-size: 9px;">${user.lastActive}</span>
-                                ${isCurrent ? '<span class="badge bg-primary" style="font-size: 8px; padding: 2px 6px;">Anda</span>' : ''}
-                            </div>
+        html += `
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                <div class="d-flex align-items-center p-3 rounded-3 online-user-item">
+                    <div class="avatar-online ${avatarClass}">${initial}</div>
+                    <div class="ms-3 flex-grow-1">
+                        <div class="fw-semibold" style="font-size: 14px; color: var(--text-primary);">${user.nama}</div>
+                        <div class="text-muted" style="font-size: 12px;">${user.role}</div>
+                        <div class="d-flex align-items-center gap-1 mt-1">
+                            <span class="badge bg-success" style="font-size: 8px; padding: 2px 8px; border-radius: 10px;">
+                                <span class="live-dot" style="width:6px;height:6px;display:inline-block;margin-right:4px;"></span> Online
+                            </span>
+                            <span class="text-muted" style="font-size: 9px;">${user.lastActive}</span>
+                            ${isCurrent ? '<span class="badge bg-primary" style="font-size: 8px; padding: 2px 6px;">Anda</span>' : ''}
                         </div>
                     </div>
                 </div>
-            `;
-        });
+            </div>
+        `;
+    });
 
-        DOM.onlineUserList.innerHTML = html;
-    }
+    DOM.onlineUserList.innerHTML = html;
+}
 
     // =============================================
     // UPDATE STATUS PERCENTAGES

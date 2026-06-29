@@ -88,559 +88,352 @@
 
     <!-- MAIN CONTENT -->
     <main class="content">
-<div class="container-fluid">
+        <div class="container-fluid">
 
-        <!-- TOPBAR -->
-        <header class="topbar">
-            <div>
-                <h3>Dashboard</h3>
-                <small>
-                    Building Care System Enterprise
-                    <br>
-                    <span class="brand-location">Radiant Group Duri</span>
-                </small>
-            </div>
-
-            <div class="d-flex align-items-center gap-3">
-                <!-- Dark Mode Toggle -->
-                <button class="btn btn-sm btn-outline-secondary rounded-circle p-2" id="darkModeToggle" title="Toggle Dark Mode" style="width:40px;height:40px;border-radius:50%!important;border:1px solid #e2e8f0;">
-                    <i class="bi bi-moon-fill" id="darkModeIcon"></i>
-                </button>
-
-                <div class="user-profile-card">
-                    <div class="profile-top">
-                        <div class="avatar">
-                            <i class="bi bi-person-fill"></i>
-                        </div>
-                        <div>
-                            <div class="profile-name" id="userName">Loading...</div>
-                            <div class="role-badge" id="userRole">Administrator</div>
-                        </div>
-                    </div>
-                    <div class="profile-detail">
-                        <div>🪪 <span>ID :</span> <strong id="userNik">-</strong></div>
-                        <div>🕒 <span>Last Login :</span> <strong id="lastLogin">-</strong></div>
-                    </div>
-                    <div class="profile-footer">
+            <!-- TOPBAR -->
+            <header class="topbar">
+                <div>
+                    <h3>Dashboard</h3>
+                    <small>
                         Building Care System Enterprise
-                        <small>Radiant Group Duri</small>
+                        <br>
+                        <span class="brand-location">Radiant Group Duri</span>
+                    </small>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Dark Mode Toggle -->
+                    <button class="btn btn-sm btn-outline-secondary rounded-circle p-2" id="darkModeToggle" title="Toggle Dark Mode" style="width:40px;height:40px;border-radius:50%!important;border:1px solid #e2e8f0;">
+                        <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+                    </button>
+
+                    <div class="user-profile-card">
+                        <div class="profile-top">
+                            <div class="avatar">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <div>
+                                <div class="profile-name" id="userName">Loading...</div>
+                                <div class="role-badge" id="userRole">Administrator</div>
+                            </div>
+                        </div>
+                        <div class="profile-detail">
+                            <div>🪪 <span>ID :</span> <strong id="userNik">-</strong></div>
+                            <div>🕒 <span>Last Login :</span> <strong id="lastLogin">-</strong></div>
+                        </div>
+                        <div class="profile-footer">
+                            Building Care System Enterprise
+                            <small>Radiant Group Duri</small>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </header>
+            </header>
 
-<!-- ======================================================
-     SUMMARY CARDS
-======================================================= -->
-<section class="row g-4 mt-2">
+            <!-- ======================================================
+                 SUMMARY CARDS
+            ======================================================= -->
+            <section class="row g-4 mt-2">
 
-    <!-- TOTAL REPORT -->
-    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-
-        <div class="summary-card total-card">
-
-            <div class="summary-top">
-
-                <div class="summary-icon bg-primary">
-                    <i class="bi bi-file-earmark-text-fill"></i>
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card total-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-primary">
+                                <i class="bi bi-file-earmark-text-fill"></i>
+                            </div>
+                            <div>
+                                <h6>Total Report</h6>
+                                <h2 id="totalReport">0</h2>
+                            </div>
+                        </div>
+                        <div class="summary-trend success">
+                            <i id="totalTrendIcon" class="bi bi-arrow-up"></i>
+                            <span id="totalTrend">0</span>
+                            <small>dari minggu lalu</small>
+                        </div>
+                    </div>
                 </div>
 
-                <div>
-                    <h6>Total Report</h6>
-                    <h2 id="totalReport">0</h2>
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card ac-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-info">
+                                <i class="bi bi-snow"></i>
+                            </div>
+                            <div>
+                                <h6>AC</h6>
+                                <h2 id="acTotal">0</h2>
+                            </div>
+                        </div>
+                        <div class="summary-trend success">
+                            <i id="acTrendIcon" class="bi bi-arrow-up"></i>
+                            <span id="acTrend">0</span>
+                            <small>dari minggu lalu</small>
+                        </div>
+                    </div>
                 </div>
 
-            </div>
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card listrik-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-warning">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                            </div>
+                            <div>
+                                <h6>Listrik</h6>
+                                <h2 id="listrikTotal">0</h2>
+                            </div>
+                        </div>
+                        <div class="summary-trend danger">
+                            <i id="listrikTrendIcon" class="bi bi-arrow-down"></i>
+                            <span id="listrikTrend">0</span>
+                            <small>dari minggu lalu</small>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="summary-trend success">
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card gedung-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-purple">
+                                <i class="bi bi-building-fill"></i>
+                            </div>
+                            <div>
+                                <h6>Kondisi Gedung</h6>
+                                <h2 id="gedungTotal">0</h2>
+                            </div>
+                        </div>
+                        <div class="summary-trend success">
+                            <i id="gedungTrendIcon" class="bi bi-arrow-up"></i>
+                            <span id="gedungTrend">0</span>
+                            <small>dari minggu lalu</small>
+                        </div>
+                    </div>
+                </div>
 
-                <i id="totalTrendIcon" class="bi bi-arrow-up"></i>
+            </section>
 
-                <span id="totalTrend">0</span>
+            <!-- ======================================================
+                 STATUS CARDS
+            ======================================================= -->
+            <section class="row g-4 mt-3">
+                <div class="col-xl-4 col-md-4">
+                    <div class="status-card open">
+                        <div class="status-header">
+                            <div class="status-icon bg-warning-soft">
+                                <i class="bi bi-folder2-open"></i>
+                            </div>
+                            <div>
+                                <h6>Open</h6>
+                                <h2 id="totalOpen">0</h2>
+                            </div>
+                        </div>
+                        <div class="status-percent">14.4% dari total report</div>
+                        <div class="sparkline spark-orange"></div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-md-4">
+                    <div class="status-card progress-card">
+                        <div class="status-header">
+                            <div class="status-icon bg-info-soft">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </div>
+                            <div>
+                                <h6>In Progress</h6>
+                                <h2 id="totalProgress">0</h2>
+                            </div>
+                        </div>
+                        <div class="status-percent">21.6% dari total report</div>
+                        <div class="sparkline spark-blue"></div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-md-4">
+                    <div class="status-card done-card">
+                        <div class="status-header">
+                            <div class="status-icon bg-success-soft">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                            <div>
+                                <h6>Done</h6>
+                                <h2 id="totalDone">0</h2>
+                            </div>
+                        </div>
+                        <div class="status-percent">64.0% dari total report</div>
+                        <div class="sparkline spark-green"></div>
+                    </div>
+                </div>
+            </section>
 
-                <small>dari minggu lalu</small>
+            <!-- ======================================================
+                 SLA ACHIEVEMENT
+            ======================================================= -->
+            <section class="row g-4 mt-3">
+                <div class="col-xl-4 col-md-4">
+                    <div class="status-card done-card">
+                        <div class="status-header">
+                            <div class="status-icon bg-success-soft">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                            </div>
+                            <div>
+                                <h6>FAST SLA</h6>
+                                <h2 id="fastCount">0</h2>
+                            </div>
+                        </div>
+                        <div class="status-percent"><span id="fastPercent">0%</span> selesai ≤ 4 jam</div>
+                        <div class="sparkline spark-green"></div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-md-4">
+                    <div class="status-card progress-card">
+                        <div class="status-header">
+                            <div class="status-icon bg-warning-soft">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                            <div>
+                                <h6>NORMAL SLA</h6>
+                                <h2 id="normalCount">0</h2>
+                            </div>
+                        </div>
+                        <div class="status-percent"><span id="normalPercent">0%</span> selesai ≤ 24 jam</div>
+                        <div class="sparkline spark-orange"></div>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-md-4">
+                    <div class="status-card open">
+                        <div class="status-header">
+                            <div class="status-icon bg-danger-subtle">
+                                <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                            </div>
+                            <div>
+                                <h6>LATE SLA</h6>
+                                <h2 id="lateCount">0</h2>
+                            </div>
+                        </div>
+                        <div class="status-percent"><span id="latePercent">0%</span> melebihi target</div>
+                        <div class="sparkline spark-red"></div>
+                    </div>
+                </div>
+            </section>
 
-            </div>
+            <!-- ======================================================
+                 CHART + ACTIVITY
+            ======================================================= -->
+            <section class="row g-4 mt-3">
+
+                <!-- Statistics -->
+                <div class="col-xl-8">
+                    <div class="card enterprise-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <span><i class="bi bi-bar-chart me-2"></i> Statistik Laporan</span>
+                                <small class="text-muted">Last Update : <span id="lastUpdate">-</span></small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-light" id="refreshDashboard">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div style="height:320px;">
+                                        <canvas id="renderCategoryChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-md-7">
+                                    <div style="height:320px;">
+                                        <canvas id="reportChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="col-xl-4">
+                    <div class="card enterprise-card h-100">
+                        <div class="card-header d-flex justify-content-between">
+                            <span>Aktivitas Terbaru</span>
+                            <a href="#" class="text-white text-decoration-none">Lihat Semua</a>
+                        </div>
+                        <div class="card-body">
+                            <div id="recentActivity"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ======================================================
+                 MONTHLY REPORT TREND
+            ======================================================= -->
+            <section class="row g-4 mt-4">
+                <div class="col-12">
+                    <div class="card enterprise-card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-graph-up-arrow me-2"></i> Monthly Report Trend</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="monthly-chart" style="height:320px;">
+                                <canvas id="monthlyChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================================
+                 FOOTER CARDS
+            ======================================================= -->
+            <section class="row g-3 mt-3">
+
+                <div class="col-xl col-lg col-md-4 col-sm-6">
+                    <div class="summary-card text-center">
+                        <div class="mb-2"><i class="bi bi-calendar-event fs-3 text-primary"></i></div>
+                        <h6 class="mt-2 mb-1">Hari Ini</h6>
+                        <strong id="todayDate" class="fs-5 fw-bold text-primary">Loading...</strong>
+                    </div>
+                </div>
+
+                <div class="col-xl col-lg col-md-4 col-sm-6">
+                    <div class="summary-card text-center">
+                        <i class="bi bi-clock fs-3 text-purple"></i>
+                        <h6 class="mt-2">Waktu</h6>
+                        <strong id="currentTime" class="fs-5 fw-bold">Loading...</strong>
+                    </div>
+                </div>
+
+                <div class="col-xl col-lg col-md-4 col-sm-6">
+                    <div class="summary-card text-center">
+                        <i class="bi bi-person-circle fs-3 text-primary"></i>
+                        <h6 class="mt-2">User Online</h6>
+                        <strong id="onlineUser">0</strong>
+                    </div>
+                </div>
+
+                <div class="col-xl col-lg col-md-4 col-sm-6">
+                    <div class="summary-card text-center">
+                        <i class="bi bi-file-earmark-text fs-3 text-success"></i>
+                        <h6 class="mt-2">Report Hari Ini</h6>
+                        <strong id="todayReport">0</strong>
+                    </div>
+                </div>
+
+                <div class="col-xl col-lg col-md-4 col-sm-6">
+                    <div class="summary-card text-center">
+                        <i class="bi bi-check-circle fs-3 text-warning"></i>
+                        <h6 class="mt-2">Approval Pending</h6>
+                        <strong id="pendingApproval">0</strong>
+                    </div>
+                </div>
+
+            </section>
 
         </div>
-
-    </div>
-
-    <!-- AC -->
-    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-
-        <div class="summary-card ac-card">
-
-            <div class="summary-top">
-
-                <div class="summary-icon bg-info">
-                    <i class="bi bi-snow"></i>
-                </div>
-
-                <div>
-                    <h6>AC</h6>
-                    <h2 id="acTotal">0</h2>
-                </div>
-
-            </div>
-
-            <div class="summary-trend success">
-
-                <i id="acTrendIcon" class="bi bi-arrow-up"></i>
-
-                <span id="acTrend">0</span>
-
-                <small>dari minggu lalu</small>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- LISTRIK -->
-    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-
-        <div class="summary-card listrik-card">
-
-            <div class="summary-top">
-
-                <div class="summary-icon bg-warning">
-                    <i class="bi bi-lightning-charge-fill"></i>
-                </div>
-
-                <div>
-                    <h6>Listrik</h6>
-                    <h2 id="listrikTotal">0</h2>
-                </div>
-
-            </div>
-
-            <div class="summary-trend danger">
-
-                <i id="listrikTrendIcon" class="bi bi-arrow-down"></i>
-
-                <span id="listrikTrend">0</span>
-
-                <small>dari minggu lalu</small>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- GEDUNG -->
-    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-
-        <div class="summary-card gedung-card">
-
-            <div class="summary-top">
-
-                <div class="summary-icon bg-purple">
-                    <i class="bi bi-building-fill"></i>
-                </div>
-
-                <div>
-                    <h6>Kondisi Gedung</h6>
-                    <h2 id="gedungTotal">0</h2>
-                </div>
-
-            </div>
-
-            <div class="summary-trend success">
-
-                <i id="gedungTrendIcon" class="bi bi-arrow-up"></i>
-
-                <span id="gedungTrend">0</span>
-
-                <small>dari minggu lalu</small>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-       <!-- STATUS CARDS -->
-<section class="row g-4 mt-3">
-    <!-- OPEN -->
-    <div class="col-xl-4 col-md-4">
-        <div class="status-card open">
-            <div class="status-header">
-                <div class="status-icon bg-warning-soft">
-                    <i class="bi bi-folder2-open"></i>
-                </div>
-                <div>
-                    <h6>Open</h6>
-                    <h2 id="totalOpen">0</h2>
-                </div>
-            </div>
-            <div class="status-percent">
-                14.4% dari total report
-            </div>
-            <div class="sparkline spark-orange"></div>
-        </div>
-    </div>
-   <!-- IN PROGRESS -->
-    <div class="col-xl-4 col-md-4">
-        <div class="status-card progress-card">
-            <div class="status-header">
-                <div class="status-icon bg-info-soft">
-                    <i class="bi bi-arrow-repeat"></i>
-                </div>
-                <div>
-                    <h6>In Progress</h6>
-                    <h2 id="totalProgress">0</h2>
-                </div>
-            </div>
-            <div class="status-percent">
-                21.6% dari total report
-            </div>
-            <div class="sparkline spark-blue"></div>
-        </div>
-    </div>
-    <!-- DONE -->
-    <div class="col-xl-4 col-md-4">
-        <div class="status-card done-card">
-            <div class="status-header">
-              <div class="status-icon bg-success-soft">
-                    <i class="bi bi-check-circle-fill"></i>
-                </div>
-                <div>
-                   <h6>Done</h6>
-                    <h2 id="totalDone">0</h2>
-                </div>
-            </div>
-            <div class="status-percent">
-                64.0% dari total report
-            </div>
-            <div class="sparkline spark-green"></div>
-        </div>
-    </div>
-</section>
-
-<!-- ======================================================
-     SLA ACHIEVEMENT
-======================================================= -->
-<section class="row g-4 mt-3">
-
-    <!-- FAST -->
-    <div class="col-xl-4 col-md-4">
-
-        <div class="status-card done-card">
-
-            <div class="status-header">
-
-                <div class="status-icon bg-success-soft">
-                    <i class="bi bi-lightning-charge-fill"></i>
-                </div>
-
-                <div>
-                    <h6>FAST SLA</h6>
-                    <h2 id="fastCount">0</h2>
-                </div>
-
-            </div>
-
-            <div class="status-percent">
-                <span id="fastPercent">0%</span> selesai ≤ 4 jam
-            </div>
-
-            <div class="sparkline spark-green"></div>
-
-        </div>
-
-    </div>
-
-    <!-- NORMAL -->
-    <div class="col-xl-4 col-md-4">
-
-        <div class="status-card progress-card">
-
-            <div class="status-header">
-
-                <div class="status-icon bg-warning-soft">
-                    <i class="bi bi-clock-history"></i>
-                </div>
-
-                <div>
-                    <h6>NORMAL SLA</h6>
-                    <h2 id="normalCount">0</h2>
-                </div>
-
-            </div>
-
-            <div class="status-percent">
-                <span id="normalPercent">0%</span> selesai ≤ 24 jam
-            </div>
-
-            <div class="sparkline spark-orange"></div>
-
-        </div>
-
-    </div>
-
-    <!-- LATE -->
-    <div class="col-xl-4 col-md-4">
-
-        <div class="status-card open">
-
-            <div class="status-header">
-
-                <div class="status-icon bg-danger-subtle">
-                    <i class="bi bi-exclamation-triangle-fill text-danger"></i>
-                </div>
-
-                <div>
-                    <h6>LATE SLA</h6>
-                    <h2 id="lateCount">0</h2>
-                </div>
-
-            </div>
-
-            <div class="status-percent">
-                <span id="latePercent">0%</span> melebihi target
-            </div>
-
-            <div class="sparkline spark-red"></div>
-
-        </div>
-
-    </div>
-
-</section>
-
-<!-- ======================================================
-     CHART + ACTIVITY
-======================================================= -->
-<section class="row g-4 mt-3">
-
-    <!-- Statistics -->
-    <div class="col-xl-8">
-<div class="card enterprise-card">
-
-    <div class="card-header d-flex justify-content-between align-items-center">
-
-        <div class="d-flex align-items-center gap-3">
-
-            <span>
-                <i class="bi bi-bar-chart me-2"></i>
-                Statistik Laporan
-            </span>
-
-            <small class="text-muted">
-                Last Update :
-                <span id="lastUpdate">-</span>
-            </small>
-
-        </div>
-
-        <button
-            class="btn btn-sm btn-outline-light"
-            id="refreshDashboard">
-
-            <i class="bi bi-arrow-clockwise"></i>
-            Refresh
-
-        </button>
-
-    </div>
-
-    <div class="card-body">
-
-               <div class="row">
-
-    <div class="col-md-5">
-
-        <div style="height:320px;">
-            <canvas id="renderCategoryChart"></canvas>
-        </div>
-
-    </div>
-
-    <div class="col-md-7">
-
-        <div style="height:320px;">
-            <canvas id="reportChart"></canvas>
-        </div>
-
-    </div>
-
-</div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- Recent Activity -->
-    <div class="col-xl-4">
-
-        <div class="card enterprise-card h-100">
-
-            <div class="card-header d-flex justify-content-between">
-
-                <span>Aktivitas Terbaru</span>
-
-                <a href="#" class="text-white text-decoration-none">
-                    Lihat Semua
-                </a>
-
-            </div>
-
-            <div class="card-body">
-
-                <div id="recentActivity"></div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-<!-- ======================================================
-     MONTHLY REPORT TREND
-======================================================= -->
-
-<section class="row g-4 mt-4">
-
-    <div class="col-12">
-
-        <div class="card enterprise-card">
-
-            <div class="card-header">
-
-                <h5 class="mb-0">
-
-                    <i class="bi bi-graph-up-arrow me-2"></i>
-
-                    Monthly Report Trend
-
-                </h5>
-
-            </div>
-
-            <div class="card-body">
-
-                <div class="monthly-chart">
-
-                    <canvas id="monthlyChart"></canvas>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-<section class="row g-3 mt-3">
-
-<div class="col-xl col-lg col-md-4 col-sm-6">
-
-    <div class="summary-card text-center">
-
-        <div class="mb-2">
-
-            <i class="bi bi-calendar-event fs-3 text-primary"></i>
-
-        </div>
-
-        <h6 class="mt-2 mb-1">
-            Hari Ini
-        </h6>
-
-        <strong id="todayDate" class="fs-5 fw-bold text-primary">
-    Loading...
-</strong>
-
-    </div>
-
-</div>
-
-<div class="col-xl col-lg col-md-4 col-sm-6">
-
-<div class="summary-card text-center">
-
-<i class="bi bi-clock fs-3 text-purple"></i>
-
-<h6 class="mt-2">Waktu</h6>
-
-<strong id="currentTime" class="fs-5 fw-bold">
-  Loading...
-</strong>
-
-</div>
-
-</div>
-
-<div class="col-xl col-lg col-md-4 col-sm-6">
-
-<div class="summary-card text-center">
-
-<i class="bi bi-person-circle fs-3 text-primary"></i>
-
-<h6 class="mt-2">User Online</h6>
-
-<strong id="onlineUser">0</strong>
-
-</div>
-
-</div>
-
-<div class="col-xl col-lg col-md-4 col-sm-6">
-
-<div class="summary-card text-center">
-
-<i class="bi bi-file-earmark-text fs-3 text-success"></i>
-
-<h6 class="mt-2">
-
-Report Hari Ini
-
-</h6>
-
-<strong id="todayReport">0</strong>
-
-</div>
-
-</div>
-
-<div class="col-xl col-lg col-md-4 col-sm-6">
-
-<div class="summary-card text-center">
-
-<i class="bi bi-check-circle fs-3 text-warning"></i>
-
-<h6 class="mt-2">
-
-Approval Pending
-
-</h6>
-
-<strong id="pendingApproval">0</strong>
-
-</div>
-
-</div>
-
-</section>
-</div>
-</main>
-
+    </main>
 </div>
 
 <!-- ======================================================
-     JAVASCRIPT — urutan penting: config → core → modules
+     JAVASCRIPT
 ======================================================= -->
 
 <!-- Library -->
@@ -664,7 +457,7 @@ Approval Pending
 <script src="assets/js/modules/dashboard.js"></script>
 
 <!-- ======================================================
-     LOGOUT HANDLER + DARK MODE
+     INLINE SCRIPT
 ======================================================= -->
 <script>
 (function() {
@@ -730,11 +523,24 @@ Approval Pending
     }
 
     // =============================================
+    // REFRESH BUTTON
+    // =============================================
+    function initRefresh() {
+        const refreshBtn = document.getElementById('refreshDashboard');
+        if (refreshBtn && window.DashboardController && typeof window.DashboardController.refresh === 'function') {
+            refreshBtn.addEventListener('click', function() {
+                window.DashboardController.refresh();
+            });
+        }
+    }
+
+    // =============================================
     // INIT
     // =============================================
     function init() {
         initDarkMode();
         initLogout();
+        initRefresh();
         console.log('✅ Dashboard initialized with Dark Mode');
     }
 

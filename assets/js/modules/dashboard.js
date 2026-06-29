@@ -131,55 +131,29 @@
     }
 
     // =============================================
-    // CALCULATE TRENDS (from localStorage) - FIX NaN
+    // SAVE CURRENT DATA FOR FUTURE REFERENCE
     // =============================================
-    function calculateTrends(currentData) {
+    function saveCurrentData(data) {
         const STORAGE_KEY = 'bcs_dashboard_prev';
-        let prevData = null;
-
-        try {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                prevData = JSON.parse(stored);
-            }
-        } catch (e) {
-            console.warn('Failed to read previous data:', e);
-        }
-
-        // Jika tidak ada data sebelumnya, return 0 (bukan NaN)
-        if (!prevData) {
-            return {
-                total: 0,
-                ac: 0,
-                listrik: 0,
-                gedung: 0
-            };
-        }
-
-        // Pastikan nilai valid (jika undefined/null, jadikan 0)
-        const currentTotal = currentData.total || 0;
-        const currentAc = currentData.ac || 0;
-        const currentListrik = currentData.listrik || 0;
-        const currentGedung = currentData.gedung || 0;
-
-        const prevTotal = prevData.total || 0;
-        const prevAc = prevData.ac || 0;
-        const prevListrik = prevData.listrik || 0;
-        const prevGedung = prevData.gedung || 0;
-
-        return {
-            total: currentTotal - prevTotal,
-            ac: currentAc - prevAc,
-            listrik: currentListrik - prevListrik,
-            gedung: currentGedung - prevGedung
+        const saveData = {
+            total: data.total || 0,
+            ac: data.ac || 0,
+            listrik: data.listrik || 0,
+            gedung: data.gedung || 0,
+            timestamp: Date.now()
         };
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+        } catch (e) {
+            console.warn('Failed to save current data:', e);
+        }
     }
 
     // =============================================
-    // UPDATE TREND UI
+    // UPDATE TREND UI (menggunakan data dari server)
     // =============================================
     function updateTrendUI(trends) {
-        // Ensure trends are numbers (not NaN)
+        // Pastikan semua nilai adalah angka (bukan NaN)
         const safeTrends = {
             total: isNaN(trends.total) ? 0 : trends.total,
             ac: isNaN(trends.ac) ? 0 : trends.ac,
@@ -215,25 +189,6 @@
                 }
             }
         });
-    }
-
-    // =============================================
-    // SAVE CURRENT DATA FOR NEXT TREND
-    // =============================================
-    function saveCurrentData(data) {
-        const STORAGE_KEY = 'bcs_dashboard_prev';
-        const saveData = {
-            total: data.total || 0,
-            ac: data.ac || 0,
-            listrik: data.listrik || 0,
-            gedung: data.gedung || 0,
-            timestamp: Date.now()
-        };
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
-        } catch (e) {
-            console.warn('Failed to save current data:', e);
-        }
     }
 
     // =============================================
@@ -581,9 +536,17 @@
 
             if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
 
-            // ✅ CALCULATE & UPDATE TRENDS (fixed NaN)
-            const trends = calculateTrends(data);
+            // =============================================
+            // ✅ FIX: Gunakan trend dari SERVER, bukan dari localStorage
+            // =============================================
+            const trends = {
+                total: data.totalTrend || 0,
+                ac: data.acTrend || 0,
+                listrik: data.listrikTrend || 0,
+                gedung: data.gedungTrend || 0
+            };
             updateTrendUI(trends);
+            // Simpan data untuk referensi (tidak digunakan untuk trend)
             saveCurrentData(data);
 
             // ✅ UPDATE PERCENTAGES (dinamis)
@@ -633,7 +596,7 @@
 
         setInterval(updateDateTime, 1000);
 
-        console.log('✅ Dashboard initialized with dynamic trends & percentages');
+        console.log('✅ Dashboard initialized with server-side trends');
     }
 
     // Ekspos ke global

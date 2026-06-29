@@ -1,5 +1,5 @@
 // =====================================================
-// monitoring.js - Building Care System Enterprise v4.3
+// monitoring.js - Building Care System Enterprise v4.4
 // Radiant Group Duri
 // =====================================================
 
@@ -33,7 +33,9 @@ const DOM = {
     serverTimeDisplay: document.getElementById('serverTimeDisplay'),
     timezoneLabel: document.getElementById('timezoneLabel'),
     refreshBtn: document.getElementById('refreshMonitoring'),
-    onlineUserCount: document.getElementById('onlineUserCount')
+    onlineUserCount: document.getElementById('onlineUserCount'),
+    onlineCountBadge: document.getElementById('onlineCountBadge'),
+    onlineUserList: document.getElementById('onlineUserList')
 };
 
 // =============================================
@@ -47,9 +49,9 @@ function loadUserInfo() {
             const nama = user.nama || user.name || 'User';
             const role = user.role || 'User';
 
-            DOM.userName.textContent = nama;
-            DOM.userRole.textContent = role;
-            DOM.userAvatar.textContent = nama.charAt(0).toUpperCase();
+            if (DOM.userName) DOM.userName.textContent = nama;
+            if (DOM.userRole) DOM.userRole.textContent = role;
+            if (DOM.userAvatar) DOM.userAvatar.textContent = nama.charAt(0).toUpperCase();
         }
     } catch (e) {
         console.warn('Load user info error:', e);
@@ -149,6 +151,98 @@ function renderActivity(activity) {
 }
 
 // =============================================
+// RENDER ONLINE USERS
+// =============================================
+function renderOnlineUsers(users) {
+    if (!DOM.onlineUserList) return;
+
+    // Jika users kosong, coba ambil dari session (current user)
+    let onlineUsers = [];
+    if (users && users.length > 0) {
+        onlineUsers = users;
+    } else {
+        // Fallback: tampilkan current user
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const user = session.user;
+                onlineUsers.push({
+                    nama: user.nama || user.name || 'User',
+                    role: user.role || 'User',
+                    nik: session.nik || user.nik || '',
+                    lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                    isCurrent: true
+                });
+            }
+        } catch (e) {}
+    }
+
+    // Update badge & counter
+    if (DOM.onlineCountBadge) DOM.onlineCountBadge.textContent = onlineUsers.length;
+    if (DOM.onlineUserCount) DOM.onlineUserCount.textContent = onlineUsers.length;
+
+    if (onlineUsers.length === 0) {
+        DOM.onlineUserList.innerHTML = '<div class="col-12 text-center text-muted py-3">Tidak ada user online</div>';
+        return;
+    }
+
+    // Tandai current user
+    const currentUser = (() => {
+        try {
+            const session = BCS.Storage.getSession();
+            return session?.user?.email || '';
+        } catch (e) { return ''; }
+    })();
+
+    let html = '';
+    onlineUsers.slice(0, 6).forEach(user => {
+        const initial = (user.nama || 'U').charAt(0).toUpperCase();
+        const isCurrent = user.email && user.email === currentUser;
+        const avatarClass = isCurrent ? 'current' : 'other';
+
+        html += `
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                <div class="d-flex align-items-center p-3 rounded-3 online-user-item">
+                    <div class="avatar-online ${avatarClass}">${initial}</div>
+                    <div class="ms-3 flex-grow-1">
+                        <div class="fw-semibold" style="font-size: 14px; color: var(--text-primary);">${user.nama || 'User'}</div>
+                        <div class="text-muted" style="font-size: 12px;">${user.role || 'User'}</div>
+                        <div class="d-flex align-items-center gap-1 mt-1">
+                            <span class="badge bg-success" style="font-size: 8px; padding: 2px 8px; border-radius: 10px;">
+                                <span class="live-dot" style="width:6px;height:6px;display:inline-block;margin-right:4px;"></span> Online
+                            </span>
+                            <span class="text-muted" style="font-size: 9px;">${user.lastActive || ''}</span>
+                            ${isCurrent ? '<span class="badge bg-primary" style="font-size: 8px; padding: 2px 6px;">Anda</span>' : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    DOM.onlineUserList.innerHTML = html;
+}
+
+// =============================================
+// LOAD ACTIVE USERS (endpoint terpisah)
+// =============================================
+async function loadActiveUsers() {
+    try {
+        const response = await BCS.Api.post('getActiveSessions', {});
+        console.log('👥 Active users response:', response);
+        if (response && response.success && response.data) {
+            renderOnlineUsers(response.data);
+        } else {
+            // Fallback: current user only
+            renderOnlineUsers([]);
+        }
+    } catch (e) {
+        console.warn('Gagal load active users:', e);
+        renderOnlineUsers([]);
+    }
+}
+
+// =============================================
 // LOAD MONITORING DATA
 // =============================================
 async function loadMonitoring() {
@@ -172,11 +266,15 @@ async function loadMonitoring() {
         if (DOM.monitorProgress) DOM.monitorProgress.textContent = data.progress || 0;
         if (DOM.monitorDone) DOM.monitorDone.textContent = data.done || 0;
 
-        // Trend (default 0)
-        document.getElementById('totalTrend').textContent = data.totalTrend || 0;
-        document.getElementById('openTrend').textContent = data.openTrend || 0;
-        document.getElementById('progressTrend').textContent = data.progressTrend || 0;
-        document.getElementById('doneTrend').textContent = data.doneTrend || 0;
+        // Trend
+        const totalTrend = document.getElementById('totalTrend');
+        const openTrend = document.getElementById('openTrend');
+        const progressTrend = document.getElementById('progressTrend');
+        const doneTrend = document.getElementById('doneTrend');
+        if (totalTrend) totalTrend.textContent = data.totalTrend || 0;
+        if (openTrend) openTrend.textContent = data.openTrend || 0;
+        if (progressTrend) progressTrend.textContent = data.progressTrend || 0;
+        if (doneTrend) doneTrend.textContent = data.doneTrend || 0;
 
         // SLA
         if (DOM.fastCount) DOM.fastCount.textContent = data.fast || 0;
@@ -188,11 +286,6 @@ async function loadMonitoring() {
         updateSLAPercentages(data);
 
         if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
-
-        // Online users
-        if (DOM.onlineUserCount) {
-            DOM.onlineUserCount.textContent = data.onlineUser || Math.floor(Math.random() * 5) + 1;
-        }
 
         // Activity
         renderActivity(data.activity || []);
@@ -214,6 +307,9 @@ async function loadMonitoring() {
             });
         }
         if (DOM.timezoneLabel) DOM.timezoneLabel.textContent = 'WIB';
+
+        // 🔥 Load active users secara terpisah
+        await loadActiveUsers();
 
     } catch (error) {
         console.error('Monitoring error:', error);

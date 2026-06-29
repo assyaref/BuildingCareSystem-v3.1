@@ -38,6 +38,20 @@
     .photo-btn.primary { background:#1e5eff; color:#fff; }
     .photo-btn.secondary { background:#f3f4f6; color:#4b5563; }
     #priorityBadge { transition: all 0.2s; }
+
+    /* Toast custom override untuk lebih smooth */
+    .swal2-toast {
+      border-radius: 16px !important;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important;
+      padding: 16px 24px !important;
+    }
+    .swal2-toast .swal2-title {
+      font-size: 15px !important;
+      font-weight: 600 !important;
+    }
+    .swal2-toast .swal2-icon {
+      margin: 0 12px 0 0 !important;
+    }
   </style>
 </head>
 <body>
@@ -73,7 +87,7 @@
       <input type="text" id="lokasi" placeholder="Contoh : Ruang Meeting" class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm transition" />
     </div>
 
-    <!-- ========== DEPARTEMEN (TAMBAHAN) ========== -->
+    <!-- Departemen -->
     <div class="mb-4">
       <label class="block text-sm font-bold text-gray-800 mb-1.5">Departemen</label>
       <input type="text" id="departemen" placeholder="Contoh : General Affair" class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm transition" />
@@ -170,7 +184,6 @@
         const avatar = document.getElementById('userAvatar');
         avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
 
-        // Isi otomatis field departemen jika ada dari session
         const deptInput = document.getElementById('departemen');
         if (deptInput && dept) {
           deptInput.value = dept;
@@ -290,7 +303,7 @@
       const file = this.files[0];
       if (file) {
         if (file.size > 5 * 1024 * 1024) {
-          alert('Ukuran foto maksimal 5 MB');
+          BCS.App.Toast.danger('Ukuran foto maksimal 5 MB');
           this.value = '';
           return;
         }
@@ -309,7 +322,7 @@
     });
 
     // =============================================
-    // 6. SUBMIT REPORT
+    // 6. SUBMIT REPORT (DENGAN TOAST SMOOTH & LOADING CEPAT)
     // =============================================
     const submitBtn = document.getElementById('submitReport');
 
@@ -317,28 +330,27 @@
       // Validasi
       const lokasi = document.getElementById('lokasi').value.trim();
       if (!lokasi) {
-        alert('Lokasi kerusakan wajib diisi');
+        BCS.App.Toast.warning('Lokasi kerusakan wajib diisi');
         document.getElementById('lokasi').focus();
         return;
       }
 
-      // 🔥 Validasi DEPARTEMEN
       const departemen = document.getElementById('departemen').value.trim();
       if (!departemen) {
-        alert('Departemen wajib diisi');
+        BCS.App.Toast.warning('Departemen wajib diisi');
         document.getElementById('departemen').focus();
         return;
       }
 
       const kategori = document.getElementById('selectedCategory').value;
       if (!kategori) {
-        alert('Pilih kategori kerusakan');
+        BCS.App.Toast.warning('Pilih kategori kerusakan');
         return;
       }
 
       const deskripsi = document.getElementById('deskripsi').value.trim();
       if (!deskripsi || deskripsi.length < 5) {
-        alert('Deskripsi wajib diisi minimal 5 karakter');
+        BCS.App.Toast.warning('Deskripsi wajib diisi minimal 5 karakter');
         document.getElementById('deskripsi').focus();
         return;
       }
@@ -351,7 +363,7 @@
       const nama = user.nama || user.name || 'User';
       const nik = session?.nik || user.nik || '';
 
-      // Konversi foto ke base64 jika ada
+      // Konversi foto ke base64
       let photoBase64 = '';
       let filename = '';
       if (currentFile) {
@@ -365,7 +377,7 @@
           photoBase64 = result;
           filename = currentFile.name;
         } catch (e) {
-          alert('Gagal membaca foto: ' + e.message);
+          BCS.App.Toast.danger('Gagal membaca foto: ' + e.message);
           return;
         }
       }
@@ -374,7 +386,7 @@
       const payload = {
         nama: nama,
         nik: nik,
-        departemen: departemen, // 🔥 ambil dari input, bukan dari session
+        departemen: departemen,
         lokasi: lokasi,
         kategori: kategori,
         prioritas: prioritas,
@@ -385,7 +397,7 @@
 
       console.log('📤 Payload:', payload);
 
-      // Nonaktifkan tombol
+      // 🔥 Nonaktifkan tombol & tampilkan spinner (tanpa delay)
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...';
 
@@ -394,7 +406,9 @@
         console.log('📥 Response:', response);
 
         if (response && response.success) {
-          alert('✅ Report berhasil dikirim!');
+          // ✅ Toast sukses – smooth & elegan
+          BCS.App.Toast.success('✅ Report berhasil dikirim!');
+
           // Reset form
           document.getElementById('lokasi').value = '';
           document.getElementById('departemen').value = '';
@@ -405,12 +419,13 @@
           prioritySelect.value = 'NORMAL';
           updatePriorityBadge('NORMAL');
         } else {
-          alert('❌ Gagal mengirim report: ' + (response?.message || 'Unknown error'));
+          BCS.App.Toast.danger('❌ Gagal mengirim report: ' + (response?.message || 'Unknown error'));
         }
       } catch (err) {
         console.error('Submit error:', err);
-        alert('❌ Terjadi kesalahan: ' + err.message);
+        BCS.App.Toast.danger('❌ Terjadi kesalahan: ' + err.message);
       } finally {
+        // 🔥 Aktifkan kembali tombol
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane text-sm"></i> Kirim Report';
       }
@@ -439,7 +454,7 @@
     });
 
     document.getElementById('notifBtn').addEventListener('click', function() {
-      alert('Anda memiliki 3 notifikasi');
+      BCS.App.Toast.info('Anda memiliki 3 notifikasi');
     });
 
     // =============================================

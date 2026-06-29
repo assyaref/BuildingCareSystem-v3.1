@@ -71,6 +71,69 @@
         [data-theme="dark"] .dark-toggle:hover {
             background: #2a2a42;
         }
+
+        /* =============================================
+           SUMMARY CARDS - SAMA DENGAN MONITORING
+           ============================================= */
+        .summary-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            position: relative;
+            overflow: hidden;
+        }
+        .summary-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+        }
+        .summary-card .summary-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .summary-card .summary-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+        .summary-card:hover .summary-icon {
+            transform: scale(1.05) rotate(-4deg);
+        }
+        .summary-card .summary-icon.bg-primary { background: linear-gradient(145deg, #4b7bec, #3b6bd6); }
+        .summary-card .summary-icon.bg-danger-soft { background: linear-gradient(145deg, #fca5a5, #ef4444); }
+        .summary-card .summary-icon.bg-warning-soft { background: linear-gradient(145deg, #fcd34d, #f59e0b); }
+        .summary-card .summary-icon.bg-success-soft { background: linear-gradient(145deg, #6ee7b7, #22c55e); }
+        .summary-card .summary-trend {
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .summary-card .summary-trend.success { color: #22c55e; }
+        .summary-card .summary-trend.danger { color: #ef4444; }
+        .summary-card .summary-trend i { font-size: 16px; }
+        .summary-card h6 {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 500;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .summary-card h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin: 0;
+        }
     </style>
 </head>
 
@@ -153,86 +216,72 @@
                 </div>
             </header>
 
-            <!-- SUMMARY CARDS -->
+            <!-- ==========================================================
+                 SUMMARY CARDS - SAMA DENGAN MONITORING (GRADIEN & SMOOTH)
+                 ========================================================== -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card total-card">
+                    <div class="summary-card total-card" style="background: linear-gradient(145deg, #ffffff, #f8faff); border: 1px solid rgba(75, 123, 236, 0.08);">
                         <div class="summary-top">
-                            <div class="summary-icon bg-primary">
-                                <i class="bi bi-file-earmark-text-fill"></i>
-                            </div>
+                            <div class="summary-icon bg-primary"><i class="bi bi-file-earmark-text-fill"></i></div>
                             <div>
                                 <h6>Total Report</h6>
                                 <h2 id="cardTotal">0</h2>
                             </div>
                         </div>
                         <div class="summary-trend success">
-                            <i class="bi bi-arrow-up"></i>
-                            <span id="totalTrend">0</span>
-                            <small>dari minggu lalu</small>
+                            <i class="bi bi-arrow-up"></i> <span id="totalTrend">0</span> <small>dari minggu lalu</small>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card ac-card">
+                    <div class="summary-card ac-card" style="background: linear-gradient(145deg, #ffffff, #fff5f5); border: 1px solid rgba(239, 68, 68, 0.08);">
                         <div class="summary-top">
-                            <div class="summary-icon bg-warning-soft">
-                                <i class="bi bi-folder2-open"></i>
-                            </div>
+                            <div class="summary-icon bg-danger-soft"><i class="bi bi-folder2-open"></i></div>
                             <div>
-                                <h6>OPEN</h6>
+                                <h6>Open</h6>
                                 <h2 id="cardOpen">0</h2>
                             </div>
                         </div>
-                        <div class="summary-trend success">
-                            <i class="bi bi-arrow-up"></i>
-                            <span id="openTrend">0</span>
-                            <small>dari minggu lalu</small>
+                        <div class="summary-trend danger">
+                            <i class="bi bi-arrow-down"></i> <span id="openTrend">0</span> <small>dari minggu lalu</small>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card listrik-card">
+                    <div class="summary-card listrik-card" style="background: linear-gradient(145deg, #ffffff, #fff9ed); border: 1px solid rgba(245, 158, 11, 0.08);">
                         <div class="summary-top">
-                            <div class="summary-icon bg-info-soft">
-                                <i class="bi bi-arrow-repeat"></i>
-                            </div>
+                            <div class="summary-icon bg-warning-soft"><i class="bi bi-hourglass-split"></i></div>
                             <div>
-                                <h6>PROGRESS</h6>
+                                <h6>Progress</h6>
                                 <h2 id="cardProgress">0</h2>
                             </div>
                         </div>
-                        <div class="summary-trend danger">
-                            <i class="bi bi-arrow-down"></i>
-                            <span id="progressTrend">0</span>
-                            <small>dari minggu lalu</small>
+                        <div class="summary-trend success">
+                            <i class="bi bi-arrow-up"></i> <span id="progressTrend">0</span> <small>dari minggu lalu</small>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card gedung-card">
+                    <div class="summary-card gedung-card" style="background: linear-gradient(145deg, #ffffff, #f0fdf4); border: 1px solid rgba(34, 197, 94, 0.08);">
                         <div class="summary-top">
-                            <div class="summary-icon bg-success-soft">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
+                            <div class="summary-icon bg-success-soft"><i class="bi bi-check-circle-fill"></i></div>
                             <div>
-                                <h6>DONE</h6>
+                                <h6>Done</h6>
                                 <h2 id="cardDone">0</h2>
                             </div>
                         </div>
                         <div class="summary-trend success">
-                            <i class="bi bi-arrow-up"></i>
-                            <span id="doneTrend">0</span>
-                            <small>dari minggu lalu</small>
+                            <i class="bi bi-arrow-up"></i> <span id="doneTrend">0</span> <small>dari minggu lalu</small>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- FILTER & TABLE (Sesuai Gambar Referensi) -->
+            <!-- FILTER & TABLE -->
             <section class="row g-4 mt-3">
                 <div class="col-12">
                     <div class="card border-0 shadow-sm" style="border-radius: 12px; background: #fff;">
@@ -584,7 +633,7 @@
         totalReportsSpan.textContent = total;
     }
 
-    // RENDER TABLE (Sesuai Gambar Referensi)
+    // RENDER TABLE
     function renderTable() {
         const start = (currentPage - 1) * perPage;
         const pageData = filteredReports.slice(start, start + perPage);
@@ -598,7 +647,6 @@
         pageData.forEach((r) => {
             const statusClass = (r.status || '').toUpperCase();
             
-            // Penyesuaian Badge Status yang Lembut & Flat sesuai Gambar
             let badgeStyle = 'background: #fee2e2; color: #ef4444; border: none;'; 
             if (statusClass === 'PROGRESS') {
                 badgeStyle = 'background: #e0f2fe; color: #0284c7; border: none;';
@@ -606,7 +654,6 @@
                 badgeStyle = 'background: #dcfce7; color: #22c55e; border: none;';
             }
 
-            // Atur Ikon & Warna Berdasarkan Kategori secara Dinamis
             const kategoriNama = (r.kategori || '').toUpperCase();
             let kategoriIcon = '<i class="bi bi-lightning-charge-fill text-warning me-2"></i>'; 
             if (kategoriNama.includes('GEDUNG') || kategoriNama.includes('KONDISI GEDUNG')) {
@@ -642,7 +689,6 @@
         });
         tableBody.innerHTML = html;
 
-        // Attach events
         document.querySelectorAll('.view-photo').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.getElementById('modalPhoto').src = this.dataset.src;
@@ -725,7 +771,6 @@
         new bootstrap.Modal(document.getElementById('detailModal')).show();
     }
 
-    // OPEN UPDATE
     function openUpdate(id) {
         const report = allReports.find(r => r.id == id);
         if (!report) return;

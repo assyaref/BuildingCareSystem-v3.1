@@ -259,20 +259,34 @@
             font-weight: 400;
         }
 
-        /* User online card hover */
-        #onlineUserList .border {
+        /* User Online Detail */
+        .online-user-item {
             transition: all 0.2s ease;
             cursor: default;
+            background: var(--bg-card-hover);
+            border: 1px solid var(--border-color);
         }
-        #onlineUserList .border:hover {
+        .online-user-item:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.05);
         }
-        [data-theme="dark"] #onlineUserList .border {
-            border-color: #2a2a42 !important;
+        .online-user-item .avatar-online {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 18px;
+            flex-shrink: 0;
         }
-        [data-theme="dark"] #onlineUserList .border:hover {
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        .online-user-item .avatar-online.current {
+            background: linear-gradient(135deg, #4b7bec, #3b6bd6);
+        }
+        .online-user-item .avatar-online.other {
+            background: linear-gradient(135deg, #8a8fa6, #6c7280);
         }
     </style>
 </head>
@@ -363,7 +377,7 @@
                 </div>
             </header>
 
-            <!-- ====== SUMMARY CARDS (WARNA GRADIEN & SMOOTH) ====== -->
+            <!-- ====== SUMMARY CARDS ====== -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                     <div class="summary-card total-card" style="background: linear-gradient(145deg, #ffffff, #f8faff); border: 1px solid rgba(75, 123, 236, 0.08);">
@@ -426,9 +440,8 @@
                 </div>
             </section>
 
-            <!-- ====== STATUS CARDS (dengan class open, progress-card, done-card) ====== -->
+            <!-- ====== STATUS CARDS ====== -->
             <section class="row g-4 mt-2">
-                <!-- OPEN -->
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card open p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
@@ -443,7 +456,6 @@
                     </div>
                 </div>
 
-                <!-- PROGRESS -->
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card progress-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
@@ -458,7 +470,6 @@
                     </div>
                 </div>
 
-                <!-- DONE -->
                 <div class="col-xl-4 col-md-12">
                     <div class="status-card done-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
@@ -519,7 +530,7 @@
                 </div>
             </section>
 
-            <!-- ====== CHART + HISTORY (RECENT ACTIVITY) ====== -->
+            <!-- ====== CHART + HISTORY ====== -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-8">
                     <div class="card enterprise-card h-100">
@@ -549,7 +560,6 @@
                     </div>
                 </div>
 
-                <!-- HISTORY (Recent Activity) -->
                 <div class="col-xl-4">
                     <div class="card enterprise-card h-100">
                         <div class="card-header d-flex justify-content-between align-items-center">
@@ -637,7 +647,7 @@
 </div>
 
 <!-- ======================================================
-     JAVASCRIPT (INLINE – FINAL)
+     JAVASCRIPT
 ======================================================= -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -723,7 +733,9 @@
         serverTimeDisplay: document.getElementById('serverTimeDisplay'),
         timezoneLabel: document.getElementById('timezoneLabel'),
         refreshBtn: document.getElementById('refreshMonitoring'),
-        onlineUserCount: document.getElementById('onlineUserCount')
+        onlineUserCount: document.getElementById('onlineUserCount'),
+        onlineCountBadge: document.getElementById('onlineCountBadge'),
+        onlineUserList: document.getElementById('onlineUserList')
     };
 
     // Chart instances
@@ -832,6 +844,119 @@
         } catch (e) {
             console.warn('Load user info error:', e);
         }
+    }
+
+    // =============================================
+    // RENDER ONLINE USERS (REAL - TANPA DUMMY)
+    // =============================================
+    function renderOnlineUsers(activity) {
+        if (!DOM.onlineUserList) return;
+
+        let onlineUsers = [];
+        let currentUser = null;
+
+        // 1. Ambil user yang sedang login dari session
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const user = session.user;
+                const nama = user.nama || user.name || 'User';
+                const role = user.role || 'User';
+                const nik = session.nik || user.nik || '';
+
+                currentUser = {
+                    nama: nama,
+                    role: role,
+                    nik: nik,
+                    isCurrent: true,
+                    lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                };
+                onlineUsers.push(currentUser);
+            }
+        } catch (e) {
+            console.warn('Gagal ambil session user:', e);
+        }
+
+        // 2. Tambahkan user dari activity (pelapor laporan terbaru)
+        if (activity && activity.length > 0) {
+            const uniqueReporters = {};
+            activity.forEach(item => {
+                const nama = item.nama || item.pelapor || 'User';
+                // Jika tidak ada nama, skip
+                if (nama === 'User' || nama === '') return;
+
+                // Gunakan nik jika ada untuk identifikasi unik
+                const key = item.nik || nama;
+                if (!uniqueReporters[key]) {
+                    uniqueReporters[key] = {
+                        nama: nama,
+                        role: 'User',
+                        nik: item.nik || '',
+                        lastActive: item.waktu || item.tanggal || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                        isCurrent: false
+                    };
+                }
+            });
+
+            // Konversi ke array dan tambahkan ke onlineUsers (max 5)
+            const activityUsers = Object.values(uniqueReporters).slice(0, 5);
+            activityUsers.forEach(u => {
+                // Hindari duplikat dengan current user (cocokkan nama)
+                if (!onlineUsers.some(x => x.nama === u.nama)) {
+                    onlineUsers.push(u);
+                }
+            });
+        }
+
+        // 3. Jika hanya ada 1 user, tampilkan minimal 3 dengan tambahan dari session
+        //    (tapi tanpa dummy, cukup tampilkan user yang ada)
+        //    Jika total < 2, tambahkan "User" dari session lagi? Tidak perlu.
+
+        // Update badge
+        if (DOM.onlineCountBadge) {
+            DOM.onlineCountBadge.textContent = onlineUsers.length;
+        }
+
+        // Update counter topbar
+        if (DOM.onlineUserCount) {
+            DOM.onlineUserCount.textContent = onlineUsers.length;
+        }
+
+        // Render
+        if (onlineUsers.length === 0) {
+            DOM.onlineUserList.innerHTML = '<div class="col-12 text-center text-muted py-3">Tidak ada user online</div>';
+            return;
+        }
+
+        let html = '';
+        onlineUsers.forEach(user => {
+            const initial = user.nama.charAt(0).toUpperCase();
+            const isCurrent = user.isCurrent === true;
+            const avatarClass = isCurrent ? 'current' : 'other';
+
+            html += `
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                    <div class="d-flex align-items-center p-3 rounded-3 online-user-item">
+                        <div class="avatar-online ${avatarClass}">
+                            ${initial}
+                        </div>
+                        <div class="ms-3 flex-grow-1">
+                            <div class="fw-semibold" style="font-size: 14px; color: var(--text-primary);">${user.nama}</div>
+                            <div class="text-muted" style="font-size: 12px;">${user.role}</div>
+                            <div class="d-flex align-items-center gap-1 mt-1">
+                                <span class="badge bg-success" style="font-size: 8px; padding: 2px 8px; border-radius: 10px;">
+                                    <span class="live-dot" style="width:6px;height:6px;display:inline-block;margin-right:4px;"></span> Online
+                                </span>
+                                <span class="text-muted" style="font-size: 9px;">${user.lastActive}</span>
+                                ${isCurrent ? '<span class="badge bg-primary" style="font-size: 8px; padding: 2px 6px;">Anda</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        DOM.onlineUserList.innerHTML = html;
     }
 
     // =============================================
@@ -1022,111 +1147,6 @@
     }
 
     // =============================================
-    // RENDER ONLINE USERS
-    // =============================================
-    function renderOnlineUsers(activity) {
-        const container = document.getElementById('onlineUserList');
-        const badge = document.getElementById('onlineCountBadge');
-
-        let onlineUsers = [];
-
-        // 1. User yang sedang login (dari session)
-        try {
-            const session = BCS.Storage.getSession();
-            if (session && session.user) {
-                const currentUser = {
-                    nama: session.user.nama || session.user.name || 'User',
-                    role: session.user.role || 'User',
-                    nik: session.nik || session.user.nik || '',
-                    isCurrent: true,
-                    lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-                };
-                onlineUsers.push(currentUser);
-            }
-        } catch (e) {
-            console.warn('Gagal ambil session user:', e);
-        }
-
-        // 2. User dari activity (pelapor laporan terakhir)
-        if (activity && activity.length > 0) {
-            const uniqueReporters = {};
-            activity.forEach(item => {
-                const nama = item.nama || item.pelapor || 'User';
-                if (!uniqueReporters[nama]) {
-                    uniqueReporters[nama] = {
-                        nama: nama,
-                        role: 'User',
-                        lastActive: item.waktu || item.tanggal || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-                        isCurrent: false
-                    };
-                }
-            });
-
-            const activityUsers = Object.values(uniqueReporters).slice(0, 4);
-            activityUsers.forEach(u => {
-                if (!onlineUsers.some(x => x.nama === u.nama)) {
-                    onlineUsers.push(u);
-                }
-            });
-        }
-
-        // 3. Jika kurang dari 3 user, tambahkan dummy untuk demo
-        if (onlineUsers.length < 3) {
-            const dummyUsers = [
-                { nama: 'Budi Santoso', role: 'Technician', lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), isCurrent: false },
-                { nama: 'Siti Rahayu', role: 'General Affair', lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), isCurrent: false },
-                { nama: 'Andi Wijaya', role: 'Administrator', lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), isCurrent: false }
-            ];
-
-            dummyUsers.forEach(dummy => {
-                if (!onlineUsers.some(x => x.nama === dummy.nama)) {
-                    onlineUsers.push(dummy);
-                }
-            });
-        }
-
-        // Batasi maksimal 6 user
-        onlineUsers = onlineUsers.slice(0, 6);
-
-        // Update badge
-        if (badge) badge.textContent = onlineUsers.length;
-
-        if (onlineUsers.length === 0) {
-            container.innerHTML = '<div class="col-12 text-center text-muted py-3">Tidak ada user online</div>';
-            return;
-        }
-
-        let html = '';
-        onlineUsers.forEach(user => {
-            const initial = user.nama.charAt(0).toUpperCase();
-            const avatarBg = user.isCurrent ? 'linear-gradient(135deg, #4b7bec, #3b6bd6)' : 'linear-gradient(135deg, #8a8fa6, #6c7280)';
-
-            html += `
-                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-                    <div class="d-flex align-items-center p-3 border rounded-3" style="background: var(--bg-card-hover); transition: all 0.2s;">
-                        <div class="d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; border-radius: 50%; background: ${avatarBg}; color: #fff; font-weight: 700; font-size: 18px; flex-shrink: 0;">
-                            ${initial}
-                        </div>
-                        <div class="ms-3 flex-grow-1">
-                            <div class="fw-semibold" style="font-size: 14px; color: var(--text-primary);">${user.nama}</div>
-                            <div class="text-muted" style="font-size: 12px;">${user.role}</div>
-                            <div class="d-flex align-items-center gap-1 mt-1">
-                                <span class="badge bg-success" style="font-size: 8px; padding: 2px 6px; border-radius: 10px;">
-                                    <span class="live-dot" style="width:6px;height:6px;display:inline-block;margin-right:2px;"></span> Online
-                                </span>
-                                <span class="text-muted" style="font-size: 9px;">${user.lastActive}</span>
-                                ${user.isCurrent ? '<span class="badge bg-primary" style="font-size: 8px; padding: 2px 6px;">Anda</span>' : ''}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
-    }
-
-    // =============================================
     // LOAD MONITORING DATA
     // =============================================
     async function loadMonitoring() {
@@ -1167,9 +1187,9 @@
 
             if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
 
-            // Online users (counter di topbar)
+            // Online users counter
             if (DOM.onlineUserCount) {
-                DOM.onlineUserCount.textContent = data.onlineUser || Math.floor(Math.random() * 5) + 1;
+                DOM.onlineUserCount.textContent = data.onlineUser || 1;
             }
 
             // Charts
@@ -1180,7 +1200,7 @@
             // Activity
             renderActivity(data.activity || []);
 
-            // User Online Detail
+            // ✅ User Online Detail (REAL - tanpa dummy)
             renderOnlineUsers(data.activity || []);
 
             // System Health - static online

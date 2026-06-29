@@ -94,77 +94,41 @@
         <header class="topbar">
             <div>
                 <h3>Dashboard</h3>
-<small>
-Building Care System Enterprise
-<br>
-<span class="brand-location">
-Radiant Group Duri
-</span>
-
-</small>
-            </div>
-            <div class="user-profile-card">
-
-    <div class="profile-top">
-
-        <div class="avatar">
-
-            <i class="bi bi-person-fill"></i>
-
-        </div>
-
-        <div>
-
-            <div class="profile-name" id="userName">
-
-                Loading...
-
+                <small>
+                    Building Care System Enterprise
+                    <br>
+                    <span class="brand-location">Radiant Group Duri</span>
+                </small>
             </div>
 
-            <div class="role-badge" id="userRole">
+            <div class="d-flex align-items-center gap-3">
+                <!-- Dark Mode Toggle -->
+                <button class="btn btn-sm btn-outline-secondary rounded-circle p-2" id="darkModeToggle" title="Toggle Dark Mode" style="width:40px;height:40px;border-radius:50%!important;border:1px solid #e2e8f0;">
+                    <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+                </button>
 
-                Administrator
-
+                <div class="user-profile-card">
+                    <div class="profile-top">
+                        <div class="avatar">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <div>
+                            <div class="profile-name" id="userName">Loading...</div>
+                            <div class="role-badge" id="userRole">Administrator</div>
+                        </div>
+                    </div>
+                    <div class="profile-detail">
+                        <div>🪪 <span>ID :</span> <strong id="userNik">-</strong></div>
+                        <div>🕒 <span>Last Login :</span> <strong id="lastLogin">-</strong></div>
+                    </div>
+                    <div class="profile-footer">
+                        Building Care System Enterprise
+                        <small>Radiant Group Duri</small>
+                    </div>
+                </div>
             </div>
-
-        </div>
-
-    </div>
-
-    <div class="profile-detail">
-
-        <div>
-
-            🪪 <span>ID :</span>
-
-            <strong id="userNik">-</strong>
-
-        </div>
-
-        <div>
-
-            🕒 <span>Last Login :</span>
-
-            <strong id="lastLogin">-</strong>
-
-        </div>
-
-    </div>
-
-    <div class="profile-footer">
-
-        Building Care System Enterprise
-
-        <small>
-
-            Radiant Group Duri
-
-        </small>
-
-    </div>
-
-</div>
         </header>
+
 <!-- ======================================================
      SUMMARY CARDS
 ======================================================= -->
@@ -358,6 +322,7 @@ Radiant Group Duri
         </div>
     </div>
 </section>
+
 <!-- ======================================================
      SLA ACHIEVEMENT
 ======================================================= -->
@@ -448,6 +413,7 @@ Radiant Group Duri
     </div>
 
 </section>
+
 <!-- ======================================================
      CHART + ACTIVITY
 ======================================================= -->
@@ -698,155 +664,85 @@ Approval Pending
 <script src="assets/js/modules/dashboard.js"></script>
 
 <!-- ======================================================
-     LOGOUT HANDLER - FIX TOMBOL LOGOUT & REDIRECT
+     LOGOUT HANDLER + DARK MODE
 ======================================================= -->
 <script>
-/**
- * ======================================================
- * DASHBOARD LOGOUT HANDLER
- * Fix: Tombol logout tidak bereaksi & redirect ke login
- * ======================================================
- */
-
 (function() {
     'use strict';
 
-    // Deteksi halaman login yang tersedia
-    function getLoginPage() {
-        // Coba beberapa kemungkinan nama file login
-        const possiblePages = ['login.html', 'index.html', 'auth.html', 'signin.html'];
+    // =============================================
+    // DARK MODE
+    // =============================================
+    function initDarkMode() {
+        const toggle = document.getElementById('darkModeToggle');
+        const icon = document.getElementById('darkModeIcon');
+        if (!toggle) return;
+
+        const savedTheme = localStorage.getItem('bcs_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
         
-        // Cek apakah ada elemen login di halaman saat ini (berarti ini halaman login)
-        if (document.querySelector('#loginForm') || document.querySelector('.login-container')) {
-            return null; // Sudah di halaman login
+        if (icon) {
+            if (savedTheme === 'dark') {
+                icon.className = 'bi bi-sun-fill';
+                icon.style.color = '#ffd700';
+            } else {
+                icon.className = 'bi bi-moon-fill';
+                icon.style.color = '';
+            }
         }
-        
-        // Return halaman login default
-        return 'login.html';
+
+        toggle.addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('bcs_theme', newTheme);
+            if (icon) {
+                if (newTheme === 'dark') {
+                    icon.className = 'bi bi-sun-fill';
+                    icon.style.color = '#ffd700';
+                } else {
+                    icon.className = 'bi bi-moon-fill';
+                    icon.style.color = '';
+                }
+            }
+        });
     }
 
-    // Tunggu DOM siap
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initLogout);
-    } else {
-        initLogout();
-    }
-
+    // =============================================
+    // LOGOUT HANDLER
+    // =============================================
     function initLogout() {
         const logoutBtn = document.getElementById('logoutBtn');
-        
-        if (!logoutBtn) {
-            console.warn('[LOGOUT] Tombol logout tidak ditemukan!');
-            return;
-        }
+        if (!logoutBtn) return;
 
-        console.log('[LOGOUT] Tombol logout ditemukan, memasang event listener...');
-
-        // Hapus event listener lama dengan clone
-        const newLogoutBtn = logoutBtn.cloneNode(true);
-        logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
-
-        // Pasang event listener baru
-        newLogoutBtn.addEventListener('click', function(e) {
+        logoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
-            
-            console.log('[LOGOUT] Tombol logout diklik!');
-            
-            // Tampilkan konfirmasi
-            Swal.fire({
-                title: 'Konfirmasi Logout',
-                text: 'Apakah Anda yakin ingin keluar dari sistem?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, Logout!',
-                cancelButtonText: 'Batal',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    performLogout();
+            if (window.auth && typeof window.auth.logout === 'function') {
+                window.auth.logout();
+            } else {
+                if (confirm('Apakah Anda yakin ingin keluar?')) {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = 'login.html';
                 }
-            });
-        });
-
-        console.log('[LOGOUT] Event listener berhasil dipasang');
-    }
-
-    function performLogout() {
-        console.log('[LOGOUT] Proses logout dimulai...');
-        
-        // Tampilkan loading
-        Swal.fire({
-            title: 'Logging out...',
-            text: 'Mohon tunggu sebentar',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
             }
         });
-
-        try {
-            // 1. Hapus semua data dari localStorage
-            localStorage.clear();
-            console.log('[LOGOUT] localStorage cleared');
-
-            // 2. Hapus semua data dari sessionStorage
-            sessionStorage.clear();
-            console.log('[LOGOUT] sessionStorage cleared');
-
-            // 3. Hapus cookie
-            document.cookie.split(";").forEach(function(c) {
-                document.cookie = c
-                    .replace(/^ +/, "")
-                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-            });
-            console.log('[LOGOUT] Cookies cleared');
-
-            // 4. Hapus semua data dari BCS jika ada
-            if (window.BCS) {
-                if (window.BCS.Storage) {
-                    window.BCS.Storage.clear();
-                }
-                if (window.BCS.Session) {
-                    window.BCS.Session.destroy();
-                }
-                if (window.BCS.Auth) {
-                    window.BCS.Auth.logout();
-                }
-                console.log('[LOGOUT] BCS storage cleared');
-            }
-
-            // 5. Tentukan halaman redirect
-            const loginPage = getLoginPage();
-            
-            // 6. Redirect ke halaman login
-            console.log('[LOGOUT] Redirecting to:', loginPage);
-            
-            setTimeout(() => {
-                if (loginPage) {
-                    window.location.replace(loginPage);
-                } else {
-                    // Jika sudah di halaman login, reload saja
-                    window.location.reload();
-                }
-            }, 500);
-
-        } catch (error) {
-            console.error('[LOGOUT] Error:', error);
-            // Fallback: redirect ke login.html
-            setTimeout(() => {
-                window.location.replace('login.html');
-            }, 300);
-        }
     }
 
-    // Ekspos fungsi logout ke global
-    window.logout = performLogout;
-    window.BCSLogout = performLogout;
-    
-    console.log('[LOGOUT] Handler siap. Gunakan window.logout() untuk test.');
+    // =============================================
+    // INIT
+    // =============================================
+    function init() {
+        initDarkMode();
+        initLogout();
+        console.log('✅ Dashboard initialized with Dark Mode');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 
 })();
 </script>

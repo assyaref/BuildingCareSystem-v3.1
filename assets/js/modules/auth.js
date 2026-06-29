@@ -1,5 +1,5 @@
-// auth.js - Building Care System v7.4 FINAL
-// Logout now sends email along with token for reliable logging
+// auth.js - Building Care System v7.5 FINAL
+// Logout: guaranteed email capture
 
 (function() {
     "use strict";
@@ -17,7 +17,7 @@
     }
 
     // =============================================
-    // LOGIN
+    // LOGIN - store email explicitly
     // =============================================
     async function login(nikOrPayload, password) {
         let payload = {};
@@ -53,17 +53,21 @@
             }
 
             const rawData = response.data || {};
+            const userData = rawData.user || {};
+            const email = userData.email || rawData.email || "";
+
             const sessionData = {
                 token: rawData.token || response.token || "",
-                user: rawData.user || response.user || {},
-                nik: rawData.nik || response.nik || rawData.user?.nik || payload.nik || "",
-                role: rawData.role || response.role || rawData.user?.role || "",
-                email: rawData.user?.email || rawData.email || ""  // Pastikan email tersimpan
+                user: userData,
+                nik: userData.nik || rawData.nik || payload.nik || "",
+                role: userData.role || rawData.role || "",
+                email: email
             };
 
-            // Simpan email secara terpisah untuk kemudahan
-            if (sessionData.user && sessionData.user.email) {
-                sessionData.email = sessionData.user.email;
+            // 🔥 SIMPAN EMAIL SECARA EKSPLISIT
+            if (email) {
+                localStorage.setItem('userEmail', email);
+                sessionStorage.setItem('userEmail', email);
             }
 
             BCS.Storage.setSession(sessionData);
@@ -71,7 +75,7 @@
 
             await new Promise(resolve => setTimeout(resolve, 300));
 
-            const role = sessionData.role || sessionData.user?.role || "USER";
+            const role = sessionData.role || "USER";
             const routeMap = {
                 "USER": "user-report.html",
                 "GENERAL AFFAIR": "user-report.html",
@@ -93,40 +97,78 @@
     }
 
     // =============================================
-    // LOGOUT - FIXED: send email + token
+    // LOGOUT - ULTRA ROBUST EMAIL CAPTURE
     // =============================================
     async function logout(redirectTo = "login.html") {
         BCS.Logger.info("Logout");
 
-        let token = '';
+        // 🔥 KUMPULKAN EMAIL DARI BERBAGAI SUMBER
         let email = '';
+
+        // 1. Dari session
         try {
             const session = BCS.Storage.getSession();
             if (session) {
-                token = session.token || '';
-                // Ambil email dari berbagai kemungkinan
                 email = session.user?.email || session.email || '';
-                if (!email && session.user && session.user.email) {
-                    email = session.user.email;
-                }
-            }
-            // Jika masih kosong, coba dari localStorage langsung
-            if (!email) {
-                const user = BCS.Storage.get('user');
-                if (user && user.email) email = user.email;
-                if (!email) {
-                    const raw = localStorage.getItem('user');
-                    if (raw) {
-                        try {
-                            const parsed = JSON.parse(raw);
-                            if (parsed && parsed.email) email = parsed.email;
-                        } catch (e) {}
-                    }
+                if (!email && session.user && typeof session.user === 'object') {
+                    email = session.user.email || '';
                 }
             }
         } catch (e) {}
 
-        // Kirim ke server dengan token dan email
+        // 2. Dari localStorage langsung (jika ada)
+        if (!email) {
+            try {
+                const stored = localStorage.getItem('userEmail');
+                if (stored) email = stored;
+            } catch (e) {}
+        }
+
+        // 3. Dari sessionStorage
+        if (!email) {
+            try {
+                const stored = sessionStorage.getItem('userEmail');
+                if (stored) email = stored;
+            } catch (e) {}
+        }
+
+        // 4. Dari key 'user' di localStorage (JSON)
+        if (!email) {
+            try {
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    if (user && user.email) email = user.email;
+                }
+            } catch (e) {}
+        }
+
+        // 5. Dari BCS_SESSION (jika ada)
+        if (!email) {
+            try {
+                const bcsSession = localStorage.getItem('BCS_SESSION');
+                if (bcsSession) {
+                    const data = JSON.parse(bcsSession);
+                    if (data && data.user && data.user.email) email = data.user.email;
+                    else if (data && data.email) email = data.email;
+                }
+            } catch (e) {}
+        }
+
+        // Log email yang berhasil diambil
+        console.log('📧 Email captured for logout:', email || '(empty)');
+
+        // Ambil token
+        let token = '';
+        try {
+            const session = BCS.Storage.getSession();
+            if (session) token = session.token || '';
+            if (!token) {
+                token = localStorage.getItem('token') || '';
+            }
+        } catch (e) {}
+
+        // Kirim ke server (selalu kirim, meskipun email kosong)
         if (BCS.Api && typeof BCS.Api.post === 'function') {
             try {
                 const payload = { token: token };
@@ -140,7 +182,7 @@
             console.warn('⚠️ API not available, skipping server logout');
         }
 
-        // Clear local session
+        // Clear semua storage
         try {
             if (BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
                 BCS.Storage.removeSession();
@@ -150,7 +192,7 @@
             }
         } catch (e) {}
 
-        const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
+        const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER', 'userEmail'];
         keys.forEach(key => {
             try { localStorage.removeItem(key); } catch(e) {}
             try { sessionStorage.removeItem(key); } catch(e) {}
@@ -170,9 +212,7 @@
         return BCS.Storage.getSession();
     }
 
-    // =============================================
-    // EKSPOS KE GLOBAL
-    // =============================================
+    // Ekspos ke global
     window.auth = {
         login: login,
         logout: logout,
@@ -181,15 +221,10 @@
     };
     window.login = login;
 
-    // Guard
-    if (!window.auth.logout) {
-        window.auth.logout = logout;
-    }
-
-    console.log("✅ auth.js v7.4 FINAL loaded");
+    console.log("✅ auth.js v7.5 FINAL loaded");
 })();
 
-// Fallback ekstra
+// Fallback
 if (typeof window.auth === 'undefined') {
     window.auth = {
         login: function() { console.warn('auth.js not loaded'); },
@@ -202,5 +237,4 @@ if (typeof window.auth === 'undefined') {
         isLoggedIn: function() { return false; },
         getSession: function() { return null; }
     };
-    console.warn('⚠️ auth.js loaded with fallback');
 }

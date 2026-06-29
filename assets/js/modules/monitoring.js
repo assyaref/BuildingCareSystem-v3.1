@@ -1,5 +1,5 @@
 // =====================================================
-// monitoring.js - Building Care System Enterprise v4.5
+// monitoring.js - Building Care System Enterprise v4.6 FINAL
 // Radiant Group Duri
 // =====================================================
 
@@ -226,25 +226,6 @@ function renderOnlineUsers(users) {
 }
 
 // =============================================
-// LOAD ACTIVE USERS (endpoint terpisah)
-// =============================================
-async function loadActiveUsers() {
-    try {
-        const response = await BCS.Api.post('getActiveSessions', {});
-        console.log('👥 Active users response:', response);
-        if (response && response.success && response.data && response.data.length > 0) {
-            renderOnlineUsers(response.data);
-        } else {
-            // Fallback: current user only
-            renderOnlineUsers([]);
-        }
-    } catch (e) {
-        console.warn('Gagal load active users:', e);
-        renderOnlineUsers([]);
-    }
-}
-
-// =============================================
 // LOAD MONITORING DATA
 // =============================================
 async function loadMonitoring() {
@@ -304,8 +285,11 @@ async function loadMonitoring() {
         }
         if (DOM.timezoneLabel) DOM.timezoneLabel.textContent = 'WIB';
 
-        // 🔥 Load active users
-        await loadActiveUsers();
+        // 🔥 USER ONLINE - langsung dari data getSummary
+        // Data dari server berupa array activeUsers
+        const activeUsers = data.activeUsers || [];
+        console.log('👥 Active users from getSummary:', activeUsers);
+        renderOnlineUsers(activeUsers);
 
         // Render charts (jika ada)
         renderCharts(data);
@@ -322,10 +306,7 @@ async function loadMonitoring() {
 // RENDER CHARTS (sederhana)
 // =============================================
 function renderCharts(data) {
-    // Fungsi ini bisa diisi jika Anda ingin menampilkan chart dari monitoring.js
-    // Namun karena chart sudah di-handle di inline script sebelumnya, 
-    // kita biarkan kosong atau implementasi minimal.
-    // Jika Anda ingin chart tetap muncul, pindahkan kode chart dari inline ke sini.
+    // Implementasi chart (jika diperlukan)
     console.log('📊 Charts can be rendered here if needed.');
 }
 
@@ -404,7 +385,7 @@ function init() {
     startLiveServerTime();
     loadMonitoring();
     startAutoRefresh();
-    console.log('✅ Monitoring page initialized (v4.5)');
+    console.log('✅ Monitoring page initialized (v4.6 FINAL)');
 }
 
 window.addEventListener('beforeunload', stopAutoRefresh);

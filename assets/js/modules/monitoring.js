@@ -1,5 +1,5 @@
 // =====================================================
-// monitoring.js - Building Care System Enterprise v4.4
+// monitoring.js - Building Care System Enterprise v4.5
 // Radiant Group Duri
 // =====================================================
 
@@ -13,6 +13,9 @@ const DOM = {
     monitorOpen: document.getElementById('monitorOpen'),
     monitorProgress: document.getElementById('monitorProgress'),
     monitorDone: document.getElementById('monitorDone'),
+    statusOpen: document.getElementById('statusOpen'),
+    statusProgress: document.getElementById('statusProgress'),
+    statusDone: document.getElementById('statusDone'),
     fastCount: document.getElementById('fastCount'),
     normalCount: document.getElementById('normalCount'),
     lateCount: document.getElementById('lateCount'),
@@ -35,8 +38,39 @@ const DOM = {
     refreshBtn: document.getElementById('refreshMonitoring'),
     onlineUserCount: document.getElementById('onlineUserCount'),
     onlineCountBadge: document.getElementById('onlineCountBadge'),
-    onlineUserList: document.getElementById('onlineUserList')
+    onlineUserList: document.getElementById('onlineUserList'),
+    darkToggle: document.getElementById('darkModeToggle'),
+    darkIcon: document.getElementById('darkModeIcon')
 };
+
+// =============================================
+// DARK MODE
+// =============================================
+function initDarkMode() {
+    if (!DOM.darkToggle) return;
+    const savedTheme = localStorage.getItem('bcs_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateDarkIcon(savedTheme);
+
+    DOM.darkToggle.addEventListener('click', function() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('bcs_theme', next);
+        updateDarkIcon(next);
+    });
+}
+
+function updateDarkIcon(theme) {
+    if (!DOM.darkIcon) return;
+    if (theme === 'dark') {
+        DOM.darkIcon.className = 'bi bi-sun-fill';
+        DOM.darkIcon.style.color = '#ffd700';
+    } else {
+        DOM.darkIcon.className = 'bi bi-moon-fill';
+        DOM.darkIcon.style.color = '';
+    }
+}
 
 // =============================================
 // LOAD USER INFO
@@ -48,68 +82,45 @@ function loadUserInfo() {
             const user = session.user;
             const nama = user.nama || user.name || 'User';
             const role = user.role || 'User';
-
             if (DOM.userName) DOM.userName.textContent = nama;
             if (DOM.userRole) DOM.userRole.textContent = role;
             if (DOM.userAvatar) DOM.userAvatar.textContent = nama.charAt(0).toUpperCase();
         }
-    } catch (e) {
-        console.warn('Load user info error:', e);
-    }
+    } catch (e) { console.warn('Load user info error:', e); }
 }
 
 // =============================================
-// UPDATE STATUS PERCENTAGES
+// UPDATE STATUS & SLA PERCENTAGES
 // =============================================
 function updateStatusPercentages(data) {
-    const open = data.open || 0;
-    const progress = data.progress || 0;
-    const done = data.done || 0;
+    const open = data.open || 0, progress = data.progress || 0, done = data.done || 0;
     const total = open + progress + done;
-
-    const openPercentEl = document.querySelector('.status-card.open .status-percent');
-    const progressPercentEl = document.querySelector('.status-card.progress-card .status-percent');
-    const donePercentEl = document.querySelector('.status-card.done-card .status-percent');
-
+    const els = {
+        open: document.querySelector('.status-card.open .status-percent'),
+        progress: document.querySelector('.status-card.progress-card .status-percent'),
+        done: document.querySelector('.status-card.done-card .status-percent')
+    };
     if (total === 0) {
-        if (openPercentEl) openPercentEl.textContent = '0% dari total report';
-        if (progressPercentEl) progressPercentEl.textContent = '0% dari total report';
-        if (donePercentEl) donePercentEl.textContent = '0% dari total report';
+        Object.values(els).forEach(el => { if (el) el.textContent = '0% dari total report'; });
         return;
     }
-
-    const openPct = Math.round((open / total) * 100);
-    const progressPct = Math.round((progress / total) * 100);
-    const donePct = Math.round((done / total) * 100);
-
-    if (openPercentEl) openPercentEl.textContent = openPct + '% dari total report';
-    if (progressPercentEl) progressPercentEl.textContent = progressPct + '% dari total report';
-    if (donePercentEl) donePercentEl.textContent = donePct + '% dari total report';
+    if (els.open) els.open.textContent = Math.round((open/total)*100) + '% dari total report';
+    if (els.progress) els.progress.textContent = Math.round((progress/total)*100) + '% dari total report';
+    if (els.done) els.done.textContent = Math.round((done/total)*100) + '% dari total report';
 }
 
-// =============================================
-// UPDATE SLA PERCENTAGES
-// =============================================
 function updateSLAPercentages(data) {
-    const fast = data.fast || 0;
-    const normal = data.normal || 0;
-    const late = data.late || 0;
-    const totalSLA = fast + normal + late;
-
-    if (totalSLA === 0) {
+    const fast = data.fast || 0, normal = data.normal || 0, late = data.late || 0;
+    const total = fast + normal + late;
+    if (total === 0) {
         if (DOM.fastPercent) DOM.fastPercent.textContent = '0%';
         if (DOM.normalPercent) DOM.normalPercent.textContent = '0%';
         if (DOM.latePercent) DOM.latePercent.textContent = '0%';
         return;
     }
-
-    const fastPct = Math.round((fast / totalSLA) * 100);
-    const normalPct = Math.round((normal / totalSLA) * 100);
-    const latePct = Math.round((late / totalSLA) * 100);
-
-    if (DOM.fastPercent) DOM.fastPercent.textContent = fastPct + '%';
-    if (DOM.normalPercent) DOM.normalPercent.textContent = normalPct + '%';
-    if (DOM.latePercent) DOM.latePercent.textContent = latePct + '%';
+    if (DOM.fastPercent) DOM.fastPercent.textContent = Math.round((fast/total)*100) + '%';
+    if (DOM.normalPercent) DOM.normalPercent.textContent = Math.round((normal/total)*100) + '%';
+    if (DOM.latePercent) DOM.latePercent.textContent = Math.round((late/total)*100) + '%';
 }
 
 // =============================================
@@ -121,7 +132,6 @@ function renderActivity(activity) {
         DOM.recentActivity.innerHTML = '<div class="text-center text-muted py-4">Belum ada aktivitas</div>';
         return;
     }
-
     let html = '';
     activity.forEach(item => {
         const status = item.status || 'OPEN';
@@ -129,7 +139,6 @@ function renderActivity(activity) {
         if (status === 'DONE') { badgeClass = 'success'; icon = 'bi-check-circle'; iconColor = '#22c55e'; }
         else if (status === 'PROGRESS') { badgeClass = 'warning'; icon = 'bi-arrow-repeat'; iconColor = '#f59e0b'; }
         else if (status === 'OPEN') { badgeClass = 'danger'; icon = 'bi-folder2-open'; iconColor = '#ef4444'; }
-
         const waktu = item.waktu || item.tanggal || '';
         html += `
             <div class="activity-item">
@@ -155,13 +164,11 @@ function renderActivity(activity) {
 // =============================================
 function renderOnlineUsers(users) {
     if (!DOM.onlineUserList) return;
-
-    // Jika users kosong, coba ambil dari session (current user)
     let onlineUsers = [];
     if (users && users.length > 0) {
         onlineUsers = users;
     } else {
-        // Fallback: tampilkan current user
+        // Fallback: current user
         try {
             const session = BCS.Storage.getSession();
             if (session && session.user) {
@@ -176,8 +183,6 @@ function renderOnlineUsers(users) {
             }
         } catch (e) {}
     }
-
-    // Update badge & counter
     if (DOM.onlineCountBadge) DOM.onlineCountBadge.textContent = onlineUsers.length;
     if (DOM.onlineUserCount) DOM.onlineUserCount.textContent = onlineUsers.length;
 
@@ -186,20 +191,18 @@ function renderOnlineUsers(users) {
         return;
     }
 
-    // Tandai current user
-    const currentUser = (() => {
-        try {
-            const session = BCS.Storage.getSession();
-            return session?.user?.email || '';
-        } catch (e) { return ''; }
-    })();
+    // Current user email untuk label "Anda"
+    let currentEmail = '';
+    try {
+        const session = BCS.Storage.getSession();
+        currentEmail = session?.user?.email || '';
+    } catch (e) {}
 
     let html = '';
     onlineUsers.slice(0, 6).forEach(user => {
         const initial = (user.nama || 'U').charAt(0).toUpperCase();
-        const isCurrent = user.email && user.email === currentUser;
+        const isCurrent = user.email && user.email === currentEmail;
         const avatarClass = isCurrent ? 'current' : 'other';
-
         html += `
             <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
                 <div class="d-flex align-items-center p-3 rounded-3 online-user-item">
@@ -219,7 +222,6 @@ function renderOnlineUsers(users) {
             </div>
         `;
     });
-
     DOM.onlineUserList.innerHTML = html;
 }
 
@@ -230,7 +232,7 @@ async function loadActiveUsers() {
     try {
         const response = await BCS.Api.post('getActiveSessions', {});
         console.log('👥 Active users response:', response);
-        if (response && response.success && response.data) {
+        if (response && response.success && response.data && response.data.length > 0) {
             renderOnlineUsers(response.data);
         } else {
             // Fallback: current user only
@@ -248,16 +250,13 @@ async function loadActiveUsers() {
 async function loadMonitoring() {
     try {
         BCS.App.Loading.show();
-
         const response = await BCS.Api.post('getSummary', {});
         console.log('📊 Monitoring response:', response);
-
         if (!response || !response.success) {
             console.error('Gagal load monitoring:', response?.message);
             BCS.App.Toast.danger('Gagal memuat data monitoring');
             return;
         }
-
         const data = response.data || {};
 
         // Summary cards
@@ -265,40 +264,37 @@ async function loadMonitoring() {
         if (DOM.monitorOpen) DOM.monitorOpen.textContent = data.open || 0;
         if (DOM.monitorProgress) DOM.monitorProgress.textContent = data.progress || 0;
         if (DOM.monitorDone) DOM.monitorDone.textContent = data.done || 0;
+        if (DOM.statusOpen) DOM.statusOpen.textContent = data.open || 0;
+        if (DOM.statusProgress) DOM.statusProgress.textContent = data.progress || 0;
+        if (DOM.statusDone) DOM.statusDone.textContent = data.done || 0;
 
         // Trend
-        const totalTrend = document.getElementById('totalTrend');
-        const openTrend = document.getElementById('openTrend');
-        const progressTrend = document.getElementById('progressTrend');
-        const doneTrend = document.getElementById('doneTrend');
-        if (totalTrend) totalTrend.textContent = data.totalTrend || 0;
-        if (openTrend) openTrend.textContent = data.openTrend || 0;
-        if (progressTrend) progressTrend.textContent = data.progressTrend || 0;
-        if (doneTrend) doneTrend.textContent = data.doneTrend || 0;
+        ['totalTrend','openTrend','progressTrend','doneTrend'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = data[id.replace('Trend','')] || 0;
+        });
 
         // SLA
         if (DOM.fastCount) DOM.fastCount.textContent = data.fast || 0;
         if (DOM.normalCount) DOM.normalCount.textContent = data.normal || 0;
         if (DOM.lateCount) DOM.lateCount.textContent = data.late || 0;
 
-        // Percentages
         updateStatusPercentages(data);
         updateSLAPercentages(data);
 
         if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
 
-        // Activity
         renderActivity(data.activity || []);
 
-        // System Health - static online
-        if (DOM.apiStatus) { DOM.apiStatus.textContent = '●'; DOM.apiStatus.style.color = '#27ae60'; }
-        if (DOM.apiStatusText) { DOM.apiStatusText.textContent = 'Online'; DOM.apiStatusText.className = 'stat-trend up'; }
-        if (DOM.dbStatus) { DOM.dbStatus.textContent = '●'; DOM.dbStatus.style.color = '#27ae60'; }
-        if (DOM.dbStatusText) { DOM.dbStatusText.textContent = 'Online'; DOM.dbStatusText.className = 'stat-trend up'; }
-        if (DOM.driveStatus) { DOM.driveStatus.textContent = '●'; DOM.driveStatus.style.color = '#27ae60'; }
-        if (DOM.driveStatusText) { DOM.driveStatusText.textContent = 'Online'; DOM.driveStatusText.className = 'stat-trend up'; }
+        // System Health (online)
+        ['api','db','drive'].forEach(type => {
+            const statusEl = DOM[type + 'Status'];
+            const textEl = DOM[type + 'StatusText'];
+            if (statusEl) { statusEl.textContent = '●'; statusEl.style.color = '#27ae60'; }
+            if (textEl) { textEl.textContent = 'Online'; textEl.className = 'stat-trend up'; }
+        });
 
-        // Server Time (real-time)
+        // Server Time
         const serverTime = data.serverTime || response.serverTime || new Date().toISOString();
         const time = new Date(serverTime);
         if (DOM.serverTimeDisplay) {
@@ -308,8 +304,11 @@ async function loadMonitoring() {
         }
         if (DOM.timezoneLabel) DOM.timezoneLabel.textContent = 'WIB';
 
-        // 🔥 Load active users secara terpisah
+        // 🔥 Load active users
         await loadActiveUsers();
+
+        // Render charts (jika ada)
+        renderCharts(data);
 
     } catch (error) {
         console.error('Monitoring error:', error);
@@ -320,40 +319,101 @@ async function loadMonitoring() {
 }
 
 // =============================================
-// LIVE SERVER TIME (real-time)
+// RENDER CHARTS (sederhana)
+// =============================================
+function renderCharts(data) {
+    // Fungsi ini bisa diisi jika Anda ingin menampilkan chart dari monitoring.js
+    // Namun karena chart sudah di-handle di inline script sebelumnya, 
+    // kita biarkan kosong atau implementasi minimal.
+    // Jika Anda ingin chart tetap muncul, pindahkan kode chart dari inline ke sini.
+    console.log('📊 Charts can be rendered here if needed.');
+}
+
+// =============================================
+// LIVE SERVER TIME
 // =============================================
 function startLiveServerTime() {
     function updateClock() {
         if (!DOM.serverTimeDisplay) return;
         const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        DOM.serverTimeDisplay.textContent = hours + ':' + minutes + ':' + seconds;
+        DOM.serverTimeDisplay.textContent = now.toLocaleTimeString('id-ID', {
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
     }
     updateClock();
     setInterval(updateClock, 1000);
 }
 
 // =============================================
+// AUTO-REFRESH
+// =============================================
+let refreshTimer = 7;
+let refreshInterval = null;
+let timerInterval = null;
+
+function updateTimerDisplay() {
+    const el = document.getElementById('refreshTimer');
+    if (el) el.textContent = refreshTimer;
+}
+
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        refreshTimer--;
+        if (refreshTimer <= 0) refreshTimer = 7;
+        updateTimerDisplay();
+    }, 1000);
+    refreshInterval = setInterval(() => {
+        loadMonitoring();
+        refreshTimer = 7;
+        updateTimerDisplay();
+    }, 7000);
+    updateTimerDisplay();
+}
+
+function stopAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    if (timerInterval) clearInterval(timerInterval);
+}
+
+// =============================================
+// LOGOUT
+// =============================================
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'logoutBtn') {
+        e.preventDefault();
+        if (window.auth && typeof window.auth.logout === 'function') {
+            window.auth.logout();
+        } else {
+            if (confirm('Apakah Anda yakin ingin keluar?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+    }
+});
+
+// =============================================
 // INIT
 // =============================================
 function init() {
+    initDarkMode();
     loadUserInfo();
     startLiveServerTime();
     loadMonitoring();
-    console.log('✅ Monitoring page initialized');
+    startAutoRefresh();
+    console.log('✅ Monitoring page initialized (v4.5)');
 }
 
-// Auto-refresh 7 detik
-setInterval(loadMonitoring, 7000);
+window.addEventListener('beforeunload', stopAutoRefresh);
 
-// Ekspos ke global
-window.MonitoringModule = { init, loadMonitoring };
-
-// Jalankan saat DOM ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
     init();
 }
+
+// Ekspos ke global
+window.MonitoringModule = { init, loadMonitoring };

@@ -19,19 +19,41 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <link rel="stylesheet" href="assets/css/dashboard.css">
+
+    <style>
+        /* Animation for live dot */
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.8); }
+        }
+        .live-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+            margin-left: 4px;
+        }
+    </style>
 </head>
 
 <body>
 
+<!-- ======================================================
+     LOADING OVERLAY (Tanpa Teks "Please Wait...")
+======================================================= -->
 <div id="loading" class="loading-overlay" style="display:none;">
     <div class="text-center">
         <div class="spinner-border text-light" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
-        <div class="text-white mt-3">Please Wait...</div>
     </div>
 </div>
 
+<!-- ======================================================
+     APP WRAPPER
+======================================================= -->
 <div class="wrapper">
 
     <aside class="sidebar">
@@ -72,6 +94,7 @@
     <main class="content">
         <div class="container-fluid">
 
+            <!-- TOPBAR -->
             <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
                     <h3>Dashboard</h3>
@@ -83,18 +106,20 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <!-- Live Counter & Auto-Refresh Status -->
+                    <!-- Auto-Refresh Timer -->
                     <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background: var(--bg-card-hover); border: 1px solid var(--border-color);">
                         <span class="text-muted" style="font-size: 12px;">Auto-refresh:</span>
                         <span id="refreshTimer" class="fw-bold" style="font-size: 13px; color: var(--text-primary); min-width: 20px; text-align: center;">7</span>
                         <span class="text-muted" style="font-size: 11px;">detik</span>
-                        <span class="live-dot" id="liveRefreshDot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse-dot 1.5s ease-in-out infinite;margin-left:4px;"></span>
+                        <span class="live-dot"></span>
                     </div>
 
+                    <!-- Dark Mode Toggle -->
                     <button class="btn theme-switcher-btn d-flex align-items-center justify-content-center p-0" id="darkModeToggle" title="Toggle Theme" style="width: 42px; height: 42px; border-radius: 50% !important; background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); transition: var(--transition);">
                         <i class="bi bi-moon-fill" id="darkModeIcon" style="font-size: 1.15rem;"></i>
                     </button>
 
+                    <!-- User Profile -->
                     <div class="user-profile-card p-3 d-flex align-items-center gap-3">
                         <div class="avatar d-flex justify-content-center align-items-center" style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0D47A1, #2563EB); color: #fff;">
                             <i class="bi bi-person-fill" style="font-size: 1.3rem;"></i>
@@ -107,9 +132,7 @@
                 </div>
             </header>
 
-            <!-- ======================================================
-                 SUMMARY CARDS
-            ======================================================= -->
+            <!-- SUMMARY CARDS -->
             <section class="row g-4 mt-1">
                 <div class="col-xl-3 col-md-6">
                     <div class="summary-card">
@@ -188,9 +211,7 @@
                 </div>
             </section>
 
-            <!-- ======================================================
-                 STATUS CARDS
-            ======================================================= -->
+            <!-- STATUS CARDS -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card p-4">
@@ -241,9 +262,7 @@
                 </div>
             </section>
 
-            <!-- ======================================================
-                 SLA CARDS
-            ======================================================= -->
+            <!-- SLA CARDS -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card p-4">
@@ -294,9 +313,7 @@
                 </div>
             </section>
 
-            <!-- ======================================================
-                 CHART + ACTIVITY
-            ======================================================= -->
+            <!-- CHART + ACTIVITY -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-8">
                     <div class="card enterprise-card h-100">
@@ -339,9 +356,7 @@
                 </div>
             </section>
 
-            <!-- ======================================================
-                 MONTHLY REPORT TREND
-            ======================================================= -->
+            <!-- MONTHLY TREND -->
             <section class="row g-4 mt-2 mb-4">
                 <div class="col-12">
                     <div class="card enterprise-card">
@@ -361,6 +376,9 @@
     </main>
 </div>
 
+<!-- ======================================================
+     JAVASCRIPT
+======================================================= -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -449,7 +467,6 @@
     let isRefreshing = false;
 
     function showRefreshToast() {
-        // Gunakan SweetAlert2 Toast
         const toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -474,18 +491,14 @@
         if (isRefreshing) return;
         isRefreshing = true;
 
-        // Tampilkan toast
         showRefreshToast();
 
-        // Jalankan refresh melalui DashboardController
         if (window.DashboardController && typeof window.DashboardController.refresh === 'function') {
             window.DashboardController.refresh();
         } else {
-            // Fallback: reload halaman
             window.location.reload();
         }
 
-        // Reset timer
         refreshTimer = 7;
         updateTimerDisplay();
 
@@ -502,11 +515,9 @@
     }
 
     function startAutoRefresh() {
-        // Bersihkan interval lama
         if (refreshInterval) clearInterval(refreshInterval);
         if (timerInterval) clearInterval(timerInterval);
 
-        // Timer countdown setiap 1 detik
         timerInterval = setInterval(function() {
             refreshTimer--;
             if (refreshTimer <= 0) {
@@ -515,7 +526,6 @@
             updateTimerDisplay();
         }, 1000);
 
-        // Refresh setiap 7 detik
         refreshInterval = setInterval(function() {
             performRefresh();
         }, 7000);
@@ -537,7 +547,7 @@
     }
 
     // =============================================
-    // BOOTSTRAP INITIALIZER
+    // INIT
     // =============================================
     function init() {
         initDarkMode();
@@ -546,7 +556,6 @@
         console.log('✅ UI Dashboard System Initialized with Auto-Refresh (7s)');
     }
 
-    // Cleanup saat halaman ditutup
     window.addEventListener('beforeunload', function() {
         stopAutoRefresh();
     });

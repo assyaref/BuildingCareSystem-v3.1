@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- SweetAlert2 untuk Toast -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     * { box-sizing: border-box; }
     html, body { margin:0; padding:0; height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-serif; background:#f3f4f6; }
@@ -39,7 +41,7 @@
     .photo-btn.secondary { background:#f3f4f6; color:#4b5563; }
     #priorityBadge { transition: all 0.2s; }
 
-    /* Toast custom override untuk lebih smooth */
+    /* Toast custom style */
     .swal2-toast {
       border-radius: 16px !important;
       box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important;
@@ -322,7 +324,7 @@
     });
 
     // =============================================
-    // 6. SUBMIT REPORT (DENGAN TOAST SMOOTH & LOADING CEPAT)
+    // 6. SUBMIT REPORT – TOAST SMOOTH
     // =============================================
     const submitBtn = document.getElementById('submitReport');
 
@@ -397,7 +399,7 @@
 
       console.log('📤 Payload:', payload);
 
-      // 🔥 Nonaktifkan tombol & tampilkan spinner (tanpa delay)
+      // 🔥 Nonaktifkan tombol & tampilkan spinner
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...';
 
@@ -406,7 +408,7 @@
         console.log('📥 Response:', response);
 
         if (response && response.success) {
-          // ✅ Toast sukses – smooth & elegan
+          // ✅ TOAST SUKSES – smooth & elegan
           BCS.App.Toast.success('✅ Report berhasil dikirim!');
 
           // Reset form
@@ -458,35 +460,49 @@
     });
 
     // =============================================
-    // 9. LOGOUT
+    // 9. LOGOUT DENGAN SWEETALERT2
     // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
 
-      if (!confirm('Apakah Anda yakin ingin keluar?')) {
-        return;
-      }
-
-      if (window.auth && typeof window.auth.logout === 'function') {
-        window.auth.logout();
-        return;
-      }
-
-      try {
-        if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
-          BCS.Storage.removeSession();
-        } else if (window.Session && typeof Session.clear === 'function') {
-          Session.clear();
+      Swal.fire({
+        title: 'Konfirmasi Logout',
+        text: 'Apakah Anda yakin ingin keluar dari sistem?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Logout!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true,
+        customClass: {
+          popup: 'rounded-3',
+          confirmButton: 'btn btn-danger px-4',
+          cancelButton: 'btn btn-secondary px-4'
         }
-      } catch (e) {}
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (window.auth && typeof window.auth.logout === 'function') {
+            window.auth.logout();
+          } else {
+            try {
+              if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
+                BCS.Storage.removeSession();
+              } else if (window.Session && typeof Session.clear === 'function') {
+                Session.clear();
+              }
+            } catch (e) {}
 
-      const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
-      keys.forEach(key => {
-        localStorage.removeItem(key);
-        sessionStorage.removeItem(key);
+            const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
+            keys.forEach(key => {
+              localStorage.removeItem(key);
+              sessionStorage.removeItem(key);
+            });
+
+            window.location.href = 'login.html';
+          }
+        }
       });
-
-      window.location.href = 'login.html';
     });
 
     // =============================================

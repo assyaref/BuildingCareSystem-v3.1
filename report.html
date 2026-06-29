@@ -25,7 +25,6 @@
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
     <style>
-        /* Additional styles for report page */
         .upload-card {
             background: #f8fafc;
             border: 2px dashed #d1d5db;
@@ -110,6 +109,29 @@
             font-weight: 600;
             padding: 12px 28px;
         }
+        .avatar-sm {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4b7bec;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        .status-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        .status-open { background: #fff3cd; color: #856404; }
+        .status-progress { background: #cce5ff; color: #004085; }
+        .status-done { background: #d4edda; color: #155724; }
     </style>
 </head>
 
@@ -134,7 +156,7 @@
 
 <div class="wrapper">
 
-    <!-- SIDEBAR (SAMA PERSIS DENGAN HISTORY/ DASHBOARD) -->
+    <!-- SIDEBAR -->
     <aside class="sidebar">
 
         <div class="logo-area">
@@ -176,7 +198,7 @@
     <main class="content">
         <div class="container-fluid">
 
-            <!-- TOPBAR – BADGE USER MINIMALIS -->
+            <!-- TOPBAR -->
             <header class="topbar">
                 <div>
                     <h3>Report Kerusakan</h3>
@@ -187,9 +209,8 @@
                     </small>
                 </div>
 
-                <!-- MINIMALIS BADGE: AVATAR, NAMA, ROLE -->
                 <div class="d-flex align-items-center gap-3">
-                    <div class="avatar-sm" id="userAvatar" style="width:40px;height:40px;border-radius:50%;background:#4b7bec;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;">U</div>
+                    <div class="avatar-sm" id="userAvatar">U</div>
                     <div>
                         <div class="fw-bold" id="userName" style="font-size:14px;color:#1a1a2e;">Loading...</div>
                         <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
@@ -199,11 +220,10 @@
             </header>
 
             <!-- ======================================================
-                 SUMMARY CARDS (SAMA SEPERTI HISTORY)
+                 SUMMARY CARDS
             ======================================================= -->
             <section class="row g-4 mt-2">
 
-                <!-- TOTAL REPORT -->
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                     <div class="summary-card total-card">
                         <div class="summary-top">
@@ -212,7 +232,7 @@
                             </div>
                             <div>
                                 <h6>Total Report</h6>
-                                <h2 id="todayReport">0</h2>
+                                <h2 id="totalReport">0</h2>
                             </div>
                         </div>
                         <div class="summary-trend success">
@@ -223,7 +243,6 @@
                     </div>
                 </div>
 
-                <!-- COMPLETED -->
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                     <div class="summary-card ac-card">
                         <div class="summary-top">
@@ -243,7 +262,6 @@
                     </div>
                 </div>
 
-                <!-- PROGRESS -->
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                     <div class="summary-card listrik-card">
                         <div class="summary-top">
@@ -263,7 +281,6 @@
                     </div>
                 </div>
 
-                <!-- PENDING -->
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                     <div class="summary-card gedung-card">
                         <div class="summary-top">
@@ -286,7 +303,7 @@
             </section>
 
             <!-- ======================================================
-                 FORM REPORT (CARD SEPERTI HISTORY)
+                 FORM REPORT
             ======================================================= -->
             <section class="row g-4 mt-3">
                 <div class="col-12">
@@ -302,25 +319,22 @@
                         <div class="card-body">
                             <form id="reportForm">
                                 <div class="row g-4">
-                                    <!-- Nama Pelapor -->
+
                                     <div class="col-lg-6">
                                         <label class="form-label">Nama Pelapor</label>
                                         <input id="nama" type="text" class="form-control" placeholder="Masukkan nama pelapor">
                                     </div>
 
-                                    <!-- Departemen -->
                                     <div class="col-lg-6">
                                         <label class="form-label">Departemen</label>
                                         <input id="departemen" type="text" class="form-control" placeholder="Departemen">
                                     </div>
 
-                                    <!-- Lokasi -->
                                     <div class="col-lg-12">
                                         <label class="form-label">Lokasi Kerusakan</label>
                                         <input id="lokasi" type="text" class="form-control" placeholder="Contoh : Ruang Server Lt.2">
                                     </div>
 
-                                    <!-- Kategori -->
                                     <div class="col-lg-6">
                                         <label class="form-label">Kategori</label>
                                         <select id="kategori" class="form-select">
@@ -331,7 +345,6 @@
                                         </select>
                                     </div>
 
-                                    <!-- Prioritas -->
                                     <div class="col-lg-6">
                                         <label class="form-label">Prioritas</label>
                                         <select id="prioritas" class="form-select">
@@ -342,13 +355,11 @@
                                         </select>
                                     </div>
 
-                                    <!-- Deskripsi -->
                                     <div class="col-lg-12">
                                         <label class="form-label">Deskripsi Kerusakan</label>
                                         <textarea id="deskripsi" rows="4" class="form-control" placeholder="Jelaskan kerusakan secara detail..."></textarea>
                                     </div>
 
-                                    <!-- Upload Foto -->
                                     <div class="col-lg-6">
                                         <label class="form-label">Dokumentasi Kerusakan</label>
                                         <div class="upload-card">
@@ -375,7 +386,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Preview Foto -->
                                     <div class="col-lg-6">
                                         <label class="form-label">Preview Foto</label>
                                         <div id="previewWrapper" class="preview-wrapper">
@@ -389,7 +399,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Action Buttons -->
                                     <div class="col-12 mt-4">
                                         <div class="enterprise-action d-flex gap-2">
                                             <button id="resetReport" type="button" class="btn btn-light btn-lg">
@@ -407,9 +416,7 @@
                 </div>
             </section>
 
-            <!-- ======================================================
-                 INFO BOXES (SEPERTI HISTORY)
-            ======================================================= -->
+            <!-- INFO BOXES -->
             <section class="row g-4 mt-3">
                 <div class="col-lg-4">
                     <div class="card enterprise-card h-100">
@@ -490,37 +497,67 @@
 </div>
 
 <!-- ======================================================
-     JAVASCRIPT — urutan penting: config → core → modules
+     JAVASCRIPT
 ======================================================= -->
 
-<!-- Library -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- Config -->
 <script src="config/config.js"></script>
-
-<!-- Core -->
 <script src="assets/js/core/app.js"></script>
 <script src="assets/js/core/api.js"></script>
 <script src="assets/js/core/storage.js"></script>
 <script src="assets/js/core/session.js"></script>
 <script src="assets/js/core/ui.js"></script>
 <script src="assets/js/core/utils.js"></script>
-
-<!-- Modules -->
 <script src="assets/js/modules/auth.js"></script>
-<script src="assets/js/modules/report.js"></script>
 
-<!-- ======================================================
-     SCRIPT INLINE
-======================================================= -->
 <script>
 (function() {
     'use strict';
 
     // =============================================
-    // LOAD USER INFO (BADGE MINIMALIS)
+    // DOM REFS
+    // =============================================
+    const DOM = {
+        totalReport: document.getElementById('totalReport'),
+        doneReport: document.getElementById('doneReport'),
+        progressReport: document.getElementById('progressReport'),
+        pendingReport: document.getElementById('pendingReport'),
+
+        userName: document.getElementById('userName'),
+        userRole: document.getElementById('userRole'),
+        userAvatar: document.getElementById('userAvatar'),
+
+        nama: document.getElementById('nama'),
+        departemen: document.getElementById('departemen'),
+        lokasi: document.getElementById('lokasi'),
+        kategori: document.getElementById('kategori'),
+        prioritas: document.getElementById('prioritas'),
+        deskripsi: document.getElementById('deskripsi'),
+        photo: document.getElementById('photo'),
+        previewImage: document.getElementById('previewImage'),
+        previewPlaceholder: document.getElementById('previewPlaceholder'),
+        previewWrapper: document.getElementById('previewWrapper'),
+        removePhotoBtn: document.getElementById('removePhotoBtn'),
+        takePhotoBtn: document.getElementById('takePhotoBtn'),
+        galleryBtn: document.getElementById('galleryBtn'),
+        resetBtn: document.getElementById('resetReport'),
+        submitBtn: document.querySelector('#reportForm button[type="submit"]'),
+        form: document.getElementById('reportForm'),
+        loadingModal: new bootstrap.Modal(document.getElementById('loadingModal')),
+        successModal: new bootstrap.Modal(document.getElementById('successModal')),
+        toast: new bootstrap.Toast(document.getElementById('reportToast')),
+        toastMessage: document.getElementById('toastMessage')
+    };
+
+    // =============================================
+    // STATE
+    // =============================================
+    let currentFile = null;
+
+    // =============================================
+    // LOAD USER INFO
     // =============================================
     function loadUserInfo() {
         try {
@@ -530,17 +567,12 @@
                 const nama = user.nama || user.name || 'User';
                 const role = user.role || 'User';
 
-                document.getElementById('userName').textContent = nama;
-                document.getElementById('userRole').textContent = role;
+                DOM.userName.textContent = nama;
+                DOM.userRole.textContent = role;
+                DOM.userAvatar.textContent = nama.charAt(0).toUpperCase();
 
-                const avatar = document.getElementById('userAvatar');
-                avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
-
-                // Auto fill nama & departemen dari session
-                const namaInput = document.getElementById('nama');
-                const deptInput = document.getElementById('departemen');
-                if (namaInput) namaInput.value = nama;
-                if (deptInput) deptInput.value = user.departemen || user.department || '';
+                if (DOM.nama) DOM.nama.value = nama;
+                if (DOM.departemen) DOM.departemen.value = user.departemen || user.department || '';
             }
         } catch (e) {
             console.warn('Load user info error:', e);
@@ -548,7 +580,144 @@
     }
 
     // =============================================
-    // LOGOUT HANDLER
+    // LOAD SUMMARY DATA
+    // =============================================
+    async function loadSummary() {
+        try {
+            const response = await BCS.Api.post('getSummary', {});
+            if (response && response.success) {
+                const data = response.data || {};
+                DOM.totalReport.textContent = data.total || 0;
+                DOM.doneReport.textContent = data.done || 0;
+                DOM.progressReport.textContent = data.progress || 0;
+                DOM.pendingReport.textContent = data.open || 0;
+            }
+        } catch (e) {
+            console.warn('Load summary error:', e);
+        }
+    }
+
+    // =============================================
+    // PHOTO HANDLING
+    // =============================================
+    function showPreview(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            DOM.previewImage.src = e.target.result;
+            DOM.previewImage.classList.remove('d-none');
+            DOM.previewPlaceholder.classList.add('d-none');
+            DOM.previewWrapper.classList.add('has-image');
+            DOM.removePhotoBtn.classList.remove('d-none');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function clearPreview() {
+        DOM.previewImage.src = '';
+        DOM.previewImage.classList.add('d-none');
+        DOM.previewPlaceholder.classList.remove('d-none');
+        DOM.previewWrapper.classList.remove('has-image');
+        DOM.removePhotoBtn.classList.add('d-none');
+        DOM.photo.value = '';
+        currentFile = null;
+    }
+
+    // =============================================
+    // SUBMIT REPORT
+    // =============================================
+    async function submitReport(e) {
+        e.preventDefault();
+
+        // Validasi
+        const nama = DOM.nama.value.trim();
+        const departemen = DOM.departemen.value.trim();
+        const lokasi = DOM.lokasi.value.trim();
+        const kategori = DOM.kategori.value;
+        const prioritas = DOM.prioritas.value;
+        const deskripsi = DOM.deskripsi.value.trim();
+
+        if (!nama) { alert('Nama pelapor wajib diisi'); DOM.nama.focus(); return; }
+        if (!departemen) { alert('Departemen wajib diisi'); DOM.departemen.focus(); return; }
+        if (!lokasi) { alert('Lokasi kerusakan wajib diisi'); DOM.lokasi.focus(); return; }
+        if (!kategori) { alert('Pilih kategori'); DOM.kategori.focus(); return; }
+        if (!prioritas) { alert('Pilih prioritas'); DOM.prioritas.focus(); return; }
+        if (!deskripsi || deskripsi.length < 5) { alert('Deskripsi minimal 5 karakter'); DOM.deskripsi.focus(); return; }
+
+        // Konversi foto ke base64
+        let photoBase64 = '';
+        let filename = '';
+        if (currentFile) {
+            try {
+                const reader = new FileReader();
+                const result = await new Promise((resolve, reject) => {
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(currentFile);
+                });
+                photoBase64 = result;
+                filename = currentFile.name;
+            } catch (err) {
+                alert('Gagal membaca foto: ' + err.message);
+                return;
+            }
+        }
+
+        // Ambil session untuk NIK
+        const session = BCS.Storage.getSession();
+        const nik = session?.nik || session?.user?.nik || '';
+
+        const payload = {
+            nama: nama,
+            nik: nik,
+            departemen: departemen,
+            lokasi: lokasi,
+            kategori: kategori,
+            prioritas: prioritas,
+            deskripsi: deskripsi,
+            photo: photoBase64,
+            filename: filename
+        };
+
+        console.log('📤 Payload:', payload);
+
+        // Tampilkan loading
+        DOM.loadingModal.show();
+
+        try {
+            const response = await BCS.Api.post('saveReport', payload);
+            console.log('📥 Response:', response);
+
+            DOM.loadingModal.hide();
+
+            if (response && response.success) {
+                DOM.successModal.show();
+                resetForm();
+                await loadSummary();
+            } else {
+                alert('❌ Gagal mengirim report: ' + (response?.message || 'Unknown error'));
+            }
+        } catch (err) {
+            DOM.loadingModal.hide();
+            console.error('Submit error:', err);
+            alert('❌ Terjadi kesalahan: ' + err.message);
+        }
+    }
+
+    // =============================================
+    // RESET FORM
+    // =============================================
+    function resetForm() {
+        DOM.lokasi.value = '';
+        DOM.kategori.value = '';
+        DOM.prioritas.value = '';
+        DOM.deskripsi.value = '';
+        clearPreview();
+        loadUserInfo(); // reset nama & departemen dari session
+    }
+
+    // =============================================
+    // LOGOUT
     // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
         e.preventDefault();
@@ -564,9 +733,58 @@
     });
 
     // =============================================
+    // EVENT BINDING
+    // =============================================
+    // Foto: Kamera
+    DOM.takePhotoBtn.addEventListener('click', function() {
+        DOM.photo.setAttribute('capture', 'environment');
+        DOM.photo.click();
+        setTimeout(() => DOM.photo.removeAttribute('capture'), 100);
+    });
+
+    // Foto: Galeri
+    DOM.galleryBtn.addEventListener('click', function() {
+        DOM.photo.removeAttribute('capture');
+        DOM.photo.click();
+    });
+
+    // Foto: Change
+    DOM.photo.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Ukuran foto maksimal 5 MB');
+                this.value = '';
+                return;
+            }
+            currentFile = file;
+            showPreview(file);
+        }
+    });
+
+    // Foto: Remove
+    DOM.removePhotoBtn.addEventListener('click', clearPreview);
+
+    // Reset
+    DOM.resetBtn.addEventListener('click', resetForm);
+
+    // Submit
+    DOM.form.addEventListener('submit', submitReport);
+
+    // =============================================
     // INIT
     // =============================================
-    loadUserInfo();
+    async function init() {
+        loadUserInfo();
+        await loadSummary();
+        console.log('✅ Report page initialized');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 
 })();
 </script>

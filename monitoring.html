@@ -843,15 +843,12 @@
         }
     }
 
-  // =============================================
-// RENDER ONLINE USERS (DARI activeUsers)
-// =============================================
-function renderOnlineUsers(data) {
+ function renderOnlineUsers(data) {
     if (!DOM.onlineUserList) return;
 
     let onlineUsers = [];
 
-    // 1. Ambil user dari session (current user)
+    // 1. Ambil user dari session (current user) sebagai fallback
     try {
         const session = BCS.Storage.getSession();
         if (session && session.user) {
@@ -859,7 +856,6 @@ function renderOnlineUsers(data) {
             const nama = user.nama || user.name || 'User';
             const role = user.role || 'User';
             const nik = session.nik || user.nik || '';
-
             onlineUsers.push({
                 nama: nama,
                 role: role,
@@ -872,7 +868,7 @@ function renderOnlineUsers(data) {
         console.warn('Gagal ambil session user:', e);
     }
 
-    // 2. Ambil dari data.activeUsers (dari server)
+    // 2. Ambil dari data.activeUsers (dari server) jika ada
     if (data && data.activeUsers && data.activeUsers.length > 0) {
         const activeUsers = data.activeUsers;
         activeUsers.forEach(user => {

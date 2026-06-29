@@ -1,6 +1,6 @@
 // ======================================================
 // Building Care System Enterprise v7.1
-// dashboard.js - Full Dynamic Dashboard with Charts
+// dashboard.js - Full Dynamic Dashboard with Charts & Trends
 // Radiant Group Duri
 // ======================================================
 
@@ -41,7 +41,16 @@
         totalTrend: document.getElementById('totalTrend'),
         acTrend: document.getElementById('acTrend'),
         listrikTrend: document.getElementById('listrikTrend'),
-        gedungTrend: document.getElementById('gedungTrend')
+        gedungTrend: document.getElementById('gedungTrend'),
+        // Trend icons
+        totalTrendIcon: document.getElementById('totalTrendIcon'),
+        acTrendIcon: document.getElementById('acTrendIcon'),
+        listrikTrendIcon: document.getElementById('listrikTrendIcon'),
+        gedungTrendIcon: document.getElementById('gedungTrendIcon'),
+        // Percent elements
+        fastPercent: document.getElementById('fastPercent'),
+        normalPercent: document.getElementById('normalPercent'),
+        latePercent: document.getElementById('latePercent')
     };
 
     // Chart instances
@@ -75,6 +84,11 @@
         Object.keys(defaults).forEach(key => {
             if (DOM[key]) DOM[key].textContent = defaults[key];
         });
+
+        // Set default SLA percentages
+        if (DOM.fastPercent) DOM.fastPercent.textContent = '0%';
+        if (DOM.normalPercent) DOM.normalPercent.textContent = '0%';
+        if (DOM.latePercent) DOM.latePercent.textContent = '0%';
     }
 
     // =============================================
@@ -117,14 +131,98 @@
     }
 
     // =============================================
+    // CALCULATE TRENDS (from localStorage)
+    // =============================================
+    function calculateTrends(currentData) {
+        const STORAGE_KEY = 'bcs_dashboard_prev';
+        let prevData = null;
+
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                prevData = JSON.parse(stored);
+            }
+        } catch (e) {
+            console.warn('Failed to read previous data:', e);
+        }
+
+        if (!prevData) {
+            // First time loading, no previous data
+            return {
+                total: 0,
+                ac: 0,
+                listrik: 0,
+                gedung: 0
+            };
+        }
+
+        const total = currentData.total - (prevData.total || 0);
+        const ac = currentData.ac - (prevData.ac || 0);
+        const listrik = currentData.listrik - (prevData.listrik || 0);
+        const gedung = currentData.gedung - (prevData.gedung || 0);
+
+        return { total, ac, listrik, gedung };
+    }
+
+    // =============================================
+    // UPDATE TREND UI
+    // =============================================
+    function updateTrendUI(trends) {
+        const trendElements = [
+            { id: 'totalTrend', icon: 'totalTrendIcon', value: trends.total },
+            { id: 'acTrend', icon: 'acTrendIcon', value: trends.ac },
+            { id: 'listrikTrend', icon: 'listrikTrendIcon', value: trends.listrik },
+            { id: 'gedungTrend', icon: 'gedungTrendIcon', value: trends.gedung }
+        ];
+
+        trendElements.forEach(({ id, icon, value }) => {
+            const el = document.getElementById(id);
+            const iconEl = document.getElementById(icon);
+            if (!el) return;
+
+            const absValue = Math.abs(value);
+            el.textContent = absValue;
+
+            if (iconEl) {
+                if (value > 0) {
+                    iconEl.className = 'bi bi-arrow-up-short fs-5 text-success';
+                    el.style.color = '#22c55e';
+                } else if (value < 0) {
+                    iconEl.className = 'bi bi-arrow-down-short fs-5 text-danger';
+                    el.style.color = '#ef4444';
+                } else {
+                    iconEl.className = 'bi bi-dash fs-5 text-muted';
+                    el.style.color = '#6b7280';
+                }
+            }
+        });
+    }
+
+    // =============================================
+    // SAVE CURRENT DATA FOR NEXT TREND
+    // =============================================
+    function saveCurrentData(data) {
+        const STORAGE_KEY = 'bcs_dashboard_prev';
+        const saveData = {
+            total: data.total || 0,
+            ac: data.ac || 0,
+            listrik: data.listrik || 0,
+            gedung: data.gedung || 0,
+            timestamp: Date.now()
+        };
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+        } catch (e) {
+            console.warn('Failed to save current data:', e);
+        }
+    }
+
+    // =============================================
     // RENDER CATEGORY CHART (Doughnut)
     // =============================================
     function renderCategoryChart(data) {
         const ctx = document.getElementById('renderCategoryChart');
-        if (!ctx) {
-            console.warn('Category chart canvas not found');
-            return;
-        }
+        if (!ctx) return;
 
         const labels = ['AC', 'LISTRIK', 'KONDISI GEDUNG'];
         const values = [
@@ -184,10 +282,7 @@
     // =============================================
     function renderReportChart(data) {
         const ctx = document.getElementById('reportChart');
-        if (!ctx) {
-            console.warn('Report chart canvas not found');
-            return;
-        }
+        if (!ctx) return;
 
         const labels = ['OPEN', 'PROGRESS', 'DONE'];
         const values = [
@@ -255,10 +350,7 @@
     // =============================================
     function renderMonthlyChart(monthlyData) {
         const ctx = document.getElementById('monthlyChart');
-        if (!ctx) {
-            console.warn('Monthly chart canvas not found');
-            return;
-        }
+        if (!ctx) return;
 
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         const data = monthlyData || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -379,6 +471,64 @@
     }
 
     // =============================================
+    // UPDATE STATUS PERCENTAGES
+    // =============================================
+    function updateStatusPercentages(data) {
+        const open = data.open || 0;
+        const progress = data.progress || 0;
+        const done = data.done || 0;
+        const total = open + progress + done;
+
+        if (total === 0) {
+            const openPercentEl = document.querySelector('.status-card.open .status-percent');
+            const progressPercentEl = document.querySelector('.status-card.progress-card .status-percent');
+            const donePercentEl = document.querySelector('.status-card.done-card .status-percent');
+            
+            if (openPercentEl) openPercentEl.textContent = '0% dari total report';
+            if (progressPercentEl) progressPercentEl.textContent = '0% dari total report';
+            if (donePercentEl) donePercentEl.textContent = '0% dari total report';
+            return;
+        }
+
+        const openPct = Math.round((open / total) * 100);
+        const progressPct = Math.round((progress / total) * 100);
+        const donePct = Math.round((done / total) * 100);
+
+        const openPercentEl = document.querySelector('.status-card.open .status-percent');
+        const progressPercentEl = document.querySelector('.status-card.progress-card .status-percent');
+        const donePercentEl = document.querySelector('.status-card.done-card .status-percent');
+
+        if (openPercentEl) openPercentEl.textContent = openPct + '% dari total report';
+        if (progressPercentEl) progressPercentEl.textContent = progressPct + '% dari total report';
+        if (donePercentEl) donePercentEl.textContent = donePct + '% dari total report';
+    }
+
+    // =============================================
+    // UPDATE SLA PERCENTAGES
+    // =============================================
+    function updateSLAPercentages(data) {
+        const fast = data.fast || 0;
+        const normal = data.normal || 0;
+        const late = data.late || 0;
+        const totalSLA = fast + normal + late;
+
+        if (totalSLA === 0) {
+            if (DOM.fastPercent) DOM.fastPercent.textContent = '0%';
+            if (DOM.normalPercent) DOM.normalPercent.textContent = '0%';
+            if (DOM.latePercent) DOM.latePercent.textContent = '0%';
+            return;
+        }
+
+        const fastPct = Math.round((fast / totalSLA) * 100);
+        const normalPct = Math.round((normal / totalSLA) * 100);
+        const latePct = Math.round((late / totalSLA) * 100);
+
+        if (DOM.fastPercent) DOM.fastPercent.textContent = fastPct + '%';
+        if (DOM.normalPercent) DOM.normalPercent.textContent = normalPct + '%';
+        if (DOM.latePercent) DOM.latePercent.textContent = latePct + '%';
+    }
+
+    // =============================================
     // LOAD DASHBOARD DATA
     // =============================================
     async function loadDashboard() {
@@ -416,11 +566,16 @@
 
             if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
 
-            // Trends (default 0 jika tidak ada)
-            if (DOM.totalTrend) DOM.totalTrend.textContent = data.totalTrend || 0;
-            if (DOM.acTrend) DOM.acTrend.textContent = data.acTrend || 0;
-            if (DOM.listrikTrend) DOM.listrikTrend.textContent = data.listrikTrend || 0;
-            if (DOM.gedungTrend) DOM.gedungTrend.textContent = data.gedungTrend || 0;
+            // =============================================
+            // ✅ CALCULATE & UPDATE TRENDS
+            // =============================================
+            const trends = calculateTrends(data);
+            updateTrendUI(trends);
+            saveCurrentData(data);
+
+            // Update percentages
+            updateStatusPercentages(data);
+            updateSLAPercentages(data);
 
             // Render Charts
             renderCategoryChart(data);
@@ -465,7 +620,7 @@
 
         setInterval(updateDateTime, 1000);
 
-        console.log('✅ Dashboard initialized with all charts');
+        console.log('✅ Dashboard initialized with dynamic trends');
     }
 
     // Ekspos ke global

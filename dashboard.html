@@ -21,7 +21,6 @@
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
     <style>
-        /* Animation for live dot */
         @keyframes pulse-dot {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.3; transform: scale(0.8); }
@@ -40,20 +39,7 @@
 
 <body>
 
-<!-- ======================================================
-     LOADING OVERLAY (Tanpa Teks "Please Wait...")
-======================================================= -->
-<div id="loading" class="loading-overlay" style="display:none;">
-    <div class="text-center">
-        <div class="spinner-border text-light" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
-</div>
-
-<!-- ======================================================
-     APP WRAPPER
-======================================================= -->
+<!-- APP WRAPPER (No loading overlay) -->
 <div class="wrapper">
 
     <aside class="sidebar">
@@ -114,12 +100,10 @@
                         <span class="live-dot"></span>
                     </div>
 
-                    <!-- Dark Mode Toggle -->
                     <button class="btn theme-switcher-btn d-flex align-items-center justify-content-center p-0" id="darkModeToggle" title="Toggle Theme" style="width: 42px; height: 42px; border-radius: 50% !important; background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); transition: var(--transition);">
                         <i class="bi bi-moon-fill" id="darkModeIcon" style="font-size: 1.15rem;"></i>
                     </button>
 
-                    <!-- User Profile -->
                     <div class="user-profile-card p-3 d-flex align-items-center gap-3">
                         <div class="avatar d-flex justify-content-center align-items-center" style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0D47A1, #2563EB); color: #fff;">
                             <i class="bi bi-person-fill" style="font-size: 1.3rem;"></i>
@@ -376,9 +360,6 @@
     </main>
 </div>
 
-<!-- ======================================================
-     JAVASCRIPT
-======================================================= -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -398,9 +379,7 @@
 (function() {
     'use strict';
 
-    // =============================================
     // DARK MODE
-    // =============================================
     function initDarkMode() {
         const toggle = document.getElementById('darkModeToggle');
         const icon = document.getElementById('darkModeIcon');
@@ -437,9 +416,7 @@
         });
     }
 
-    // =============================================
     // LOGOUT
-    // =============================================
     function initLogout() {
         const logoutBtn = document.getElementById('logoutBtn');
         if (!logoutBtn) return;
@@ -458,9 +435,7 @@
         });
     }
 
-    // =============================================
-    // AUTO-REFRESH SETIAP 7 DETIK + TOAST
-    // =============================================
+    // AUTO-REFRESH 7 DETIK + TOAST
     let refreshTimer = 7;
     let refreshInterval = null;
     let timerInterval = null;
@@ -546,9 +521,7 @@
         console.log('⏹ Auto-refresh stopped');
     }
 
-    // =============================================
     // INIT
-    // =============================================
     function init() {
         initDarkMode();
         initLogout();

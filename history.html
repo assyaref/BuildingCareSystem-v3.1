@@ -25,6 +25,58 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
+    <style>
+        .dark-toggle {
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .dark-toggle:hover {
+            background: #f0f2f5;
+            transform: rotate(20deg);
+        }
+        [data-theme="dark"] .dark-toggle {
+            border-color: #3a3a52;
+            color: #ffd700;
+        }
+        [data-theme="dark"] .dark-toggle:hover {
+            background: #2a2a42;
+        }
+        .avatar-sm {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4b7bec;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        .status-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 6px;
+            display: inline-block;
+            letter-spacing: 0.3px;
+        }
+        .status-done { background: #dcfce7; color: #16a34a; }
+        .status-progress { background: #fef3c7; color: #d97706; }
+        .status-open { background: #fee2e2; color: #dc2626; }
+        [data-theme="dark"] .status-open { background: #3d2e00; color: #ffd700; }
+        [data-theme="dark"] .status-progress { background: #00264d; color: #66b0ff; }
+        [data-theme="dark"] .status-done { background: #003d1a; color: #00e676; }
+    </style>
+
 </head>
 
 <body>
@@ -48,7 +100,7 @@
 
 <div class="wrapper">
 
-    <!-- SIDEBAR (SAMA PERSIS DENGAN DASHBOARD) -->
+    <!-- SIDEBAR -->
     <aside class="sidebar">
 
         <div class="logo-area">
@@ -90,7 +142,7 @@
     <main class="content">
         <div class="container-fluid">
 
-            <!-- TOPBAR – BADGE USER MINIMALIS -->
+            <!-- TOPBAR -->
             <header class="topbar">
                 <div>
                     <h3>Riwayat Laporan</h3>
@@ -101,11 +153,15 @@
                     </small>
                 </div>
 
-                <!-- MINIMALIS BADGE: HANYA AVATAR, NAMA, ROLE -->
                 <div class="d-flex align-items-center gap-3">
-                    <div class="avatar-sm" id="userAvatar" style="width:40px;height:40px;border-radius:50%;background:#4b7bec;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;">U</div>
+                    <!-- Dark Mode Toggle -->
+                    <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
+                        <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+                    </button>
+
+                    <div class="avatar-sm" id="userAvatar">U</div>
                     <div>
-                        <div class="fw-bold" id="userName" style="font-size:14px;color:#1a1a2e;">Loading...</div>
+                        <div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary);">Loading...</div>
                         <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
                     </div>
                 </div>
@@ -345,37 +401,66 @@
 </div>
 
 <!-- ======================================================
-     JAVASCRIPT — urutan penting: config → core → modules
+     JAVASCRIPT
 ======================================================= -->
 
-<!-- Library -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Config -->
 <script src="config/config.js"></script>
-
-<!-- Core -->
 <script src="assets/js/core/app.js"></script>
 <script src="assets/js/core/api.js"></script>
 <script src="assets/js/core/storage.js"></script>
 <script src="assets/js/core/session.js"></script>
 <script src="assets/js/core/ui.js"></script>
 <script src="assets/js/core/utils.js"></script>
-
-<!-- Modules -->
 <script src="assets/js/modules/auth.js"></script>
 
-<!-- ======================================================
-     MAIN LOGIC
-======================================================= -->
 <script>
 (function() {
     'use strict';
 
     // =============================================
-    // LOAD USER INFO (BADGE MINIMALIS)
+    // DARK MODE
+    // =============================================
+    function initDarkMode() {
+        const toggle = document.getElementById('darkModeToggle');
+        const icon = document.getElementById('darkModeIcon');
+        if (!toggle) return;
+
+        const savedTheme = localStorage.getItem('bcs_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        if (icon) {
+            if (savedTheme === 'dark') {
+                icon.className = 'bi bi-sun-fill';
+                icon.style.color = '#ffd700';
+            } else {
+                icon.className = 'bi bi-moon-fill';
+                icon.style.color = '';
+            }
+        }
+
+        toggle.addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('bcs_theme', newTheme);
+            if (icon) {
+                if (newTheme === 'dark') {
+                    icon.className = 'bi bi-sun-fill';
+                    icon.style.color = '#ffd700';
+                } else {
+                    icon.className = 'bi bi-moon-fill';
+                    icon.style.color = '';
+                }
+            }
+        });
+    }
+
+    // =============================================
+    // LOAD USER INFO
     // =============================================
     function loadUserInfo() {
         try {
@@ -387,8 +472,6 @@
 
                 document.getElementById('userName').textContent = nama;
                 document.getElementById('userRole').textContent = role;
-
-                // Avatar inisial
                 const avatar = document.getElementById('userAvatar');
                 avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
             }
@@ -730,7 +813,7 @@
     });
 
     // =============================================
-    // LOGOUT HANDLER
+    // LOGOUT
     // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
         e.preventDefault();
@@ -749,10 +832,11 @@
     // INIT
     // =============================================
     async function init() {
+        initDarkMode();
         loadUserInfo();
         loadUser();
         await fetchReports();
-        console.log('✅ History page initialized');
+        console.log('✅ History page initialized with Dark Mode');
     }
 
     if (document.readyState === 'loading') {

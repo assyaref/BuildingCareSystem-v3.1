@@ -843,8 +843,8 @@
         }
     }
 
-    // =============================================
-// RENDER ONLINE USERS (REAL - TANPA DUMMY)
+  // =============================================
+// RENDER ONLINE USERS (DARI activeUsers)
 // =============================================
 function renderOnlineUsers(data) {
     if (!DOM.onlineUserList) return;
@@ -872,43 +872,17 @@ function renderOnlineUsers(data) {
         console.warn('Gagal ambil session user:', e);
     }
 
-    // 2. Ambil pelapor unik dari data.reports (jika ada)
-    if (data && data.reports && data.reports.length > 0) {
-        const uniqueReporters = {};
-        // Ambil semua laporan, filter unik berdasarkan nama (case-insensitive)
-        data.reports.forEach(r => {
-            const nama = r.nama || r.pelapor || '';
-            if (!nama || nama === 'User' || nama === '') return;
-            const key = nama.toLowerCase().trim();
-            if (!uniqueReporters[key]) {
-                uniqueReporters[key] = {
-                    nama: nama,
-                    role: r.role || 'User',
-                    nik: r.nik || '',
-                    lastActive: r.tanggal || r.createdAt || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-                    isCurrent: false
-                };
-            }
-        });
-        // Tambahkan ke onlineUsers (max 5)
-        const reporterList = Object.values(uniqueReporters).slice(0, 5);
-        reporterList.forEach(u => {
-            if (!onlineUsers.some(x => x.nama.toLowerCase() === u.nama.toLowerCase())) {
-                onlineUsers.push(u);
-            }
-        });
-    }
-
-    // 3. Ambil dari data.activity jika ada field nama/pelapor
-    if (data && data.activity && data.activity.length > 0) {
-        data.activity.forEach(item => {
-            const nama = item.nama || item.pelapor || '';
-            if (!nama || nama === 'User' || nama === '') return;
-            if (!onlineUsers.some(x => x.nama.toLowerCase() === nama.toLowerCase())) {
+    // 2. Ambil dari data.activeUsers (dari server)
+    if (data && data.activeUsers && data.activeUsers.length > 0) {
+        const activeUsers = data.activeUsers;
+        activeUsers.forEach(user => {
+            // Hindari duplikat dengan current user (cocokkan nama)
+            if (!onlineUsers.some(x => x.nama.toLowerCase() === user.nama.toLowerCase())) {
                 onlineUsers.push({
-                    nama: nama,
-                    role: 'User',
-                    lastActive: item.waktu || item.tanggal || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                    nama: user.nama || 'User',
+                    role: user.role || 'User',
+                    nik: user.nik || '',
+                    lastActive: user.lastActive || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
                     isCurrent: false
                 });
             }

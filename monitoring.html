@@ -1,183 +1,701 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Building Care System Enterprise - Radiant Group Duri">
+    <meta name="author" content="Radiant Group Duri">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Monitoring Center — Building Care System Enterprise</title>
 
-<title>Monitoring Center</title>
+    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
-<!-- Bootstrap -->
-<link
-href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-rel="stylesheet">
-<link rel="icon" href="assets/icons/favicon.ico">
-<!-- Bootstrap Icons -->
-<link
-rel="stylesheet"
-href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- Monitoring CSS -->
-<link rel="stylesheet" href="./assets/css/monitoring.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+
+    <style>
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            border: 1px solid #f0f2f5;
+            transition: all 0.3s;
+            height: 100%;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+        }
+        .stat-card .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+        .stat-card .stat-icon.blue { background: #e6f0ff; color: #4b7bec; }
+        .stat-card .stat-icon.red { background: #ffe6e6; color: #e74c3c; }
+        .stat-card .stat-icon.orange { background: #fff3e6; color: #f39c12; }
+        .stat-card .stat-icon.green { background: #e6f7ed; color: #27ae60; }
+        .stat-card .stat-icon.purple { background: #f0e6ff; color: #8e44ad; }
+        .stat-card .stat-number { font-size: 32px; font-weight: 700; margin: 4px 0; }
+        .stat-card .stat-label { font-size: 13px; color: #718096; font-weight: 500; }
+        .stat-card .stat-trend { font-size: 12px; font-weight: 600; margin-top: 8px; }
+        .stat-card .stat-trend.up { color: #27ae60; }
+        .stat-card .stat-trend.down { color: #e74c3c; }
+
+        .sla-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            border: 1px solid #f0f2f5;
+            text-align: center;
+            height: 100%;
+            transition: all 0.3s;
+        }
+        .sla-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+        }
+        .sla-card .sla-value { font-size: 36px; font-weight: 700; }
+        .sla-card .sla-label { font-size: 13px; color: #718096; font-weight: 500; margin-top: 4px; }
+        .sla-card .sla-bar {
+            height: 6px;
+            border-radius: 4px;
+            margin-top: 12px;
+            background: #eef2f8;
+            overflow: hidden;
+        }
+        .sla-card .sla-bar .sla-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+        .sla-card .sla-bar .sla-fill.green { background: #27ae60; }
+        .sla-card .sla-bar .sla-fill.orange { background: #f39c12; }
+        .sla-card .sla-bar .sla-fill.red { background: #e74c3c; }
+        .sla-card .sla-bar .sla-fill.blue { background: #4b7bec; }
+
+        .activity-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f2f5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-item .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .activity-item .activity-icon.blue { background: #e6f0ff; color: #4b7bec; }
+        .activity-item .activity-icon.green { background: #e6f7ed; color: #27ae60; }
+        .activity-item .activity-icon.orange { background: #fff3e6; color: #f39c12; }
+        .activity-item .activity-icon.red { background: #ffe6e6; color: #e74c3c; }
+
+        .avatar-sm {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4b7bec;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        .health-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .health-badge.online { background: #e6f7ed; color: #27ae60; }
+        .health-badge.offline { background: #ffe6e6; color: #e74c3c; }
+        .health-badge .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .health-badge.online .dot { background: #27ae60; }
+        .health-badge.offline .dot { background: #e74c3c; }
+    </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-<div class="container-fluid py-4">
+<!-- ======================================================
+     LOADING OVERLAY
+======================================================= -->
 
-    <!-- HEADER -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-
-            <h3 class="fw-bold">
-                <i class="bi bi-display"></i>
-                Monitoring Center
-            </h3>
-
-            <p class="text-muted mb-0">
-                Real Time Enterprise Monitoring Dashboard
-            </p>
-
+<div id="loading" class="loading-overlay" style="display:none;">
+    <div class="text-center">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
+        <div class="text-white mt-3">Please Wait...</div>
     </div>
-
-    <!-- REPORT KPI -->
-    <div class="row g-4">
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-
-                    <small class="text-muted">
-                        Total Report
-                    </small>
-
-                    <h2 class="fw-bold mt-2 text-primary"
-                        id="monitorTotal">
-                        0
-                    </h2>
-
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-
-                    <small class="text-muted">
-                        Open
-                    </small>
-
-                    <h2 class="fw-bold mt-2 text-danger"
-                        id="monitorOpen">
-                        0
-                    </h2>
-
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-
-                    <small class="text-muted">
-                        Progress
-                    </small>
-
-                    <h2 class="fw-bold mt-2 text-warning"
-                        id="monitorProgress">
-                        0
-                    </h2>
-
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-
-                    <small class="text-muted">
-                        Completed
-                    </small>
-
-                    <h2 class="fw-bold mt-2 text-success"
-                        id="monitorDone">
-                        0
-                    </h2>
-
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- SLA -->
-    <div class="row mt-4">
-
-        <div class="col-md-12">
-
-            <div class="card shadow-sm border-0">
-
-                <div class="card-header">
-                    <i class="bi bi-speedometer2"></i>
-                    SLA Analytics
-                </div>
-
-                <div class="card-body">
-
-                    <div class="row text-center">
-
-                        <div class="col-md-4">
-                            <h2 class="text-success fw-bold">
-                                <span id="fastPercent">0</span>%
-                            </h2>
-                            FAST
-                        </div>
-
-                        <div class="col-md-4">
-                            <h2 class="text-warning fw-bold">
-                                <span id="normalPercent">0</span>%
-                            </h2>
-                            NORMAL
-                        </div>
-
-                        <div class="col-md-4">
-                            <h2 class="text-danger fw-bold">
-                                <span id="latePercent">0</span>%
-                            </h2>
-                            LATE
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- sisanya sama -->
 </div>
 
-<!-- CONFIG -->
-<script src="./config/config.js"></script>
+<!-- ======================================================
+     APP WRAPPER
+======================================================= -->
 
-<!-- CORE -->
-<script src="./assets/js/core/app.js"></script>
-<script src="./assets/js/core/api.js"></script>
+<div class="wrapper">
 
-<!-- MODULE -->
-<script src="./assets/js/modules/monitoring.js"></script>
-<!-- Bootstrap -->
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="logo-area">
+            <img src="assets/img/logo.png" class="logo" alt="Logo">
+            <h5>Building Care</h5>
+            <small>Enterprise v3.2</small>
+        </div>
+
+        <nav>
+            <a href="dashboard.html" class="menu">
+                <i class="bi bi-grid-fill"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="report.html" class="menu">
+                <i class="bi bi-file-earmark-plus"></i>
+                <span>Report</span>
+            </a>
+            <a href="monitoring.html" class="menu active">
+                <i class="bi bi-display"></i>
+                <span>Monitoring</span>
+            </a>
+            <a href="history.html" class="menu">
+                <i class="bi bi-clock-history"></i>
+                <span>History</span>
+            </a>
+            <a href="approval.html" class="menu">
+                <i class="bi bi-check-circle"></i>
+                <span>Approval</span>
+            </a>
+            <a href="#" id="logoutBtn" class="menu text-danger">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+        <div class="container-fluid">
+
+            <!-- TOPBAR -->
+            <header class="topbar">
+                <div>
+                    <h3>Monitoring Center</h3>
+                    <small>
+                        Building Care System Enterprise
+                        <br>
+                        <span class="brand-location">Radiant Group Duri</span>
+                    </small>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="avatar-sm" id="userAvatar">U</div>
+                    <div>
+                        <div class="fw-bold" id="userName" style="font-size:14px;color:#1a1a2e;">Loading...</div>
+                        <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
+                    </div>
+                </div>
+
+            </header>
+
+            <!-- ======================================================
+                 SUMMARY CARDS
+            ======================================================= -->
+            <section class="row g-4 mt-2">
+
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card total-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-primary">
+                                <i class="bi bi-file-earmark-text-fill"></i>
+                            </div>
+                            <div>
+                                <h6>Total Report</h6>
+                                <h2 id="monitorTotal">0</h2>
+                            </div>
+                        </div>
+                        <div class="summary-trend success">
+                            <i class="bi bi-arrow-up"></i>
+                            <span id="totalTrend">0</span>
+                            <small>dari minggu lalu</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card ac-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-danger-soft">
+                                <i class="bi bi-folder2-open"></i>
+                            </div>
+                            <div>
+                                <h6>Open</h6>
+                                <h2 id="monitorOpen">0</h2>
+                            </div>
+                        </div>
+                        <div class="summary-trend danger">
+                            <i class="bi bi-arrow-down"></i>
+                            <span id="openTrend">0</span>
+                            <small>dari minggu lalu</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card listrik-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-warning-soft">
+                                <i class="bi bi-hourglass-split"></i>
+                            </div>
+                            <div>
+                                <h6>Progress</h6>
+                                <h2 id="monitorProgress">0</h2>
+                            </div>
+                        </div>
+                        <div class="summary-trend success">
+                            <i class="bi bi-arrow-up"></i>
+                            <span id="progressTrend">0</span>
+                            <small>dari minggu lalu</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card gedung-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-success-soft">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                            <div>
+                                <h6>Completed</h6>
+                                <h2 id="monitorDone">0</h2>
+                            </div>
+                        </div>
+                        <div class="summary-trend success">
+                            <i class="bi bi-arrow-up"></i>
+                            <span id="doneTrend">0</span>
+                            <small>dari minggu lalu</small>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ======================================================
+                 SLA ANALYTICS
+            ======================================================= -->
+            <section class="row g-4 mt-3">
+                <div class="col-12">
+                    <div class="card enterprise-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>SLA Analytics</h5>
+                                <small class="text-muted">Service Level Agreement Performance</small>
+                            </div>
+                            <span class="health-badge online" id="systemHealth">
+                                <span class="dot"></span> System Online
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="sla-card">
+                                        <div class="sla-value text-success" id="fastPercent">0%</div>
+                                        <div class="sla-label">FAST (≤ 4 jam)</div>
+                                        <div class="sla-bar">
+                                            <div class="sla-fill green" id="fastBar" style="width:0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="sla-card">
+                                        <div class="sla-value text-warning" id="normalPercent">0%</div>
+                                        <div class="sla-label">NORMAL (≤ 24 jam)</div>
+                                        <div class="sla-bar">
+                                            <div class="sla-fill orange" id="normalBar" style="width:0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="sla-card">
+                                        <div class="sla-value text-danger" id="latePercent">0%</div>
+                                        <div class="sla-label">LATE (> 24 jam)</div>
+                                        <div class="sla-bar">
+                                            <div class="sla-fill red" id="lateBar" style="width:0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================================
+                 RECENT ACTIVITY
+            ======================================================= -->
+            <section class="row g-4 mt-3">
+                <div class="col-12">
+                    <div class="card enterprise-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Aktivitas Terbaru</h5>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary" id="refreshBtn">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="recentActivity">
+                                <div class="text-center text-muted py-4">
+                                    <div class="spinner-border spinner-border-sm mb-2"></div><br>
+                                    Memuat data...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================================
+                 SYSTEM HEALTH
+            ======================================================= -->
+            <section class="row g-4 mt-3">
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="stat-icon blue mx-auto">
+                            <i class="bi bi-server"></i>
+                        </div>
+                        <div class="stat-number" id="apiStatus">●</div>
+                        <div class="stat-label">API Server</div>
+                        <div class="stat-trend up" id="apiStatusText">Online</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="stat-icon green mx-auto">
+                            <i class="bi bi-database"></i>
+                        </div>
+                        <div class="stat-number" id="dbStatus">●</div>
+                        <div class="stat-label">Database</div>
+                        <div class="stat-trend up" id="dbStatusText">Online</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="stat-icon orange mx-auto">
+                            <i class="bi bi-drive"></i>
+                        </div>
+                        <div class="stat-number" id="driveStatus">●</div>
+                        <div class="stat-label">Google Drive</div>
+                        <div class="stat-trend up" id="driveStatusText">Online</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="stat-icon purple mx-auto">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div class="stat-number" id="serverTime">--:--</div>
+                        <div class="stat-label">Server Time</div>
+                        <div class="stat-trend up" id="timezoneLabel">WIB</div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<!-- ======================================================
+     JAVASCRIPT
+======================================================= -->
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- JQuery -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="config/config.js"></script>
+<script src="assets/js/core/app.js"></script>
+<script src="assets/js/core/api.js"></script>
+<script src="assets/js/core/storage.js"></script>
+<script src="assets/js/core/session.js"></script>
+<script src="assets/js/core/ui.js"></script>
+<script src="assets/js/core/utils.js"></script>
+<script src="assets/js/modules/auth.js"></script>
+
+<script>
+(function() {
+    'use strict';
+
+    // =============================================
+    // DOM REFS
+    // =============================================
+    const DOM = {
+        monitorTotal: document.getElementById('monitorTotal'),
+        monitorOpen: document.getElementById('monitorOpen'),
+        monitorProgress: document.getElementById('monitorProgress'),
+        monitorDone: document.getElementById('monitorDone'),
+        fastPercent: document.getElementById('fastPercent'),
+        normalPercent: document.getElementById('normalPercent'),
+        latePercent: document.getElementById('latePercent'),
+        fastBar: document.getElementById('fastBar'),
+        normalBar: document.getElementById('normalBar'),
+        lateBar: document.getElementById('lateBar'),
+        recentActivity: document.getElementById('recentActivity'),
+        userName: document.getElementById('userName'),
+        userRole: document.getElementById('userRole'),
+        userAvatar: document.getElementById('userAvatar'),
+        systemHealth: document.getElementById('systemHealth'),
+        apiStatus: document.getElementById('apiStatus'),
+        dbStatus: document.getElementById('dbStatus'),
+        driveStatus: document.getElementById('driveStatus'),
+        apiStatusText: document.getElementById('apiStatusText'),
+        dbStatusText: document.getElementById('dbStatusText'),
+        driveStatusText: document.getElementById('driveStatusText'),
+        serverTime: document.getElementById('serverTime'),
+        timezoneLabel: document.getElementById('timezoneLabel'),
+        refreshBtn: document.getElementById('refreshBtn')
+    };
+
+    // =============================================
+    // LOAD USER INFO
+    // =============================================
+    function loadUserInfo() {
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const user = session.user;
+                const nama = user.nama || user.name || 'User';
+                const role = user.role || 'User';
+
+                DOM.userName.textContent = nama;
+                DOM.userRole.textContent = role;
+                DOM.userAvatar.textContent = nama.charAt(0).toUpperCase();
+            }
+        } catch (e) {
+            console.warn('Load user info error:', e);
+        }
+    }
+
+    // =============================================
+    // LOAD MONITORING DATA
+    // =============================================
+    async function loadMonitoring() {
+        try {
+            DOM.recentActivity.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <div class="spinner-border spinner-border-sm mb-2"></div><br>
+                    Memuat data...
+                </div>
+            `;
+
+            // Try getMonitoringOverview first, fallback to getSummary
+            let response;
+            try {
+                response = await BCS.Api.post('getMonitoringOverview', {});
+            } catch (e) {
+                // Fallback to getSummary
+                response = await BCS.Api.post('getSummary', {});
+            }
+
+            console.log('📊 Monitoring response:', response);
+
+            if (!response || !response.success) {
+                throw new Error(response?.message || 'Failed to load data');
+            }
+
+            const data = response.data || {};
+
+            // Summary cards
+            const report = data.report || data;
+            DOM.monitorTotal.textContent = report.total || 0;
+            DOM.monitorOpen.textContent = report.open || 0;
+            DOM.monitorProgress.textContent = report.progress || 0;
+            DOM.monitorDone.textContent = report.done || 0;
+
+            // SLA
+            const fast = report.fast || 0;
+            const normal = report.normal || 0;
+            const late = report.late || 0;
+            const totalSLA = fast + normal + late || 1;
+
+            const fastPct = Math.round((fast / totalSLA) * 100);
+            const normalPct = Math.round((normal / totalSLA) * 100);
+            const latePct = Math.round((late / totalSLA) * 100);
+
+            DOM.fastPercent.textContent = fastPct + '%';
+            DOM.normalPercent.textContent = normalPct + '%';
+            DOM.latePercent.textContent = latePct + '%';
+            DOM.fastBar.style.width = fastPct + '%';
+            DOM.normalBar.style.width = normalPct + '%';
+            DOM.lateBar.style.width = latePct + '%';
+
+            // Activity
+            const activity = report.activity || data.activity || [];
+            if (activity.length > 0) {
+                let html = '';
+                activity.forEach(item => {
+                    const iconColor = item.status === 'DONE' ? 'green' :
+                                      item.status === 'PROGRESS' ? 'orange' : 'blue';
+                    const icon = item.status === 'DONE' ? 'bi-check-circle' :
+                                 item.status === 'PROGRESS' ? 'bi-arrow-repeat' : 'bi-folder2-open';
+                    html += `
+                        <div class="activity-item">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="activity-icon ${iconColor}">
+                                    <i class="bi ${icon}"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold" style="font-size:14px;">${item.kategori || 'Report'}</div>
+                                    <div class="text-muted" style="font-size:12px;">${item.lokasi || ''}</div>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="status-badge ${item.status === 'DONE' ? 'status-done' : item.status === 'PROGRESS' ? 'status-progress' : 'status-open'}">
+                                    ${item.status || 'OPEN'}
+                                </span>
+                                <div class="text-muted" style="font-size:11px;">${item.waktu || ''}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                DOM.recentActivity.innerHTML = html;
+            } else {
+                DOM.recentActivity.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                        Belum ada aktivitas
+                    </div>
+                `;
+            }
+
+            // Server time
+            const serverTime = data.serverTime || response.serverTime || new Date().toISOString();
+            const time = new Date(serverTime);
+            DOM.serverTime.textContent = time.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            DOM.timezoneLabel.textContent = 'WIB';
+
+            // System health
+            const health = data.health || {};
+            const apiOnline = health.api !== 'OFFLINE';
+            const dbOnline = health.database !== 'OFFLINE';
+            const driveOnline = health.drive !== 'OFFLINE';
+
+            DOM.apiStatus.textContent = apiOnline ? '●' : '○';
+            DOM.apiStatus.style.color = apiOnline ? '#27ae60' : '#e74c3c';
+            DOM.apiStatusText.textContent = apiOnline ? 'Online' : 'Offline';
+            DOM.apiStatusText.className = 'stat-trend ' + (apiOnline ? 'up' : 'down');
+
+            DOM.dbStatus.textContent = dbOnline ? '●' : '○';
+            DOM.dbStatus.style.color = dbOnline ? '#27ae60' : '#e74c3c';
+            DOM.dbStatusText.textContent = dbOnline ? 'Online' : 'Offline';
+            DOM.dbStatusText.className = 'stat-trend ' + (dbOnline ? 'up' : 'down');
+
+            DOM.driveStatus.textContent = driveOnline ? '●' : '○';
+            DOM.driveStatus.style.color = driveOnline ? '#27ae60' : '#e74c3c';
+            DOM.driveStatusText.textContent = driveOnline ? 'Online' : 'Offline';
+            DOM.driveStatusText.className = 'stat-trend ' + (driveOnline ? 'up' : 'down');
+
+            // System health badge
+            const allOnline = apiOnline && dbOnline && driveOnline;
+            DOM.systemHealth.className = 'health-badge ' + (allOnline ? 'online' : 'offline');
+            DOM.systemHealth.innerHTML = `
+                <span class="dot"></span> System ${allOnline ? 'Online' : 'Degraded'}
+            `;
+
+        } catch (err) {
+            console.error('Load monitoring error:', err);
+            DOM.recentActivity.innerHTML = `
+                <div class="text-center text-danger py-4">
+                    <i class="bi bi-exclamation-circle fs-2 d-block mb-2"></i>
+                    Gagal memuat data: ${err.message}
+                </div>
+            `;
+        }
+    }
+
+    // =============================================
+    // LOGOUT
+    // =============================================
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (window.auth && typeof window.auth.logout === 'function') {
+            window.auth.logout();
+        } else {
+            if (confirm('Apakah Anda yakin ingin keluar?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+    });
+
+    // =============================================
+    // REFRESH
+    // =============================================
+    DOM.refreshBtn.addEventListener('click', function() {
+        loadMonitoring();
+    });
+
+    // Auto refresh every 60 seconds
+    setInterval(loadMonitoring, 60000);
+
+    // =============================================
+    // INIT
+    // =============================================
+    async function init() {
+        loadUserInfo();
+        await loadMonitoring();
+        console.log('✅ Monitoring page initialized');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();
+</script>
+
 </body>
 </html>

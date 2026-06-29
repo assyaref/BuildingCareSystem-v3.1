@@ -12,16 +12,12 @@
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
     <style>
@@ -121,17 +117,6 @@
             font-weight: 700;
             font-size: 18px;
         }
-        .status-badge {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 12px;
-            border-radius: 20px;
-            background: #e2e8f0;
-            color: #4a5568;
-        }
-        .status-open { background: #fff3cd; color: #856404; }
-        .status-progress { background: #cce5ff; color: #004085; }
-        .status-done { background: #d4edda; color: #155724; }
         .dark-toggle {
             background: transparent;
             border: 1px solid #e2e8f0;
@@ -156,7 +141,6 @@
             background: #2a2a42;
         }
 
-        /* History table styling */
         .history-table td, .history-table th {
             vertical-align: middle;
         }
@@ -176,28 +160,20 @@
 
 <body>
 
-<!-- ======================================================
-     LOADING OVERLAY
-======================================================= -->
-
+<!-- LOADING OVERLAY (Tanpa Teks) -->
 <div id="loading" class="loading-overlay" style="display:none;">
     <div class="text-center">
         <div class="spinner-border text-light" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
-        <div class="text-white mt-3">Please Wait...</div>
     </div>
 </div>
 
-<!-- ======================================================
-     APP WRAPPER
-======================================================= -->
-
+<!-- APP WRAPPER -->
 <div class="wrapper">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-
         <div class="logo-area">
             <img src="assets/img/logo.png" class="logo" alt="Logo">
             <h5>Building Care</h5>
@@ -230,7 +206,6 @@
                 <span>Logout</span>
             </a>
         </nav>
-
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -260,12 +235,9 @@
                         <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
                     </div>
                 </div>
-
             </header>
 
-            <!-- ======================================================
-                 FORM REPORT
-            ======================================================= -->
+            <!-- FORM REPORT -->
             <section class="row g-4 mt-3">
                 <div class="col-12">
                     <div class="card enterprise-card">
@@ -280,7 +252,6 @@
                         <div class="card-body">
                             <form id="reportForm">
                                 <div class="row g-4">
-
                                     <div class="col-lg-6">
                                         <label class="form-label">Nama Pelapor</label>
                                         <input id="nama" type="text" class="form-control" placeholder="Masukkan nama pelapor">
@@ -377,9 +348,7 @@
                 </div>
             </section>
 
-            <!-- ======================================================
-                 HISTORY SECTION (Baru)
-            ======================================================= -->
+            <!-- HISTORY SECTION -->
             <section class="row g-4 mt-4">
                 <div class="col-12">
                     <div class="card enterprise-card" id="historyContainer">
@@ -418,9 +387,7 @@
                 </div>
             </section>
 
-            <!-- ======================================================
-                 INFO BOXES
-            ======================================================= -->
+            <!-- INFO BOXES -->
             <section class="row g-4 mt-3">
                 <div class="col-lg-4">
                     <div class="card enterprise-card h-100">
@@ -490,7 +457,7 @@
     </div>
 </div>
 
-<!-- Detail Modal untuk History -->
+<!-- Detail Modal -->
 <div class="modal fade" id="detailModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content border-0 shadow">
@@ -535,9 +502,7 @@
 (function() {
     'use strict';
 
-    // =============================================
     // DOM REFS
-    // =============================================
     const DOM = {
         userName: document.getElementById('userName'),
         userRole: document.getElementById('userRole'),
@@ -565,15 +530,10 @@
         historyTableBody: document.getElementById('historyTableBody')
     };
 
-    // =============================================
-    // STATE
-    // =============================================
     let currentFile = null;
     let userInfo = { nama: '', nik: '' };
 
-    // =============================================
     // DARK MODE
-    // =============================================
     function initDarkMode() {
         const toggle = document.getElementById('darkModeToggle');
         const icon = document.getElementById('darkModeIcon');
@@ -609,9 +569,7 @@
         });
     }
 
-    // =============================================
     // LOAD USER INFO
-    // =============================================
     function loadUserInfo() {
         try {
             const session = BCS.Storage.getSession();
@@ -627,7 +585,6 @@
                 if (DOM.nama) DOM.nama.value = nama;
                 if (DOM.departemen) DOM.departemen.value = user.departemen || user.department || '';
 
-                // Simpan untuk filter history
                 userInfo.nama = nama;
                 userInfo.nik = session.nik || user.nik || '';
             }
@@ -636,9 +593,7 @@
         }
     }
 
-    // =============================================
     // LOAD USER HISTORY
-    // =============================================
     async function loadUserHistory() {
         try {
             DOM.historyTableBody.innerHTML = `
@@ -659,7 +614,6 @@
             }
 
             const allReports = response.data?.reports || [];
-            // Filter berdasarkan NIK atau nama
             const userNik = userInfo.nik.trim();
             const userNama = userInfo.nama.toLowerCase().trim();
 
@@ -671,7 +625,6 @@
                 return false;
             });
 
-            // Urutkan terbaru dan ambil 5 terakhir
             myReports.sort((a, b) => {
                 const dateA = new Date(a.tanggal || a.createdAt || 0);
                 const dateB = new Date(b.tanggal || b.createdAt || 0);
@@ -715,7 +668,6 @@
             });
             DOM.historyTableBody.innerHTML = html;
 
-            // Attach event untuk tombol detail
             document.querySelectorAll('.view-detail').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const id = this.dataset.id;
@@ -732,9 +684,7 @@
         }
     }
 
-    // =============================================
     // OPEN DETAIL MODAL
-    // =============================================
     function openDetail(report) {
         let html = `
             <table class="table table-sm table-striped">
@@ -757,9 +707,7 @@
         modal.show();
     }
 
-    // =============================================
     // PHOTO HANDLING
-    // =============================================
     function showPreview(file) {
         if (!file) return;
         const reader = new FileReader();
@@ -783,13 +731,10 @@
         currentFile = null;
     }
 
-    // =============================================
     // SUBMIT REPORT
-    // =============================================
     async function submitReport(e) {
         e.preventDefault();
 
-        // Validasi
         const nama = DOM.nama.value.trim();
         const departemen = DOM.departemen.value.trim();
         const lokasi = DOM.lokasi.value.trim();
@@ -804,7 +749,6 @@
         if (!prioritas) { alert('Pilih prioritas'); DOM.prioritas.focus(); return; }
         if (!deskripsi || deskripsi.length < 5) { alert('Deskripsi minimal 5 karakter'); DOM.deskripsi.focus(); return; }
 
-        // Konversi foto ke base64
         let photoBase64 = '';
         let filename = '';
         if (currentFile) {
@@ -823,7 +767,6 @@
             }
         }
 
-        // Ambil session untuk NIK
         const session = BCS.Storage.getSession();
         const nik = session?.nik || session?.user?.nik || '';
 
@@ -841,7 +784,6 @@
 
         console.log('📤 Payload:', payload);
 
-        // Tampilkan loading
         DOM.loadingModal.show();
 
         try {
@@ -853,7 +795,6 @@
             if (response && response.success) {
                 DOM.successModal.show();
                 resetForm();
-                // Refresh history setelah submit sukses
                 await loadUserHistory();
             } else {
                 alert('❌ Gagal mengirim report: ' + (response?.message || 'Unknown error'));
@@ -865,21 +806,17 @@
         }
     }
 
-    // =============================================
     // RESET FORM
-    // =============================================
     function resetForm() {
         DOM.lokasi.value = '';
         DOM.kategori.value = '';
         DOM.prioritas.value = '';
         DOM.deskripsi.value = '';
         clearPreview();
-        loadUserInfo(); // reset nama & departemen dari session
+        loadUserInfo();
     }
 
-    // =============================================
     // LOGOUT
-    // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
         e.preventDefault();
         if (window.auth && typeof window.auth.logout === 'function') {
@@ -893,9 +830,7 @@
         }
     });
 
-    // =============================================
     // EVENT BINDING
-    // =============================================
     DOM.takePhotoBtn.addEventListener('click', function() {
         DOM.photo.setAttribute('capture', 'environment');
         DOM.photo.click();
@@ -924,9 +859,7 @@
     DOM.resetBtn.addEventListener('click', resetForm);
     DOM.form.addEventListener('submit', submitReport);
 
-    // =============================================
     // INIT
-    // =============================================
     async function init() {
         initDarkMode();
         loadUserInfo();

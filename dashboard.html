@@ -419,22 +419,74 @@
         });
     }
 
-    // LOGOUT
+    // =============================================
+    // LOGOUT - FIXED: Gunakan SweetAlert2 & window.auth
+    // =============================================
     function initLogout() {
         const logoutBtn = document.getElementById('logoutBtn');
         if (!logoutBtn) return;
 
         logoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            if (window.auth && typeof window.auth.logout === 'function') {
-                window.auth.logout();
-            } else {
-                if (confirm('Apakah Anda yakin ingin keluar dari Enterprise System?')) {
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.href = 'login.html';
+
+            // Tunggu auth tersedia (maksimal 3 detik)
+            let attempts = 0;
+            const maxAttempts = 30;
+
+            function tryLogout() {
+                if (window.auth && typeof window.auth.logout === 'function') {
+                    // ✅ auth tersedia
+                    Swal.fire({
+                        title: 'Konfirmasi Logout',
+                        text: 'Apakah Anda yakin ingin keluar dari sistem?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Ya, Logout!',
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true,
+                        customClass: {
+                            popup: 'rounded-4',
+                            confirmButton: 'btn btn-danger px-4 py-2 fw-bold',
+                            cancelButton: 'btn btn-secondary px-4 py-2 fw-bold'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.auth.logout();
+                        }
+                    });
+                } else {
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        setTimeout(tryLogout, 100);
+                    } else {
+                        // Fallback manual jika auth.js tidak tersedia
+                        console.warn('⚠️ auth.js tidak tersedia, menggunakan fallback manual');
+                        Swal.fire({
+                            title: 'Konfirmasi Logout',
+                            text: 'Apakah Anda yakin ingin keluar?',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Ya, Logout!',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                localStorage.clear();
+                                sessionStorage.clear();
+                                if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
+                                    BCS.Storage.removeSession();
+                                }
+                                window.location.href = 'login.html';
+                            }
+                        });
+                    }
                 }
             }
+
+            tryLogout();
         });
     }
 

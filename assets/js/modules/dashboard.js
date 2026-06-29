@@ -1,6 +1,6 @@
 // ======================================================
 // Building Care System Enterprise v7.1
-// dashboard.js - Dashboard Controller (Fix Data & Chart)
+// dashboard.js - Full Dynamic Dashboard with Charts
 // Radiant Group Duri
 // ======================================================
 
@@ -36,11 +36,17 @@
         userName: document.getElementById('userName'),
         userNik: document.getElementById('userNik'),
         userRole: document.getElementById('userRole'),
-        lastLogin: document.getElementById('lastLogin')
+        lastLogin: document.getElementById('lastLogin'),
+        // Trend elements
+        totalTrend: document.getElementById('totalTrend'),
+        acTrend: document.getElementById('acTrend'),
+        listrikTrend: document.getElementById('listrikTrend'),
+        gedungTrend: document.getElementById('gedungTrend')
     };
 
     // Chart instances
     let categoryChart = null;
+    let reportChart = null;
     let monthlyChart = null;
 
     // =============================================
@@ -60,7 +66,11 @@
             lateCount: '0',
             todayReport: '0',
             pendingApproval: '0',
-            onlineUser: '1'
+            onlineUser: '1',
+            totalTrend: '0',
+            acTrend: '0',
+            listrikTrend: '0',
+            gedungTrend: '0'
         };
         Object.keys(defaults).forEach(key => {
             if (DOM[key]) DOM[key].textContent = defaults[key];
@@ -107,7 +117,7 @@
     }
 
     // =============================================
-    // RENDER CATEGORY CHART (Pie/Doughnut)
+    // RENDER CATEGORY CHART (Doughnut)
     // =============================================
     function renderCategoryChart(data) {
         const ctx = document.getElementById('renderCategoryChart');
@@ -124,7 +134,6 @@
         ];
         const colors = ['#06B6D4', '#FBBF24', '#7C3AED'];
 
-        // Destroy existing chart
         if (categoryChart) {
             categoryChart.destroy();
             categoryChart = null;
@@ -171,6 +180,77 @@
     }
 
     // =============================================
+    // RENDER REPORT CHART (Bar Chart - Status)
+    // =============================================
+    function renderReportChart(data) {
+        const ctx = document.getElementById('reportChart');
+        if (!ctx) {
+            console.warn('Report chart canvas not found');
+            return;
+        }
+
+        const labels = ['OPEN', 'PROGRESS', 'DONE'];
+        const values = [
+            data.open || 0,
+            data.progress || 0,
+            data.done || 0
+        ];
+        const colors = ['#f59e0b', '#3b82f6', '#22c55e'];
+
+        if (reportChart) {
+            reportChart.destroy();
+            reportChart = null;
+        }
+
+        reportChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Jumlah Laporan',
+                    data: values,
+                    backgroundColor: colors,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' laporan';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            font: { size: 11 }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // =============================================
     // RENDER MONTHLY CHART (Line)
     // =============================================
     function renderMonthlyChart(monthlyData) {
@@ -183,7 +263,6 @@
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         const data = monthlyData || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-        // Destroy existing chart
         if (monthlyChart) {
             monthlyChart.destroy();
             monthlyChart = null;
@@ -254,7 +333,7 @@
         if (!DOM.recentActivity) return;
 
         if (!activity || activity.length === 0) {
-            DOM.recentActivity.innerHTML = '<div class="text-muted text-center py-3">Belum ada aktivitas</div>';
+            DOM.recentActivity.innerHTML = '<div class="text-center text-muted py-4">Belum ada aktivitas</div>';
             return;
         }
 
@@ -268,31 +347,31 @@
             if (status === 'DONE') {
                 badgeClass = 'success';
                 icon = 'bi-check-circle';
-                iconColor = '#16a34a';
+                iconColor = '#22c55e';
             } else if (status === 'PROGRESS') {
                 badgeClass = 'warning';
                 icon = 'bi-arrow-repeat';
-                iconColor = '#d97706';
+                iconColor = '#f59e0b';
             } else if (status === 'OPEN') {
                 badgeClass = 'danger';
                 icon = 'bi-folder2-open';
-                iconColor = '#dc2626';
+                iconColor = '#ef4444';
             }
 
             const waktu = item.waktu || item.tanggal || '';
             html += `
-                <div class="activity-item d-flex justify-content-between align-items-center border-bottom py-2">
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="activity-icon rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#f0f2f5;color:${iconColor};">
-                            <i class="bi ${icon}"></i>
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:#f0f2f5;color:${iconColor};">
+                            <i class="bi ${icon}" style="font-size:14px;"></i>
                         </div>
                         <div>
-                            <strong style="font-size:14px;">${item.kategori || 'Report'}</strong>
-                            <small class="d-block text-muted" style="font-size:12px;">${item.lokasi || ''}</small>
-                            <small class="text-muted" style="font-size:11px;">${waktu}</small>
+                            <div style="font-size:13px;font-weight:600;">${item.kategori || 'Report'}</div>
+                            <div style="font-size:11px;color:#6b7280;">${item.lokasi || ''}</div>
+                            <div style="font-size:10px;color:#9ca3af;">${waktu}</div>
                         </div>
                     </div>
-                    <span class="badge bg-${badgeClass}">${status}</span>
+                    <span class="badge bg-${badgeClass}" style="font-size:10px;">${status}</span>
                 </div>
             `;
         });
@@ -337,8 +416,15 @@
 
             if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
 
+            // Trends (default 0 jika tidak ada)
+            if (DOM.totalTrend) DOM.totalTrend.textContent = data.totalTrend || 0;
+            if (DOM.acTrend) DOM.acTrend.textContent = data.acTrend || 0;
+            if (DOM.listrikTrend) DOM.listrikTrend.textContent = data.listrikTrend || 0;
+            if (DOM.gedungTrend) DOM.gedungTrend.textContent = data.gedungTrend || 0;
+
             // Render Charts
             renderCategoryChart(data);
+            renderReportChart(data);
             renderMonthlyChart(data.monthly || []);
 
             // Render Activity
@@ -379,7 +465,7 @@
 
         setInterval(updateDateTime, 1000);
 
-        console.log('✅ Dashboard initialized with Charts');
+        console.log('✅ Dashboard initialized with all charts');
     }
 
     // Ekspos ke global

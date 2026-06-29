@@ -1,7 +1,7 @@
 /* =====================================================
    Building Care System Enterprise v3.1
    Radiant Group Duri
-   dashboard.css (Merged & Elegant Dual-Theme Architecture)
+   dashboard.css (Premium Dark Centric Architecture)
 ===================================================== */
 
 * {
@@ -16,41 +16,41 @@
 ======================================================= */
 :root {
     /* Base Status Colors */
-    --info: #06B6D4;
-    --warning: #FBBF24;
-    --success: #16A34A;
-    --danger: #DC2626;
-    --purple: #7C3AED;
+    --info: #0ea5e9;
+    --warning: #f59e0b;
+    --success: #10b981;
+    --danger: #ef4444;
+    --purple: #8b5cf6;
     --radius: 20px;
     --transition: .3s ease;
 
-    /* Default Theme: Light Mode Elegant (Alabaster Sophistication) */
+    /* Theme: Deep Premium Dark (As per Reference Screenshot) */
+    --bg-main: #090d16;          /* Latar belakang utama aplikasi */
+    --bg-surface: #0f1422;       /* Latar belakang kartu / cards */
+    --bg-card-upload: #171e30;   /* Area sekunder / form */
+    --border-color: #1e2638;     /* Garis batas tipis elegant */
+    --text-primary: #f3f4f6;     /* Putih bersih untuk teks utama */
+    --text-secondary: #9ca3af;   /* Abu-abu lembut untuk sub-teks */
+    --accent-color: #3b82f6;     /* Biru elektrik untuk aksen aktif */
+    --accent-hover: #2563eb;
+    --accent-soft: rgba(59, 130, 246, 0.12);
+    --shadow-elegant: 0 12px 32px rgba(3, 5, 10, 0.4);
+    --sidebar-gradient: linear-gradient(180deg, #090d16 0%, #0f1422 100%);
+}
+
+[data-theme="light"] {
+    /* Optional Light Mode (Alabaster Sophistication) */
     --bg-main: #f9f8f6;
     --bg-surface: #ffffff;
     --bg-card-upload: #f4f3f0;
     --border-color: #e4e2dd;
     --text-primary: #1e2229;
     --text-secondary: #6b7280;
-    --accent-color: #2c3e50;
-    --accent-hover: #1a252f;
-    --accent-soft: rgba(44, 62, 80, 0.08);
+    --accent-color: #0D47A1;
+    --accent-hover: #1565C0;
+    --accent-soft: rgba(13, 71, 161, 0.08);
     --shadow-elegant: 0 10px 30px rgba(0, 0, 0, 0.03);
     --sidebar-gradient: linear-gradient(180deg, #0D47A1 0%, #1565C0 100%);
-}
-
-[data-theme="dark"] {
-    /* Dark Mode Elegant (Midnight Luxury) */
-    --bg-main: #0b0f19;
-    --bg-surface: #161b26;
-    --bg-card-upload: #1f2635;
-    --border-color: #2d3648;
-    --text-primary: #f3f4f6;
-    --text-secondary: #9ca3af;
-    --accent-color: #c5a880; /* Elegant Champagne Gold */
-    --accent-hover: #b3966e;
-    --accent-soft: rgba(197, 168, 128, 0.12);
-    --shadow-elegant: 0 15px 35px rgba(0, 0, 0, 0.3);
-    --sidebar-gradient: linear-gradient(180deg, #070a12 0%, #111622 100%);
 }
 
 /* ======================================================
@@ -76,6 +76,7 @@ body {
 .sidebar {
     width: 280px;
     background: var(--sidebar-gradient);
+    border-right: 1px solid var(--border-color);
     color: #fff;
     position: fixed;
     top: 0;
@@ -112,9 +113,9 @@ body {
 .logo-area small {
     display: block;
     margin-top: 5px;
-    opacity: .85;
+    opacity: .75;
     font-size: 13px;
-    color: #fff !important;
+    color: var(--text-secondary) !important;
 }
 
 .sidebar nav {
@@ -130,7 +131,7 @@ body {
     padding: 15px 18px;
     border-radius: 16px;
     text-decoration: none;
-    color: #fff;
+    color: var(--text-secondary);
     font-weight: 500;
     transition: var(--transition);
 }
@@ -142,19 +143,21 @@ body {
 
 .menu:hover {
     transform: translateX(6px);
-    background: rgba(255, 255, 255, .12);
+    background: rgba(255, 255, 255, .05);
     color: #fff;
 }
 
 .menu.active {
-    background: var(--bg-surface);
-    color: var(--accent-color);
-    font-weight: 700;
+    background: linear-gradient(90deg, #0D47A1 0%, #1565C0 100%);
+    color: #fff !important;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(13, 71, 161, 0.4);
 }
 
 .menu.text-danger {
     margin-top: 30px;
-    background: rgba(255, 255, 255, .08);
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--danger) !important;
 }
 
 /* ======================================================
@@ -202,7 +205,7 @@ body {
 }
 
 .summary-card:hover, .status-card:hover, .user-profile-card:hover {
-    transform: translateY(-6px);
+    transform: translateY(-4px);
     box-shadow: var(--shadow-elegant);
 }
 
@@ -222,13 +225,13 @@ body {
 .summary-card h6, .status-header h6 {
     color: var(--text-secondary) !important;
     font-size: 14px;
-    margin-bottom: 14px;
+    margin-bottom: 4px;
 }
 
 .summary-card h2, .status-header h2 {
     font-size: 38px;
     font-weight: 700;
-    color: var(--accent-color) !important;
+    color: var(--text-primary) !important;
 }
 
 /* ======================================================
@@ -263,10 +266,10 @@ body {
     transform: rotate(-6deg) scale(1.08);
 }
 
-/* Soft Alert Backgrounds for Dynamic Icons */
-.bg-warning-soft { background: #FFF3D8; color: #F59E0B; }
-.bg-info-soft { background: #E0F7FF; color: #0EA5E9; }
-.bg-success-soft { background: #E7F8EC; color: #16A34A; }
+/* Soft Alert Backgrounds as per Screenshot */
+.bg-warning-soft { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.bg-info-soft { background: rgba(14, 165, 233, 0.12); color: #0ea5e9; }
+.bg-success-soft { background: rgba(16, 185, 129, 0.12); color: #10b981; }
 
 .bg-primary { background: var(--accent-color); }
 .bg-info { background: var(--info); }
@@ -281,15 +284,15 @@ body {
 }
 
 .spark-orange {
-    background: radial-gradient(circle at 10% 80%,orange 2px,transparent 3px), radial-gradient(circle at 25% 40%,orange 2px,transparent 3px), radial-gradient(circle at 40% 70%,orange 2px,transparent 3px), radial-gradient(circle at 60% 50%,orange 2px,transparent 3px), radial-gradient(circle at 80% 75%,orange 2px,transparent 3px);
+    background: radial-gradient(circle at 10% 80%,#f59e0b 2px,transparent 3px), radial-gradient(circle at 25% 40%,#f59e0b 2px,transparent 3px), radial-gradient(circle at 40% 70%,#f59e0b 2px,transparent 3px), radial-gradient(circle at 60% 50%,#f59e0b 2px,transparent 3px), radial-gradient(circle at 80% 75%,#f59e0b 2px,transparent 3px);
 }
 
 .spark-blue {
-    background: radial-gradient(circle at 10% 70%,#2563EB 2px,transparent 3px), radial-gradient(circle at 30% 30%,#2563EB 2px,transparent 3px), radial-gradient(circle at 50% 60%,#2563EB 2px,transparent 3px), radial-gradient(circle at 70% 45%,#2563EB 2px,transparent 3px), radial-gradient(circle at 90% 75%,#2563EB 2px,transparent 3px);
+    background: radial-gradient(circle at 10% 70%,#3b82f6 2px,transparent 3px), radial-gradient(circle at 30% 30%,#3b82f6 2px,transparent 3px), radial-gradient(circle at 50% 60%,#3b82f6 2px,transparent 3px), radial-gradient(circle at 70% 45%,#3b82f6 2px,transparent 3px), radial-gradient(circle at 90% 75%,#3b82f6 2px,transparent 3px);
 }
 
 .spark-green {
-    background: radial-gradient(circle at 10% 70%,#16A34A 2px,transparent 3px), radial-gradient(circle at 30% 40%,#16A34A 2px,transparent 3px), radial-gradient(circle at 55% 75%,#16A34A 2px,transparent 3px), radial-gradient(circle at 75% 45%,#16A34A 2px,transparent 3px), radial-gradient(circle at 92% 20%,#16A34A 2px,transparent 3px);
+    background: radial-gradient(circle at 10% 70%,#10b981 2px,transparent 3px), radial-gradient(circle at 30% 40%,#10b981 2px,transparent 3px), radial-gradient(circle at 55% 75%,#10b981 2px,transparent 3px), radial-gradient(circle at 75% 45%,#10b981 2px,transparent 3px), radial-gradient(circle at 92% 20%,#10b981 2px,transparent 3px);
 }
 
 /* ======================================================
@@ -328,7 +331,7 @@ body {
 /* Buttons */
 .btn-upload.primary, .btn-primary {
     background: var(--accent-color) !important;
-    color: var(--bg-main) !important;
+    color: #ffffff !important;
     border: none;
     font-weight: 600;
     border-radius: 12px;
@@ -441,7 +444,7 @@ body {
 /* Scrollbar Customization */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-thumb {
-    background: var(--accent-color);
+    background: var(--border-color);
     border-radius: 20px;
 }
 
@@ -457,7 +460,7 @@ body {
 
 @media(max-width: 768px) {
     .wrapper { flex-direction: column; }
-    .sidebar { position: relative; width: 100%; height: auto; }
+    .sidebar { position: relative; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); }
     .content { margin-left: 0; padding: 15px; }
     .topbar { flex-direction: column; align-items: flex-start; gap: 15px; }
     .summary-card, .user-profile-card { margin-bottom: 15px; width: 100%; min-width: 100%; }

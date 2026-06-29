@@ -2,7 +2,6 @@
 <html lang="id">
 
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -13,42 +12,15 @@
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
     <style>
-        .dark-toggle {
-            background: transparent;
-            border: 1px solid #e2e8f0;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .dark-toggle:hover {
-            background: #f0f2f5;
-            transform: rotate(20deg);
-        }
-        [data-theme="dark"] .dark-toggle {
-            border-color: #3a3a52;
-            color: #ffd700;
-        }
-        [data-theme="dark"] .dark-toggle:hover {
-            background: #2a2a42;
-        }
         .avatar-sm {
             width: 40px;
             height: 40px;
@@ -75,34 +47,49 @@
         [data-theme="dark"] .status-open { background: #3d2e00; color: #ffd700; }
         [data-theme="dark"] .status-progress { background: #00264d; color: #66b0ff; }
         [data-theme="dark"] .status-done { background: #003d1a; color: #00e676; }
-    </style>
 
+        .dark-toggle {
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .dark-toggle:hover {
+            background: #f0f2f5;
+            transform: rotate(20deg);
+        }
+        [data-theme="dark"] .dark-toggle {
+            border-color: #3a3a52;
+            color: #ffd700;
+        }
+        [data-theme="dark"] .dark-toggle:hover {
+            background: #2a2a42;
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- ======================================================
-     LOADING OVERLAY
-======================================================= -->
-
+<!-- LOADING OVERLAY (Tanpa Teks) -->
 <div id="loading" class="loading-overlay" style="display:none;">
     <div class="text-center">
         <div class="spinner-border text-light" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
-        <div class="text-white mt-3">Please Wait...</div>
     </div>
 </div>
 
-<!-- ======================================================
-     APP WRAPPER
-======================================================= -->
-
+<!-- APP WRAPPER -->
 <div class="wrapper">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-
         <div class="logo-area">
             <img src="assets/img/logo.png" class="logo" alt="Logo">
             <h5>Building Care</h5>
@@ -135,7 +122,6 @@
                 <span>Logout</span>
             </a>
         </nav>
-
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -165,15 +151,10 @@
                         <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
                     </div>
                 </div>
-
             </header>
 
-            <!-- ======================================================
-                 SUMMARY CARDS
-            ======================================================= -->
+            <!-- SUMMARY CARDS -->
             <section class="row g-4 mt-2">
-
-                <!-- TOTAL REPORT -->
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                     <div class="summary-card total-card">
                         <div class="summary-top">
@@ -193,7 +174,6 @@
                     </div>
                 </div>
 
-                <!-- OPEN -->
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                     <div class="summary-card ac-card">
                         <div class="summary-top">
@@ -213,7 +193,6 @@
                     </div>
                 </div>
 
-                <!-- PROGRESS -->
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                     <div class="summary-card listrik-card">
                         <div class="summary-top">
@@ -233,7 +212,6 @@
                     </div>
                 </div>
 
-                <!-- DONE -->
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                     <div class="summary-card gedung-card">
                         <div class="summary-top">
@@ -252,12 +230,9 @@
                         </div>
                     </div>
                 </div>
-
             </section>
 
-            <!-- ======================================================
-                 FILTER & TABLE
-            ======================================================= -->
+            <!-- FILTER & TABLE -->
             <section class="row g-4 mt-3">
                 <div class="col-12">
                     <div class="card enterprise-card">
@@ -421,9 +396,7 @@
 (function() {
     'use strict';
 
-    // =============================================
     // DARK MODE
-    // =============================================
     function initDarkMode() {
         const toggle = document.getElementById('darkModeToggle');
         const icon = document.getElementById('darkModeIcon');
@@ -459,9 +432,7 @@
         });
     }
 
-    // =============================================
     // LOAD USER INFO
-    // =============================================
     function loadUserInfo() {
         try {
             const session = BCS.Storage.getSession();
@@ -480,9 +451,7 @@
         }
     }
 
-    // =============================================
     // STATE
-    // =============================================
     let allReports = [];
     let filteredReports = [];
     let currentUser = {};
@@ -501,9 +470,7 @@
     const cardDone = document.getElementById('cardDone');
     const totalReportsSpan = document.getElementById('totalReports');
 
-    // =============================================
-    // LOAD USER FROM SESSION
-    // =============================================
+    // LOAD USER
     function loadUser() {
         try {
             const session = BCS.Storage.getSession();
@@ -517,9 +484,7 @@
         }
     }
 
-    // =============================================
     // FETCH DATA
-    // =============================================
     async function fetchReports() {
         try {
             tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Memuat data...</td></tr>`;
@@ -567,9 +532,7 @@
         }
     }
 
-    // =============================================
     // FILTER & SORT
-    // =============================================
     function applyFilters() {
         const keyword = searchInput.value.toLowerCase().trim();
         const status = filterStatus.value;
@@ -604,9 +567,7 @@
         renderPagination();
     }
 
-    // =============================================
     // SUMMARY
-    // =============================================
     function updateSummary() {
         const total = filteredReports.length;
         const open = filteredReports.filter(r => (r.status || '').toUpperCase() === 'OPEN').length;
@@ -620,9 +581,7 @@
         totalReportsSpan.textContent = total;
     }
 
-    // =============================================
     // RENDER TABLE
-    // =============================================
     function renderTable() {
         const start = (currentPage - 1) * perPage;
         const pageData = filteredReports.slice(start, start + perPage);
@@ -689,9 +648,7 @@
         });
     }
 
-    // =============================================
     // PAGINATION
-    // =============================================
     function renderPagination() {
         const totalPages = Math.ceil(filteredReports.length / perPage);
         if (totalPages <= 1) {
@@ -726,9 +683,7 @@
         });
     }
 
-    // =============================================
     // MODALS
-    // =============================================
     function openDetail(id) {
         const report = allReports.find(r => r.id == id);
         if (!report) return;
@@ -801,9 +756,7 @@
         }
     });
 
-    // =============================================
     // EVENT BINDING
-    // =============================================
     searchInput.addEventListener('input', applyFilters);
     filterStatus.addEventListener('change', applyFilters);
     sortOrder.addEventListener('change', applyFilters);
@@ -812,9 +765,7 @@
         fetchReports();
     });
 
-    // =============================================
     // LOGOUT
-    // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
         e.preventDefault();
         if (window.auth && typeof window.auth.logout === 'function') {
@@ -828,15 +779,13 @@
         }
     });
 
-    // =============================================
     // INIT
-    // =============================================
     async function init() {
         initDarkMode();
         loadUserInfo();
         loadUser();
         await fetchReports();
-        console.log('✅ History page initialized with Dark Mode');
+        console.log('✅ History page initialized');
     }
 
     if (document.readyState === 'loading') {

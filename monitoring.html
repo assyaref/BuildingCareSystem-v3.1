@@ -122,6 +122,9 @@
         .status-done { background: #dcfce7; color: #16a34a; }
         .status-progress { background: #fef3c7; color: #d97706; }
         .status-open { background: #fee2e2; color: #dc2626; }
+        [data-theme="dark"] .status-open { background: #3d2e00; color: #ffd700; }
+        [data-theme="dark"] .status-progress { background: #00264d; color: #66b0ff; }
+        [data-theme="dark"] .status-done { background: #003d1a; color: #00e676; }
 
         .stat-card {
             background: white;
@@ -164,6 +167,30 @@
         }
         .enterprise-card .card-body {
             padding: 24px;
+        }
+
+        .dark-toggle {
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .dark-toggle:hover {
+            background: #f0f2f5;
+            transform: rotate(20deg);
+        }
+        [data-theme="dark"] .dark-toggle {
+            border-color: #3a3a52;
+            color: #ffd700;
+        }
+        [data-theme="dark"] .dark-toggle:hover {
+            background: #2a2a42;
         }
     </style>
 </head>
@@ -243,9 +270,14 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
+                    <!-- Dark Mode Toggle -->
+                    <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
+                        <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+                    </button>
+
                     <div class="avatar-sm" id="userAvatar">U</div>
                     <div>
-                        <div class="fw-bold" id="userName" style="font-size:14px;color:#1a1a2e;">Loading...</div>
+                        <div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary);">Loading...</div>
                         <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
                     </div>
                 </div>
@@ -482,6 +514,44 @@
     'use strict';
 
     // =============================================
+    // DARK MODE
+    // =============================================
+    function initDarkMode() {
+        const toggle = document.getElementById('darkModeToggle');
+        const icon = document.getElementById('darkModeIcon');
+        if (!toggle) return;
+
+        const savedTheme = localStorage.getItem('bcs_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        if (icon) {
+            if (savedTheme === 'dark') {
+                icon.className = 'bi bi-sun-fill';
+                icon.style.color = '#ffd700';
+            } else {
+                icon.className = 'bi bi-moon-fill';
+                icon.style.color = '';
+            }
+        }
+
+        toggle.addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('bcs_theme', newTheme);
+            if (icon) {
+                if (newTheme === 'dark') {
+                    icon.className = 'bi bi-sun-fill';
+                    icon.style.color = '#ffd700';
+                } else {
+                    icon.className = 'bi bi-moon-fill';
+                    icon.style.color = '';
+                }
+            }
+        });
+    }
+
+    // =============================================
     // DOM REFS
     // =============================================
     const DOM = {
@@ -532,7 +602,7 @@
     }
 
     // =============================================
-    // LOAD MONITORING DATA (USING getSummary)
+    // LOAD MONITORING DATA
     // =============================================
     async function loadMonitoring() {
         try {
@@ -543,7 +613,6 @@
                 </div>
             `;
 
-            // ✅ Use getSummary (available in server)
             const response = await BCS.Api.post('getSummary', {});
             console.log('📊 Monitoring response:', response);
 
@@ -553,13 +622,11 @@
 
             const data = response.data || {};
 
-            // Summary cards
             DOM.monitorTotal.textContent = data.total || 0;
             DOM.monitorOpen.textContent = data.open || 0;
             DOM.monitorProgress.textContent = data.progress || 0;
             DOM.monitorDone.textContent = data.done || 0;
 
-            // SLA - from data
             const fast = data.fast || 0;
             const normal = data.normal || 0;
             const late = data.late || 0;
@@ -576,7 +643,6 @@
             DOM.normalBar.style.width = normalPct + '%';
             DOM.lateBar.style.width = latePct + '%';
 
-            // Activity
             const activity = data.activity || [];
             if (activity.length > 0) {
                 let html = '';
@@ -625,7 +691,6 @@
                 `;
             }
 
-            // Server time
             const serverTime = data.serverTime || response.serverTime || new Date().toISOString();
             const time = new Date(serverTime);
             DOM.serverTime.textContent = time.toLocaleTimeString('id-ID', {
@@ -635,7 +700,6 @@
             });
             DOM.timezoneLabel.textContent = 'WIB';
 
-            // System health - all online by default
             DOM.apiStatus.textContent = '●';
             DOM.apiStatus.style.color = '#27ae60';
             DOM.apiStatusText.textContent = 'Online';
@@ -690,16 +754,16 @@
         loadMonitoring();
     });
 
-    // Auto refresh every 60 seconds
     setInterval(loadMonitoring, 60000);
 
     // =============================================
     // INIT
     // =============================================
     async function init() {
+        initDarkMode();
         loadUserInfo();
         await loadMonitoring();
-        console.log('✅ Monitoring page initialized');
+        console.log('✅ Monitoring page initialized with Dark Mode');
     }
 
     if (document.readyState === 'loading') {

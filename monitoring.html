@@ -12,16 +12,12 @@
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
     <style>
@@ -48,12 +44,7 @@
         }
         .health-badge.online { background: #e6f7ed; color: #27ae60; }
         .health-badge.offline { background: #ffe6e6; color: #e74c3c; }
-        .health-badge .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
+        .health-badge .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
         .health-badge.online .dot { background: #27ae60; }
         .health-badge.offline .dot { background: #e74c3c; }
 
@@ -66,24 +57,11 @@
             transition: all 0.3s;
             border: 1px solid #eef2f8;
         }
-        .sla-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
-        }
+        .sla-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.05); }
         .sla-card .sla-value { font-size: 36px; font-weight: 700; }
         .sla-card .sla-label { font-size: 13px; color: #718096; font-weight: 500; margin-top: 4px; }
-        .sla-card .sla-bar {
-            height: 6px;
-            border-radius: 4px;
-            margin-top: 12px;
-            background: #eef2f8;
-            overflow: hidden;
-        }
-        .sla-card .sla-bar .sla-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.8s ease;
-        }
+        .sla-card .sla-bar { height: 6px; border-radius: 4px; margin-top: 12px; background: #eef2f8; overflow: hidden; }
+        .sla-card .sla-bar .sla-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
         .sla-card .sla-bar .sla-fill.green { background: #27ae60; }
         .sla-card .sla-bar .sla-fill.orange { background: #f39c12; }
         .sla-card .sla-bar .sla-fill.red { background: #e74c3c; }
@@ -136,10 +114,7 @@
             height: 100%;
             text-align: center;
         }
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.05);
-        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
         .stat-card .stat-icon {
             width: 48px;
             height: 48px;
@@ -154,6 +129,7 @@
         .stat-card .stat-icon.green { background: #e6f7ed; color: #27ae60; }
         .stat-card .stat-icon.orange { background: #fff3e6; color: #f39c12; }
         .stat-card .stat-icon.purple { background: #f0e6ff; color: #8e44ad; }
+        .stat-card .stat-icon.red { background: #fee2e2; color: #ef4444; }
         .stat-card .stat-number { font-size: 28px; font-weight: 700; margin: 4px 0; }
         .stat-card .stat-label { font-size: 13px; color: #718096; font-weight: 500; }
         .stat-card .stat-trend { font-size: 12px; font-weight: 600; margin-top: 4px; }
@@ -165,9 +141,7 @@
             border-bottom: 1px solid #f0f2f5;
             padding: 16px 24px;
         }
-        .enterprise-card .card-body {
-            padding: 24px;
-        }
+        .enterprise-card .card-body { padding: 24px; }
 
         .dark-toggle {
             background: transparent;
@@ -181,26 +155,51 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        .dark-toggle:hover {
-            background: #f0f2f5;
-            transform: rotate(20deg);
+        .dark-toggle:hover { background: #f0f2f5; transform: rotate(20deg); }
+        [data-theme="dark"] .dark-toggle { border-color: #3a3a52; color: #ffd700; }
+        [data-theme="dark"] .dark-toggle:hover { background: #2a2a42; }
+
+        /* Live indicator pulse */
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
-        [data-theme="dark"] .dark-toggle {
-            border-color: #3a3a52;
-            color: #ffd700;
+        .live-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+            margin-right: 6px;
         }
-        [data-theme="dark"] .dark-toggle:hover {
-            background: #2a2a42;
+        .live-dot.off { background: #6b7280; animation: none; opacity: 0.5; }
+
+        .online-counter {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
+        .online-counter .count {
+            font-size: 18px;
+            font-weight: 700;
+            color: #22c55e;
+            transition: all 0.3s;
+            min-width: 24px;
+            display: inline-block;
+            text-align: center;
+        }
+        .online-counter .count.down { color: #ef4444; }
+        .online-counter .label { color: var(--text-muted); font-weight: 400; font-size: 13px; }
     </style>
 </head>
 
 <body>
 
-<!-- ======================================================
-     LOADING OVERLAY
-======================================================= -->
-
+<!-- LOADING OVERLAY -->
 <div id="loading" class="loading-overlay" style="display:none;">
     <div class="text-center">
         <div class="spinner-border text-light" role="status">
@@ -210,21 +209,16 @@
     </div>
 </div>
 
-<!-- ======================================================
-     APP WRAPPER
-======================================================= -->
-
+<!-- APP WRAPPER -->
 <div class="wrapper">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-
         <div class="logo-area">
             <img src="assets/img/logo.png" class="logo" alt="Logo">
             <h5>Building Care</h5>
             <small>Enterprise v3.2</small>
         </div>
-
         <nav>
             <a href="dashboard.html" class="menu">
                 <i class="bi bi-grid-fill"></i>
@@ -251,15 +245,14 @@
                 <span>Logout</span>
             </a>
         </nav>
-
     </aside>
 
     <!-- MAIN CONTENT -->
     <main class="content">
         <div class="container-fluid">
 
-            <!-- TOPBAR -->
-            <header class="topbar">
+            <!-- TOPBAR dengan Online Users & Live Time -->
+            <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
                     <h3>Monitoring Center</h3>
                     <small>
@@ -269,174 +262,277 @@
                     </small>
                 </div>
 
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <!-- Online Users Counter -->
+                    <div class="online-counter px-3 py-1 rounded-3" style="background: var(--bg-card-hover); border: 1px solid var(--border-color);">
+                        <i class="bi bi-person-fill text-primary" style="font-size: 18px;"></i>
+                        <span class="label">Online:</span>
+                        <span class="count" id="onlineUserCount">0</span>
+                        <span class="live-dot" id="liveDot"></span>
+                    </div>
+
                     <!-- Dark Mode Toggle -->
-                    <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
-                        <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+                    <button class="btn theme-switcher-btn d-flex align-items-center justify-content-center p-0" id="darkModeToggle" title="Toggle Theme" style="width: 42px; height: 42px; border-radius: 50% !important; background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); transition: var(--transition);">
+                        <i class="bi bi-moon-fill" id="darkModeIcon" style="font-size: 1.15rem;"></i>
                     </button>
 
-                    <div class="avatar-sm" id="userAvatar">U</div>
-                    <div>
-                        <div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary);">Loading...</div>
-                        <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
+                    <!-- User Profile -->
+                    <div class="user-profile-card p-3 d-flex align-items-center gap-3">
+                        <div class="avatar d-flex justify-content-center align-items-center" style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0D47A1, #2563EB); color: #fff;">
+                            <i class="bi bi-person-fill" style="font-size: 1.3rem;"></i>
+                        </div>
+                        <div>
+                            <div class="profile-name fw-semibold text-truncate" id="userName" style="max-width: 150px; color: var(--text-primary);">Loading...</div>
+                            <div class="role-badge" id="userRole" style="font-size: 11px; background: var(--accent-soft); color: var(--accent-color); padding: 2px 10px; border-radius: 999px; font-weight: 600; display: inline-block; margin-top: 2px;">Administrator</div>
+                        </div>
                     </div>
                 </div>
-
             </header>
 
             <!-- ======================================================
-                 SUMMARY CARDS
+                 SUMMARY CARDS (Total, AC, Listrik, Gedung)
             ======================================================= -->
-            <section class="row g-4 mt-2">
-
-                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card total-card">
-                        <div class="summary-top">
-                            <div class="summary-icon bg-primary">
+            <section class="row g-4 mt-1">
+                <div class="col-xl-3 col-md-6">
+                    <div class="summary-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size: 12px; font-weight: 600;">Total Report</h6>
+                                <h2 id="monitorTotal" class="fw-bold mb-2" style="color: var(--text-primary);">0</h2>
+                            </div>
+                            <div class="summary-icon bg-primary" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
                                 <i class="bi bi-file-earmark-text-fill"></i>
                             </div>
-                            <div>
-                                <h6>Total Report</h6>
-                                <h2 id="monitorTotal">0</h2>
-                            </div>
                         </div>
-                        <div class="summary-trend success">
-                            <i class="bi bi-arrow-up"></i>
+                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
+                            <i id="totalTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
                             <span id="totalTrend">0</span>
-                            <small>dari minggu lalu</small>
+                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card ac-card">
-                        <div class="summary-top">
-                            <div class="summary-icon bg-danger-soft">
+                <div class="col-xl-3 col-md-6">
+                    <div class="summary-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size: 12px; font-weight: 600;">AC</h6>
+                                <h2 id="monitorAc" class="fw-bold mb-2" style="color: var(--text-primary);">0</h2>
+                            </div>
+                            <div class="summary-icon bg-info" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                                <i class="bi bi-snow"></i>
+                            </div>
+                        </div>
+                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
+                            <i id="acTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
+                            <span id="acTrend">0</span>
+                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="summary-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size: 12px; font-weight: 600;">Listrik</h6>
+                                <h2 id="monitorListrik" class="fw-bold mb-2" style="color: var(--text-primary);">0</h2>
+                            </div>
+                            <div class="summary-icon bg-warning" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                            </div>
+                        </div>
+                        <div class="summary-trend text-danger d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
+                            <i id="listrikTrendIcon" class="bi bi-arrow-down-short fs-5"></i>
+                            <span id="listrikTrend">0</span>
+                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="summary-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size: 12px; font-weight: 600;">Kondisi Gedung</h6>
+                                <h2 id="monitorGedung" class="fw-bold mb-2" style="color: var(--text-primary);">0</h2>
+                            </div>
+                            <div class="summary-icon bg-purple" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                                <i class="bi bi-building-fill"></i>
+                            </div>
+                        </div>
+                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
+                            <i id="gedungTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
+                            <span id="gedungTrend">0</span>
+                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================================
+                 STATUS CARDS (OPEN, PROGRESS, DONE)
+            ======================================================= -->
+            <section class="row g-4 mt-2">
+                <div class="col-xl-4 col-md-6">
+                    <div class="status-card p-4">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="status-icon bg-warning-soft">
                                 <i class="bi bi-folder2-open"></i>
                             </div>
                             <div>
-                                <h6>Open</h6>
-                                <h2 id="monitorOpen">0</h2>
+                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">Open</h6>
+                                <h2 id="monitorOpen" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
                             </div>
                         </div>
-                        <div class="summary-trend danger">
-                            <i class="bi bi-arrow-down"></i>
-                            <span id="openTrend">0</span>
-                            <small>dari minggu lalu</small>
-                        </div>
+                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);">0% dari total report</div>
+                        <div class="sparkline spark-orange"></div>
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card listrik-card">
-                        <div class="summary-top">
-                            <div class="summary-icon bg-warning-soft">
-                                <i class="bi bi-hourglass-split"></i>
+                <div class="col-xl-4 col-md-6">
+                    <div class="status-card p-4">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="status-icon bg-info-soft">
+                                <i class="bi bi-arrow-repeat"></i>
                             </div>
                             <div>
-                                <h6>Progress</h6>
-                                <h2 id="monitorProgress">0</h2>
+                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">In Progress</h6>
+                                <h2 id="monitorProgress" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
                             </div>
                         </div>
-                        <div class="summary-trend success">
-                            <i class="bi bi-arrow-up"></i>
-                            <span id="progressTrend">0</span>
-                            <small>dari minggu lalu</small>
-                        </div>
+                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);">0% dari total report</div>
+                        <div class="sparkline spark-blue"></div>
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card gedung-card">
-                        <div class="summary-top">
-                            <div class="summary-icon bg-success-soft">
+                <div class="col-xl-4 col-md-12">
+                    <div class="status-card p-4">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="status-icon bg-success-soft">
                                 <i class="bi bi-check-circle-fill"></i>
                             </div>
                             <div>
-                                <h6>Completed</h6>
-                                <h2 id="monitorDone">0</h2>
+                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">Done</h6>
+                                <h2 id="monitorDone" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
                             </div>
                         </div>
-                        <div class="summary-trend success">
-                            <i class="bi bi-arrow-up"></i>
-                            <span id="doneTrend">0</span>
-                            <small>dari minggu lalu</small>
-                        </div>
-                    </div>
-                </div>
-
-            </section>
-
-            <!-- ======================================================
-                 SLA ANALYTICS
-            ======================================================= -->
-            <section class="row g-4 mt-3">
-                <div class="col-12">
-                    <div class="card enterprise-card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>SLA Analytics</h5>
-                                <small class="text-muted">Service Level Agreement Performance</small>
-                            </div>
-                            <span class="health-badge online" id="systemHealth">
-                                <span class="dot"></span> System Online
-                            </span>
-                        </div>
-                        <div class="card-body">
-                            <div class="row g-4">
-                                <div class="col-md-4">
-                                    <div class="sla-card">
-                                        <div class="sla-value text-success" id="fastPercent">0%</div>
-                                        <div class="sla-label">FAST (≤ 4 jam)</div>
-                                        <div class="sla-bar">
-                                            <div class="sla-fill green" id="fastBar" style="width:0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="sla-card">
-                                        <div class="sla-value text-warning" id="normalPercent">0%</div>
-                                        <div class="sla-label">NORMAL (≤ 24 jam)</div>
-                                        <div class="sla-bar">
-                                            <div class="sla-fill orange" id="normalBar" style="width:0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="sla-card">
-                                        <div class="sla-value text-danger" id="latePercent">0%</div>
-                                        <div class="sla-label">LATE (> 24 jam)</div>
-                                        <div class="sla-bar">
-                                            <div class="sla-fill red" id="lateBar" style="width:0%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);">0% dari total report</div>
+                        <div class="sparkline spark-green"></div>
                     </div>
                 </div>
             </section>
 
             <!-- ======================================================
-                 RECENT ACTIVITY
+                 SLA CARDS (FAST, NORMAL, LATE)
             ======================================================= -->
-            <section class="row g-4 mt-3">
-                <div class="col-12">
-                    <div class="card enterprise-card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Aktivitas Terbaru</h5>
+            <section class="row g-4 mt-2">
+                <div class="col-xl-4 col-md-6">
+                    <div class="status-card p-4">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="status-icon bg-success-soft">
+                                <i class="bi bi-lightning-charge-fill"></i>
                             </div>
-                            <button class="btn btn-sm btn-outline-secondary" id="refreshBtn">
+                            <div>
+                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">FAST SLA</h6>
+                                <h2 id="fastCount" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
+                            </div>
+                        </div>
+                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);"><span id="fastPercent" class="fw-bold text-success">0%</span> selesai &le; 4 jam</div>
+                        <div class="sparkline spark-green"></div>
+                    </div>
+                </div>
+
+                <div class="col-xl-4 col-md-6">
+                    <div class="status-card p-4">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="status-icon bg-warning-soft">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">NORMAL SLA</h6>
+                                <h2 id="normalCount" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
+                            </div>
+                        </div>
+                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);"><span id="normalPercent" class="fw-bold text-warning">0%</span> selesai &le; 24 jam</div>
+                        <div class="sparkline spark-orange"></div>
+                    </div>
+                </div>
+
+                <div class="col-xl-4 col-md-12">
+                    <div class="status-card p-4">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="status-icon" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">LATE SLA</h6>
+                                <h2 id="lateCount" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
+                            </div>
+                        </div>
+                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);"><span id="latePercent" class="fw-bold text-danger">0%</span> melebihi target</div>
+                        <div class="sparkline" style="background: radial-gradient(circle at 10% 70%,#ef4444 2px,transparent 3px), radial-gradient(circle at 40% 40%,#ef4444 2px,transparent 3px), radial-gradient(circle at 70% 75%,#ef4444 2px,transparent 3px);"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================================
+                 CHART + ACTIVITY
+            ======================================================= -->
+            <section class="row g-4 mt-2">
+                <div class="col-xl-8">
+                    <div class="card enterprise-card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="fw-semibold"><i class="bi bi-bar-chart-line-fill me-2 text-primary"></i>Statistik Laporan</span>
+                                <small class="text-secondary" style="font-size: 12px;">Last Update : <span id="lastUpdate">-</span></small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" id="refreshMonitoring" style="border-color: var(--border-color); color: var(--text-primary); font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 8px;">
                                 <i class="bi bi-arrow-clockwise"></i> Refresh
                             </button>
                         </div>
-                        <div class="card-body">
-                            <div id="recentActivity">
-                                <div class="text-center text-muted py-4">
-                                    <div class="spinner-border spinner-border-sm mb-2"></div><br>
-                                    Memuat data...
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-lg-5">
+                                    <div class="chart-container d-flex justify-content-center align-items-center" style="position: relative; height:280px; width:100%;">
+                                        <canvas id="renderCategoryChart"></canvas>
+                                    </div>
                                 </div>
+                                <div class="col-lg-7">
+                                    <div class="chart-container" style="position: relative; height:280px; width:100%;">
+                                        <canvas id="reportChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-4">
+                    <div class="card enterprise-card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold">Aktivitas Terbaru</span>
+                            <a href="#" class="text-decoration-none fw-medium" style="color: var(--accent-color); font-size: 14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size: 10px;"></i></a>
+                        </div>
+                        <div class="card-body p-4" style="max-height: 310px; overflow-y: auto;">
+                            <div id="recentActivity" class="d-flex flex-column gap-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================================
+                 MONTHLY REPORT TREND
+            ======================================================= -->
+            <section class="row g-4 mt-2">
+                <div class="col-12">
+                    <div class="card enterprise-card">
+                        <div class="card-header">
+                            <span class="fw-semibold"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Monthly Report Trend</span>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="monthly-chart" style="position: relative; height: 260px; width: 100%;">
+                                <canvas id="monthlyChart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -444,9 +540,9 @@
             </section>
 
             <!-- ======================================================
-                 SYSTEM HEALTH
+                 SYSTEM HEALTH (dengan Live Server Time)
             ======================================================= -->
-            <section class="row g-4 mt-3">
+            <section class="row g-4 mt-2 mb-4">
                 <div class="col-md-3">
                     <div class="stat-card">
                         <div class="stat-icon blue mx-auto">
@@ -478,11 +574,11 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card">
+                    <div class="stat-card" style="border-color: var(--border-color);">
                         <div class="stat-icon purple mx-auto">
                             <i class="bi bi-clock"></i>
                         </div>
-                        <div class="stat-number" id="serverTime">--:--</div>
+                        <div class="stat-number" id="serverTimeDisplay" style="font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-primary);">--:--:--</div>
                         <div class="stat-label">Server Time</div>
                         <div class="stat-trend up" id="timezoneLabel">WIB</div>
                     </div>
@@ -499,6 +595,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script src="config/config.js"></script>
 <script src="assets/js/core/app.js"></script>
@@ -512,6 +609,116 @@
 <script>
 (function() {
     'use strict';
+
+    // =============================================
+    // DOM REFS
+    // =============================================
+    const DOM = {
+        monitorTotal: document.getElementById('monitorTotal'),
+        monitorAc: document.getElementById('monitorAc'),
+        monitorListrik: document.getElementById('monitorListrik'),
+        monitorGedung: document.getElementById('monitorGedung'),
+        monitorOpen: document.getElementById('monitorOpen'),
+        monitorProgress: document.getElementById('monitorProgress'),
+        monitorDone: document.getElementById('monitorDone'),
+        fastCount: document.getElementById('fastCount'),
+        normalCount: document.getElementById('normalCount'),
+        lateCount: document.getElementById('lateCount'),
+        fastPercent: document.getElementById('fastPercent'),
+        normalPercent: document.getElementById('normalPercent'),
+        latePercent: document.getElementById('latePercent'),
+        lastUpdate: document.getElementById('lastUpdate'),
+        recentActivity: document.getElementById('recentActivity'),
+        userName: document.getElementById('userName'),
+        userRole: document.getElementById('userRole'),
+        apiStatus: document.getElementById('apiStatus'),
+        dbStatus: document.getElementById('dbStatus'),
+        driveStatus: document.getElementById('driveStatus'),
+        apiStatusText: document.getElementById('apiStatusText'),
+        dbStatusText: document.getElementById('dbStatusText'),
+        driveStatusText: document.getElementById('driveStatusText'),
+        serverTimeDisplay: document.getElementById('serverTimeDisplay'),
+        timezoneLabel: document.getElementById('timezoneLabel'),
+        refreshBtn: document.getElementById('refreshMonitoring'),
+        onlineUserCount: document.getElementById('onlineUserCount'),
+        liveDot: document.getElementById('liveDot')
+    };
+
+    // Chart instances
+    let categoryChart = null;
+    let reportChart = null;
+    let monthlyChart = null;
+
+    // =============================================
+    // ONLINE USERS - SIMULASI LIVE
+    // =============================================
+    let currentOnlineUsers = 0;
+    let onlineUserInterval = null;
+
+    function updateOnlineUsers() {
+        // Simulasi perubahan ±1 setiap 5-10 detik
+        const change = Math.random() > 0.5 ? 1 : -1;
+        const minUsers = 1;
+        const maxUsers = 12;
+        let newCount = currentOnlineUsers + change;
+
+        // Batasi range
+        if (newCount < minUsers) newCount = minUsers + Math.floor(Math.random() * 3);
+        if (newCount > maxUsers) newCount = maxUsers - Math.floor(Math.random() * 3);
+
+        currentOnlineUsers = newCount;
+
+        if (DOM.onlineUserCount) {
+            DOM.onlineUserCount.textContent = currentOnlineUsers;
+            // Animasi perubahan warna
+            DOM.onlineUserCount.classList.remove('down');
+            if (change < 0) {
+                DOM.onlineUserCount.classList.add('down');
+            }
+            // Reset setelah animasi
+            setTimeout(() => {
+                if (DOM.onlineUserCount) DOM.onlineUserCount.classList.remove('down');
+            }, 800);
+        }
+
+        // Update live dot status
+        if (DOM.liveDot) {
+            DOM.liveDot.className = 'live-dot';
+            DOM.liveDot.style.animation = 'pulse-dot 1.5s ease-in-out infinite';
+        }
+    }
+
+    function startOnlineUserSimulation() {
+        // Inisialisasi random 3-8
+        currentOnlineUsers = Math.floor(Math.random() * 6) + 3;
+        if (DOM.onlineUserCount) DOM.onlineUserCount.textContent = currentOnlineUsers;
+
+        // Update setiap 5-10 detik
+        if (onlineUserInterval) clearInterval(onlineUserInterval);
+        onlineUserInterval = setInterval(updateOnlineUsers, Math.floor(Math.random() * 5000) + 5000);
+
+        // Update pertama setelah 3 detik
+        setTimeout(updateOnlineUsers, 3000);
+    }
+
+    // =============================================
+    // LIVE SERVER TIME (setiap detik)
+    // =============================================
+    function startLiveServerTime() {
+        function updateClock() {
+            if (!DOM.serverTimeDisplay) return;
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            DOM.serverTimeDisplay.textContent = hours + ':' + minutes + ':' + seconds;
+        }
+
+        // Update immediately
+        updateClock();
+        // Then every second
+        setInterval(updateClock, 1000);
+    }
 
     // =============================================
     // DARK MODE
@@ -552,36 +759,6 @@
     }
 
     // =============================================
-    // DOM REFS
-    // =============================================
-    const DOM = {
-        monitorTotal: document.getElementById('monitorTotal'),
-        monitorOpen: document.getElementById('monitorOpen'),
-        monitorProgress: document.getElementById('monitorProgress'),
-        monitorDone: document.getElementById('monitorDone'),
-        fastPercent: document.getElementById('fastPercent'),
-        normalPercent: document.getElementById('normalPercent'),
-        latePercent: document.getElementById('latePercent'),
-        fastBar: document.getElementById('fastBar'),
-        normalBar: document.getElementById('normalBar'),
-        lateBar: document.getElementById('lateBar'),
-        recentActivity: document.getElementById('recentActivity'),
-        userName: document.getElementById('userName'),
-        userRole: document.getElementById('userRole'),
-        userAvatar: document.getElementById('userAvatar'),
-        systemHealth: document.getElementById('systemHealth'),
-        apiStatus: document.getElementById('apiStatus'),
-        dbStatus: document.getElementById('dbStatus'),
-        driveStatus: document.getElementById('driveStatus'),
-        apiStatusText: document.getElementById('apiStatusText'),
-        dbStatusText: document.getElementById('dbStatusText'),
-        driveStatusText: document.getElementById('driveStatusText'),
-        serverTime: document.getElementById('serverTime'),
-        timezoneLabel: document.getElementById('timezoneLabel'),
-        refreshBtn: document.getElementById('refreshBtn')
-    };
-
-    // =============================================
     // LOAD USER INFO
     // =============================================
     function loadUserInfo() {
@@ -594,7 +771,6 @@
 
                 DOM.userName.textContent = nama;
                 DOM.userRole.textContent = role;
-                DOM.userAvatar.textContent = nama.charAt(0).toUpperCase();
             }
         } catch (e) {
             console.warn('Load user info error:', e);
@@ -602,132 +778,258 @@
     }
 
     // =============================================
+    // UPDATE STATUS PERCENTAGES
+    // =============================================
+    function updateStatusPercentages(data) {
+        const open = data.open || 0;
+        const progress = data.progress || 0;
+        const done = data.done || 0;
+        const total = open + progress + done;
+
+        if (total === 0) {
+            const openPercentEl = document.querySelector('.status-card.open .status-percent');
+            const progressPercentEl = document.querySelector('.status-card.progress-card .status-percent');
+            const donePercentEl = document.querySelector('.status-card.done-card .status-percent');
+            
+            if (openPercentEl) openPercentEl.textContent = '0% dari total report';
+            if (progressPercentEl) progressPercentEl.textContent = '0% dari total report';
+            if (donePercentEl) donePercentEl.textContent = '0% dari total report';
+            return;
+        }
+
+        const openPct = Math.round((open / total) * 100);
+        const progressPct = Math.round((progress / total) * 100);
+        const donePct = Math.round((done / total) * 100);
+
+        const openPercentEl = document.querySelector('.status-card.open .status-percent');
+        const progressPercentEl = document.querySelector('.status-card.progress-card .status-percent');
+        const donePercentEl = document.querySelector('.status-card.done-card .status-percent');
+
+        if (openPercentEl) openPercentEl.textContent = openPct + '% dari total report';
+        if (progressPercentEl) progressPercentEl.textContent = progressPct + '% dari total report';
+        if (donePercentEl) donePercentEl.textContent = donePct + '% dari total report';
+    }
+
+    // =============================================
+    // UPDATE SLA PERCENTAGES
+    // =============================================
+    function updateSLAPercentages(data) {
+        const fast = data.fast || 0;
+        const normal = data.normal || 0;
+        const late = data.late || 0;
+        const totalSLA = fast + normal + late;
+
+        if (totalSLA === 0) {
+            if (DOM.fastPercent) DOM.fastPercent.textContent = '0%';
+            if (DOM.normalPercent) DOM.normalPercent.textContent = '0%';
+            if (DOM.latePercent) DOM.latePercent.textContent = '0%';
+            return;
+        }
+
+        const fastPct = Math.round((fast / totalSLA) * 100);
+        const normalPct = Math.round((normal / totalSLA) * 100);
+        const latePct = Math.round((late / totalSLA) * 100);
+
+        if (DOM.fastPercent) DOM.fastPercent.textContent = fastPct + '%';
+        if (DOM.normalPercent) DOM.normalPercent.textContent = normalPct + '%';
+        if (DOM.latePercent) DOM.latePercent.textContent = latePct + '%';
+    }
+
+    // =============================================
+    // RENDER CHARTS
+    // =============================================
+    function renderCategoryChart(data) {
+        const ctx = document.getElementById('renderCategoryChart');
+        if (!ctx) return;
+        const labels = ['AC', 'LISTRIK', 'KONDISI GEDUNG'];
+        const values = [data.ac || 0, data.listrik || 0, data.bangunan || data.gedung || 0];
+        const colors = ['#06B6D4', '#FBBF24', '#7C3AED'];
+
+        if (categoryChart) { categoryChart.destroy(); categoryChart = null; }
+        categoryChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 3, hoverOffset: 10 }] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 12, family: 'Poppins' }, padding: 16, usePointStyle: true, pointStyle: 'circle' } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? Math.round((context.parsed / total) * 100) : 0;
+                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+
+    function renderReportChart(data) {
+        const ctx = document.getElementById('reportChart');
+        if (!ctx) return;
+        const labels = ['OPEN', 'PROGRESS', 'DONE'];
+        const values = [data.open || 0, data.progress || 0, data.done || 0];
+        const colors = ['#f59e0b', '#3b82f6', '#22c55e'];
+
+        if (reportChart) { reportChart.destroy(); reportChart = null; }
+        reportChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Jumlah Laporan', data: values, backgroundColor: colors, borderRadius: 6, borderSkipped: false }] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    function renderMonthlyChart(monthlyData) {
+        const ctx = document.getElementById('monthlyChart');
+        if (!ctx) return;
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        const data = monthlyData || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+        if (monthlyChart) { monthlyChart.destroy(); monthlyChart = null; }
+        monthlyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthNames,
+                datasets: [{
+                    label: 'Jumlah Laporan',
+                    data: data,
+                    backgroundColor: 'rgba(75, 123, 236, 0.1)',
+                    borderColor: '#4b7bec',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#4b7bec',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+                }
+            }
+        });
+    }
+
+    // =============================================
+    // RENDER ACTIVITY
+    // =============================================
+    function renderActivity(activity) {
+        if (!DOM.recentActivity) return;
+        if (!activity || activity.length === 0) {
+            DOM.recentActivity.innerHTML = '<div class="text-center text-muted py-4">Belum ada aktivitas</div>';
+            return;
+        }
+
+        let html = '';
+        activity.forEach(item => {
+            const status = item.status || 'OPEN';
+            let badgeClass = 'secondary', icon = 'bi-folder2-open', iconColor = '#6c757d';
+            if (status === 'DONE') { badgeClass = 'success'; icon = 'bi-check-circle'; iconColor = '#22c55e'; }
+            else if (status === 'PROGRESS') { badgeClass = 'warning'; icon = 'bi-arrow-repeat'; iconColor = '#f59e0b'; }
+            else if (status === 'OPEN') { badgeClass = 'danger'; icon = 'bi-folder2-open'; iconColor = '#ef4444'; }
+
+            const waktu = item.waktu || item.tanggal || '';
+            html += `
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:#f0f2f5;color:${iconColor};">
+                            <i class="bi ${icon}" style="font-size:14px;"></i>
+                        </div>
+                        <div>
+                            <div style="font-size:13px;font-weight:600;">${item.kategori || 'Report'}</div>
+                            <div style="font-size:11px;color:#6b7280;">${item.lokasi || ''}</div>
+                            <div style="font-size:10px;color:#9ca3af;">${waktu}</div>
+                        </div>
+                    </div>
+                    <span class="badge bg-${badgeClass}" style="font-size:10px;">${status}</span>
+                </div>
+            `;
+        });
+        DOM.recentActivity.innerHTML = html;
+    }
+
+    // =============================================
     // LOAD MONITORING DATA
     // =============================================
     async function loadMonitoring() {
         try {
-            DOM.recentActivity.innerHTML = `
-                <div class="text-center text-muted py-4">
-                    <div class="spinner-border spinner-border-sm mb-2"></div><br>
-                    Memuat data...
-                </div>
-            `;
+            BCS.App.Loading.show();
 
             const response = await BCS.Api.post('getSummary', {});
             console.log('📊 Monitoring response:', response);
 
             if (!response || !response.success) {
-                throw new Error(response?.message || 'Failed to load data');
+                console.error('Gagal load monitoring:', response?.message);
+                BCS.App.Toast.danger('Gagal memuat data monitoring');
+                return;
             }
 
             const data = response.data || {};
 
-            DOM.monitorTotal.textContent = data.total || 0;
-            DOM.monitorOpen.textContent = data.open || 0;
-            DOM.monitorProgress.textContent = data.progress || 0;
-            DOM.monitorDone.textContent = data.done || 0;
+            // Summary cards
+            if (DOM.monitorTotal) DOM.monitorTotal.textContent = data.total || 0;
+            if (DOM.monitorAc) DOM.monitorAc.textContent = data.ac || 0;
+            if (DOM.monitorListrik) DOM.monitorListrik.textContent = data.listrik || 0;
+            if (DOM.monitorGedung) DOM.monitorGedung.textContent = data.bangunan || data.gedung || 0;
 
-            const fast = data.fast || 0;
-            const normal = data.normal || 0;
-            const late = data.late || 0;
-            const totalSLA = fast + normal + late || 1;
+            // Status cards
+            if (DOM.monitorOpen) DOM.monitorOpen.textContent = data.open || 0;
+            if (DOM.monitorProgress) DOM.monitorProgress.textContent = data.progress || 0;
+            if (DOM.monitorDone) DOM.monitorDone.textContent = data.done || 0;
 
-            const fastPct = Math.round((fast / totalSLA) * 100);
-            const normalPct = Math.round((normal / totalSLA) * 100);
-            const latePct = Math.round((late / totalSLA) * 100);
+            // SLA cards
+            if (DOM.fastCount) DOM.fastCount.textContent = data.fast || 0;
+            if (DOM.normalCount) DOM.normalCount.textContent = data.normal || 0;
+            if (DOM.lateCount) DOM.lateCount.textContent = data.late || 0;
 
-            DOM.fastPercent.textContent = fastPct + '%';
-            DOM.normalPercent.textContent = normalPct + '%';
-            DOM.latePercent.textContent = latePct + '%';
-            DOM.fastBar.style.width = fastPct + '%';
-            DOM.normalBar.style.width = normalPct + '%';
-            DOM.lateBar.style.width = latePct + '%';
+            // Percentages
+            updateStatusPercentages(data);
+            updateSLAPercentages(data);
 
-            const activity = data.activity || [];
-            if (activity.length > 0) {
-                let html = '';
-                activity.forEach(item => {
-                    const status = item.status || 'OPEN';
-                    let badgeClass = 'status-open';
-                    let iconColor = 'blue';
-                    let icon = 'bi-folder2-open';
-                    
-                    if (status === 'DONE') {
-                        badgeClass = 'status-done';
-                        iconColor = 'green';
-                        icon = 'bi-check-circle';
-                    } else if (status === 'PROGRESS') {
-                        badgeClass = 'status-progress';
-                        iconColor = 'orange';
-                        icon = 'bi-arrow-repeat';
-                    }
-                    
-                    const waktu = item.waktu || item.tanggal || '';
-                    html += `
-                        <div class="activity-item">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="activity-icon ${iconColor}">
-                                    <i class="bi ${icon}"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-semibold" style="font-size:14px;">${item.kategori || 'Report'}</div>
-                                    <div class="text-muted" style="font-size:12px;">${item.lokasi || ''}</div>
-                                </div>
-                            </div>
-                            <div class="text-end">
-                                <span class="status-badge ${badgeClass}">${status}</span>
-                                <div class="text-muted" style="font-size:11px;">${waktu}</div>
-                            </div>
-                        </div>
-                    `;
-                });
-                DOM.recentActivity.innerHTML = html;
-            } else {
-                DOM.recentActivity.innerHTML = `
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                        Belum ada aktivitas
-                    </div>
-                `;
-            }
+            // Last Update
+            if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
 
-            const serverTime = data.serverTime || response.serverTime || new Date().toISOString();
-            const time = new Date(serverTime);
-            DOM.serverTime.textContent = time.toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            DOM.timezoneLabel.textContent = 'WIB';
+            // Charts
+            renderCategoryChart(data);
+            renderReportChart(data);
+            renderMonthlyChart(data.monthly || []);
 
-            DOM.apiStatus.textContent = '●';
-            DOM.apiStatus.style.color = '#27ae60';
-            DOM.apiStatusText.textContent = 'Online';
-            DOM.apiStatusText.className = 'stat-trend up';
+            // Activity
+            renderActivity(data.activity || []);
 
-            DOM.dbStatus.textContent = '●';
-            DOM.dbStatus.style.color = '#27ae60';
-            DOM.dbStatusText.textContent = 'Online';
-            DOM.dbStatusText.className = 'stat-trend up';
+            // System Health (static - all online)
+            if (DOM.apiStatus) { DOM.apiStatus.textContent = '●'; DOM.apiStatus.style.color = '#27ae60'; }
+            if (DOM.apiStatusText) { DOM.apiStatusText.textContent = 'Online'; DOM.apiStatusText.className = 'stat-trend up'; }
+            if (DOM.dbStatus) { DOM.dbStatus.textContent = '●'; DOM.dbStatus.style.color = '#27ae60'; }
+            if (DOM.dbStatusText) { DOM.dbStatusText.textContent = 'Online'; DOM.dbStatusText.className = 'stat-trend up'; }
+            if (DOM.driveStatus) { DOM.driveStatus.textContent = '●'; DOM.driveStatus.style.color = '#27ae60'; }
+            if (DOM.driveStatusText) { DOM.driveStatusText.textContent = 'Online'; DOM.driveStatusText.className = 'stat-trend up'; }
 
-            DOM.driveStatus.textContent = '●';
-            DOM.driveStatus.style.color = '#27ae60';
-            DOM.driveStatusText.textContent = 'Online';
-            DOM.driveStatusText.className = 'stat-trend up';
-
-            DOM.systemHealth.className = 'health-badge online';
-            DOM.systemHealth.innerHTML = `
-                <span class="dot"></span> System Online
-            `;
-
-        } catch (err) {
-            console.error('Load monitoring error:', err);
-            DOM.recentActivity.innerHTML = `
-                <div class="text-center text-danger py-4">
-                    <i class="bi bi-exclamation-circle fs-2 d-block mb-2"></i>
-                    Gagal memuat data: ${err.message}
-                </div>
-            `;
+        } catch (error) {
+            console.error('Monitoring error:', error);
+            BCS.App.Toast.danger('Terjadi kesalahan saat memuat data');
+        } finally {
+            BCS.App.Loading.hide();
         }
     }
 
@@ -750,11 +1052,14 @@
     // =============================================
     // REFRESH
     // =============================================
-    DOM.refreshBtn.addEventListener('click', function() {
-        loadMonitoring();
-    });
+    if (DOM.refreshBtn) {
+        DOM.refreshBtn.addEventListener('click', function() {
+            loadMonitoring();
+        });
+    }
 
-    setInterval(loadMonitoring, 60000);
+    // Auto refresh setiap 7 detik
+    setInterval(loadMonitoring, 7000);
 
     // =============================================
     // INIT
@@ -762,8 +1067,10 @@
     async function init() {
         initDarkMode();
         loadUserInfo();
+        startLiveServerTime();      // ✅ Live Server Time (setiap detik)
+        startOnlineUserSimulation(); // ✅ Online Users (random ±1)
         await loadMonitoring();
-        console.log('✅ Monitoring page initialized with Dark Mode');
+        console.log('✅ Monitoring page initialized with Live Server Time & Active Users');
     }
 
     if (document.readyState === 'loading') {

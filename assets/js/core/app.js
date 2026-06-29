@@ -1,6 +1,6 @@
 // ======================================================
 // Building Care System Enterprise v7.1 FINAL
-// Core Enterprise Framework
+// Core Enterprise Framework - Loading Disabled
 // Radiant Group Duri
 // ======================================================
 
@@ -166,12 +166,10 @@ BCS.Storage = (() => {
             if (data.nik) set("nik", data.nik);
             if (data.role) set("role", data.role);
             
-            // Backup ke sessionStorage
             try {
                 sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
             } catch (e) {}
             
-            // Update Session global
             if (window.Session && typeof Session.set === 'function') {
                 Session.set(data);
             }
@@ -186,7 +184,6 @@ BCS.Storage = (() => {
         let data = get(SESSION_KEY);
         if (data && data.token) return data;
         
-        // Try sessionStorage backup
         try {
             const backup = sessionStorage.getItem(SESSION_KEY);
             if (backup) {
@@ -198,7 +195,6 @@ BCS.Storage = (() => {
             }
         } catch (e) {}
         
-        // Try legacy keys
         const token = get("token");
         if (token) {
             const user = get("user") || {};
@@ -234,25 +230,14 @@ BCS.Storage = (() => {
 
 /**
  * ======================================================
- * 5. APP UI HELPERS
+ * 5. APP UI HELPERS - LOADING DISABLED
  * ======================================================
  */
 BCS.App = (() => {
-    let loadingCounter = 0;
-
+    // Loading is disabled to prevent blank screen
     const Loading = {
-        show: () => {
-            loadingCounter++;
-            const loader = document.getElementById("loading");
-            if (loader) loader.style.display = "flex";
-        },
-        hide: () => {
-            loadingCounter = Math.max(0, loadingCounter - 1);
-            if (loadingCounter === 0) {
-                const loader = document.getElementById("loading");
-                if (loader) loader.style.display = "none";
-            }
-        }
+        show: () => {},  // No-op
+        hide: () => {}   // No-op
     };
 
     const Toast = {
@@ -281,8 +266,9 @@ BCS.App = (() => {
         Toast,
         Theme,
         initEventSubscribers: () => {
-            BCS.Events.on("loading:start", Loading.show);
-            BCS.Events.on("loading:end", Loading.hide);
+            // Remove loading event listeners
+            BCS.Events.off("loading:start", Loading.show);
+            BCS.Events.off("loading:end", Loading.hide);
         }
     });
 })();

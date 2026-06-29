@@ -471,7 +471,7 @@
     }
 
     // =============================================
-    // UPDATE STATUS PERCENTAGES
+    // UPDATE STATUS PERCENTAGES (OPEN, PROGRESS, DONE)
     // =============================================
     function updateStatusPercentages(data) {
         const open = data.open || 0;
@@ -479,11 +479,11 @@
         const done = data.done || 0;
         const total = open + progress + done;
 
+        const openPercentEl = document.querySelector('.status-card.open .status-percent');
+        const progressPercentEl = document.querySelector('.status-card.progress-card .status-percent');
+        const donePercentEl = document.querySelector('.status-card.done-card .status-percent');
+
         if (total === 0) {
-            const openPercentEl = document.querySelector('.status-card.open .status-percent');
-            const progressPercentEl = document.querySelector('.status-card.progress-card .status-percent');
-            const donePercentEl = document.querySelector('.status-card.done-card .status-percent');
-            
             if (openPercentEl) openPercentEl.textContent = '0% dari total report';
             if (progressPercentEl) progressPercentEl.textContent = '0% dari total report';
             if (donePercentEl) donePercentEl.textContent = '0% dari total report';
@@ -494,17 +494,13 @@
         const progressPct = Math.round((progress / total) * 100);
         const donePct = Math.round((done / total) * 100);
 
-        const openPercentEl = document.querySelector('.status-card.open .status-percent');
-        const progressPercentEl = document.querySelector('.status-card.progress-card .status-percent');
-        const donePercentEl = document.querySelector('.status-card.done-card .status-percent');
-
         if (openPercentEl) openPercentEl.textContent = openPct + '% dari total report';
         if (progressPercentEl) progressPercentEl.textContent = progressPct + '% dari total report';
         if (donePercentEl) donePercentEl.textContent = donePct + '% dari total report';
     }
 
     // =============================================
-    // UPDATE SLA PERCENTAGES
+    // UPDATE SLA PERCENTAGES (FAST, NORMAL, LATE)
     // =============================================
     function updateSLAPercentages(data) {
         const fast = data.fast || 0;
@@ -566,14 +562,12 @@
 
             if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
 
-            // =============================================
             // ✅ CALCULATE & UPDATE TRENDS
-            // =============================================
             const trends = calculateTrends(data);
             updateTrendUI(trends);
             saveCurrentData(data);
 
-            // Update percentages
+            // ✅ UPDATE PERCENTAGES (dinamis)
             updateStatusPercentages(data);
             updateSLAPercentages(data);
 
@@ -620,7 +614,7 @@
 
         setInterval(updateDateTime, 1000);
 
-        console.log('✅ Dashboard initialized with dynamic trends');
+        console.log('✅ Dashboard initialized with dynamic trends & percentages');
     }
 
     // Ekspos ke global

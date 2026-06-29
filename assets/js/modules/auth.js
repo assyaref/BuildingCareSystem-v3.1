@@ -1,4 +1,4 @@
-// auth.js - Building Care System v7.2 (fixed logout)
+// auth.js - Building Care System v7.3 (fixed logout with server sync)
 
 (function() {
     "use strict";
@@ -87,12 +87,41 @@
     }
 
     // =============================================
-    // LOGOUT - FIXED: gunakan removeSession
+    // LOGOUT - Sync with server before clearing
     // =============================================
-    function logout(redirectTo = "login.html") {
+    async function logout(redirectTo = "login.html") {
         BCS.Logger.info("Logout");
 
-        // Gunakan removeSession (bukan clearSession)
+        // 1. Get token from session before clearing
+        let token = '';
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.token) {
+                token = session.token;
+            }
+        } catch (e) {
+            console.warn("Failed to get token:", e);
+        }
+
+        // 2. Send logout request to server (if token exists)
+        if (token && BCS.Api && typeof BCS.Api.post === 'function') {
+            try {
+                const response = await BCS.Api.post('logout', { token: token });
+                console.log('📤 Logout response from server:', response);
+                if (response && response.success) {
+                    console.log('✅ Logout recorded on server');
+                } else {
+                    console.warn('⚠️ Server logout failed:', response?.message);
+                }
+            } catch (e) {
+                console.warn('⚠️ Logout API call failed (continuing local cleanup):', e);
+                // Continue with local logout anyway
+            }
+        } else {
+            console.warn('⚠️ No token found, skipping server logout');
+        }
+
+        // 3. Clear local session (always)
         try {
             if (BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
                 BCS.Storage.removeSession();
@@ -101,10 +130,10 @@
                 Session.clear();
             }
         } catch (e) {
-            console.warn("Logout fallback:", e);
+            console.warn("Logout fallback error:", e);
         }
 
-        // Hapus manual semua key
+        // 4. Clear all keys (redundant but safe)
         const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
         keys.forEach(key => {
             try { localStorage.removeItem(key); } catch(e) {}
@@ -128,5 +157,5 @@
     window.auth = { login, logout, isLoggedIn, getSession };
     window.login = login;
 
-    console.log("✅ auth.js v7.2 loaded (compatible with api.js)");
+    console.log("✅ auth.js v7.3 loaded (fixed logout with server sync)");
 })();

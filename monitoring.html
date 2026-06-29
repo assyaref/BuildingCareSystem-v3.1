@@ -159,53 +159,30 @@
         [data-theme="dark"] .dark-toggle { border-color: #3a3a52; color: #ffd700; }
         [data-theme="dark"] .dark-toggle:hover { background: #2a2a42; }
 
-        /* Live indicator pulse */
         @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.8); }
         }
         .live-dot {
             display: inline-block;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: #22c55e;
             animation: pulse-dot 1.5s ease-in-out infinite;
-            margin-right: 6px;
+            margin-left: 4px;
         }
-        .live-dot.off { background: #6b7280; animation: none; opacity: 0.5; }
-
-        .online-counter {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .online-counter .count {
-            font-size: 18px;
-            font-weight: 700;
-            color: #22c55e;
-            transition: all 0.3s;
-            min-width: 24px;
-            display: inline-block;
-            text-align: center;
-        }
-        .online-counter .count.down { color: #ef4444; }
-        .online-counter .label { color: var(--text-muted); font-weight: 400; font-size: 13px; }
     </style>
 </head>
 
 <body>
 
-<!-- LOADING OVERLAY -->
+<!-- LOADING OVERLAY (Tanpa Teks) -->
 <div id="loading" class="loading-overlay" style="display:none;">
     <div class="text-center">
         <div class="spinner-border text-light" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
-        <div class="text-white mt-3">Please Wait...</div>
     </div>
 </div>
 
@@ -219,6 +196,7 @@
             <h5>Building Care</h5>
             <small>Enterprise v3.2</small>
         </div>
+
         <nav>
             <a href="dashboard.html" class="menu">
                 <i class="bi bi-grid-fill"></i>
@@ -251,7 +229,7 @@
     <main class="content">
         <div class="container-fluid">
 
-            <!-- TOPBAR dengan Online Users & Live Time -->
+            <!-- TOPBAR -->
             <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
                     <h3>Monitoring Center</h3>
@@ -263,116 +241,107 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <!-- Online Users Counter -->
-                    <div class="online-counter px-3 py-1 rounded-3" style="background: var(--bg-card-hover); border: 1px solid var(--border-color);">
-                        <i class="bi bi-person-fill text-primary" style="font-size: 18px;"></i>
-                        <span class="label">Online:</span>
-                        <span class="count" id="onlineUserCount">0</span>
-                        <span class="live-dot" id="liveDot"></span>
+                    <!-- Auto-Refresh Timer -->
+                    <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background: var(--bg-card-hover); border: 1px solid var(--border-color);">
+                        <span class="text-muted" style="font-size: 12px;">Auto-refresh:</span>
+                        <span id="refreshTimer" class="fw-bold" style="font-size: 13px; color: var(--text-primary); min-width: 20px; text-align: center;">7</span>
+                        <span class="text-muted" style="font-size: 11px;">detik</span>
+                        <span class="live-dot"></span>
                     </div>
 
                     <!-- Dark Mode Toggle -->
-                    <button class="btn theme-switcher-btn d-flex align-items-center justify-content-center p-0" id="darkModeToggle" title="Toggle Theme" style="width: 42px; height: 42px; border-radius: 50% !important; background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); transition: var(--transition);">
-                        <i class="bi bi-moon-fill" id="darkModeIcon" style="font-size: 1.15rem;"></i>
+                    <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
+                        <i class="bi bi-moon-fill" id="darkModeIcon"></i>
                     </button>
 
-                    <!-- User Profile -->
-                    <div class="user-profile-card p-3 d-flex align-items-center gap-3">
-                        <div class="avatar d-flex justify-content-center align-items-center" style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0D47A1, #2563EB); color: #fff;">
-                            <i class="bi bi-person-fill" style="font-size: 1.3rem;"></i>
-                        </div>
-                        <div>
-                            <div class="profile-name fw-semibold text-truncate" id="userName" style="max-width: 150px; color: var(--text-primary);">Loading...</div>
-                            <div class="role-badge" id="userRole" style="font-size: 11px; background: var(--accent-soft); color: var(--accent-color); padding: 2px 10px; border-radius: 999px; font-weight: 600; display: inline-block; margin-top: 2px;">Administrator</div>
-                        </div>
+                    <div class="avatar-sm" id="userAvatar">U</div>
+                    <div>
+                        <div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary);">Loading...</div>
+                        <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
                     </div>
                 </div>
             </header>
 
-            <!-- ======================================================
-                 SUMMARY CARDS (Total, AC, Listrik, Gedung)
-            ======================================================= -->
-            <section class="row g-4 mt-1">
-                <div class="col-xl-3 col-md-6">
-                    <div class="summary-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size: 12px; font-weight: 600;">Total Report</h6>
-                                <h2 id="monitorTotal" class="fw-bold mb-2" style="color: var(--text-primary);">0</h2>
-                            </div>
-                            <div class="summary-icon bg-primary" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+            <!-- SUMMARY CARDS -->
+            <section class="row g-4 mt-2">
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card total-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-primary">
                                 <i class="bi bi-file-earmark-text-fill"></i>
                             </div>
+                            <div>
+                                <h6>Total Report</h6>
+                                <h2 id="monitorTotal">0</h2>
+                            </div>
                         </div>
-                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
-                            <i id="totalTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
+                        <div class="summary-trend success">
+                            <i class="bi bi-arrow-up"></i>
                             <span id="totalTrend">0</span>
-                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                            <small>dari minggu lalu</small>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-md-6">
-                    <div class="summary-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size: 12px; font-weight: 600;">AC</h6>
-                                <h2 id="monitorAc" class="fw-bold mb-2" style="color: var(--text-primary);">0</h2>
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card ac-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-danger-soft">
+                                <i class="bi bi-folder2-open"></i>
                             </div>
-                            <div class="summary-icon bg-info" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
-                                <i class="bi bi-snow"></i>
+                            <div>
+                                <h6>Open</h6>
+                                <h2 id="monitorOpen">0</h2>
                             </div>
                         </div>
-                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
-                            <i id="acTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
-                            <span id="acTrend">0</span>
-                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                        <div class="summary-trend danger">
+                            <i class="bi bi-arrow-down"></i>
+                            <span id="openTrend">0</span>
+                            <small>dari minggu lalu</small>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-md-6">
-                    <div class="summary-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size: 12px; font-weight: 600;">Listrik</h6>
-                                <h2 id="monitorListrik" class="fw-bold mb-2" style="color: var(--text-primary);">0</h2>
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card listrik-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-warning-soft">
+                                <i class="bi bi-hourglass-split"></i>
                             </div>
-                            <div class="summary-icon bg-warning" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
-                                <i class="bi bi-lightning-charge-fill"></i>
+                            <div>
+                                <h6>Progress</h6>
+                                <h2 id="monitorProgress">0</h2>
                             </div>
                         </div>
-                        <div class="summary-trend text-danger d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
-                            <i id="listrikTrendIcon" class="bi bi-arrow-down-short fs-5"></i>
-                            <span id="listrikTrend">0</span>
-                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                        <div class="summary-trend success">
+                            <i class="bi bi-arrow-up"></i>
+                            <span id="progressTrend">0</span>
+                            <small>dari minggu lalu</small>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-md-6">
-                    <div class="summary-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size: 12px; font-weight: 600;">Kondisi Gedung</h6>
-                                <h2 id="monitorGedung" class="fw-bold mb-2" style="color: var(--text-primary);">0</h2>
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card gedung-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-success-soft">
+                                <i class="bi bi-check-circle-fill"></i>
                             </div>
-                            <div class="summary-icon bg-purple" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
-                                <i class="bi bi-building-fill"></i>
+                            <div>
+                                <h6>Completed</h6>
+                                <h2 id="monitorDone">0</h2>
                             </div>
                         </div>
-                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
-                            <i id="gedungTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
-                            <span id="gedungTrend">0</span>
-                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                        <div class="summary-trend success">
+                            <i class="bi bi-arrow-up"></i>
+                            <span id="doneTrend">0</span>
+                            <small>dari minggu lalu</small>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- ======================================================
-                 STATUS CARDS (OPEN, PROGRESS, DONE)
-            ======================================================= -->
+            <!-- STATUS CARDS (OPEN, PROGRESS, DONE) -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card p-4">
@@ -423,9 +392,7 @@
                 </div>
             </section>
 
-            <!-- ======================================================
-                 SLA CARDS (FAST, NORMAL, LATE)
-            ======================================================= -->
+            <!-- SLA CARDS -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card p-4">
@@ -476,9 +443,7 @@
                 </div>
             </section>
 
-            <!-- ======================================================
-                 CHART + ACTIVITY
-            ======================================================= -->
+            <!-- CHART + ACTIVITY -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-8">
                     <div class="card enterprise-card h-100">
@@ -521,9 +486,7 @@
                 </div>
             </section>
 
-            <!-- ======================================================
-                 MONTHLY REPORT TREND
-            ======================================================= -->
+            <!-- MONTHLY TREND -->
             <section class="row g-4 mt-2">
                 <div class="col-12">
                     <div class="card enterprise-card">
@@ -539,9 +502,7 @@
                 </div>
             </section>
 
-            <!-- ======================================================
-                 SYSTEM HEALTH (dengan Live Server Time)
-            ======================================================= -->
+            <!-- SYSTEM HEALTH -->
             <section class="row g-4 mt-2 mb-4">
                 <div class="col-md-3">
                     <div class="stat-card">
@@ -611,116 +572,6 @@
     'use strict';
 
     // =============================================
-    // DOM REFS
-    // =============================================
-    const DOM = {
-        monitorTotal: document.getElementById('monitorTotal'),
-        monitorAc: document.getElementById('monitorAc'),
-        monitorListrik: document.getElementById('monitorListrik'),
-        monitorGedung: document.getElementById('monitorGedung'),
-        monitorOpen: document.getElementById('monitorOpen'),
-        monitorProgress: document.getElementById('monitorProgress'),
-        monitorDone: document.getElementById('monitorDone'),
-        fastCount: document.getElementById('fastCount'),
-        normalCount: document.getElementById('normalCount'),
-        lateCount: document.getElementById('lateCount'),
-        fastPercent: document.getElementById('fastPercent'),
-        normalPercent: document.getElementById('normalPercent'),
-        latePercent: document.getElementById('latePercent'),
-        lastUpdate: document.getElementById('lastUpdate'),
-        recentActivity: document.getElementById('recentActivity'),
-        userName: document.getElementById('userName'),
-        userRole: document.getElementById('userRole'),
-        apiStatus: document.getElementById('apiStatus'),
-        dbStatus: document.getElementById('dbStatus'),
-        driveStatus: document.getElementById('driveStatus'),
-        apiStatusText: document.getElementById('apiStatusText'),
-        dbStatusText: document.getElementById('dbStatusText'),
-        driveStatusText: document.getElementById('driveStatusText'),
-        serverTimeDisplay: document.getElementById('serverTimeDisplay'),
-        timezoneLabel: document.getElementById('timezoneLabel'),
-        refreshBtn: document.getElementById('refreshMonitoring'),
-        onlineUserCount: document.getElementById('onlineUserCount'),
-        liveDot: document.getElementById('liveDot')
-    };
-
-    // Chart instances
-    let categoryChart = null;
-    let reportChart = null;
-    let monthlyChart = null;
-
-    // =============================================
-    // ONLINE USERS - SIMULASI LIVE
-    // =============================================
-    let currentOnlineUsers = 0;
-    let onlineUserInterval = null;
-
-    function updateOnlineUsers() {
-        // Simulasi perubahan ±1 setiap 5-10 detik
-        const change = Math.random() > 0.5 ? 1 : -1;
-        const minUsers = 1;
-        const maxUsers = 12;
-        let newCount = currentOnlineUsers + change;
-
-        // Batasi range
-        if (newCount < minUsers) newCount = minUsers + Math.floor(Math.random() * 3);
-        if (newCount > maxUsers) newCount = maxUsers - Math.floor(Math.random() * 3);
-
-        currentOnlineUsers = newCount;
-
-        if (DOM.onlineUserCount) {
-            DOM.onlineUserCount.textContent = currentOnlineUsers;
-            // Animasi perubahan warna
-            DOM.onlineUserCount.classList.remove('down');
-            if (change < 0) {
-                DOM.onlineUserCount.classList.add('down');
-            }
-            // Reset setelah animasi
-            setTimeout(() => {
-                if (DOM.onlineUserCount) DOM.onlineUserCount.classList.remove('down');
-            }, 800);
-        }
-
-        // Update live dot status
-        if (DOM.liveDot) {
-            DOM.liveDot.className = 'live-dot';
-            DOM.liveDot.style.animation = 'pulse-dot 1.5s ease-in-out infinite';
-        }
-    }
-
-    function startOnlineUserSimulation() {
-        // Inisialisasi random 3-8
-        currentOnlineUsers = Math.floor(Math.random() * 6) + 3;
-        if (DOM.onlineUserCount) DOM.onlineUserCount.textContent = currentOnlineUsers;
-
-        // Update setiap 5-10 detik
-        if (onlineUserInterval) clearInterval(onlineUserInterval);
-        onlineUserInterval = setInterval(updateOnlineUsers, Math.floor(Math.random() * 5000) + 5000);
-
-        // Update pertama setelah 3 detik
-        setTimeout(updateOnlineUsers, 3000);
-    }
-
-    // =============================================
-    // LIVE SERVER TIME (setiap detik)
-    // =============================================
-    function startLiveServerTime() {
-        function updateClock() {
-            if (!DOM.serverTimeDisplay) return;
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            DOM.serverTimeDisplay.textContent = hours + ':' + minutes + ':' + seconds;
-        }
-
-        // Update immediately
-        updateClock();
-        // Then every second
-        setInterval(updateClock, 1000);
-    }
-
-    // =============================================
     // DARK MODE
     // =============================================
     function initDarkMode() {
@@ -759,6 +610,125 @@
     }
 
     // =============================================
+    // DOM REFS
+    // =============================================
+    const DOM = {
+        monitorTotal: document.getElementById('monitorTotal'),
+        monitorOpen: document.getElementById('monitorOpen'),
+        monitorProgress: document.getElementById('monitorProgress'),
+        monitorDone: document.getElementById('monitorDone'),
+        fastCount: document.getElementById('fastCount'),
+        normalCount: document.getElementById('normalCount'),
+        lateCount: document.getElementById('lateCount'),
+        fastPercent: document.getElementById('fastPercent'),
+        normalPercent: document.getElementById('normalPercent'),
+        latePercent: document.getElementById('latePercent'),
+        lastUpdate: document.getElementById('lastUpdate'),
+        recentActivity: document.getElementById('recentActivity'),
+        userName: document.getElementById('userName'),
+        userRole: document.getElementById('userRole'),
+        userAvatar: document.getElementById('userAvatar'),
+        systemHealth: document.getElementById('systemHealth'),
+        apiStatus: document.getElementById('apiStatus'),
+        dbStatus: document.getElementById('dbStatus'),
+        driveStatus: document.getElementById('driveStatus'),
+        apiStatusText: document.getElementById('apiStatusText'),
+        dbStatusText: document.getElementById('dbStatusText'),
+        driveStatusText: document.getElementById('driveStatusText'),
+        serverTimeDisplay: document.getElementById('serverTimeDisplay'),
+        timezoneLabel: document.getElementById('timezoneLabel'),
+        refreshBtn: document.getElementById('refreshMonitoring')
+    };
+
+    // Chart instances
+    let categoryChart = null;
+    let reportChart = null;
+    let monthlyChart = null;
+
+    // =============================================
+    // AUTO-REFRESH SETIAP 7 DETIK + TOAST
+    // =============================================
+    let refreshTimer = 7;
+    let refreshInterval = null;
+    let timerInterval = null;
+    let isRefreshing = false;
+
+    function showRefreshToast() {
+        const toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        toast.fire({
+            icon: 'info',
+            title: '🔄 Data diperbarui...',
+            text: 'Monitoring sedang di-refresh',
+            timer: 2000
+        });
+    }
+
+    function performRefresh() {
+        if (isRefreshing) return;
+        isRefreshing = true;
+
+        showRefreshToast();
+        loadMonitoring();
+
+        refreshTimer = 7;
+        updateTimerDisplay();
+
+        setTimeout(() => {
+            isRefreshing = false;
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const timerEl = document.getElementById('refreshTimer');
+        if (timerEl) {
+            timerEl.textContent = refreshTimer;
+        }
+    }
+
+    function startAutoRefresh() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        if (timerInterval) clearInterval(timerInterval);
+
+        timerInterval = setInterval(function() {
+            refreshTimer--;
+            if (refreshTimer <= 0) {
+                refreshTimer = 7;
+            }
+            updateTimerDisplay();
+        }, 1000);
+
+        refreshInterval = setInterval(function() {
+            performRefresh();
+        }, 7000);
+
+        updateTimerDisplay();
+        console.log('✅ Monitoring auto-refresh started (every 7 seconds)');
+    }
+
+    function stopAutoRefresh() {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+            refreshInterval = null;
+        }
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        console.log('⏹ Monitoring auto-refresh stopped');
+    }
+
+    // =============================================
     // LOAD USER INFO
     // =============================================
     function loadUserInfo() {
@@ -771,6 +741,7 @@
 
                 DOM.userName.textContent = nama;
                 DOM.userRole.textContent = role;
+                DOM.userAvatar.textContent = nama.charAt(0).toUpperCase();
             }
         } catch (e) {
             console.warn('Load user info error:', e);
@@ -986,38 +957,26 @@
 
             const data = response.data || {};
 
-            // Summary cards
             if (DOM.monitorTotal) DOM.monitorTotal.textContent = data.total || 0;
-            if (DOM.monitorAc) DOM.monitorAc.textContent = data.ac || 0;
-            if (DOM.monitorListrik) DOM.monitorListrik.textContent = data.listrik || 0;
-            if (DOM.monitorGedung) DOM.monitorGedung.textContent = data.bangunan || data.gedung || 0;
-
-            // Status cards
             if (DOM.monitorOpen) DOM.monitorOpen.textContent = data.open || 0;
             if (DOM.monitorProgress) DOM.monitorProgress.textContent = data.progress || 0;
             if (DOM.monitorDone) DOM.monitorDone.textContent = data.done || 0;
 
-            // SLA cards
             if (DOM.fastCount) DOM.fastCount.textContent = data.fast || 0;
             if (DOM.normalCount) DOM.normalCount.textContent = data.normal || 0;
             if (DOM.lateCount) DOM.lateCount.textContent = data.late || 0;
 
-            // Percentages
             updateStatusPercentages(data);
             updateSLAPercentages(data);
 
-            // Last Update
             if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
 
-            // Charts
             renderCategoryChart(data);
             renderReportChart(data);
             renderMonthlyChart(data.monthly || []);
-
-            // Activity
             renderActivity(data.activity || []);
 
-            // System Health (static - all online)
+            // System Health - static online
             if (DOM.apiStatus) { DOM.apiStatus.textContent = '●'; DOM.apiStatus.style.color = '#27ae60'; }
             if (DOM.apiStatusText) { DOM.apiStatusText.textContent = 'Online'; DOM.apiStatusText.className = 'stat-trend up'; }
             if (DOM.dbStatus) { DOM.dbStatus.textContent = '●'; DOM.dbStatus.style.color = '#27ae60'; }
@@ -1025,12 +984,38 @@
             if (DOM.driveStatus) { DOM.driveStatus.textContent = '●'; DOM.driveStatus.style.color = '#27ae60'; }
             if (DOM.driveStatusText) { DOM.driveStatusText.textContent = 'Online'; DOM.driveStatusText.className = 'stat-trend up'; }
 
+            // Server Time (real-time)
+            const serverTime = data.serverTime || response.serverTime || new Date().toISOString();
+            const time = new Date(serverTime);
+            if (DOM.serverTimeDisplay) {
+                DOM.serverTimeDisplay.textContent = time.toLocaleTimeString('id-ID', {
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+            }
+            if (DOM.timezoneLabel) DOM.timezoneLabel.textContent = 'WIB';
+
         } catch (error) {
             console.error('Monitoring error:', error);
             BCS.App.Toast.danger('Terjadi kesalahan saat memuat data');
         } finally {
             BCS.App.Loading.hide();
         }
+    }
+
+    // =============================================
+    // LIVE SERVER TIME (real-time)
+    // =============================================
+    function startLiveServerTime() {
+        function updateClock() {
+            if (!DOM.serverTimeDisplay) return;
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            DOM.serverTimeDisplay.textContent = hours + ':' + minutes + ':' + seconds;
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
     }
 
     // =============================================
@@ -1050,7 +1035,7 @@
     });
 
     // =============================================
-    // REFRESH
+    // REFRESH BUTTON
     // =============================================
     if (DOM.refreshBtn) {
         DOM.refreshBtn.addEventListener('click', function() {
@@ -1058,20 +1043,21 @@
         });
     }
 
-    // Auto refresh setiap 60 detik
-    setInterval(loadMonitoring, 60000);
-
     // =============================================
     // INIT
     // =============================================
     async function init() {
         initDarkMode();
         loadUserInfo();
-        startLiveServerTime();      // ✅ Live Server Time (setiap detik)
-        startOnlineUserSimulation(); // ✅ Online Users (random ±1)
+        startLiveServerTime();
         await loadMonitoring();
-        console.log('✅ Monitoring page initialized with Live Server Time & Active Users');
+        startAutoRefresh();
+        console.log('✅ Monitoring page initialized with auto-refresh (7s)');
     }
+
+    window.addEventListener('beforeunload', function() {
+        stopAutoRefresh();
+    });
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);

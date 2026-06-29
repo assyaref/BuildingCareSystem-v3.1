@@ -83,6 +83,14 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <!-- Live Counter & Auto-Refresh Status -->
+                    <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background: var(--bg-card-hover); border: 1px solid var(--border-color);">
+                        <span class="text-muted" style="font-size: 12px;">Auto-refresh:</span>
+                        <span id="refreshTimer" class="fw-bold" style="font-size: 13px; color: var(--text-primary); min-width: 20px; text-align: center;">7</span>
+                        <span class="text-muted" style="font-size: 11px;">detik</span>
+                        <span class="live-dot" id="liveRefreshDot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse-dot 1.5s ease-in-out infinite;margin-left:4px;"></span>
+                    </div>
+
                     <button class="btn theme-switcher-btn d-flex align-items-center justify-content-center p-0" id="darkModeToggle" title="Toggle Theme" style="width: 42px; height: 42px; border-radius: 50% !important; background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); transition: var(--transition);">
                         <i class="bi bi-moon-fill" id="darkModeIcon" style="font-size: 1.15rem;"></i>
                     </button>
@@ -99,6 +107,9 @@
                 </div>
             </header>
 
+            <!-- ======================================================
+                 SUMMARY CARDS
+            ======================================================= -->
             <section class="row g-4 mt-1">
                 <div class="col-xl-3 col-md-6">
                     <div class="summary-card">
@@ -177,6 +188,9 @@
                 </div>
             </section>
 
+            <!-- ======================================================
+                 STATUS CARDS
+            ======================================================= -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card p-4">
@@ -189,7 +203,7 @@
                                 <h2 id="totalOpen" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
                             </div>
                         </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);">14.4% dari total report</div>
+                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);">0% dari total report</div>
                         <div class="sparkline spark-orange"></div>
                     </div>
                 </div>
@@ -205,7 +219,7 @@
                                 <h2 id="totalProgress" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
                             </div>
                         </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);">21.6% dari total report</div>
+                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);">0% dari total report</div>
                         <div class="sparkline spark-blue"></div>
                     </div>
                 </div>
@@ -221,12 +235,15 @@
                                 <h2 id="totalDone" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
                             </div>
                         </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);">64.0% dari total report</div>
+                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);">0% dari total report</div>
                         <div class="sparkline spark-green"></div>
                     </div>
                 </div>
             </section>
 
+            <!-- ======================================================
+                 SLA CARDS
+            ======================================================= -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card p-4">
@@ -277,6 +294,9 @@
                 </div>
             </section>
 
+            <!-- ======================================================
+                 CHART + ACTIVITY
+            ======================================================= -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-8">
                     <div class="card enterprise-card h-100">
@@ -313,13 +333,15 @@
                             <a href="#" class="text-decoration-none fw-medium" style="color: var(--accent-color); font-size: 14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size: 10px;"></i></a>
                         </div>
                         <div class="card-body p-4" style="max-height: 310px; overflow-y: auto;">
-                            <div id="recentActivity" class="d-flex flex-column gap-1">
-                                </div>
+                            <div id="recentActivity" class="d-flex flex-column gap-1"></div>
                         </div>
                     </div>
                 </div>
             </section>
 
+            <!-- ======================================================
+                 MONTHLY REPORT TREND
+            ======================================================= -->
             <section class="row g-4 mt-2 mb-4">
                 <div class="col-12">
                     <div class="card enterprise-card">
@@ -359,14 +381,13 @@
     'use strict';
 
     // =============================================
-    // DUAL COMPLEX THEME ROUTER (LIGHT & DARK)
+    // DARK MODE
     // =============================================
     function initDarkMode() {
         const toggle = document.getElementById('darkModeToggle');
         const icon = document.getElementById('darkModeIcon');
         if (!toggle) return;
 
-        // Default engine defaults to dark mode center environment config 
         const savedTheme = localStorage.getItem('bcs_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
         
@@ -399,7 +420,7 @@
     }
 
     // =============================================
-    // SECURE LOGOUT CONSOLE HANDLER
+    // LOGOUT
     // =============================================
     function initLogout() {
         const logoutBtn = document.getElementById('logoutBtn');
@@ -420,19 +441,122 @@
     }
 
     // =============================================
-    // BOOTSTRAP INITIALIZER ENGINE
+    // AUTO-REFRESH SETIAP 7 DETIK + TOAST
+    // =============================================
+    let refreshTimer = 7;
+    let refreshInterval = null;
+    let timerInterval = null;
+    let isRefreshing = false;
+
+    function showRefreshToast() {
+        // Gunakan SweetAlert2 Toast
+        const toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        toast.fire({
+            icon: 'info',
+            title: '🔄 Data diperbarui...',
+            text: 'Dashboard sedang di-refresh',
+            timer: 2000
+        });
+    }
+
+    function performRefresh() {
+        if (isRefreshing) return;
+        isRefreshing = true;
+
+        // Tampilkan toast
+        showRefreshToast();
+
+        // Jalankan refresh melalui DashboardController
+        if (window.DashboardController && typeof window.DashboardController.refresh === 'function') {
+            window.DashboardController.refresh();
+        } else {
+            // Fallback: reload halaman
+            window.location.reload();
+        }
+
+        // Reset timer
+        refreshTimer = 7;
+        updateTimerDisplay();
+
+        setTimeout(() => {
+            isRefreshing = false;
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const timerEl = document.getElementById('refreshTimer');
+        if (timerEl) {
+            timerEl.textContent = refreshTimer;
+        }
+    }
+
+    function startAutoRefresh() {
+        // Bersihkan interval lama
+        if (refreshInterval) clearInterval(refreshInterval);
+        if (timerInterval) clearInterval(timerInterval);
+
+        // Timer countdown setiap 1 detik
+        timerInterval = setInterval(function() {
+            refreshTimer--;
+            if (refreshTimer <= 0) {
+                refreshTimer = 7;
+            }
+            updateTimerDisplay();
+        }, 1000);
+
+        // Refresh setiap 7 detik
+        refreshInterval = setInterval(function() {
+            performRefresh();
+        }, 7000);
+
+        updateTimerDisplay();
+        console.log('✅ Auto-refresh started (every 7 seconds)');
+    }
+
+    function stopAutoRefresh() {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+            refreshInterval = null;
+        }
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        console.log('⏹ Auto-refresh stopped');
+    }
+
+    // =============================================
+    // BOOTSTRAP INITIALIZER
     // =============================================
     function init() {
         initDarkMode();
         initLogout();
-        console.log('✅ UI Dashboard System Initialized Engine Successfully');
+        startAutoRefresh();
+        console.log('✅ UI Dashboard System Initialized with Auto-Refresh (7s)');
     }
+
+    // Cleanup saat halaman ditutup
+    window.addEventListener('beforeunload', function() {
+        stopAutoRefresh();
+    });
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
+
 })();
 </script>
 

@@ -132,6 +132,29 @@
         .status-open { background: #fff3cd; color: #856404; }
         .status-progress { background: #cce5ff; color: #004085; }
         .status-done { background: #d4edda; color: #155724; }
+        .dark-toggle {
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .dark-toggle:hover {
+            background: #f0f2f5;
+            transform: rotate(20deg);
+        }
+        [data-theme="dark"] .dark-toggle {
+            border-color: #3a3a52;
+            color: #ffd700;
+        }
+        [data-theme="dark"] .dark-toggle:hover {
+            background: #2a2a42;
+        }
     </style>
 </head>
 
@@ -210,9 +233,14 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
+                    <!-- Dark Mode Toggle -->
+                    <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
+                        <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+                    </button>
+
                     <div class="avatar-sm" id="userAvatar">U</div>
                     <div>
-                        <div class="fw-bold" id="userName" style="font-size:14px;color:#1a1a2e;">Loading...</div>
+                        <div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary);">Loading...</div>
                         <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
                     </div>
                 </div>
@@ -557,6 +585,44 @@
     let currentFile = null;
 
     // =============================================
+    // DARK MODE
+    // =============================================
+    function initDarkMode() {
+        const toggle = document.getElementById('darkModeToggle');
+        const icon = document.getElementById('darkModeIcon');
+        if (!toggle) return;
+
+        const savedTheme = localStorage.getItem('bcs_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        if (icon) {
+            if (savedTheme === 'dark') {
+                icon.className = 'bi bi-sun-fill';
+                icon.style.color = '#ffd700';
+            } else {
+                icon.className = 'bi bi-moon-fill';
+                icon.style.color = '';
+            }
+        }
+
+        toggle.addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('bcs_theme', newTheme);
+            if (icon) {
+                if (newTheme === 'dark') {
+                    icon.className = 'bi bi-sun-fill';
+                    icon.style.color = '#ffd700';
+                } else {
+                    icon.className = 'bi bi-moon-fill';
+                    icon.style.color = '';
+                }
+            }
+        });
+    }
+
+    // =============================================
     // LOAD USER INFO
     // =============================================
     function loadUserInfo() {
@@ -713,7 +779,7 @@
         DOM.prioritas.value = '';
         DOM.deskripsi.value = '';
         clearPreview();
-        loadUserInfo(); // reset nama & departemen dari session
+        loadUserInfo();
     }
 
     // =============================================
@@ -735,20 +801,17 @@
     // =============================================
     // EVENT BINDING
     // =============================================
-    // Foto: Kamera
     DOM.takePhotoBtn.addEventListener('click', function() {
         DOM.photo.setAttribute('capture', 'environment');
         DOM.photo.click();
         setTimeout(() => DOM.photo.removeAttribute('capture'), 100);
     });
 
-    // Foto: Galeri
     DOM.galleryBtn.addEventListener('click', function() {
         DOM.photo.removeAttribute('capture');
         DOM.photo.click();
     });
 
-    // Foto: Change
     DOM.photo.addEventListener('change', function() {
         const file = this.files[0];
         if (file) {
@@ -762,22 +825,18 @@
         }
     });
 
-    // Foto: Remove
     DOM.removePhotoBtn.addEventListener('click', clearPreview);
-
-    // Reset
     DOM.resetBtn.addEventListener('click', resetForm);
-
-    // Submit
     DOM.form.addEventListener('submit', submitReport);
 
     // =============================================
     // INIT
     // =============================================
     async function init() {
+        initDarkMode();
         loadUserInfo();
         await loadSummary();
-        console.log('✅ Report page initialized');
+        console.log('✅ Report page initialized with Dark Mode');
     }
 
     if (document.readyState === 'loading') {

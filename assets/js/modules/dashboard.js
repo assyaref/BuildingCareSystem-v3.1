@@ -1,6 +1,6 @@
 // ======================================================
 // Building Care System Enterprise v7.1
-// dashboard.js - Dashboard Controller (Fix Data)
+// dashboard.js - Dashboard Controller (Fix Data & Chart)
 // Radiant Group Duri
 // ======================================================
 
@@ -13,7 +13,7 @@
     }
 
     // =============================================
-    // DOM REFS (ID sesuai dengan dashboard.html)
+    // DOM REFS
     // =============================================
     const DOM = {
         totalReport: document.getElementById('totalReport'),
@@ -38,6 +38,10 @@
         userRole: document.getElementById('userRole'),
         lastLogin: document.getElementById('lastLogin')
     };
+
+    // Chart instances
+    let categoryChart = null;
+    let monthlyChart = null;
 
     // =============================================
     // DEFAULT VALUES
@@ -103,13 +107,205 @@
     }
 
     // =============================================
+    // RENDER CATEGORY CHART (Pie/Doughnut)
+    // =============================================
+    function renderCategoryChart(data) {
+        const ctx = document.getElementById('renderCategoryChart');
+        if (!ctx) {
+            console.warn('Category chart canvas not found');
+            return;
+        }
+
+        const labels = ['AC', 'LISTRIK', 'KONDISI GEDUNG'];
+        const values = [
+            data.ac || 0,
+            data.listrik || 0,
+            data.bangunan || data.gedung || 0
+        ];
+        const colors = ['#06B6D4', '#FBBF24', '#7C3AED'];
+
+        // Destroy existing chart
+        if (categoryChart) {
+            categoryChart.destroy();
+            categoryChart = null;
+        }
+
+        categoryChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors,
+                    borderColor: '#ffffff',
+                    borderWidth: 3,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { size: 12, family: 'Poppins' },
+                            padding: 16,
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? Math.round((context.parsed / total) * 100) : 0;
+                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+
+    // =============================================
+    // RENDER MONTHLY CHART (Line)
+    // =============================================
+    function renderMonthlyChart(monthlyData) {
+        const ctx = document.getElementById('monthlyChart');
+        if (!ctx) {
+            console.warn('Monthly chart canvas not found');
+            return;
+        }
+
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        const data = monthlyData || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+        // Destroy existing chart
+        if (monthlyChart) {
+            monthlyChart.destroy();
+            monthlyChart = null;
+        }
+
+        monthlyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthNames,
+                datasets: [{
+                    label: 'Jumlah Laporan',
+                    data: data,
+                    backgroundColor: 'rgba(75, 123, 236, 0.1)',
+                    borderColor: '#4b7bec',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#4b7bec',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' laporan';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            font: { size: 11 }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: { size: 11 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // =============================================
+    // RENDER ACTIVITY
+    // =============================================
+    function renderActivity(activity) {
+        if (!DOM.recentActivity) return;
+
+        if (!activity || activity.length === 0) {
+            DOM.recentActivity.innerHTML = '<div class="text-muted text-center py-3">Belum ada aktivitas</div>';
+            return;
+        }
+
+        let html = '';
+        activity.forEach(item => {
+            const status = item.status || 'OPEN';
+            let badgeClass = 'secondary';
+            let icon = 'bi-folder2-open';
+            let iconColor = '#6c757d';
+            
+            if (status === 'DONE') {
+                badgeClass = 'success';
+                icon = 'bi-check-circle';
+                iconColor = '#16a34a';
+            } else if (status === 'PROGRESS') {
+                badgeClass = 'warning';
+                icon = 'bi-arrow-repeat';
+                iconColor = '#d97706';
+            } else if (status === 'OPEN') {
+                badgeClass = 'danger';
+                icon = 'bi-folder2-open';
+                iconColor = '#dc2626';
+            }
+
+            const waktu = item.waktu || item.tanggal || '';
+            html += `
+                <div class="activity-item d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="activity-icon rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#f0f2f5;color:${iconColor};">
+                            <i class="bi ${icon}"></i>
+                        </div>
+                        <div>
+                            <strong style="font-size:14px;">${item.kategori || 'Report'}</strong>
+                            <small class="d-block text-muted" style="font-size:12px;">${item.lokasi || ''}</small>
+                            <small class="text-muted" style="font-size:11px;">${waktu}</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-${badgeClass}">${status}</span>
+                </div>
+            `;
+        });
+        DOM.recentActivity.innerHTML = html;
+    }
+
+    // =============================================
     // LOAD DASHBOARD DATA
     // =============================================
     async function loadDashboard() {
         try {
             BCS.App.Loading.show();
 
-            // Gunakan action 'getSummary' (ada di Code.gs)
             const response = await BCS.Api.post('getSummary', {});
             console.log('📊 Dashboard response:', response);
 
@@ -141,27 +337,12 @@
 
             if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
 
-            // Recent Activity
-            if (DOM.recentActivity && data.activity && data.activity.length > 0) {
-                let html = '';
-                data.activity.forEach(item => {
-                    const statusClass = item.status === 'DONE' ? 'success' :
-                                       item.status === 'PROGRESS' ? 'warning' : 'secondary';
-                    html += `
-                        <div class="activity-item d-flex justify-content-between align-items-center border-bottom py-2">
-                            <div>
-                                <strong>${item.kategori || 'Report'}</strong>
-                                <small class="d-block text-muted">${item.lokasi || ''}</small>
-                                <small class="text-muted">${item.tanggal || ''} ${item.waktu || ''}</small>
-                            </div>
-                            <span class="badge bg-${statusClass}">${item.status || 'OPEN'}</span>
-                        </div>
-                    `;
-                });
-                DOM.recentActivity.innerHTML = html;
-            } else if (DOM.recentActivity) {
-                DOM.recentActivity.innerHTML = '<div class="text-muted text-center py-3">Belum ada aktivitas</div>';
-            }
+            // Render Charts
+            renderCategoryChart(data);
+            renderMonthlyChart(data.monthly || []);
+
+            // Render Activity
+            renderActivity(data.activity || []);
 
         } catch (error) {
             console.error('Dashboard error:', error);
@@ -183,7 +364,7 @@
 
     function startAutoRefresh() {
         if (refreshInterval) clearInterval(refreshInterval);
-        refreshInterval = setInterval(refresh, 60000); // setiap 60 detik
+        refreshInterval = setInterval(refresh, 60000);
     }
 
     // =============================================
@@ -196,10 +377,9 @@
         loadDashboard();
         startAutoRefresh();
 
-        // Update jam setiap detik
         setInterval(updateDateTime, 1000);
 
-        console.log('✅ Dashboard initialized');
+        console.log('✅ Dashboard initialized with Charts');
     }
 
     // Ekspos ke global
@@ -208,7 +388,6 @@
         refresh
     };
 
-    // Jalankan saat DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

@@ -54,10 +54,10 @@
             padding: 24px;
             text-align: center;
             height: 100%;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             border: 1px solid #eef2f8;
         }
-        .sla-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.05); }
+        .sla-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); }
         .sla-card .sla-value { font-size: 36px; font-weight: 700; }
         .sla-card .sla-label { font-size: 13px; color: #718096; font-weight: 500; margin-top: 4px; }
         .sla-card .sla-bar { height: 6px; border-radius: 4px; margin-top: 12px; background: #eef2f8; overflow: hidden; }
@@ -72,7 +72,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background 0.2s ease;
         }
+        .activity-item:hover { background: #f8fafc; border-radius: 8px; padding-left: 8px; padding-right: 8px; }
         .activity-item:last-child { border-bottom: none; }
         .activity-item .activity-icon {
             width: 36px;
@@ -110,11 +112,11 @@
             padding: 20px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.02);
             border: 1px solid #f0f2f5;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             height: 100%;
             text-align: center;
         }
-        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.06); }
         .stat-card .stat-icon {
             width: 48px;
             height: 48px;
@@ -172,11 +174,94 @@
             animation: pulse-dot 1.5s ease-in-out infinite;
             margin-left: 4px;
         }
+
+        /* SUMMARY CARDS GRADIEN & SMOOTH */
+        .summary-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            position: relative;
+            overflow: hidden;
+        }
+        .summary-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+        }
+        .summary-card .summary-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .summary-card .summary-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+        .summary-card:hover .summary-icon {
+            transform: scale(1.05) rotate(-4deg);
+        }
+        .summary-card .summary-icon.bg-primary { background: linear-gradient(145deg, #4b7bec, #3b6bd6); }
+        .summary-card .summary-icon.bg-danger-soft { background: linear-gradient(145deg, #fca5a5, #ef4444); }
+        .summary-card .summary-icon.bg-warning-soft { background: linear-gradient(145deg, #fcd34d, #f59e0b); }
+        .summary-card .summary-icon.bg-success-soft { background: linear-gradient(145deg, #6ee7b7, #22c55e); }
+        .summary-card .summary-trend {
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .summary-card .summary-trend.success { color: #22c55e; }
+        .summary-card .summary-trend.danger { color: #ef4444; }
+        .summary-card .summary-trend i { font-size: 16px; }
+        .summary-card h6 {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 500;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .summary-card h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin: 0;
+        }
+
+        /* Online counter */
+        .online-counter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 30px;
+            background: var(--bg-card-hover);
+            border: 1px solid var(--border-color);
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .online-counter .count {
+            font-weight: 700;
+            color: #22c55e;
+            min-width: 24px;
+            text-align: center;
+        }
+        .online-counter .label {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
     </style>
 </head>
 
 <body>
-
 
 <!-- APP WRAPPER -->
 <div class="wrapper">
@@ -233,12 +318,20 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <!-- Online Users -->
+                    <div class="online-counter">
+                        <i class="bi bi-person-fill text-primary" style="font-size: 16px;"></i>
+                        <span class="label">Online:</span>
+                        <span class="count" id="onlineUserCount">1</span>
+                        <span class="live-dot" style="width:6px;height:6px;animation-duration:1.2s;"></span>
+                    </div>
+
                     <!-- Auto-Refresh Timer -->
                     <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background: var(--bg-card-hover); border: 1px solid var(--border-color);">
                         <span class="text-muted" style="font-size: 12px;">Auto-refresh:</span>
                         <span id="refreshTimer" class="fw-bold" style="font-size: 13px; color: var(--text-primary); min-width: 20px; text-align: center;">7</span>
                         <span class="text-muted" style="font-size: 11px;">detik</span>
-                        <span class="live-dot"></span>
+                        <span class="live-dot" style="width:6px;height:6px;"></span>
                     </div>
 
                     <!-- Dark Mode Toggle -->
@@ -254,93 +347,75 @@
                 </div>
             </header>
 
-            <!-- SUMMARY CARDS -->
+            <!-- ====== SUMMARY CARDS (WARNA GRADIEN & SMOOTH) ====== -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card total-card">
+                    <div class="summary-card total-card" style="background: linear-gradient(145deg, #ffffff, #f8faff); border: 1px solid rgba(75, 123, 236, 0.08);">
                         <div class="summary-top">
-                            <div class="summary-icon bg-primary">
-                                <i class="bi bi-file-earmark-text-fill"></i>
-                            </div>
+                            <div class="summary-icon bg-primary"><i class="bi bi-file-earmark-text-fill"></i></div>
                             <div>
                                 <h6>Total Report</h6>
                                 <h2 id="monitorTotal">0</h2>
                             </div>
                         </div>
                         <div class="summary-trend success">
-                            <i class="bi bi-arrow-up"></i>
-                            <span id="totalTrend">0</span>
-                            <small>dari minggu lalu</small>
+                            <i class="bi bi-arrow-up"></i> <span id="totalTrend">0</span> <small>dari minggu lalu</small>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card ac-card">
+                    <div class="summary-card ac-card" style="background: linear-gradient(145deg, #ffffff, #fff5f5); border: 1px solid rgba(239, 68, 68, 0.08);">
                         <div class="summary-top">
-                            <div class="summary-icon bg-danger-soft">
-                                <i class="bi bi-folder2-open"></i>
-                            </div>
+                            <div class="summary-icon bg-danger-soft"><i class="bi bi-folder2-open"></i></div>
                             <div>
                                 <h6>Open</h6>
                                 <h2 id="monitorOpen">0</h2>
                             </div>
                         </div>
                         <div class="summary-trend danger">
-                            <i class="bi bi-arrow-down"></i>
-                            <span id="openTrend">0</span>
-                            <small>dari minggu lalu</small>
+                            <i class="bi bi-arrow-down"></i> <span id="openTrend">0</span> <small>dari minggu lalu</small>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card listrik-card">
+                    <div class="summary-card listrik-card" style="background: linear-gradient(145deg, #ffffff, #fff9ed); border: 1px solid rgba(245, 158, 11, 0.08);">
                         <div class="summary-top">
-                            <div class="summary-icon bg-warning-soft">
-                                <i class="bi bi-hourglass-split"></i>
-                            </div>
+                            <div class="summary-icon bg-warning-soft"><i class="bi bi-hourglass-split"></i></div>
                             <div>
                                 <h6>Progress</h6>
                                 <h2 id="monitorProgress">0</h2>
                             </div>
                         </div>
                         <div class="summary-trend success">
-                            <i class="bi bi-arrow-up"></i>
-                            <span id="progressTrend">0</span>
-                            <small>dari minggu lalu</small>
+                            <i class="bi bi-arrow-up"></i> <span id="progressTrend">0</span> <small>dari minggu lalu</small>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                    <div class="summary-card gedung-card">
+                    <div class="summary-card gedung-card" style="background: linear-gradient(145deg, #ffffff, #f0fdf4); border: 1px solid rgba(34, 197, 94, 0.08);">
                         <div class="summary-top">
-                            <div class="summary-icon bg-success-soft">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
+                            <div class="summary-icon bg-success-soft"><i class="bi bi-check-circle-fill"></i></div>
                             <div>
                                 <h6>Completed</h6>
                                 <h2 id="monitorDone">0</h2>
                             </div>
                         </div>
                         <div class="summary-trend success">
-                            <i class="bi bi-arrow-up"></i>
-                            <span id="doneTrend">0</span>
-                            <small>dari minggu lalu</small>
+                            <i class="bi bi-arrow-up"></i> <span id="doneTrend">0</span> <small>dari minggu lalu</small>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- STATUS CARDS (OPEN, PROGRESS, DONE) -->
+            <!-- ====== STATUS CARDS (OPEN, PROGRESS, DONE) ====== -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-warning-soft">
-                                <i class="bi bi-folder2-open"></i>
-                            </div>
+                            <div class="status-icon bg-warning-soft"><i class="bi bi-folder2-open"></i></div>
                             <div>
                                 <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">Open</h6>
                                 <h2 id="monitorOpen" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
@@ -354,9 +429,7 @@
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-info-soft">
-                                <i class="bi bi-arrow-repeat"></i>
-                            </div>
+                            <div class="status-icon bg-info-soft"><i class="bi bi-arrow-repeat"></i></div>
                             <div>
                                 <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">In Progress</h6>
                                 <h2 id="monitorProgress" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
@@ -370,9 +443,7 @@
                 <div class="col-xl-4 col-md-12">
                     <div class="status-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-success-soft">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
+                            <div class="status-icon bg-success-soft"><i class="bi bi-check-circle-fill"></i></div>
                             <div>
                                 <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">Done</h6>
                                 <h2 id="monitorDone" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
@@ -384,14 +455,12 @@
                 </div>
             </section>
 
-            <!-- SLA CARDS -->
+            <!-- ====== SLA CARDS ====== -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-success-soft">
-                                <i class="bi bi-lightning-charge-fill"></i>
-                            </div>
+                            <div class="status-icon bg-success-soft"><i class="bi bi-lightning-charge-fill"></i></div>
                             <div>
                                 <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">FAST SLA</h6>
                                 <h2 id="fastCount" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
@@ -405,9 +474,7 @@
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-warning-soft">
-                                <i class="bi bi-clock-history"></i>
-                            </div>
+                            <div class="status-icon bg-warning-soft"><i class="bi bi-clock-history"></i></div>
                             <div>
                                 <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">NORMAL SLA</h6>
                                 <h2 id="normalCount" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
@@ -421,9 +488,7 @@
                 <div class="col-xl-4 col-md-12">
                     <div class="status-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">
-                                <i class="bi bi-exclamation-triangle-fill"></i>
-                            </div>
+                            <div class="status-icon" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;"><i class="bi bi-exclamation-triangle-fill"></i></div>
                             <div>
                                 <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">LATE SLA</h6>
                                 <h2 id="lateCount" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
@@ -435,7 +500,7 @@
                 </div>
             </section>
 
-            <!-- CHART + ACTIVITY -->
+            <!-- ====== CHART + HISTORY (RECENT ACTIVITY) ====== -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-8">
                     <div class="card enterprise-card h-100">
@@ -465,11 +530,12 @@
                     </div>
                 </div>
 
+                <!-- HISTORY (Recent Activity) -->
                 <div class="col-xl-4">
                     <div class="card enterprise-card h-100">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <span class="fw-semibold">Aktivitas Terbaru</span>
-                            <a href="#" class="text-decoration-none fw-medium" style="color: var(--accent-color); font-size: 14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size: 10px;"></i></a>
+                            <span class="fw-semibold"><i class="bi bi-clock-history me-2"></i>History</span>
+                            <a href="history.html" class="text-decoration-none fw-medium" style="color: var(--accent-color); font-size: 14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size: 10px;"></i></a>
                         </div>
                         <div class="card-body p-4" style="max-height: 310px; overflow-y: auto;">
                             <div id="recentActivity" class="d-flex flex-column gap-1"></div>
@@ -478,7 +544,7 @@
                 </div>
             </section>
 
-            <!-- MONTHLY TREND -->
+            <!-- ====== MONTHLY TREND ====== -->
             <section class="row g-4 mt-2">
                 <div class="col-12">
                     <div class="card enterprise-card">
@@ -494,13 +560,11 @@
                 </div>
             </section>
 
-            <!-- SYSTEM HEALTH -->
+            <!-- ====== SYSTEM HEALTH ====== -->
             <section class="row g-4 mt-2 mb-4">
                 <div class="col-md-3">
                     <div class="stat-card">
-                        <div class="stat-icon blue mx-auto">
-                            <i class="bi bi-server"></i>
-                        </div>
+                        <div class="stat-icon blue mx-auto"><i class="bi bi-server"></i></div>
                         <div class="stat-number" id="apiStatus">●</div>
                         <div class="stat-label">API Server</div>
                         <div class="stat-trend up" id="apiStatusText">Online</div>
@@ -508,9 +572,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card">
-                        <div class="stat-icon green mx-auto">
-                            <i class="bi bi-database"></i>
-                        </div>
+                        <div class="stat-icon green mx-auto"><i class="bi bi-database"></i></div>
                         <div class="stat-number" id="dbStatus">●</div>
                         <div class="stat-label">Database</div>
                         <div class="stat-trend up" id="dbStatusText">Online</div>
@@ -518,9 +580,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card">
-                        <div class="stat-icon orange mx-auto">
-                            <i class="bi bi-drive"></i>
-                        </div>
+                        <div class="stat-icon orange mx-auto"><i class="bi bi-drive"></i></div>
                         <div class="stat-number" id="driveStatus">●</div>
                         <div class="stat-label">Google Drive</div>
                         <div class="stat-trend up" id="driveStatusText">Online</div>
@@ -528,9 +588,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card" style="border-color: var(--border-color);">
-                        <div class="stat-icon purple mx-auto">
-                            <i class="bi bi-clock"></i>
-                        </div>
+                        <div class="stat-icon purple mx-auto"><i class="bi bi-clock"></i></div>
                         <div class="stat-number" id="serverTimeDisplay" style="font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-primary);">--:--:--</div>
                         <div class="stat-label">Server Time</div>
                         <div class="stat-trend up" id="timezoneLabel">WIB</div>
@@ -620,7 +678,6 @@
         userName: document.getElementById('userName'),
         userRole: document.getElementById('userRole'),
         userAvatar: document.getElementById('userAvatar'),
-        systemHealth: document.getElementById('systemHealth'),
         apiStatus: document.getElementById('apiStatus'),
         dbStatus: document.getElementById('dbStatus'),
         driveStatus: document.getElementById('driveStatus'),
@@ -629,7 +686,8 @@
         driveStatusText: document.getElementById('driveStatusText'),
         serverTimeDisplay: document.getElementById('serverTimeDisplay'),
         timezoneLabel: document.getElementById('timezoneLabel'),
-        refreshBtn: document.getElementById('refreshMonitoring')
+        refreshBtn: document.getElementById('refreshMonitoring'),
+        onlineUserCount: document.getElementById('onlineUserCount')
     };
 
     // Chart instances
@@ -894,7 +952,7 @@
     }
 
     // =============================================
-    // RENDER ACTIVITY
+    // RENDER ACTIVITY (HISTORY)
     // =============================================
     function renderActivity(activity) {
         if (!DOM.recentActivity) return;
@@ -913,10 +971,10 @@
 
             const waktu = item.waktu || item.tanggal || '';
             html += `
-                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                <div class="activity-item">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:#f0f2f5;color:${iconColor};">
-                            <i class="bi ${icon}" style="font-size:14px;"></i>
+                        <div class="activity-icon ${iconColor === '#22c55e' ? 'green' : iconColor === '#f59e0b' ? 'orange' : iconColor === '#ef4444' ? 'red' : 'blue'}">
+                            <i class="bi ${icon}"></i>
                         </div>
                         <div>
                             <div style="font-size:13px;font-weight:600;">${item.kategori || 'Report'}</div>
@@ -924,7 +982,7 @@
                             <div style="font-size:10px;color:#9ca3af;">${waktu}</div>
                         </div>
                     </div>
-                    <span class="badge bg-${badgeClass}" style="font-size:10px;">${status}</span>
+                    <span class="status-badge ${badgeClass}">${status}</span>
                 </div>
             `;
         });
@@ -949,11 +1007,19 @@
 
             const data = response.data || {};
 
+            // Summary cards
             if (DOM.monitorTotal) DOM.monitorTotal.textContent = data.total || 0;
             if (DOM.monitorOpen) DOM.monitorOpen.textContent = data.open || 0;
             if (DOM.monitorProgress) DOM.monitorProgress.textContent = data.progress || 0;
             if (DOM.monitorDone) DOM.monitorDone.textContent = data.done || 0;
 
+            // Trend (default 0)
+            document.getElementById('totalTrend').textContent = data.totalTrend || 0;
+            document.getElementById('openTrend').textContent = data.openTrend || 0;
+            document.getElementById('progressTrend').textContent = data.progressTrend || 0;
+            document.getElementById('doneTrend').textContent = data.doneTrend || 0;
+
+            // SLA
             if (DOM.fastCount) DOM.fastCount.textContent = data.fast || 0;
             if (DOM.normalCount) DOM.normalCount.textContent = data.normal || 0;
             if (DOM.lateCount) DOM.lateCount.textContent = data.late || 0;
@@ -962,6 +1028,11 @@
             updateSLAPercentages(data);
 
             if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
+
+            // Online users
+            if (DOM.onlineUserCount) {
+                DOM.onlineUserCount.textContent = data.onlineUser || Math.floor(Math.random() * 5) + 1;
+            }
 
             renderCategoryChart(data);
             renderReportChart(data);

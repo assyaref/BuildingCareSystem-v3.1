@@ -21,76 +21,74 @@
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
     <style>
-        /* Table Customizations for Premium Dark Centric Interface */
-        .table {
-            color: var(--text-primary) !important;
-            vertical-align: middle;
-            margin-bottom: 0;
+        .avatar-sm {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4b7bec;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
         }
-        .table th {
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-secondary);
-            border-bottom: 2px solid var(--border-color) !important;
-            padding: 16px;
-        }
-        .table td {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-primary);
-            font-size: 14px;
-        }
-        .table tbody tr {
-            transition: var(--transition);
-        }
-        .table tbody tr:hover {
-            background-color: var(--accent-soft) !important;
-        }
-        .badge-status {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 12px;
+        .status-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 6px;
             display: inline-block;
+            letter-spacing: 0.3px;
         }
-        .badge-open { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-        .badge-progress { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
-        .badge-done { background: rgba(16, 185, 129, 0.15); color: #10b73a; }
-        
-        .table-responsive {
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        .thumbnail-img {
-            width: 44px;
-            height: 44px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+        .status-done { background: #dcfce7; color: #16a34a; }
+        .status-progress { background: #fef3c7; color: #d97706; }
+        .status-open { background: #fee2e2; color: #dc2626; }
+        [data-theme="dark"] .status-open { background: #3d2e00; color: #ffd700; }
+        [data-theme="dark"] .status-progress { background: #00264d; color: #66b0ff; }
+        [data-theme="dark"] .status-done { background: #003d1a; color: #00e676; }
+
+        .dark-toggle {
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.3s ease;
         }
-        .thumbnail-img:hover {
-            transform: scale(1.1);
+        .dark-toggle:hover {
+            background: #f0f2f5;
+            transform: rotate(20deg);
+        }
+        [data-theme="dark"] .dark-toggle {
+            border-color: #3a3a52;
+            color: #ffd700;
+        }
+        [data-theme="dark"] .dark-toggle:hover {
+            background: #2a2a42;
         }
     </style>
 </head>
 
 <body>
 
+<!-- LOADING OVERLAY (Tanpa Teks) -->
 <div id="loading" class="loading-overlay" style="display:none;">
     <div class="text-center">
         <div class="spinner-border text-light" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
-        <div class="text-white mt-3">Memproses Data...</div>
     </div>
 </div>
 
+<!-- APP WRAPPER -->
 <div class="wrapper">
 
+    <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="logo-area">
             <img src="assets/img/logo.png" class="logo" alt="Logo">
@@ -126,88 +124,180 @@
         </nav>
     </aside>
 
+    <!-- MAIN CONTENT -->
     <main class="content">
         <div class="container-fluid">
 
-            <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <!-- TOPBAR -->
+            <header class="topbar">
                 <div>
                     <h3>Riwayat Laporan</h3>
                     <small>
-                        Daftar Jejak Pengaduan & Perbaikan
+                        Building Care System Enterprise
                         <br>
                         <span class="brand-location">Radiant Group Duri</span>
                     </small>
                 </div>
 
-                <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <button class="btn theme-switcher-btn d-flex align-items-center justify-content-center p-0" id="darkModeToggle" title="Toggle Theme" style="width: 42px; height: 42px; border-radius: 50% !important; background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); transition: var(--transition);">
-                        <i class="bi bi-moon-fill" id="darkModeIcon" style="font-size: 1.15rem;"></i>
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Dark Mode Toggle -->
+                    <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
+                        <i class="bi bi-moon-fill" id="darkModeIcon"></i>
                     </button>
 
-                    <div class="user-profile-card p-3 d-flex align-items-center gap-3">
-                        <div class="avatar d-flex justify-content-center align-items-center" style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0D47A1, #2563EB); color: #fff;">
-                            <i class="bi bi-person-fill" style="font-size: 1.3rem;"></i>
-                        </div>
-                        <div>
-                            <div class="profile-name fw-semibold text-truncate" id="userName" style="max-width: 150px; color: var(--text-primary);">Loading...</div>
-                            <div class="role-badge" id="userRole" style="font-size: 11px; background: var(--accent-soft); color: var(--accent-color); padding: 2px 10px; border-radius: 999px; font-weight: 600; display: inline-block; margin-top: 2px;">Administrator</div>
-                        </div>
+                    <div class="avatar-sm" id="userAvatar">U</div>
+                    <div>
+                        <div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary);">Loading...</div>
+                        <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
                     </div>
                 </div>
             </header>
 
-            <section class="card enterprise-card p-4 mb-4">
-                <div class="row g-3 align-items-end">
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label mb-2"><i class="bi bi-search me-1 text-primary"></i> Cari Laporan</label>
-                        <input type="text" id="searchInput" class="form-control" placeholder="Cari berdasarkan lokasi atau deskripsi...">
+            <!-- SUMMARY CARDS -->
+            <section class="row g-4 mt-2">
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card total-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-primary">
+                                <i class="bi bi-file-earmark-text-fill"></i>
+                            </div>
+                            <div>
+                                <h6>Total Report</h6>
+                                <h2 id="cardTotal">0</h2>
+                            </div>
+                        </div>
+                        <div class="summary-trend success">
+                            <i class="bi bi-arrow-up"></i>
+                            <span id="totalTrend">0</span>
+                            <small>dari minggu lalu</small>
+                        </div>
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label mb-2"><i class="bi bi-funnel-fill me-1 text-primary"></i> Filter Status</label>
-                        <select id="filterStatus" class="form-select">
-                            <option value="ALL">Semua Status</option>
-                            <option value="OPEN">Open</option>
-                            <option value="IN PROGRESS">In Progress</option>
-                            <option value="DONE">Done</option>
-                        </select>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card ac-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-warning-soft">
+                                <i class="bi bi-folder2-open"></i>
+                            </div>
+                            <div>
+                                <h6>OPEN</h6>
+                                <h2 id="cardOpen">0</h2>
+                            </div>
+                        </div>
+                        <div class="summary-trend success">
+                            <i class="bi bi-arrow-up"></i>
+                            <span id="openTrend">0</span>
+                            <small>dari minggu lalu</small>
+                        </div>
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label mb-2"><i class="bi bi-sort-down me-1 text-primary"></i> Urutan Waktu</label>
-                        <select id="sortOrder" class="form-select">
-                            <option value="NEWEST">Terbaru</option>
-                            <option value="OLDEST">Terlama</option>
-                        </select>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card listrik-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-info-soft">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </div>
+                            <div>
+                                <h6>PROGRESS</h6>
+                                <h2 id="cardProgress">0</h2>
+                            </div>
+                        </div>
+                        <div class="summary-trend danger">
+                            <i class="bi bi-arrow-down"></i>
+                            <span id="progressTrend">0</span>
+                            <small>dari minggu lalu</small>
+                        </div>
                     </div>
-                    <div class="col-lg-2 col-md-6">
-                        <button class="btn btn-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2" id="refreshBtn" style="height: 48px;">
-                            <i class="bi bi-arrow-clockwise"></i> Refresh
-                        </button>
+                </div>
+
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card gedung-card">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-success-soft">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                            <div>
+                                <h6>DONE</h6>
+                                <h2 id="cardDone">0</h2>
+                            </div>
+                        </div>
+                        <div class="summary-trend success">
+                            <i class="bi bi-arrow-up"></i>
+                            <span id="doneTrend">0</span>
+                            <small>dari minggu lalu</small>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <section class="card enterprise-card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="fw-semibold"><i class="bi bi-table me-2 text-primary"></i>Log Rekaman Laporan</span>
-                    <span class="badge bg-secondary px-3 py-2" id="totalRecordsCounter" style="font-size: 12px; border-radius: 8px;">0 Data</span>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-dark" style="background-color: var(--bg-sidebar);">
-                                <tr>
-                                    <th style="width: 80px;" class="text-center">Foto</th>
-                                    <th style="width: 140px;">Kategori</th>
-                                    <th>Lokasi / Fasilitas</th>
-                                    <th>Deskripsi Kerusakan</th>
-                                    <th style="width: 150px;">Tanggal Masuk</th>
-                                    <th style="width: 130px;" class="text-center">Status</th>
-                                    <th style="width: 100px;" class="text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="reportTableBody">
-                                </tbody>
-                        </table>
+            <!-- FILTER & TABLE (Sesuai Gambar Referensi) -->
+            <section class="row g-4 mt-3">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm" style="border-radius: 12px; background: #fff;">
+                        <!-- Filter Header Row -->
+                        <div class="card-header bg-white border-0 pt-4 px-4 pb-2">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm border rounded" style="background: #fdfdfd;">
+                                        <span class="input-group-text bg-transparent border-0 text-muted"><i class="bi bi-search"></i></span>
+                                        <input type="text" class="form-control bg-transparent border-0" id="searchInput" placeholder="Cari ID, pelapor, kategori atau lokasi" style="font-size: 13px;">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-select form-select-sm" id="filterStatus" style="font-size: 13px; background-color: #fdfdfd;">
+                                        <option value="">Semua Status</option>
+                                        <option value="OPEN">OPEN</option>
+                                        <option value="PROGRESS">PROGRESS</option>
+                                        <option value="DONE">DONE</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select class="form-select form-select-sm" id="sortOrder" style="font-size: 13px; background-color: #fdfdfd;">
+                                        <option value="desc">Terbaru</option>
+                                        <option value="asc">Terlama</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 text-end d-flex align-items-center justify-content-end gap-2">
+                                    <small class="text-muted" style="font-size: 12px;">Total : <strong id="totalReports" class="text-dark">0</strong></small>
+                                    <button class="btn btn-sm btn-light border text-muted" id="refreshBtn" style="padding: 4px 8px;"><i class="bi bi-arrow-clockwise"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Table Content -->
+                        <div class="card-body px-4 pb-4">
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle" style="font-size: 12px; min-width: 1000px;">
+                                    <thead>
+                                        <tr class="text-secondary" style="background-color: #f8f9fa; border-bottom: 1px solid #ededed;">
+                                            <th class="py-3 px-2 fw-semibold text-dark" style="width: 15%;">ID</th>
+                                            <th class="py-3 fw-semibold text-dark" style="width: 12%;">Tanggal</th>
+                                            <th class="py-3 fw-semibold text-dark" style="width: 15%;">Pelapor</th>
+                                            <th class="py-3 fw-semibold text-dark" style="width: 15%;">Kategori</th>
+                                            <th class="py-3 fw-semibold text-dark" style="width: 15%;">Lokasi</th>
+                                            <th class="py-3 fw-semibold text-dark" style="width: 15%;">Deskripsi</th>
+                                            <th class="py-3 fw-semibold text-dark" style="width: 8%;">Status</th>
+                                            <th class="py-3 fw-semibold text-dark text-center" style="width: 5%;">Foto</th>
+                                            <th class="py-3 fw-semibold text-dark text-center" style="width: 8%;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historyTable" class="border-top-0">
+                                        <tr>
+                                            <td colspan="9" class="text-center py-5 text-muted">
+                                                <div class="spinner-border spinner-border-sm mb-2"></div><br>
+                                                Memuat data...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Pagination Alignment -->
+                            <nav class="mt-4">
+                                <ul class="pagination pagination-sm justify-content-center gap-1" id="pagination"></ul>
+                            </nav>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -216,50 +306,85 @@
     </main>
 </div>
 
-<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content border-0" style="background: var(--bg-surface); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-elegant);">
-            <div class="modal-header border-bottom-0 p-3">
-                <h6 class="modal-title fw-bold" style="color: var(--text-primary);">Preview Lampiran</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="filter: var(--theme-close-btn);"></button>
+<!-- ======================================================
+     MODALS
+======================================================= -->
+
+<!-- Update Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Update Status Laporan</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0 text-center bg-dark">
-                <img id="modalPreviewImage" src="" alt="Preview Image" class="img-fluid w-100" style="max-height: 500px; object-fit: contain;">
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">ID Laporan</label>
+                    <input type="text" class="form-control fw-bold bg-light" id="updateId" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Status</label>
+                    <select class="form-select" id="updateStatus">
+                        <option value="OPEN">OPEN</option>
+                        <option value="PROGRESS">PROGRESS</option>
+                        <option value="DONE">DONE</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Teknisi</label>
+                    <input type="text" class="form-control" id="updateTeknisi" placeholder="Nama Teknisi">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Catatan Teknisi</label>
+                    <textarea class="form-control" id="updateCatatan" rows="5" placeholder="Masukkan catatan pekerjaan"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-primary" id="saveUpdateBtn"><i class="bi bi-check-circle"></i> Simpan</button>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="updateModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0" style="background: var(--bg-surface); border-radius: 16px; box-shadow: var(--shadow-elegant);">
-            <div class="modal-header" style="border-bottom: 1px solid var(--border-color); padding: 20px;">
-                <h5 class="modal-title fw-bold" style="color: var(--text-primary);"><i class="bi bi-pencil-square me-2 text-primary"></i>Update Status Laporan</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Photo Modal -->
+<div class="modal fade" id="photoModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-image"></i> Preview Foto</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" style="padding: 24px;">
-                <form id="updateForm">
-                    <input type="hidden" id="modalReportId">
-                    <div class="mb-3">
-                        <label class="form-label mb-2">Ubah Status Ke</label>
-                        <select id="modalStatusSelect" class="form-select">
-                            <option value="OPEN">OPEN</option>
-                            <option value="IN PROGRESS">IN PROGRESS</option>
-                            <option value="DONE">DONE</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer" style="border-top: 1px solid var(--border-color); padding: 15px 24px;">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" style="border-radius: 10px;">Batal</button>
-                <button type="button" class="btn btn-primary px-4" id="saveStatusBtn" style="border-radius: 10px;"><i class="bi bi-check-circle me-1"></i> Simpan</button>
+            <div class="modal-body text-center bg-light">
+                <img id="modalPhoto" class="img-fluid rounded shadow" style="max-width:100%; max-height:80vh; object-fit:contain">
             </div>
         </div>
     </div>
 </div>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-text"></i> Detail Laporan</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="detailContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================
+     JAVASCRIPT
+======================================================= -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script src="config/config.js"></script>
 <script src="assets/js/core/app.js"></script>
@@ -274,26 +399,23 @@
 (function() {
     'use strict';
 
-    let allReports = [];
-    const tableBody = document.getElementById('reportTableBody');
-    const searchInput = document.getElementById('searchInput');
-    const filterStatus = document.getElementById('filterStatus');
-    const sortOrder = document.getElementById('sortOrder');
-    const totalCounter = document.getElementById('totalRecordsCounter');
-    const loadingOverlay = document.getElementById('loading');
-
-    // INTIALIZE INTERFACE THEME
+    // DARK MODE
     function initDarkMode() {
         const toggle = document.getElementById('darkModeToggle');
         const icon = document.getElementById('darkModeIcon');
         if (!toggle) return;
 
-        const savedTheme = localStorage.getItem('bcs_theme') || 'dark';
+        const savedTheme = localStorage.getItem('bcs_theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
         
         if (icon) {
-            icon.className = savedTheme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
-            if (savedTheme === 'dark') icon.style.color = '#ffd700';
+            if (savedTheme === 'dark') {
+                icon.className = 'bi bi-sun-fill';
+                icon.style.color = '#ffd700';
+            } else {
+                icon.className = 'bi bi-moon-fill';
+                icon.style.color = '';
+            }
         }
 
         toggle.addEventListener('click', function() {
@@ -301,167 +423,387 @@
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('bcs_theme', newTheme);
-            
             if (icon) {
-                icon.className = newTheme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
-                icon.style.color = newTheme === 'dark' ? '#ffd700' : '';
+                if (newTheme === 'dark') {
+                    icon.className = 'bi bi-sun-fill';
+                    icon.style.color = '#ffd700';
+                } else {
+                    icon.className = 'bi bi-moon-fill';
+                    icon.style.color = '';
+                }
             }
         });
     }
 
-    // USER INFORMATION LOAD
+    // LOAD USER INFO
     function loadUserInfo() {
-        const userNameElement = document.getElementById('userName');
-        const userRoleElement = document.getElementById('userRole');
-        
-        const cachedName = localStorage.getItem('user_name') || 'User Enterprise';
-        const cachedRole = localStorage.getItem('user_role') || 'Staff';
-
-        if (userNameElement) userNameElement.textContent = cachedName;
-        if (userRoleElement) userRoleElement.textContent = cachedRole;
-    }
-
-    // FETCH REPORTS VIA REST API
-    async function fetchReports() {
-        if (loadingOverlay) loadingOverlay.style.display = 'flex';
         try {
-            // Simulasi data jika API offline / Menggunakan window.api jika tersedia
-            if (window.api && typeof window.api.getReports === 'function') {
-                allReports = await window.api.getReports();
-            } else {
-                allReports = [
-                    { id: 1, image: "https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=150", category: "AC", location: "Ruang Server Lt. 2", description: "Blower AC berisik dan mengeluarkan hawa panas harian.", date: "2026-06-28 09:15", status: "IN PROGRESS" },
-                    { id: 2, image: "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=150", category: "LISTRIK", location: "Gedung B Sayap Kiri", description: "MCB Trip berkali-kali saat beban puncak sore hari.", date: "2026-06-29 10:00", status: "OPEN" },
-                    { id: 3, image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=150", category: "KONDISI GEDUNG", location: "Toilet Utama Lobby", description: "Plafon rembes akibat kebocoran pipa jalur atas.", date: "2026-06-25 14:20", status: "DONE" }
-                ];
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const user = session.user;
+                const nama = user.nama || user.name || 'User';
+                const role = user.role || 'User';
+
+                document.getElementById('userName').textContent = nama;
+                document.getElementById('userRole').textContent = role;
+                const avatar = document.getElementById('userAvatar');
+                avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
             }
-            applyFilters();
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        } finally {
-            if (loadingOverlay) loadingOverlay.style.display = 'none';
+        } catch (e) {
+            console.warn('Load user info error:', e);
         }
     }
 
-    // FILTER ENGINE & RENDER
-    function applyFilters() {
-        let filtered = [...allReports];
+    // STATE
+    let allReports = [];
+    let filteredReports = [];
+    let currentUser = {};
 
-        // Search Text
-        const searchKeyword = searchInput.value.toLowerCase().trim();
-        if (searchKeyword) {
-            filtered = filtered.filter(item => 
-                item.location.toLowerCase().includes(searchKeyword) || 
-                item.description.toLowerCase().includes(searchKeyword) ||
-                item.category.toLowerCase().includes(searchKeyword)
+    let currentPage = 1;
+    const perPage = 10;
+
+    const tableBody = document.getElementById('historyTable');
+    const paginationEl = document.getElementById('pagination');
+    const searchInput = document.getElementById('searchInput');
+    const filterStatus = document.getElementById('filterStatus');
+    const sortOrder = document.getElementById('sortOrder');
+    const cardTotal = document.getElementById('cardTotal');
+    const cardOpen = document.getElementById('cardOpen');
+    const cardProgress = document.getElementById('cardProgress');
+    const cardDone = document.getElementById('cardDone');
+    const totalReportsSpan = document.getElementById('totalReports');
+
+    // LOAD USER
+    function loadUser() {
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                currentUser = session.user;
+                currentUser.nik = session.nik || currentUser.nik || '';
+                currentUser.nama = currentUser.nama || currentUser.name || '';
+            }
+        } catch (e) {
+            console.warn('Load user error:', e);
+        }
+    }
+
+    // FETCH DATA
+    async function fetchReports() {
+        try {
+            tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Memuat data...</td></tr>`;
+            BCS.App.Loading.show();
+
+            const response = await BCS.Api.post('getReport', {});
+            console.log('📥 History response:', response);
+
+            if (!response || !response.success) {
+                tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Gagal memuat data: ${response?.message || 'Unknown error'}</td></tr>`;
+                return;
+            }
+
+            const reports = response.data?.reports || [];
+            console.log('📊 Total reports from server:', reports.length);
+
+            const role = (currentUser.role || '').toUpperCase();
+            let filtered = reports;
+
+            if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
+                const userNik = (currentUser.nik || '').trim();
+                const userNama = (currentUser.nama || '').toLowerCase().trim();
+
+                if (userNik || userNama) {
+                    filtered = reports.filter(r => {
+                        const rNik = String(r.nik || '').trim();
+                        const rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
+                        let match = false;
+                        if (userNik && rNik) match = rNik === userNik;
+                        if (!match && userNama && rNama) match = rNama === userNama;
+                        return match;
+                    });
+                    console.log('🔍 Filtered for user:', filtered.length);
+                }
+            }
+
+            allReports = filtered;
+            applyFilters();
+
+        } catch (err) {
+            console.error('Fetch error:', err);
+            tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger py-4">Terjadi kesalahan: ${err.message}</td></tr>`;
+        } finally {
+            BCS.App.Loading.hide();
+        }
+    }
+
+    // FILTER & SORT
+    function applyFilters() {
+        const keyword = searchInput.value.toLowerCase().trim();
+        const status = filterStatus.value;
+
+        let result = allReports;
+
+        if (keyword) {
+            result = result.filter(r =>
+                (r.id || '').toLowerCase().includes(keyword) ||
+                (r.nama || r.pelapor || '').toLowerCase().includes(keyword) ||
+                (r.kategori || '').toLowerCase().includes(keyword) ||
+                (r.lokasi || '').toLowerCase().includes(keyword) ||
+                (r.deskripsi || '').toLowerCase().includes(keyword)
             );
         }
 
-        // Status Dropdown
-        const statusValue = filterStatus.value;
-        if (statusValue !== 'ALL') {
-            filtered = filtered.filter(item => item.status.toUpperCase() === statusValue);
+        if (status) {
+            result = result.filter(r => (r.status || '').toUpperCase() === status);
         }
 
-        // Time Sorter
-        if (sortOrder.value === 'NEWEST') {
-            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-        } else {
-            filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
-        }
+        const sort = sortOrder.value;
+        result.sort((a, b) => {
+            const dateA = new Date(a.tanggal || a.createdAt || 0);
+            const dateB = new Date(b.tanggal || b.createdAt || 0);
+            return sort === 'desc' ? dateB - dateA : dateA - dateB;
+        });
 
-        renderTable(filtered);
+        filteredReports = result;
+        updateSummary();
+        currentPage = 1;
+        renderTable();
+        renderPagination();
     }
 
-    // RENDER ENGINE INJECTION
-    function renderTable(data) {
-        tableBody.innerHTML = '';
-        totalCounter.textContent = `${data.length} Data`;
+    // SUMMARY
+    function updateSummary() {
+        const total = filteredReports.length;
+        const open = filteredReports.filter(r => (r.status || '').toUpperCase() === 'OPEN').length;
+        const progress = filteredReports.filter(r => (r.status || '').toUpperCase() === 'PROGRESS').length;
+        const done = filteredReports.filter(r => (r.status || '').toUpperCase() === 'DONE').length;
 
-        if (data.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-folder-x fs-2 d-block mb-2"></i>Tidak ada riwayat laporan ditemukan</td></tr>`;
+        cardTotal.textContent = total;
+        cardOpen.textContent = open;
+        cardProgress.textContent = progress;
+        cardDone.textContent = done;
+        totalReportsSpan.textContent = total;
+    }
+
+    // RENDER TABLE (Sesuai Gambar Referensi)
+    function renderTable() {
+        const start = (currentPage - 1) * perPage;
+        const pageData = filteredReports.slice(start, start + perPage);
+
+        if (pageData.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Tidak ada data</td></tr>`;
             return;
         }
 
-        data.forEach(report => {
-            let statusBadge = '';
-            if (report.status.toUpperCase() === 'OPEN') statusBadge = '<span class="badge-status badge-open">OPEN</span>';
-            else if (report.status.toUpperCase() === 'IN PROGRESS') statusBadge = '<span class="badge-status badge-progress">IN PROGRESS</span>';
-            else statusBadge = '<span class="badge-status badge-done">DONE</span>';
+        let html = '';
+        pageData.forEach((r) => {
+            const statusClass = (r.status || '').toUpperCase();
+            
+            // Penyesuaian Badge Status yang Lembut & Flat sesuai Gambar
+            let badgeStyle = 'background: #fee2e2; color: #ef4444; border: none;'; 
+            if (statusClass === 'PROGRESS') {
+                badgeStyle = 'background: #e0f2fe; color: #0284c7; border: none;';
+            } else if (statusClass === 'DONE') {
+                badgeStyle = 'background: #dcfce7; color: #22c55e; border: none;';
+            }
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="text-center"><img src="${report.image || 'assets/img/no-image.jpg'}" class="thumbnail-img" onclick="window.previewImage('${report.image}')"></td>
-                <td><strong class="text-primary">${report.category}</strong></td>
-                <td><span class="fw-medium">${report.location}</span></td>
-                <td><div class="text-truncate" style="max-width: 280px;" title="${report.description}">${report.description}</div></td>
-                <td><i class="bi bi-calendar3 me-1 text-muted"></i> ${report.date}</td>
-                <td class="text-center">${statusBadge}</td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-outline-primary btn-action-edit" onclick="window.openUpdateStatus(${report.id}, '${report.status}')" style="border-radius:6px; padding: 4px 10px;">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                </td>
+            // Atur Ikon & Warna Berdasarkan Kategori secara Dinamis
+            const kategoriNama = (r.kategori || '').toUpperCase();
+            let kategoriIcon = '<i class="bi bi-lightning-charge-fill text-warning me-2"></i>'; 
+            if (kategoriNama.includes('GEDUNG') || kategoriNama.includes('KONDISI GEDUNG')) {
+                kategoriIcon = '<i class="bi bi-building text-purple me-2" style="color: #a855f7;"></i>';
+            } else if (kategoriNama.includes('AC')) {
+                kategoriIcon = '<i class="bi bi-snow text-info me-2"></i>';
+            }
+
+            const hasPhoto = r.foto && r.foto.trim() !== '';
+            const tanggal = r.tanggal || r.createdAt || '';
+            const formattedDate = tanggal ? new Date(tanggal).toLocaleString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }).replace('.', ':') : '-';
+
+            html += `
+                <tr style="border-bottom: 1px solid #f3f4f6;">
+                    <td class="py-3 px-2 text-dark fw-bold"><span>${r.id || '-'}</span></td>
+                    <td class="text-secondary">${formattedDate}</td>
+                    <td class="text-dark fw-medium">${r.nama || r.pelapor || '-'}</td>
+                    <td><div class="d-flex align-items-center" style="font-size: 11px; font-weight: 600; text-transform: uppercase;">${kategoriIcon} ${r.kategori || '-'}</div></td>
+                    <td class="text-secondary">${r.lokasi || '-'}</td>
+                    <td class="text-secondary text-truncate" style="max-width: 220px;">${r.deskripsi || '-'}</td>
+                    <td><span class="badge" style="font-size: 9px; padding: 4px 8px; border-radius: 4px; font-weight: 700; ${badgeStyle}">${r.status || 'OPEN'}</span></td>
+                    <td class="text-center">
+                        ${hasPhoto ? `<button class="btn btn-sm btn-outline-secondary view-photo" data-src="${r.foto}" style="padding: 2px 6px; font-size: 11px; border-color: #cbd5e1;"><i class="bi bi-image text-muted"></i></button>` : `<button class="btn btn-sm btn-outline-secondary p-1" style="padding: 2px 6px; font-size: 11px; border-color: #cbd5e1;" disabled><i class="bi bi-image text-muted" style="opacity:0.4;"></i></button>`}
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-1">
+                            <button class="btn btn-sm btn-outline-primary view-detail" data-id="${r.id}" style="padding: 2px 6px; font-size: 11px; border-color: #bfdbfe;"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-sm btn-outline-warning edit-report" data-id="${r.id}" style="padding: 2px 6px; font-size: 11px; border-color: #fef08a;"><i class="bi bi-pencil-square"></i></button>
+                        </div>
+                    </td>
+                </tr>
             `;
-            tableBody.appendChild(tr);
+        });
+        tableBody.innerHTML = html;
+
+        // Attach events
+        document.querySelectorAll('.view-photo').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('modalPhoto').src = this.dataset.src;
+                new bootstrap.Modal(document.getElementById('photoModal')).show();
+            });
+        });
+
+        document.querySelectorAll('.view-detail').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                openDetail(id);
+            });
+        });
+
+        document.querySelectorAll('.edit-report').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                openUpdate(id);
+            });
         });
     }
 
-    // GLOBALLY ACCESSIBLE TRIGGER FUNCTIONS
-    window.previewImage = function(src) {
-        const modalImg = document.getElementById('modalPreviewImage');
-        if (modalImg && src) {
-            modalImg.src = src;
-            const myModal = new bootstrap.Modal(document.getElementById('imageModal'));
-            myModal.show();
+    // PAGINATION
+    function renderPagination() {
+        const totalPages = Math.ceil(filteredReports.length / perPage);
+        if (totalPages <= 1) {
+            paginationEl.innerHTML = '';
+            return;
         }
-    };
 
-    window.openUpdateStatus = function(id, currentStatus) {
-        document.getElementById('modalReportId').value = id;
-        document.getElementById('modalStatusSelect').value = currentStatus.toUpperCase();
-        const myModal = new bootstrap.Modal(document.getElementById('updateModal'));
-        myModal.show();
-    };
+        let html = '';
+        html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a></li>`;
 
-    // SAVE EVENT DATA HANDLER
-    document.getElementById('saveStatusBtn').addEventListener('click', async function() {
-        const id = document.getElementById('modalReportId').value;
-        const newStatus = document.getElementById('modalStatusSelect').value;
-        this.disabled = true;
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+            } else if (i === currentPage - 2 || i === currentPage + 2) {
+                html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
+            }
+        }
+
+        html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a></li>`;
+        paginationEl.innerHTML = html;
+
+        paginationEl.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = parseInt(this.dataset.page);
+                if (page && page >= 1 && page <= totalPages) {
+                    currentPage = page;
+                    renderTable();
+                    renderPagination();
+                }
+            });
+        });
+    }
+
+    // MODALS
+    function openDetail(id) {
+        const report = allReports.find(r => r.id == id);
+        if (!report) return;
+
+        let html = `
+            <table class="table table-sm table-striped">
+                <tr><th>ID</th><td>${report.id || '-'}</td></tr>
+                <tr><th>Tanggal</th><td>${report.tanggal || report.createdAt || '-'}</td></tr>
+                <tr><th>Pelapor</th><td>${report.nama || report.pelapor || '-'}</td></tr>
+                <tr><th>Departemen</th><td>${report.departemen || '-'}</td></tr>
+                <tr><th>Kategori</th><td>${report.kategori || '-'}</td></tr>
+                <tr><th>Lokasi</th><td>${report.lokasi || '-'}</td></tr>
+                <tr><th>Prioritas</th><td>${report.prioritas || '-'}</td></tr>
+                <tr><th>Status</th><td>${report.status || '-'}</td></tr>
+                <tr><th>Deskripsi</th><td>${report.deskripsi || '-'}</td></tr>
+                <tr><th>Teknisi</th><td>${report.teknisi || '-'}</td></tr>
+                <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || '-'}</td></tr>
+                <tr><th>Foto</th><td>${report.foto ? `<a href="${report.foto}" target="_blank">Lihat Foto</a>` : '-'}</td></tr>
+            </table>
+        `;
+        document.getElementById('detailContent').innerHTML = html;
+        new bootstrap.Modal(document.getElementById('detailModal')).show();
+    }
+
+    // OPEN UPDATE
+    function openUpdate(id) {
+        const report = allReports.find(r => r.id == id);
+        if (!report) return;
+
+        document.getElementById('updateId').value = report.id || '';
+        document.getElementById('updateStatus').value = report.status || 'OPEN';
+        document.getElementById('updateTeknisi').value = report.teknisi || '';
+        document.getElementById('updateCatatan').value = report.catatanTeknisi || '';
+
+        new bootstrap.Modal(document.getElementById('updateModal')).show();
+    }
+
+    document.getElementById('saveUpdateBtn').addEventListener('click', async function() {
+        const id = document.getElementById('updateId').value;
+        const status = document.getElementById('updateStatus').value;
+        const teknisi = document.getElementById('updateTeknisi').value.trim();
+        const catatan = document.getElementById('updateCatatan').value.trim();
+
+        if (!id) {
+            alert('ID tidak valid');
+            return;
+        }
 
         try {
-            // Jika ada modul API eksternal
-            if (window.api && typeof window.api.updateReportStatus === 'function') {
-                await window.api.updateReportStatus(id, newStatus);
-            }
-            
-            // Perbarui data lokal untuk simulasi instant visual feedback
-            const reportIndex = allReports.findIndex(r => r.id == id);
-            if (reportIndex !== -1) allReports[reportIndex].status = newStatus;
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
 
-            bootstrap.Modal.getInstance(document.getElementById('updateModal')).hide();
-            Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Status laporan berhasil diperbarui.', timer: 1500, showConfirmButton: false });
-            applyFilters();
+            const payload = { id, status, teknisi, catatan };
+            const response = await BCS.Api.post('updateReport', payload);
+            console.log('Update response:', response);
+
+            if (response && response.success) {
+                alert('✅ Status berhasil diperbarui!');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
+                if (modal) modal.hide();
+                await fetchReports();
+            } else {
+                alert('❌ Gagal update: ' + (response?.message || 'Unknown error'));
+            }
         } catch (err) {
-            Swal.fire({ icon: 'error', title: 'Gagal', text: err.message });
+            console.error('Update error:', err);
+            alert('❌ Terjadi kesalahan: ' + err.message);
         } finally {
             this.disabled = false;
+            this.innerHTML = '<i class="bi bi-check-circle"></i> Simpan';
         }
     });
 
-    // EVENT LISSENERS BINDING
+    // EVENT BINDING
     searchInput.addEventListener('input', applyFilters);
     filterStatus.addEventListener('change', applyFilters);
     sortOrder.addEventListener('change', applyFilters);
-    document.getElementById('refreshBtn').addEventListener('click', fetchReports);
 
-    // SYSTEM ENGINE INIT
-    function init() {
+    document.getElementById('refreshBtn').addEventListener('click', function() {
+        fetchReports();
+    });
+
+    // LOGOUT
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (window.auth && typeof window.auth.logout === 'function') {
+            window.auth.logout();
+        } else {
+            if (confirm('Apakah Anda yakin ingin keluar?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+    });
+
+    // INIT
+    async function init() {
         initDarkMode();
         loadUserInfo();
-        fetchReports();
-        console.log('✅ UI History System Engine Initialized successfully');
+        loadUser();
+        await fetchReports();
+        console.log('✅ History page initialized');
     }
 
     if (document.readyState === 'loading') {
@@ -469,6 +811,7 @@
     } else {
         init();
     }
+
 })();
 </script>
 

@@ -1,5 +1,5 @@
 // =====================================================
-// monitoring.js - Building Care System Enterprise v4.6 FINAL
+// monitoring.js - Building Care System Enterprise v4.7 FINAL
 // Radiant Group Duri
 // =====================================================
 
@@ -160,29 +160,43 @@ function renderActivity(activity) {
 }
 
 // =============================================
-// RENDER ONLINE USERS
+// RENDER ONLINE USERS - FALLBACK PASTI BERJALAN
 // =============================================
 function renderOnlineUsers(users) {
     if (!DOM.onlineUserList) return;
+
+    // Ambil current user dari session (untuk fallback)
+    let currentUser = null;
+    try {
+        const session = BCS.Storage.getSession();
+        if (session && session.user) {
+            const user = session.user;
+            currentUser = {
+                nama: user.nama || user.name || 'User',
+                role: user.role || 'User',
+                email: session.email || user.email || '',
+                nik: session.nik || user.nik || '',
+                lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                isCurrent: true
+            };
+            console.log('👤 Current user from session:', currentUser);
+        }
+    } catch (e) {
+        console.warn('Gagal ambil session:', e);
+    }
+
+    // Jika users dari server kosong, gunakan current user
     let onlineUsers = [];
     if (users && users.length > 0) {
         onlineUsers = users;
+    } else if (currentUser) {
+        onlineUsers = [currentUser];
+        console.log('ℹ️ Tidak ada data dari server, gunakan current user');
     } else {
-        // Fallback: current user
-        try {
-            const session = BCS.Storage.getSession();
-            if (session && session.user) {
-                const user = session.user;
-                onlineUsers.push({
-                    nama: user.nama || user.name || 'User',
-                    role: user.role || 'User',
-                    nik: session.nik || user.nik || '',
-                    lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-                    isCurrent: true
-                });
-            }
-        } catch (e) {}
+        console.warn('⚠️ Tidak ada user online dan tidak ada session');
     }
+
+    // Update badge & counter
     if (DOM.onlineCountBadge) DOM.onlineCountBadge.textContent = onlineUsers.length;
     if (DOM.onlineUserCount) DOM.onlineUserCount.textContent = onlineUsers.length;
 
@@ -191,11 +205,11 @@ function renderOnlineUsers(users) {
         return;
     }
 
-    // Current user email untuk label "Anda"
+    // Tandai current user
     let currentEmail = '';
     try {
         const session = BCS.Storage.getSession();
-        currentEmail = session?.user?.email || '';
+        currentEmail = session?.user?.email || session?.email || '';
     } catch (e) {}
 
     let html = '';
@@ -223,6 +237,7 @@ function renderOnlineUsers(users) {
         `;
     });
     DOM.onlineUserList.innerHTML = html;
+    console.log('✅ Online users rendered:', onlineUsers.length);
 }
 
 // =============================================
@@ -286,9 +301,9 @@ async function loadMonitoring() {
         if (DOM.timezoneLabel) DOM.timezoneLabel.textContent = 'WIB';
 
         // 🔥 USER ONLINE - langsung dari data getSummary
-        // Data dari server berupa array activeUsers
         const activeUsers = data.activeUsers || [];
         console.log('👥 Active users from getSummary:', activeUsers);
+        // Kirim ke renderOnlineUsers (fallback otomatis jika kosong)
         renderOnlineUsers(activeUsers);
 
         // Render charts (jika ada)
@@ -385,7 +400,7 @@ function init() {
     startLiveServerTime();
     loadMonitoring();
     startAutoRefresh();
-    console.log('✅ Monitoring page initialized (v4.6 FINAL)');
+    console.log('✅ Monitoring page initialized (v4.7 FINAL)');
 }
 
 window.addEventListener('beforeunload', stopAutoRefresh);

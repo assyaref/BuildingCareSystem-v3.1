@@ -90,21 +90,25 @@
         BCS.Logger.info("Logout");
 
         let token = '';
+        let session = null;
         try {
-            const session = BCS.Storage.getSession();
+            session = BCS.Storage.getSession();
             if (session && session.token) {
                 token = session.token;
             }
         } catch (e) {}
 
-        // Kirim ke server
+        // Kirim ke server - pastikan token dikirim
         if (token && BCS.Api && typeof BCS.Api.post === 'function') {
             try {
-                await BCS.Api.post('logout', { token: token });
-                console.log('✅ Logout recorded on server');
+                const response = await BCS.Api.post('logout', { token: token });
+                console.log('✅ Logout recorded on server:', response);
             } catch (e) {
                 console.warn('⚠️ Server logout failed:', e);
             }
+        } else {
+            // Jika tidak ada token, kita tetap logout secara lokal
+            console.warn('⚠️ No token found, skipping server logout.');
         }
 
         // Clear local

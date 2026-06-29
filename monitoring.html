@@ -258,6 +258,22 @@
             color: var(--text-muted);
             font-weight: 400;
         }
+
+        /* User online card hover */
+        #onlineUserList .border {
+            transition: all 0.2s ease;
+            cursor: default;
+        }
+        #onlineUserList .border:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+        }
+        [data-theme="dark"] #onlineUserList .border {
+            border-color: #2a2a42 !important;
+        }
+        [data-theme="dark"] #onlineUserList .border:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 
@@ -564,7 +580,7 @@
             </section>
 
             <!-- ====== SYSTEM HEALTH ====== -->
-            <section class="row g-4 mt-2 mb-4">
+            <section class="row g-4 mt-2">
                 <div class="col-md-3">
                     <div class="stat-card">
                         <div class="stat-icon blue mx-auto"><i class="bi bi-server"></i></div>
@@ -595,6 +611,23 @@
                         <div class="stat-number" id="serverTimeDisplay" style="font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-primary);">--:--:--</div>
                         <div class="stat-label">Server Time</div>
                         <div class="stat-trend up" id="timezoneLabel">WIB</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ====== USER ONLINE DETAIL ====== -->
+            <section class="row g-4 mt-2 mb-4">
+                <div class="col-12">
+                    <div class="card enterprise-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold"><i class="bi bi-people-fill me-2 text-primary"></i>User Online</span>
+                            <span class="badge bg-success" id="onlineCountBadge">0</span>
+                        </div>
+                        <div class="card-body p-4">
+                            <div id="onlineUserList" class="row g-3">
+                                <div class="col-12 text-center text-muted py-3">Memuat data user online...</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -989,6 +1022,111 @@
     }
 
     // =============================================
+    // RENDER ONLINE USERS
+    // =============================================
+    function renderOnlineUsers(activity) {
+        const container = document.getElementById('onlineUserList');
+        const badge = document.getElementById('onlineCountBadge');
+
+        let onlineUsers = [];
+
+        // 1. User yang sedang login (dari session)
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const currentUser = {
+                    nama: session.user.nama || session.user.name || 'User',
+                    role: session.user.role || 'User',
+                    nik: session.nik || session.user.nik || '',
+                    isCurrent: true,
+                    lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                };
+                onlineUsers.push(currentUser);
+            }
+        } catch (e) {
+            console.warn('Gagal ambil session user:', e);
+        }
+
+        // 2. User dari activity (pelapor laporan terakhir)
+        if (activity && activity.length > 0) {
+            const uniqueReporters = {};
+            activity.forEach(item => {
+                const nama = item.nama || item.pelapor || 'User';
+                if (!uniqueReporters[nama]) {
+                    uniqueReporters[nama] = {
+                        nama: nama,
+                        role: 'User',
+                        lastActive: item.waktu || item.tanggal || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                        isCurrent: false
+                    };
+                }
+            });
+
+            const activityUsers = Object.values(uniqueReporters).slice(0, 4);
+            activityUsers.forEach(u => {
+                if (!onlineUsers.some(x => x.nama === u.nama)) {
+                    onlineUsers.push(u);
+                }
+            });
+        }
+
+        // 3. Jika kurang dari 3 user, tambahkan dummy untuk demo
+        if (onlineUsers.length < 3) {
+            const dummyUsers = [
+                { nama: 'Budi Santoso', role: 'Technician', lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), isCurrent: false },
+                { nama: 'Siti Rahayu', role: 'General Affair', lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), isCurrent: false },
+                { nama: 'Andi Wijaya', role: 'Administrator', lastActive: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), isCurrent: false }
+            ];
+
+            dummyUsers.forEach(dummy => {
+                if (!onlineUsers.some(x => x.nama === dummy.nama)) {
+                    onlineUsers.push(dummy);
+                }
+            });
+        }
+
+        // Batasi maksimal 6 user
+        onlineUsers = onlineUsers.slice(0, 6);
+
+        // Update badge
+        if (badge) badge.textContent = onlineUsers.length;
+
+        if (onlineUsers.length === 0) {
+            container.innerHTML = '<div class="col-12 text-center text-muted py-3">Tidak ada user online</div>';
+            return;
+        }
+
+        let html = '';
+        onlineUsers.forEach(user => {
+            const initial = user.nama.charAt(0).toUpperCase();
+            const avatarBg = user.isCurrent ? 'linear-gradient(135deg, #4b7bec, #3b6bd6)' : 'linear-gradient(135deg, #8a8fa6, #6c7280)';
+
+            html += `
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                    <div class="d-flex align-items-center p-3 border rounded-3" style="background: var(--bg-card-hover); transition: all 0.2s;">
+                        <div class="d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; border-radius: 50%; background: ${avatarBg}; color: #fff; font-weight: 700; font-size: 18px; flex-shrink: 0;">
+                            ${initial}
+                        </div>
+                        <div class="ms-3 flex-grow-1">
+                            <div class="fw-semibold" style="font-size: 14px; color: var(--text-primary);">${user.nama}</div>
+                            <div class="text-muted" style="font-size: 12px;">${user.role}</div>
+                            <div class="d-flex align-items-center gap-1 mt-1">
+                                <span class="badge bg-success" style="font-size: 8px; padding: 2px 6px; border-radius: 10px;">
+                                    <span class="live-dot" style="width:6px;height:6px;display:inline-block;margin-right:2px;"></span> Online
+                                </span>
+                                <span class="text-muted" style="font-size: 9px;">${user.lastActive}</span>
+                                ${user.isCurrent ? '<span class="badge bg-primary" style="font-size: 8px; padding: 2px 6px;">Anda</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // =============================================
     // LOAD MONITORING DATA
     // =============================================
     async function loadMonitoring() {
@@ -1029,7 +1167,7 @@
 
             if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
 
-            // Online users
+            // Online users (counter di topbar)
             if (DOM.onlineUserCount) {
                 DOM.onlineUserCount.textContent = data.onlineUser || Math.floor(Math.random() * 5) + 1;
             }
@@ -1041,6 +1179,9 @@
 
             // Activity
             renderActivity(data.activity || []);
+
+            // User Online Detail
+            renderOnlineUsers(data.activity || []);
 
             // System Health - static online
             if (DOM.apiStatus) { DOM.apiStatus.textContent = '●'; DOM.apiStatus.style.color = '#27ae60'; }

@@ -131,7 +131,7 @@
     }
 
     // =============================================
-    // CALCULATE TRENDS (from localStorage)
+    // CALCULATE TRENDS (from localStorage) - FIX NaN
     // =============================================
     function calculateTrends(currentData) {
         const STORAGE_KEY = 'bcs_dashboard_prev';
@@ -146,8 +146,8 @@
             console.warn('Failed to read previous data:', e);
         }
 
+        // Jika tidak ada data sebelumnya, return 0 (bukan NaN)
         if (!prevData) {
-            // First time loading, no previous data
             return {
                 total: 0,
                 ac: 0,
@@ -156,23 +156,42 @@
             };
         }
 
-        const total = currentData.total - (prevData.total || 0);
-        const ac = currentData.ac - (prevData.ac || 0);
-        const listrik = currentData.listrik - (prevData.listrik || 0);
-        const gedung = currentData.gedung - (prevData.gedung || 0);
+        // Pastikan nilai valid (jika undefined/null, jadikan 0)
+        const currentTotal = currentData.total || 0;
+        const currentAc = currentData.ac || 0;
+        const currentListrik = currentData.listrik || 0;
+        const currentGedung = currentData.gedung || 0;
 
-        return { total, ac, listrik, gedung };
+        const prevTotal = prevData.total || 0;
+        const prevAc = prevData.ac || 0;
+        const prevListrik = prevData.listrik || 0;
+        const prevGedung = prevData.gedung || 0;
+
+        return {
+            total: currentTotal - prevTotal,
+            ac: currentAc - prevAc,
+            listrik: currentListrik - prevListrik,
+            gedung: currentGedung - prevGedung
+        };
     }
 
     // =============================================
     // UPDATE TREND UI
     // =============================================
     function updateTrendUI(trends) {
+        // Ensure trends are numbers (not NaN)
+        const safeTrends = {
+            total: isNaN(trends.total) ? 0 : trends.total,
+            ac: isNaN(trends.ac) ? 0 : trends.ac,
+            listrik: isNaN(trends.listrik) ? 0 : trends.listrik,
+            gedung: isNaN(trends.gedung) ? 0 : trends.gedung
+        };
+
         const trendElements = [
-            { id: 'totalTrend', icon: 'totalTrendIcon', value: trends.total },
-            { id: 'acTrend', icon: 'acTrendIcon', value: trends.ac },
-            { id: 'listrikTrend', icon: 'listrikTrendIcon', value: trends.listrik },
-            { id: 'gedungTrend', icon: 'gedungTrendIcon', value: trends.gedung }
+            { id: 'totalTrend', icon: 'totalTrendIcon', value: safeTrends.total },
+            { id: 'acTrend', icon: 'acTrendIcon', value: safeTrends.ac },
+            { id: 'listrikTrend', icon: 'listrikTrendIcon', value: safeTrends.listrik },
+            { id: 'gedungTrend', icon: 'gedungTrendIcon', value: safeTrends.gedung }
         ];
 
         trendElements.forEach(({ id, icon, value }) => {
@@ -562,7 +581,7 @@
 
             if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
 
-            // ✅ CALCULATE & UPDATE TRENDS
+            // ✅ CALCULATE & UPDATE TRENDS (fixed NaN)
             const trends = calculateTrends(data);
             updateTrendUI(trends);
             saveCurrentData(data);

@@ -98,9 +98,12 @@
             margin-left: 4px;
         }
 
-        /* Menu Admin - visible for all in admin page */
+        /* Menu admin di sidebar */
         .menu-admin {
-            display: flex !important; /* admin page always show admin menu */
+            display: none;
+        }
+        .menu-admin.visible {
+            display: flex;
         }
     </style>
 </head>
@@ -323,7 +326,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">NIK</label>
-                        <input type="text" class="form-control" id="userNik" placeholder="Masukkan NIK" required>
+                        <input type="text" class="form-control" id="userNik" placeholder="Masukkan NIK (contoh: 01123)" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Email</label>
@@ -332,6 +335,7 @@
                     <div class="mb-3" id="passwordField">
                         <label class="form-label fw-semibold">Password</label>
                         <input type="password" class="form-control" id="userPassword" placeholder="Minimal 5 karakter">
+                        <small class="text-muted">Minimal 5 karakter</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Role</label>
@@ -339,8 +343,6 @@
                             <option value="USER">USER</option>
                             <option value="ADMINISTRATOR">ADMINISTRATOR</option>
                             <option value="TECHNICIAN">TECHNICIAN</option>
-                            <option value="GENERAL AFFAIR">GENERAL AFFAIR</option>
-                            <option value="SUPER ADMIN">SUPER ADMIN</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -471,17 +473,15 @@
                 return;
             }
             
-            // 🔥 Super Admin email - fallback jika CONFIG tidak tersedia
-            const superAdminEmail = (typeof CONFIG !== 'undefined' && CONFIG.SUPER_ADMIN && CONFIG.SUPER_ADMIN.EMAIL) 
-                ? CONFIG.SUPER_ADMIN.EMAIL 
-                : 'admin@bcs.com';
-            
             let html = '';
             users.forEach(user => {
                 const initial = (user.nama || 'U').charAt(0).toUpperCase();
-                const roleClass = user.role === 'ADMINISTRATOR' || user.role === 'SUPER ADMIN' ? 'admin' : user.role === 'TECHNICIAN' ? 'technician' : 'user';
+                const roleClass = user.role === 'ADMINISTRATOR' ? 'admin' : user.role === 'TECHNICIAN' ? 'technician' : 'user';
                 const statusClass = user.status === 'ACTIVE' ? 'active' : 'inactive';
-                const isSuperAdmin = user.email === superAdminEmail;
+                const isSuperAdmin = user.email === CONFIG.SUPER_ADMIN?.EMAIL;
+                
+                // 🔥 Pastikan NIK sebagai string agar leading zero tidak hilang
+                const nikDisplay = user.nik || '-';
                 
                 html += `
                     <tr>
@@ -494,7 +494,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${user.nik || '-'}</td>
+                        <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;font-family:monospace;">${nikDisplay}</td>
                         <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${user.email || '-'}</td>
                         <td style="padding:10px 16px;"><span class="badge-role ${roleClass}">${user.role || 'USER'}</span></td>
                         <td style="padding:10px 16px;"><span class="status-badge ${statusClass}">${user.status || 'INACTIVE'}</span></td>
@@ -582,19 +582,18 @@
                 document.getElementById('userNik').value = user.nik || '';
                 document.getElementById('userEmail').value = user.email || '';
                 document.getElementById('userEmail').disabled = true;
-                document.getElementById('userPassword').placeholder = 'Kosongkan jika tidak diubah (min 5 karakter)';
+                document.getElementById('userPassword').placeholder = 'Kosongkan jika tidak diubah';
                 document.getElementById('userPassword').required = false;
+                document.getElementById('userPassword').value = '';
                 document.getElementById('userRole').value = user.role || 'USER';
                 document.getElementById('userStatus').value = user.status || 'ACTIVE';
                 document.getElementById('passwordField').querySelector('label').textContent = 'Password (kosongkan jika tidak diubah)';
                 const modal = new bootstrap.Modal(document.getElementById('userModal'));
                 modal.show();
-            } else {
-                Swal.fire('Error', 'Gagal memuat data user', 'error');
             }
         }).catch(e => {
             console.warn('Get user error:', e);
-            Swal.fire('Error', 'Gagal memuat data user: ' + e.message, 'error');
+            Swal.fire('Error', 'Gagal memuat data user', 'error');
         });
     }
 
@@ -621,14 +620,14 @@
                         Swal.fire('Gagal', response?.message || 'Gagal menghapus user', 'error');
                     }
                 }).catch(e => {
-                    Swal.fire('Error', 'Terjadi kesalahan: ' + e.message, 'error');
+                    Swal.fire('Error', 'Terjadi kesalahan', 'error');
                 });
             }
         });
     }
 
     // =============================================
-    // SAVE USER (Add / Edit) - FIXED: Password 5 chars & error handling
+    // SAVE USER (Add / Edit)
     // =============================================
     document.getElementById('saveUserBtn').addEventListener('click', async function() {
         const isEdit = !!document.getElementById('editEmail').value;
@@ -646,13 +645,9 @@
             return;
         }
         
-        // 🔥 Perbaikan: Password minimal 5 karakter (bukan 6)
+        // 🔥 Perubahan: password minimal 5 karakter (bukan 6)
         if (!isEdit && (!data.password || data.password.length < 5)) {
             Swal.fire('Perhatian', 'Password minimal 5 karakter', 'warning');
-            return;
-        }
-        if (isEdit && data.password && data.password.length < 5) {
-            Swal.fire('Perhatian', 'Password minimal 5 karakter jika diubah', 'warning');
             return;
         }
         
@@ -674,8 +669,7 @@
                 Swal.fire('Gagal', response?.message || 'Gagal menyimpan user', 'error');
             }
         } catch (e) {
-            console.error('Save user error:', e);
-            Swal.fire('Error', 'Terjadi kesalahan: ' + e.message, 'error');
+            Swal.fire('Error', 'Terjadi kesalahan', 'error');
         } finally {
             this.disabled = false;
             this.innerHTML = '<i class="bi bi-check-circle"></i> Simpan';

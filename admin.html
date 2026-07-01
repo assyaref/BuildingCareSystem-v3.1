@@ -104,7 +104,6 @@
             display: flex;
         }
 
-        /* 🔥 Fix: NIK dengan font monospace agar angka rapi */
         .nik-cell {
             font-family: 'Courier New', monospace;
             font-weight: 600;
@@ -278,8 +277,11 @@
             <section class="row g-4 mt-3 mb-4">
                 <div class="col-12">
                     <div class="card enterprise-card">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <span class="fw-semibold"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Activities</span>
+                            <button class="btn btn-danger btn-sm" id="clearActivitiesBtn" title="Hapus semua aktivitas">
+                                <i class="bi bi-trash3"></i> Clear All
+                            </button>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
@@ -487,7 +489,6 @@
                 const statusClass = user.status === 'ACTIVE' ? 'active' : 'inactive';
                 const isSuperAdmin = user.email === CONFIG.SUPER_ADMIN?.EMAIL;
                 
-                // 🔥 NIK ditampilkan sebagai string (leading zero tetap ada)
                 const nikDisplay = user.nik || '-';
                 
                 html += `
@@ -520,7 +521,6 @@
             });
             tbody.innerHTML = html;
             
-            // Event listeners
             document.querySelectorAll('.edit-user').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const email = this.dataset.email;
@@ -582,10 +582,9 @@
     }
 
     // =============================================
-    // OPEN EDIT USER - FIX: Pastikan data user diisi dengan benar
+    // OPEN EDIT USER
     // =============================================
     function openEditUser(email) {
-        // Tampilkan loading di modal
         const modalTitle = document.getElementById('userModalTitle');
         modalTitle.textContent = 'Memuat data...';
         
@@ -651,6 +650,47 @@
             }
         });
     }
+
+    // =============================================
+    // CLEAR ALL ACTIVITIES
+    // =============================================
+    document.getElementById('clearActivitiesBtn').addEventListener('click', function() {
+        Swal.fire({
+            title: 'Hapus Semua Aktivitas?',
+            text: 'Semua riwayat aktivitas akan dihapus permanen. Tindakan ini tidak dapat dibatalkan!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Hapus Semua!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const btn = document.getElementById('clearActivitiesBtn');
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menghapus...';
+                    
+                    const response = await BCS.Api.post('clearActivities', {});
+                    console.log('Clear activities response:', response);
+                    
+                    if (response && response.success) {
+                        Swal.fire('Berhasil!', response.message || 'Semua aktivitas berhasil dihapus.', 'success');
+                        await loadActivities();
+                    } else {
+                        Swal.fire('Gagal!', response?.message || 'Gagal menghapus aktivitas.', 'error');
+                    }
+                } catch (e) {
+                    Swal.fire('Error!', 'Terjadi kesalahan saat menghapus aktivitas.', 'error');
+                    console.error('Clear activities error:', e);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-trash3"></i> Clear All';
+                }
+            }
+        });
+    });
 
     // =============================================
     // SAVE USER (Add / Edit)

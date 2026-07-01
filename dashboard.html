@@ -46,7 +46,7 @@
 
 <body>
 
-<!-- APP WRAPPER (No loading overlay) -->
+<!-- APP WRAPPER -->
 <div class="wrapper">
 
     <aside class="sidebar">
@@ -207,9 +207,8 @@
                 </div>
             </section>
 
-            <!-- ========== STATUS CARDS ========== -->
+            <!-- STATUS CARDS -->
             <section class="row g-4 mt-2">
-                <!-- OPEN -->
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card open p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
@@ -226,7 +225,6 @@
                     </div>
                 </div>
 
-                <!-- PROGRESS -->
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card progress-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
@@ -243,7 +241,6 @@
                     </div>
                 </div>
 
-                <!-- DONE -->
                 <div class="col-xl-4 col-md-12">
                     <div class="status-card done-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
@@ -395,6 +392,40 @@
     'use strict';
 
     // =============================================
+    // 🔥 GUARD: Hanya ADMINISTRATOR yang boleh akses dashboard
+    // =============================================
+    function checkAccess() {
+        try {
+            const session = BCS.Storage.getSession();
+            if (!session || !session.user) {
+                // Tidak ada session, redirect ke login
+                window.location.href = 'login.html';
+                return false;
+            }
+
+            const role = (session.user.role || '').toUpperCase();
+            if (role !== 'ADMINISTRATOR') {
+                // Jika bukan ADMINISTRATOR, redirect ke report.html
+                console.warn('⛔ Akses ditolak: role', role, 'redirect ke report.html');
+                window.location.href = 'report.html';
+                return false;
+            }
+
+            return true;
+        } catch (e) {
+            console.warn('Guard error:', e);
+            window.location.href = 'login.html';
+            return false;
+        }
+    }
+
+    // Jalankan guard sebelum apapun
+    if (!checkAccess()) {
+        // Stop execution jika redirect
+        return;
+    }
+
+    // =============================================
     // SHOW/HIDE ADMIN MENU BASED ON ROLE
     // =============================================
     function checkAdminMenu() {
@@ -405,7 +436,6 @@
             const session = BCS.Storage.getSession();
             if (session && session.user) {
                 const role = (session.user.role || '').toUpperCase();
-                // Tampilkan hanya jika role adalah ADMINISTRATOR
                 if (role === 'ADMINISTRATOR') {
                     adminMenu.classList.add('visible');
                     adminMenu.style.display = 'flex';
@@ -617,14 +647,33 @@
     }
 
     // =============================================
+    // LOAD USER INFO
+    // =============================================
+    function loadUserInfo() {
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const user = session.user;
+                const nama = user.nama || user.name || 'User';
+                const role = user.role || 'User';
+                document.getElementById('userName').textContent = nama;
+                document.getElementById('userRole').textContent = role;
+            }
+        } catch (e) {
+            console.warn('Load user info error:', e);
+        }
+    }
+
+    // =============================================
     // INIT
     // =============================================
     function init() {
+        loadUserInfo();
         initDarkMode();
         initLogout();
         checkAdminMenu();
         startAutoRefresh();
-        console.log('✅ UI Dashboard System Initialized with Auto-Refresh (7s)');
+        console.log('✅ Dashboard System Initialized with Role Guard');
     }
 
     window.addEventListener('beforeunload', function() {

@@ -247,10 +247,27 @@ const Api = (() => {
         });
     }
 
+    /**
+     * HEARTBEAT - Kirim setiap 30 detik untuk menjaga session aktif
+     */
+    async function heartbeat() {
+        try {
+            const token = getToken();
+            if (!token) return false;
+            
+            const response = await request("POST", "heartbeat", { token: token });
+            return response && response.success;
+        } catch (e) {
+            console.warn("[API] Heartbeat failed:", e);
+            return false;
+        }
+    }
+
     return {
         post: (action, data) => request("POST", action, data),
         get: (action, data) => request("GET", action, data),
-        request: request
+        request: request,
+        heartbeat: heartbeat
     };
 })();
 

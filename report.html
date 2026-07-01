@@ -155,6 +155,29 @@
             max-height: 400px;
             overflow-y: auto;
         }
+
+        /* Menu Admin - hidden by default */
+        .menu-admin {
+            display: none;
+        }
+        .menu-admin.visible {
+            display: flex;
+        }
+
+        .status-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 6px;
+            display: inline-block;
+            letter-spacing: 0.3px;
+        }
+        .status-done { background: #dcfce7; color: #16a34a; }
+        .status-progress { background: #fef3c7; color: #d97706; }
+        .status-open { background: #fee2e2; color: #dc2626; }
+        [data-theme="dark"] .status-open { background: #3d2e00; color: #ffd700; }
+        [data-theme="dark"] .status-progress { background: #00264d; color: #66b0ff; }
+        [data-theme="dark"] .status-done { background: #003d1a; color: #00e676; }
     </style>
 </head>
 
@@ -191,6 +214,11 @@
             <a href="approval.html" class="menu">
                 <i class="bi bi-check-circle"></i>
                 <span>Approval</span>
+            </a>
+            <!-- 🔥 MENU ADMIN - hanya muncul untuk ADMINISTRATOR -->
+            <a href="admin.html" class="menu menu-admin" id="adminMenu">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Admin</span>
             </a>
             <a href="#" id="logoutBtn" class="menu text-danger">
                 <i class="bi bi-box-arrow-right"></i>
@@ -271,7 +299,6 @@
                                     <div class="col-lg-6">
                                         <label class="form-label">Prioritas</label>
                                         <select id="prioritas" class="form-select">
-                                            <option value="">Pilih Prioritas</option>
                                             <option value="NORMAL">🟢 NORMAL</option>
                                             <option value="HIGH">🟠 HIGH</option>
                                             <option value="URGENT">🔴 URGENT</option>
@@ -492,6 +519,32 @@
 <script>
 (function() {
     'use strict';
+
+    // =============================================
+    // 🔥 CHECK ADMIN MENU - tampilkan hanya untuk ADMINISTRATOR
+    // =============================================
+    function checkAdminMenu() {
+        const adminMenu = document.getElementById('adminMenu');
+        if (!adminMenu) return;
+        
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const role = (session.user.role || '').toUpperCase();
+                if (role === 'ADMINISTRATOR') {
+                    adminMenu.classList.add('visible');
+                    adminMenu.style.display = 'flex';
+                } else {
+                    adminMenu.classList.remove('visible');
+                    adminMenu.style.display = 'none';
+                }
+            } else {
+                adminMenu.style.display = 'none';
+            }
+        } catch (e) {
+            adminMenu.style.display = 'none';
+        }
+    }
 
     // DOM REFS
     const DOM = {
@@ -737,7 +790,6 @@
         if (!departemen) { alert('Departemen wajib diisi'); DOM.departemen.focus(); return; }
         if (!lokasi) { alert('Lokasi kerusakan wajib diisi'); DOM.lokasi.focus(); return; }
         if (!kategori) { alert('Pilih kategori'); DOM.kategori.focus(); return; }
-        if (!prioritas) { alert('Pilih prioritas'); DOM.prioritas.focus(); return; }
         if (!deskripsi || deskripsi.length < 5) { alert('Deskripsi minimal 5 karakter'); DOM.deskripsi.focus(); return; }
 
         let photoBase64 = '';
@@ -801,7 +853,7 @@
     function resetForm() {
         DOM.lokasi.value = '';
         DOM.kategori.value = '';
-        DOM.prioritas.value = '';
+        DOM.prioritas.value = 'NORMAL';
         DOM.deskripsi.value = '';
         clearPreview();
         loadUserInfo();
@@ -852,6 +904,7 @@
 
     // INIT
     async function init() {
+        checkAdminMenu();      // 🔥 Tampilkan menu Admin jika role ADMINISTRATOR
         initDarkMode();
         loadUserInfo();
         await loadUserHistory();

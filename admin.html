@@ -97,6 +97,11 @@
             animation: pulse-dot 1.5s ease-in-out infinite;
             margin-left: 4px;
         }
+
+        /* Menu Admin - visible for all in admin page */
+        .menu-admin {
+            display: flex !important; /* admin page always show admin menu */
+        }
     </style>
 </head>
 <body>
@@ -326,7 +331,7 @@
                     </div>
                     <div class="mb-3" id="passwordField">
                         <label class="form-label fw-semibold">Password</label>
-                        <input type="password" class="form-control" id="userPassword" placeholder="Minimal 6 karakter">
+                        <input type="password" class="form-control" id="userPassword" placeholder="Minimal 5 karakter">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Role</label>
@@ -334,6 +339,8 @@
                             <option value="USER">USER</option>
                             <option value="ADMINISTRATOR">ADMINISTRATOR</option>
                             <option value="TECHNICIAN">TECHNICIAN</option>
+                            <option value="GENERAL AFFAIR">GENERAL AFFAIR</option>
+                            <option value="SUPER ADMIN">SUPER ADMIN</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -464,12 +471,17 @@
                 return;
             }
             
+            // 🔥 Super Admin email - fallback jika CONFIG tidak tersedia
+            const superAdminEmail = (typeof CONFIG !== 'undefined' && CONFIG.SUPER_ADMIN && CONFIG.SUPER_ADMIN.EMAIL) 
+                ? CONFIG.SUPER_ADMIN.EMAIL 
+                : 'admin@bcs.com';
+            
             let html = '';
             users.forEach(user => {
                 const initial = (user.nama || 'U').charAt(0).toUpperCase();
-                const roleClass = user.role === 'ADMINISTRATOR' ? 'admin' : user.role === 'TECHNICIAN' ? 'technician' : 'user';
+                const roleClass = user.role === 'ADMINISTRATOR' || user.role === 'SUPER ADMIN' ? 'admin' : user.role === 'TECHNICIAN' ? 'technician' : 'user';
                 const statusClass = user.status === 'ACTIVE' ? 'active' : 'inactive';
-                const isSuperAdmin = user.email === CONFIG.SUPER_ADMIN?.EMAIL;
+                const isSuperAdmin = user.email === superAdminEmail;
                 
                 html += `
                     <tr>
@@ -570,17 +582,19 @@
                 document.getElementById('userNik').value = user.nik || '';
                 document.getElementById('userEmail').value = user.email || '';
                 document.getElementById('userEmail').disabled = true;
-                document.getElementById('userPassword').placeholder = 'Kosongkan jika tidak diubah';
+                document.getElementById('userPassword').placeholder = 'Kosongkan jika tidak diubah (min 5 karakter)';
                 document.getElementById('userPassword').required = false;
                 document.getElementById('userRole').value = user.role || 'USER';
                 document.getElementById('userStatus').value = user.status || 'ACTIVE';
                 document.getElementById('passwordField').querySelector('label').textContent = 'Password (kosongkan jika tidak diubah)';
                 const modal = new bootstrap.Modal(document.getElementById('userModal'));
                 modal.show();
+            } else {
+                Swal.fire('Error', 'Gagal memuat data user', 'error');
             }
         }).catch(e => {
             console.warn('Get user error:', e);
-            Swal.fire('Error', 'Gagal memuat data user', 'error');
+            Swal.fire('Error', 'Gagal memuat data user: ' + e.message, 'error');
         });
     }
 
@@ -607,14 +621,14 @@
                         Swal.fire('Gagal', response?.message || 'Gagal menghapus user', 'error');
                     }
                 }).catch(e => {
-                    Swal.fire('Error', 'Terjadi kesalahan', 'error');
+                    Swal.fire('Error', 'Terjadi kesalahan: ' + e.message, 'error');
                 });
             }
         });
     }
 
     // =============================================
-    // SAVE USER (Add / Edit)
+    // SAVE USER (Add / Edit) - FIXED: Password 5 chars & error handling
     // =============================================
     document.getElementById('saveUserBtn').addEventListener('click', async function() {
         const isEdit = !!document.getElementById('editEmail').value;
@@ -632,8 +646,13 @@
             return;
         }
         
-        if (!isEdit && (!data.password || data.password.length < 6)) {
-            Swal.fire('Perhatian', 'Password minimal 6 karakter', 'warning');
+        // 🔥 Perbaikan: Password minimal 5 karakter (bukan 6)
+        if (!isEdit && (!data.password || data.password.length < 5)) {
+            Swal.fire('Perhatian', 'Password minimal 5 karakter', 'warning');
+            return;
+        }
+        if (isEdit && data.password && data.password.length < 5) {
+            Swal.fire('Perhatian', 'Password minimal 5 karakter jika diubah', 'warning');
             return;
         }
         
@@ -655,7 +674,8 @@
                 Swal.fire('Gagal', response?.message || 'Gagal menyimpan user', 'error');
             }
         } catch (e) {
-            Swal.fire('Error', 'Terjadi kesalahan', 'error');
+            console.error('Save user error:', e);
+            Swal.fire('Error', 'Terjadi kesalahan: ' + e.message, 'error');
         } finally {
             this.disabled = false;
             this.innerHTML = '<i class="bi bi-check-circle"></i> Simpan';
@@ -673,7 +693,7 @@
         document.getElementById('userEmail').value = '';
         document.getElementById('userEmail').disabled = false;
         document.getElementById('userPassword').value = '';
-        document.getElementById('userPassword').placeholder = 'Minimal 6 karakter';
+        document.getElementById('userPassword').placeholder = 'Minimal 5 karakter';
         document.getElementById('userPassword').required = true;
         document.getElementById('userRole').value = 'USER';
         document.getElementById('userStatus').value = 'ACTIVE';

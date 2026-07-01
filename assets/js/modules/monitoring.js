@@ -230,4 +230,227 @@ function renderOnlineUsers(users) {
                             <span class="badge bg-success" style="font-size: 8px; padding: 2px 8px; border-radius: 10px;">
                                 <span class="live-dot" style="width:6px;height:6px;display:inline-block;margin-right:4px;"></span> Online
                             </span>
-                            <span class="text-muted" style="font-size: 9px;">${user.lastActive || ''
+                            <span class="text-muted" style="font-size: 9px;">${user.lastActive || ''}</span>
+                            ${isCurrent ? '<span class="badge bg-primary" style="font-size: 8px; padding: 2px 6px;">Anda</span>' : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    DOM.onlineUserList.innerHTML = html;
+    console.log('✅ Online users rendered:', onlineUsers.length);
+}
+
+// =============================================
+// LOAD ACTIVE USERS - Terpisah untuk refresh
+// =============================================
+async function loadActiveUsers() {
+    try {
+        // Coba dari getActiveSessions
+        const response = await BCS.Api.post('getActiveSessions', {});
+        console.log('👥 Active users from server:', response);
+        
+        if (response && response.success && response.data) {
+            renderOnlineUsers(response.data);
+            return;
+        }
+        
+        // Fallback: dari getSummary
+        const summary = await BCS.Api.post('getSummary', {});
+        if (summary && summary.success && summary.data) {
+            const users = summary.data.activeUsers || [];
+            if (users.length > 0) {
+                renderOnlineUsers(users);
+                return;
+            }
+        }
+        
+        // Last fallback: current user only
+        renderOnlineUsers([]);
+        
+    } catch (e) {
+        console.warn('Gagal load active users:', e);
+        renderOnlineUsers([]);
+    }
+}
+
+// =============================================
+// LOAD MONITORING DATA
+// =============================================
+async function loadMonitoring() {
+    try {
+        BCS.App.Loading.show();
+        const response = await BCS.Api.post('getSummary', {});
+        console.log('📊 Monitoring response:', response);
+        if (!response || !response.success) {
+            console.error('Gagal load monitoring:', response?.message);
+            BCS.App.Toast.danger('Gagal memuat data monitoring');
+            return;
+        }
+        const data = response.data || {};
+
+        // Summary cards
+        if (DOM.monitorTotal) DOM.monitorTotal.textContent = data.total || 0;
+        if (DOM.monitorOpen) DOM.monitorOpen.textContent = data.open || 0;
+        if (DOM.monitorProgress) DOM.monitorProgress.textContent = data.progress || 0;
+        if (DOM.monitorDone) DOM.monitorDone.textContent = data.done || 0;
+        if (DOM.statusOpen) DOM.statusOpen.textContent = data.open || 0;
+        if (DOM.statusProgress) DOM.statusProgress.textContent = data.progress || 0;
+        if (DOM.statusDone) DOM.statusDone.textContent = data.done || 0;
+
+        // Trend
+        ['totalTrend','openTrend','progressTrend','doneTrend'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = data[id.replace('Trend','')] || 0;
+        });
+
+        // SLA
+        if (DOM.fastCount) DOM.fastCount.textContent = data.fast || 0;
+        if (DOM.normalCount) DOM.normalCount.textContent = data.normal || 0;
+        if (DOM.lateCount) DOM.lateCount.textContent = data.late || 0;
+
+        updateStatusPercentages(data);
+        updateSLAPercentages(data);
+
+        if (DOM.lastUpdate) DOM.lastUpdate.textContent = data.lastUpdate || data.serverTime || '-';
+
+        renderActivity(data.activity || []);
+
+        // System Health (online)
+        ['api','db','drive'].forEach(type => {
+            const statusEl = DOM[type + 'Status'];
+            const textEl = DOM[type + 'StatusText'];
+            if (statusEl) { statusEl.textContent = '●'; statusEl.style.color = '#27ae60'; }
+            if (textEl) { textEl.textContent = 'Online'; textEl.className = 'stat-trend up'; }
+        });
+
+        // Server Time
+        const serverTime = data.serverTime || response.serverTime || new Date().toISOString();
+        const time = new Date(serverTime);
+        if (DOM.serverTimeDisplay) {
+            DOM.serverTimeDisplay.textContent = time.toLocaleTimeString('id-ID', {
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+        }
+        if (DOM.timezoneLabel) DOM.timezoneLabel.textContent = 'WIB';
+
+        // 🔥 LOAD ACTIVE USERS - refresh setiap kali
+        await loadActiveUsers();
+
+        // Render charts (jika ada)
+        renderCharts(data);
+
+    } catch (error) {
+        console.error('Monitoring error:', error);
+        BCS.App.Toast.danger('Terjadi kesalahan saat memuat data');
+    } finally {
+        BCS.App.Loading.hide();
+    }
+}
+
+// =============================================
+// RENDER CHARTS (sederhana)
+// =============================================
+function renderCharts(data) {
+    // Implementasi chart (jika diperlukan)
+    console.log('📊 Charts can be rendered here if needed.');
+}
+
+// =============================================
+// LIVE SERVER TIME
+// =============================================
+function startLiveServerTime() {
+    function updateClock() {
+        if (!DOM.serverTimeDisplay) return;
+        const now = new Date();
+        DOM.serverTimeDisplay.textContent = now.toLocaleTimeString('id-ID', {
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+}
+
+// =============================================
+// AUTO-REFRESH
+// =============================================
+let refreshTimer = 7;
+let refreshInterval = null;
+let timerInterval = null;
+
+function updateTimerDisplay() {
+    const el = document.getElementById('refreshTimer');
+    if (el) el.textContent = refreshTimer;
+}
+
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        refreshTimer--;
+        if (refreshTimer <= 0) refreshTimer = 7;
+        updateTimerDisplay();
+    }, 1000);
+    refreshInterval = setInterval(() => {
+        loadMonitoring();
+        refreshTimer = 7;
+        updateTimerDisplay();
+    }, 7000);
+    updateTimerDisplay();
+}
+
+function stopAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    if (timerInterval) clearInterval(timerInterval);
+}
+
+// =============================================
+// LOGOUT
+// =============================================
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'logoutBtn') {
+        e.preventDefault();
+        if (window.auth && typeof window.auth.logout === 'function') {
+            window.auth.logout();
+        } else {
+            if (confirm('Apakah Anda yakin ingin keluar?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+    }
+});
+
+// =============================================
+// REFRESH BUTTON
+// =============================================
+if (DOM.refreshBtn) {
+    DOM.refreshBtn.addEventListener('click', function() {
+        loadMonitoring();
+    });
+}
+
+// =============================================
+// INIT
+// =============================================
+function init() {
+    initDarkMode();
+    loadUserInfo();
+    startLiveServerTime();
+    loadMonitoring();
+    startAutoRefresh();
+    console.log('✅ Monitoring page initialized (v4.7 FINAL)');
+}
+
+window.addEventListener('beforeunload', stopAutoRefresh);
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
+// Ekspos ke global
+window.MonitoringModule = { init, loadMonitoring, loadActiveUsers };

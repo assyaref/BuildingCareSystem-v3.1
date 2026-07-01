@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Admin Panel — Building Care System</title>
+
+    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+
+    <style>
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px 24px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+        }
+        .stat-card .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+        .stat-card .stat-icon.blue { background: #e0f2fe; color: #0284c7; }
+        .stat-card .stat-icon.green { background: #dcfce7; color: #22c55e; }
+        .stat-card .stat-icon.orange { background: #fef3c7; color: #f59e0b; }
+        .stat-card .stat-icon.purple { background: #f3e8ff; color: #a855f7; }
+        .stat-card .stat-icon.red { background: #fee2e2; color: #ef4444; }
+
+        .admin-table th {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .admin-table td {
+            vertical-align: middle;
+            font-size: 13px;
+        }
+        .admin-table .badge-role {
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .badge-role.admin { background: #f3e8ff; color: #7c3aed; }
+        .badge-role.user { background: #e0f2fe; color: #0284c7; }
+        .badge-role.technician { background: #fef3c7; color: #d97706; }
+
+        .status-badge {
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .status-badge.active { background: #dcfce7; color: #22c55e; }
+        .status-badge.inactive { background: #fee2e2; color: #ef4444; }
+
+        .avatar-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            color: #fff;
+            background: #4b7bec;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.8); }
+        }
+        .live-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- APP WRAPPER -->
+<div class="wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo-area">
+            <img src="assets/img/logo.png" class="logo" alt="Logo">
+            <h5>Building Care</h5>
+            <small>Enterprise v3.2</small>
+        </div>
+
+        <nav>
+            <a href="dashboard.html" class="menu">
+                <i class="bi bi-grid-fill"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="report.html" class="menu">
+                <i class="bi bi-file-earmark-plus"></i>
+                <span>Report</span>
+            </a>
+            <a href="monitoring.html" class="menu">
+                <i class="bi bi-display"></i>
+                <span>Monitoring</span>
+            </a>
+            <a href="history.html" class="menu">
+                <i class="bi bi-clock-history"></i>
+                <span>History</span>
+            </a>
+            <a href="approval.html" class="menu">
+                <i class="bi bi-check-circle"></i>
+                <span>Approval</span>
+            </a>
+            <a href="admin.html" class="menu active">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Admin</span>
+            </a>
+            <a href="#" id="logoutBtn" class="menu text-danger">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+        <div class="container-fluid">
+
+            <!-- TOPBAR -->
+            <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h3>Admin Panel</h3>
+                    <small>
+                        Super Admin Control Center
+                        <br>
+                        <span class="brand-location">Radiant Group Duri</span>
+                    </small>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <button class="btn theme-switcher-btn d-flex align-items-center justify-content-center p-0" id="darkModeToggle" style="width:42px;height:42px;border-radius:50% !important;background:var(--bg-surface);border:1px solid var(--border-color);color:var(--text-primary);">
+                        <i class="bi bi-moon-fill" id="darkModeIcon" style="font-size:1.15rem;"></i>
+                    </button>
+
+                    <div class="user-profile-card p-3 d-flex align-items-center gap-3">
+                        <div class="avatar d-flex justify-content-center align-items-center" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#0D47A1,#2563EB);color:#fff;">
+                            <i class="bi bi-shield-lock-fill" style="font-size:1.3rem;"></i>
+                        </div>
+                        <div>
+                            <div class="profile-name fw-semibold text-truncate" id="userName" style="max-width:150px;color:var(--text-primary);">Super Admin</div>
+                            <div class="role-badge" id="userRole" style="font-size:11px;background:var(--accent-soft);color:var(--accent-color);padding:2px 10px;border-radius:999px;font-weight:600;display:inline-block;margin-top:2px;">ADMINISTRATOR</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- STATISTICS CARDS -->
+            <section class="row g-4 mt-1">
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon blue"><i class="bi bi-people-fill"></i></div>
+                            <div>
+                                <h6 class="text-muted mb-0" style="font-size:12px;font-weight:500;">Total Users</h6>
+                                <h2 class="fw-bold mb-0" id="totalUsers" style="color:var(--text-primary);">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon green"><i class="bi bi-file-earmark-text-fill"></i></div>
+                            <div>
+                                <h6 class="text-muted mb-0" style="font-size:12px;font-weight:500;">Total Reports</h6>
+                                <h2 class="fw-bold mb-0" id="totalReports" style="color:var(--text-primary);">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon orange"><i class="bi bi-hourglass-split"></i></div>
+                            <div>
+                                <h6 class="text-muted mb-0" style="font-size:12px;font-weight:500;">Active Sessions</h6>
+                                <h2 class="fw-bold mb-0" id="activeSessions" style="color:var(--text-primary);">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon purple"><i class="bi bi-clock-history"></i></div>
+                            <div>
+                                <h6 class="text-muted mb-0" style="font-size:12px;font-weight:500;">Last Update</h6>
+                                <h6 class="fw-bold mb-0" id="lastUpdate" style="color:var(--text-primary);font-size:14px;">-</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- USER MANAGEMENT -->
+            <section class="row g-4 mt-3">
+                <div class="col-12">
+                    <div class="card enterprise-card">
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <span class="fw-semibold"><i class="bi bi-people-fill me-2 text-primary"></i>User Management</span>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#userModal">
+                                <i class="bi bi-person-plus"></i> Tambah User
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover admin-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th style="padding:12px 16px;">User</th>
+                                            <th style="padding:12px 16px;">NIK</th>
+                                            <th style="padding:12px 16px;">Email</th>
+                                            <th style="padding:12px 16px;">Role</th>
+                                            <th style="padding:12px 16px;">Status</th>
+                                            <th style="padding:12px 16px;text-align:center;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="userTableBody">
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">
+                                                <div class="spinner-border spinner-border-sm mb-2"></div><br> Memuat data...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RECENT ACTIVITIES -->
+            <section class="row g-4 mt-3 mb-4">
+                <div class="col-12">
+                    <div class="card enterprise-card">
+                        <div class="card-header">
+                            <span class="fw-semibold"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Activities</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover admin-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th style="padding:12px 16px;">User</th>
+                                            <th style="padding:12px 16px;">Action</th>
+                                            <th style="padding:12px 16px;">Module</th>
+                                            <th style="padding:12px 16px;">Description</th>
+                                            <th style="padding:12px 16px;">Timestamp</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="activityTableBody">
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4 text-muted">
+                                                <div class="spinner-border spinner-border-sm mb-2"></div><br> Memuat aktivitas...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<!-- ======================================================
+     MODAL USER (Add / Edit)
+======================================================= -->
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userModalTitle"><i class="bi bi-person-plus"></i> Tambah User</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="editEmail" value="">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nama Lengkap</label>
+                        <input type="text" class="form-control" id="userNama" placeholder="Masukkan nama" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">NIK</label>
+                        <input type="text" class="form-control" id="userNik" placeholder="Masukkan NIK" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" class="form-control" id="userEmail" placeholder="Masukkan email" required>
+                    </div>
+                    <div class="mb-3" id="passwordField">
+                        <label class="form-label fw-semibold">Password</label>
+                        <input type="password" class="form-control" id="userPassword" placeholder="Minimal 6 karakter">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Role</label>
+                        <select class="form-select" id="userRole">
+                            <option value="USER">USER</option>
+                            <option value="ADMINISTRATOR">ADMINISTRATOR</option>
+                            <option value="TECHNICIAN">TECHNICIAN</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select class="form-select" id="userStatus">
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="INACTIVE">INACTIVE</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button class="btn btn-primary" id="saveUserBtn"><i class="bi bi-check-circle"></i> Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================
+     JAVASCRIPT
+======================================================= -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="config/config.js"></script>
+<script src="assets/js/core/app.js"></script>
+<script src="assets/js/core/api.js"></script>
+<script src="assets/js/core/storage.js"></script>
+<script src="assets/js/core/session.js"></script>
+<script src="assets/js/core/ui.js"></script>
+<script src="assets/js/core/utils.js"></script>
+<script src="assets/js/modules/auth.js"></script>
+
+<script>
+(function() {
+    'use strict';
+
+    // =============================================
+    // DARK MODE
+    // =============================================
+    function initDarkMode() {
+        const toggle = document.getElementById('darkModeToggle');
+        const icon = document.getElementById('darkModeIcon');
+        if (!toggle) return;
+        const savedTheme = localStorage.getItem('bcs_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        if (icon) {
+            if (savedTheme === 'dark') {
+                icon.className = 'bi bi-sun-fill';
+                icon.style.color = '#ffd700';
+            } else {
+                icon.className = 'bi bi-moon-fill';
+                icon.style.color = '';
+            }
+        }
+        toggle.addEventListener('click', function() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('bcs_theme', next);
+            if (icon) {
+                if (next === 'dark') {
+                    icon.className = 'bi bi-sun-fill';
+                    icon.style.color = '#ffd700';
+                } else {
+                    icon.className = 'bi bi-moon-fill';
+                    icon.style.color = '';
+                }
+            }
+        });
+    }
+
+    // =============================================
+    // LOAD USER INFO
+    // =============================================
+    function loadUserInfo() {
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const user = session.user;
+                const nama = user.nama || user.name || 'Super Admin';
+                const role = user.role || 'ADMINISTRATOR';
+                document.getElementById('userName').textContent = nama;
+                document.getElementById('userRole').textContent = role;
+            }
+        } catch (e) {
+            console.warn('Load user info error:', e);
+        }
+    }
+
+    // =============================================
+    // LOAD DASHBOARD STATS
+    // =============================================
+    async function loadStats() {
+        try {
+            const response = await BCS.Api.post('getSystemStats', {});
+            if (response && response.success) {
+                const data = response.data;
+                document.getElementById('totalUsers').textContent = data.totalUsers || 0;
+                document.getElementById('totalReports').textContent = data.totalReports || 0;
+                document.getElementById('activeSessions').textContent = data.activeSessions || 0;
+                document.getElementById('lastUpdate').textContent = data.lastUpdate || '-';
+            }
+        } catch (e) {
+            console.warn('Load stats error:', e);
+        }
+    }
+
+    // =============================================
+    // LOAD USERS
+    // =============================================
+    async function loadUsers() {
+        const tbody = document.getElementById('userTableBody');
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br> Memuat data...</td></tr>`;
+        
+        try {
+            const response = await BCS.Api.post('getUsers', {});
+            console.log('Users response:', response);
+            
+            if (!response || !response.success) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Gagal memuat user</td></tr>`;
+                return;
+            }
+            
+            const users = response.data.users || [];
+            if (users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Belum ada user terdaftar</td></tr>`;
+                return;
+            }
+            
+            let html = '';
+            users.forEach(user => {
+                const initial = (user.nama || 'U').charAt(0).toUpperCase();
+                const roleClass = user.role === 'ADMINISTRATOR' ? 'admin' : user.role === 'TECHNICIAN' ? 'technician' : 'user';
+                const statusClass = user.status === 'ACTIVE' ? 'active' : 'inactive';
+                const isSuperAdmin = user.email === CONFIG.SUPER_ADMIN?.EMAIL;
+                
+                html += `
+                    <tr>
+                        <td style="padding:10px 16px;">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-circle" style="background:${isSuperAdmin ? '#7c3aed' : '#4b7bec'}">${initial}</div>
+                                <div>
+                                    <div class="fw-semibold" style="color:var(--text-primary);font-size:13px;">${user.nama || '-'}</div>
+                                    ${isSuperAdmin ? '<span class="badge bg-purple" style="font-size:8px;">SUPER</span>' : ''}
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${user.nik || '-'}</td>
+                        <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${user.email || '-'}</td>
+                        <td style="padding:10px 16px;"><span class="badge-role ${roleClass}">${user.role || 'USER'}</span></td>
+                        <td style="padding:10px 16px;"><span class="status-badge ${statusClass}">${user.status || 'INACTIVE'}</span></td>
+                        <td style="padding:10px 16px;text-align:center;">
+                            <div class="d-flex justify-content-center gap-1">
+                                <button class="btn btn-sm btn-outline-primary edit-user" data-email="${user.email}" style="padding:2px 8px;font-size:11px;border-color:#bfdbfe;" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                ${!isSuperAdmin ? `<button class="btn btn-sm btn-outline-danger delete-user" data-email="${user.email}" style="padding:2px 8px;font-size:11px;border-color:#fca5a5;" title="Hapus">
+                                    <i class="bi bi-trash"></i>
+                                </button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            
+            // Event listeners
+            document.querySelectorAll('.edit-user').forEach(btn => {
+                btn.addEventListener('click', () => openEditUser(btn.dataset.email));
+            });
+            document.querySelectorAll('.delete-user').forEach(btn => {
+                btn.addEventListener('click', () => deleteUser(btn.dataset.email));
+            });
+            
+        } catch (e) {
+            console.error('Load users error:', e);
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Terjadi kesalahan</td></tr>`;
+        }
+    }
+
+    // =============================================
+    // LOAD ACTIVITIES
+    // =============================================
+    async function loadActivities() {
+        const tbody = document.getElementById('activityTableBody');
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br> Memuat aktivitas...</td></tr>`;
+        
+        try {
+            const response = await BCS.Api.post('getAdminActivities', { limit: 20 });
+            
+            if (!response || !response.success) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Gagal memuat aktivitas</td></tr>`;
+                return;
+            }
+            
+            const activities = response.data.activities || [];
+            if (activities.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Belum ada aktivitas</td></tr>`;
+                return;
+            }
+            
+            let html = '';
+            activities.forEach(act => {
+                html += `
+                    <tr>
+                        <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.user || '-'}</td>
+                        <td style="padding:10px 16px;color:var(--text-primary);font-size:13px;font-weight:500;">${act.action || '-'}</td>
+                        <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.module || '-'}</td>
+                        <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.description || '-'}</td>
+                        <td style="padding:10px 16px;color:var(--text-muted);font-size:12px;">${act.timestamp || '-'}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            
+        } catch (e) {
+            console.error('Load activities error:', e);
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Terjadi kesalahan</td></tr>`;
+        }
+    }
+
+    // =============================================
+    // OPEN EDIT USER
+    // =============================================
+    function openEditUser(email) {
+        // Fetch user data
+        BCS.Api.post('getUser', { email }).then(response => {
+            if (response && response.success) {
+                const user = response.data;
+                document.getElementById('userModalTitle').textContent = 'Edit User';
+                document.getElementById('editEmail').value = email;
+                document.getElementById('userNama').value = user.nama || '';
+                document.getElementById('userNik').value = user.nik || '';
+                document.getElementById('userEmail').value = user.email || '';
+                document.getElementById('userEmail').disabled = true;
+                document.getElementById('userPassword').placeholder = 'Kosongkan jika tidak diubah';
+                document.getElementById('userPassword').required = false;
+                document.getElementById('userRole').value = user.role || 'USER';
+                document.getElementById('userStatus').value = user.status || 'ACTIVE';
+                document.getElementById('passwordField').querySelector('label').textContent = 'Password (kosongkan jika tidak diubah)';
+                const modal = new bootstrap.Modal(document.getElementById('userModal'));
+                modal.show();
+            }
+        }).catch(e => {
+            console.warn('Get user error:', e);
+            Swal.fire('Error', 'Gagal memuat data user', 'error');
+        });
+    }
+
+    // =============================================
+    // DELETE USER
+    // =============================================
+    function deleteUser(email) {
+        Swal.fire({
+            title: 'Hapus User?',
+            text: `User dengan email ${email} akan dihapus permanen.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then(result => {
+            if (result.isConfirmed) {
+                BCS.Api.post('deleteUser', { email }).then(response => {
+                    if (response && response.success) {
+                        Swal.fire('Berhasil', 'User berhasil dihapus', 'success');
+                        loadUsers();
+                        loadStats();
+                    } else {
+                        Swal.fire('Gagal', response?.message || 'Gagal menghapus user', 'error');
+                    }
+                }).catch(e => {
+                    Swal.fire('Error', 'Terjadi kesalahan', 'error');
+                });
+            }
+        });
+    }
+
+    // =============================================
+    // SAVE USER (Add / Edit)
+    // =============================================
+    document.getElementById('saveUserBtn').addEventListener('click', async function() {
+        const isEdit = !!document.getElementById('editEmail').value;
+        const data = {
+            email: document.getElementById('userEmail').value.trim(),
+            nik: document.getElementById('userNik').value.trim(),
+            nama: document.getElementById('userNama').value.trim(),
+            password: document.getElementById('userPassword').value,
+            role: document.getElementById('userRole').value,
+            status: document.getElementById('userStatus').value
+        };
+        
+        if (!data.email || !data.nik || !data.nama) {
+            Swal.fire('Perhatian', 'Nama, NIK, dan Email wajib diisi', 'warning');
+            return;
+        }
+        
+        if (!isEdit && (!data.password || data.password.length < 6)) {
+            Swal.fire('Perhatian', 'Password minimal 6 karakter', 'warning');
+            return;
+        }
+        
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
+        
+        try {
+            const action = isEdit ? 'updateUser' : 'createUser';
+            const response = await BCS.Api.post(action, data);
+            
+            if (response && response.success) {
+                Swal.fire('Berhasil', response.message, 'success');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'));
+                modal.hide();
+                loadUsers();
+                loadStats();
+                resetUserForm();
+            } else {
+                Swal.fire('Gagal', response?.message || 'Gagal menyimpan user', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Terjadi kesalahan', 'error');
+        } finally {
+            this.disabled = false;
+            this.innerHTML = '<i class="bi bi-check-circle"></i> Simpan';
+        }
+    });
+
+    // =============================================
+    // RESET USER FORM
+    // =============================================
+    function resetUserForm() {
+        document.getElementById('userModalTitle').textContent = 'Tambah User';
+        document.getElementById('editEmail').value = '';
+        document.getElementById('userNama').value = '';
+        document.getElementById('userNik').value = '';
+        document.getElementById('userEmail').value = '';
+        document.getElementById('userEmail').disabled = false;
+        document.getElementById('userPassword').value = '';
+        document.getElementById('userPassword').placeholder = 'Minimal 6 karakter';
+        document.getElementById('userPassword').required = true;
+        document.getElementById('userRole').value = 'USER';
+        document.getElementById('userStatus').value = 'ACTIVE';
+        document.getElementById('passwordField').querySelector('label').textContent = 'Password';
+    }
+
+    // Reset form when modal is closed
+    document.getElementById('userModal').addEventListener('hidden.bs.modal', resetUserForm);
+
+    // =============================================
+    // LOGOUT
+    // =============================================
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (window.auth && typeof window.auth.logout === 'function') {
+            window.auth.logout();
+        } else {
+            if (confirm('Apakah Anda yakin ingin keluar?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+    });
+
+    // =============================================
+    // INIT
+    // =============================================
+    async function init() {
+        initDarkMode();
+        loadUserInfo();
+        await loadStats();
+        await loadUsers();
+        await loadActivities();
+        console.log('✅ Admin Panel initialized');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();
+</script>
+
+</body>
+</html>

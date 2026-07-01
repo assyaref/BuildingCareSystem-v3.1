@@ -1,198 +1,89 @@
 // ======================================================
-// Building Care System Enterprise
-// File : assets/js/core/session.js
-// Desc : Simple Session Manager - SINGLE SOURCE OF TRUTH
-// Version : 6.0 FINAL STABLE
+// Building Care System Enterprise v7.1 FINAL
+// Session Management - With Heartbeat
+// Radiant Group Duri
 // ======================================================
 
 "use strict";
 
+// Pastikan BCS tersedia
+if (!window.BCS) window.BCS = {};
+
 /**
- * Session Manager - Simple & Reliable
- * Menggunakan localStorage sebagai single source of truth
+ * ======================================================
+ * SESSION MANAGER
+ * ======================================================
  */
 const Session = (() => {
-    
-    // Memory cache (fallback jika storage gagal)
-    let memoryCache = null;
-    let useMemoryFallback = false;
-
-    /**
-     * Cek apakah storage tersedia
-     */
-    function isStorageAvailable() {
-        if (useMemoryFallback) return false;
-        try {
-            localStorage.setItem("__test__", "1");
-            localStorage.removeItem("__test__");
-            return true;
-        } catch (e) {
-            useMemoryFallback = true;
-            console.warn("[Session] localStorage tidak tersedia, menggunakan memory fallback");
-            return false;
-        }
-    }
-
-    /**
-     * Simpan data ke storage atau memory
-     */
-    function saveData(key, value) {
-        const jsonValue = JSON.stringify(value);
-        
-        if (isStorageAvailable()) {
-            try {
-                localStorage.setItem(key, jsonValue);
-                // Backup ke sessionStorage
-                try {
-                    sessionStorage.setItem(key, jsonValue);
-                } catch (e) {}
-                return true;
-            } catch (e) {
-                console.error("[Session] Gagal save ke localStorage:", e);
-                memoryCache = value;
-                return false;
-            }
-        } else {
-            memoryCache = value;
-            return true;
-        }
-    }
-
-    /**
-     * Ambil data dari storage atau memory
-     */
-    function getData(key) {
-        // Cek memory cache dulu
-        if (memoryCache) return memoryCache;
-        
-        if (isStorageAvailable()) {
-            try {
-                const data = localStorage.getItem(key);
-                if (data) {
-                    try {
-                        return JSON.parse(data);
-                    } catch (e) {
-                        return data;
-                    }
-                }
-            } catch (e) {
-                console.error("[Session] Gagal baca dari localStorage:", e);
-            }
-            
-            // Coba dari sessionStorage backup
-            try {
-                const backup = sessionStorage.getItem(key);
-                if (backup) {
-                    const parsed = JSON.parse(backup);
-                    // Restore ke localStorage
-                    localStorage.setItem(key, backup);
-                    return parsed;
-                }
-            } catch (e) {}
-        }
-        
-        return null;
-    }
-
-    /**
-     * Hapus data dari semua storage
-     */
-    function removeData(key) {
-        try {
-            localStorage.removeItem(key);
-            sessionStorage.removeItem(key);
-        } catch (e) {}
-        memoryCache = null;
-    }
-
-    // =============================================
-    // PUBLIC API
-    // =============================================
-
-    /**
-     * Set session data
-     */
-    function set(sessionData) {
-        if (!sessionData) {
-            console.warn("[Session] set() called with null/undefined");
-            return false;
-        }
-
-        // Pastikan ada token
-        if (!sessionData.token || sessionData.token === "undefined" || sessionData.token === "null") {
-            console.warn("[Session] Token tidak valid:", sessionData.token);
-            return false;
-        }
-
-        // Normalisasi data
-        const normalized = {
-            token: sessionData.token.trim(),
-            user: sessionData.user || {},
-            nik: sessionData.nik || sessionData.user?.nik || "",
-            role: sessionData.role || sessionData.user?.role || "",
-            timestamp: Date.now()
-        };
-
-        // Simpan ke BCS_SESSION
-        const saved = saveData("BCS_SESSION", normalized);
-        
-        // Juga simpan ke key individual untuk kompatibilitas
-        saveData("token", normalized.token);
-        saveData("user", normalized.user);
-        if (normalized.nik) saveData("nik", normalized.nik);
-        if (normalized.role) saveData("role", normalized.role);
-        saveData("session_timestamp", normalized.timestamp);
-
-        console.log("✅ [Session] Data tersimpan:", {
-            token: normalized.token.substring(0, 15) + "...",
-            nik: normalized.nik,
-            role: normalized.role
-        });
-
-        // Verifikasi
-        const verify = getData("BCS_SESSION");
-        if (verify && verify.token) {
-            console.log("✅ [Session] Verifikasi: OK");
-            return true;
-        } else {
-            console.warn("⚠️ [Session] Verifikasi: GAGAL, mencoba ulang...");
-            // Retry
-            setTimeout(() => {
-                saveData("BCS_SESSION", normalized);
-            }, 100);
-            return true;
-        }
-    }
+    const SESSION_KEY = "BCS_SESSION";
+    let _heartbeatInterval = null;
 
     /**
      * Get session data
      */
     function get() {
         try {
-            // Coba dari BCS_SESSION
-            let data = getData("BCS_SESSION");
-            if (data && data.token && data.token !== "undefined" && data.token !== "null") {
-                return data;
+            // Coba dari BCS Storage dulu
+            if (BCS.Storage && typeof BCS.Storage.getSession === 'function') {
+                const data = BCS.Storage.getSession();
+                if (data && data.token) return data;
             }
 
-            // Coba dari individual keys
-            const token = getData("token");
-            if (token && token !== "undefined" && token !== "null") {
-                const user = getData("user") || {};
-                const nik = getData("nik") || "";
-                const role = getData("role") || "";
-                const timestamp = getData("session_timestamp") || Date.now();
-                
-                data = { token, user, nik, role, timestamp };
-                // Save ke format baru
-                saveData("BCS_SESSION", data);
-                return data;
+            // Coba dari localStorage langsung
+            const raw = localStorage.getItem(SESSION_KEY);
+            if (raw) {
+                const data = JSON.parse(raw);
+                if (data && data.token) return data;
+            }
+
+            // Coba dari sessionStorage
+            const sessionRaw = sessionStorage.getItem(SESSION_KEY);
+            if (sessionRaw) {
+                const data = JSON.parse(sessionRaw);
+                if (data && data.token) return data;
             }
 
             return null;
         } catch (e) {
-            console.error("[Session] Gagal get data:", e);
+            console.warn('[Session] Get error:', e);
             return null;
+        }
+    }
+
+    /**
+     * Set session data
+     */
+    function set(data) {
+        try {
+            if (!data || !data.token) return false;
+
+            // Simpan ke localStorage
+            localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+            localStorage.setItem("token", data.token);
+            if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+            if (data.nik) localStorage.setItem("nik", data.nik);
+            if (data.role) localStorage.setItem("role", data.role);
+            if (data.email) localStorage.setItem("userEmail", data.email);
+
+            // Simpan ke sessionStorage
+            try {
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
+                if (data.email) sessionStorage.setItem("userEmail", data.email);
+            } catch (e) {}
+
+            // Simpan ke BCS Storage
+            if (BCS.Storage && typeof BCS.Storage.setSession === 'function') {
+                BCS.Storage.setSession(data);
+            }
+
+            // Start heartbeat setelah login
+            startHeartbeat();
+
+            console.log('[Session] Saved successfully');
+            return true;
+        } catch (e) {
+            console.error('[Session] Set error:', e);
+            return false;
         }
     }
 
@@ -200,29 +91,38 @@ const Session = (() => {
      * Clear session
      */
     function clear() {
-        removeData("BCS_SESSION");
-        removeData("token");
-        removeData("user");
-        removeData("nik");
-        removeData("role");
-        removeData("session_timestamp");
-        removeData("BCS_REMEMBER");
-        memoryCache = null;
-        console.log("✅ [Session] Data cleared");
-        return true;
+        try {
+            // Stop heartbeat
+            stopHeartbeat();
+
+            // Hapus semua key
+            const keys = [
+                SESSION_KEY, "token", "user", "nik", "role", 
+                "userEmail", "BCS_REMEMBER", "session_timestamp"
+            ];
+            keys.forEach(key => {
+                localStorage.removeItem(key);
+                sessionStorage.removeItem(key);
+            });
+
+            if (BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
+                BCS.Storage.removeSession();
+            }
+
+            console.log('[Session] Cleared');
+            return true;
+        } catch (e) {
+            console.error('[Session] Clear error:', e);
+            return false;
+        }
     }
 
     /**
-     * Check if logged in
+     * Check if user is logged in
      */
     function isLoggedIn() {
         const data = get();
-        if (!data) return false;
-        if (!data.token) return false;
-        if (data.token === "undefined" || data.token === "null") return false;
-        if (data.token.trim() === "") return false;
-        if (data.token.length < 5) return false;
-        return true;
+        return data && data.token && data.token !== "undefined" && data.token !== "null";
     }
 
     /**
@@ -230,18 +130,15 @@ const Session = (() => {
      */
     function getToken() {
         const data = get();
-        if (!data) return "";
-        const token = data.token || "";
-        if (token === "undefined" || token === "null") return "";
-        return token;
+        return data ? data.token : null;
     }
 
     /**
-     * Get user
+     * Get user data
      */
     function getUser() {
         const data = get();
-        return data?.user || {};
+        return data ? data.user || {} : {};
     }
 
     /**
@@ -249,74 +146,126 @@ const Session = (() => {
      */
     function getNik() {
         const data = get();
-        return data?.nik || data?.user?.nik || "";
+        return data ? data.nik || '' : '';
     }
 
     /**
-     * Get Role
+     * Get role
      */
     function getRole() {
         const data = get();
-        return data?.role || data?.user?.role || "";
+        return data ? data.role || '' : '';
     }
 
     /**
-     * Get Nama
+     * Get nama
      */
     function getNama() {
-        const data = get();
-        return data?.user?.nama || data?.user?.name || "";
+        const user = getUser();
+        return user.nama || user.name || '';
     }
 
     /**
-     * Get Departemen
+     * Get email
      */
-    function getDept() {
+    function getEmail() {
         const data = get();
-        return data?.user?.departemen || data?.user?.department || "";
+        return data ? data.email || data.user?.email || '' : '';
+    }
+
+    // =============================================
+    // HEARTBEAT - Untuk menjaga session aktif
+    // =============================================
+
+    /**
+     * Start heartbeat interval (setiap 30 detik)
+     */
+    function startHeartbeat() {
+        // Stop existing heartbeat
+        stopHeartbeat();
+
+        // Cek apakah sudah login
+        if (!isLoggedIn()) {
+            console.log('[Heartbeat] Not logged in, skip');
+            return;
+        }
+
+        console.log('[Heartbeat] Starting...');
+
+        // Kirim heartbeat setiap 30 detik
+        _heartbeatInterval = setInterval(async function() {
+            try {
+                if (window.BCS.Api && typeof window.BCS.Api.heartbeat === 'function') {
+                    const result = await window.BCS.Api.heartbeat();
+                    if (!result) {
+                        console.warn('[Heartbeat] Failed, session may expire');
+                    }
+                } else if (window.Api && typeof window.Api.heartbeat === 'function') {
+                    const result = await window.Api.heartbeat();
+                    if (!result) {
+                        console.warn('[Heartbeat] Failed, session may expire');
+                    }
+                }
+            } catch (e) {
+                // Silent fail - jangan spam error
+            }
+        }, 30000);
+
+        console.log('[Heartbeat] Started (every 30s)');
     }
 
     /**
-     * Get timestamp
+     * Stop heartbeat interval
      */
-    function getTimestamp() {
-        const data = get();
-        return data?.timestamp || 0;
+    function stopHeartbeat() {
+        if (_heartbeatInterval) {
+            clearInterval(_heartbeatInterval);
+            _heartbeatInterval = null;
+            console.log('[Heartbeat] Stopped');
+        }
     }
 
-    /**
-     * Verify session
-     */
-    function verify() {
-        const data = get();
-        if (!data) return false;
-        if (!data.token) return false;
-        if (data.token === "undefined" || data.token === "null") return false;
-        if (data.token.length < 5) return false;
-        return true;
-    }
+    // =============================================
+    // AUTO HEARTBEAT ON LOAD
+    // =============================================
+
+    // Auto-start heartbeat jika sudah login
+    document.addEventListener('DOMContentLoaded', function() {
+        if (isLoggedIn()) {
+            setTimeout(startHeartbeat, 1000);
+        }
+    });
+
+    // Stop heartbeat saat page unload
+    window.addEventListener('beforeunload', function() {
+        stopHeartbeat();
+    });
 
     // =============================================
     // EXPORT
     // =============================================
 
     return {
-        set,
-        get,
-        clear,
-        isLoggedIn,
-        getToken,
-        getUser,
-        getNik,
-        getRole,
-        getNama,
-        getDept,
-        getTimestamp,
-        verify
+        get: get,
+        set: set,
+        clear: clear,
+        isLoggedIn: isLoggedIn,
+        getToken: getToken,
+        getUser: getUser,
+        getNik: getNik,
+        getRole: getRole,
+        getNama: getNama,
+        getEmail: getEmail,
+        startHeartbeat: startHeartbeat,
+        stopHeartbeat: stopHeartbeat
     };
+
 })();
 
-// Export ke global
+// Assign ke global
 window.Session = Session;
+if (window.BCS) {
+    BCS.Session = Session;
+}
 
-console.log("✅ [Session] Session Manager v6.0 FINAL loaded");
+console.log("✅ [Session] Session Manager loaded with Heartbeat");

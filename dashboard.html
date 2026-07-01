@@ -34,6 +34,13 @@
             animation: pulse-dot 1.5s ease-in-out infinite;
             margin-left: 4px;
         }
+        /* Hide admin menu by default, show via JS if role is admin */
+        .menu-admin {
+            display: none;
+        }
+        .menu-admin.visible {
+            display: flex;
+        }
     </style>
 </head>
 
@@ -69,6 +76,11 @@
             <a href="approval.html" class="menu">
                 <i class="bi bi-check-circle"></i>
                 <span>Approval</span>
+            </a>
+            <!-- 🔥 MENU ADMIN - hanya muncul untuk ADMINISTRATOR -->
+            <a href="admin.html" class="menu menu-admin" id="adminMenu">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Admin</span>
             </a>
             <a href="#" id="logoutBtn" class="menu text-danger">
                 <i class="bi bi-box-arrow-right"></i>
@@ -195,7 +207,7 @@
                 </div>
             </section>
 
-            <!-- ========== STATUS CARDS (dengan class open, progress-card, done-card) ========== -->
+            <!-- ========== STATUS CARDS ========== -->
             <section class="row g-4 mt-2">
                 <!-- OPEN -->
                 <div class="col-xl-4 col-md-6">
@@ -382,7 +394,37 @@
 (function() {
     'use strict';
 
+    // =============================================
+    // SHOW/HIDE ADMIN MENU BASED ON ROLE
+    // =============================================
+    function checkAdminMenu() {
+        const adminMenu = document.getElementById('adminMenu');
+        if (!adminMenu) return;
+        
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const role = (session.user.role || '').toUpperCase();
+                // Tampilkan hanya jika role adalah ADMINISTRATOR
+                if (role === 'ADMINISTRATOR') {
+                    adminMenu.classList.add('visible');
+                    adminMenu.style.display = 'flex';
+                } else {
+                    adminMenu.classList.remove('visible');
+                    adminMenu.style.display = 'none';
+                }
+            } else {
+                adminMenu.style.display = 'none';
+            }
+        } catch (e) {
+            console.warn('Check admin menu error:', e);
+            adminMenu.style.display = 'none';
+        }
+    }
+
+    // =============================================
     // DARK MODE
+    // =============================================
     function initDarkMode() {
         const toggle = document.getElementById('darkModeToggle');
         const icon = document.getElementById('darkModeIcon');
@@ -420,7 +462,7 @@
     }
 
     // =============================================
-    // LOGOUT - FIXED: Gunakan SweetAlert2 & window.auth
+    // LOGOUT
     // =============================================
     function initLogout() {
         const logoutBtn = document.getElementById('logoutBtn');
@@ -429,13 +471,11 @@
         logoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
 
-            // Tunggu auth tersedia (maksimal 3 detik)
             let attempts = 0;
             const maxAttempts = 30;
 
             function tryLogout() {
                 if (window.auth && typeof window.auth.logout === 'function') {
-                    // ✅ auth tersedia
                     Swal.fire({
                         title: 'Konfirmasi Logout',
                         text: 'Apakah Anda yakin ingin keluar dari sistem?',
@@ -461,8 +501,6 @@
                     if (attempts < maxAttempts) {
                         setTimeout(tryLogout, 100);
                     } else {
-                        // Fallback manual jika auth.js tidak tersedia
-                        console.warn('⚠️ auth.js tidak tersedia, menggunakan fallback manual');
                         Swal.fire({
                             title: 'Konfirmasi Logout',
                             text: 'Apakah Anda yakin ingin keluar?',
@@ -490,7 +528,9 @@
         });
     }
 
-    // AUTO-REFRESH 7 DETIK + TOAST
+    // =============================================
+    // AUTO-REFRESH 7 DETIK
+    // =============================================
     let refreshTimer = 7;
     let refreshInterval = null;
     let timerInterval = null;
@@ -576,10 +616,13 @@
         console.log('⏹ Auto-refresh stopped');
     }
 
+    // =============================================
     // INIT
+    // =============================================
     function init() {
         initDarkMode();
         initLogout();
+        checkAdminMenu();
         startAutoRefresh();
         console.log('✅ UI Dashboard System Initialized with Auto-Refresh (7s)');
     }

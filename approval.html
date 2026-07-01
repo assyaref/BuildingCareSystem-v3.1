@@ -1,1 +1,136 @@
-
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approval — Building Care System</title>
+    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <style>
+        .status-badge{font-size:10px;font-weight:700;padding:2px 10px;border-radius:6px;display:inline-block;letter-spacing:0.3px}
+        .status-pending{background:#fef3c7;color:#d97706}
+        .status-approved{background:#dcfce7;color:#16a34a}
+        .status-rejected{background:#fee2e2;color:#dc2626}
+        .dark-toggle{background:transparent;border:1px solid #e2e8f0;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s ease}
+        .dark-toggle:hover{background:#f0f2f5;transform:rotate(20deg)}
+        [data-theme="dark"] .dark-toggle{border-color:#3a3a52;color:#ffd700}
+        [data-theme="dark"] .dark-toggle:hover{background:#2a2a42}
+        .menu-admin{display:none}
+        .menu-admin.visible{display:flex}
+        .avatar-sm{width:40px;height:40px;border-radius:50%;background:#4b7bec;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <aside class="sidebar">
+        <div class="logo-area">
+            <img src="assets/img/logo.png" class="logo" alt="Logo">
+            <h5>Building Care</h5>
+            <small>Enterprise v3.2</small>
+        </div>
+        <nav>
+            <a href="dashboard.html" class="menu"><i class="bi bi-grid-fill"></i><span>Dashboard</span></a>
+            <a href="report.html" class="menu"><i class="bi bi-file-earmark-plus"></i><span>Report</span></a>
+            <a href="monitoring.html" class="menu"><i class="bi bi-display"></i><span>Monitoring</span></a>
+            <a href="history.html" class="menu"><i class="bi bi-clock-history"></i><span>History</span></a>
+            <a href="approval.html" class="menu active"><i class="bi bi-check-circle"></i><span>Approval</span></a>
+            <a href="admin.html" class="menu menu-admin" id="adminMenu"><i class="bi bi-shield-lock-fill"></i><span>Admin</span></a>
+            <a href="#" id="logoutBtn" class="menu text-danger"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
+        </nav>
+    </aside>
+    <main class="content">
+        <div class="container-fluid">
+            <header class="topbar">
+                <div><h3>Approval</h3><small>Building Care System Enterprise<br><span class="brand-location">Radiant Group Duri</span></small></div>
+                <div class="d-flex align-items-center gap-3">
+                    <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode"><i class="bi bi-moon-fill" id="darkModeIcon"></i></button>
+                    <div class="avatar-sm" id="userAvatar">U</div>
+                    <div><div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary)">Loading...</div>
+                    <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500">User</div></div>
+                </div>
+            </header>
+            <!-- Konten Approval (sederhana) -->
+            <section class="row g-4 mt-3">
+                <div class="col-12">
+                    <div class="card enterprise-card">
+                        <div class="card-header"><span class="fw-semibold"><i class="bi bi-check-circle me-2 text-primary"></i>Pending Approval</span></div>
+                        <div class="card-body">
+                            <div id="approvalList" class="text-center text-muted py-4">Memuat data...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="config/config.js"></script>
+<script src="assets/js/core/app.js"></script>
+<script src="assets/js/core/api.js"></script>
+<script src="assets/js/core/storage.js"></script>
+<script src="assets/js/core/session.js"></script>
+<script src="assets/js/core/ui.js"></script>
+<script src="assets/js/core/utils.js"></script>
+<script src="assets/js/modules/auth.js"></script>
+<script>
+(function(){
+    'use strict';
+    function checkAdminMenu(){
+        const adminMenu = document.getElementById('adminMenu');
+        if(!adminMenu) return;
+        try {
+            const session = BCS.Storage.getSession();
+            if(session && session.user){
+                const role = (session.user.role || '').toUpperCase();
+                if(role === 'ADMINISTRATOR'){ adminMenu.classList.add('visible'); adminMenu.style.display='flex'; }
+                else { adminMenu.classList.remove('visible'); adminMenu.style.display='none'; }
+            } else { adminMenu.style.display='none'; }
+        } catch(e){ adminMenu.style.display='none'; }
+    }
+    function initDarkMode(){...}
+    function loadUserInfo(){...}
+    async function loadApprovals(){
+        // fungsi ambil data approval dari server (misal getPendingApproval)
+        const el = document.getElementById('approvalList');
+        try {
+            const response = await BCS.Api.post('getPendingApproval', {});
+            if(response && response.success){
+                const reports = response.data.reports || [];
+                if(reports.length === 0){
+                    el.innerHTML = '<div class="text-center text-muted py-4">Tidak ada laporan pending approval</div>';
+                } else {
+                    let html = '<div class="list-group">';
+                    reports.forEach(r => {
+                        html += `<div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div><strong>${r.id}</strong> - ${r.kategori} (${r.lokasi})</div>
+                                    <span class="status-badge status-pending">PENDING</span>
+                                </div>`;
+                    });
+                    html += '</div>';
+                    el.innerHTML = html;
+                }
+            } else {
+                el.innerHTML = '<div class="text-center text-danger py-4">Gagal memuat data</div>';
+            }
+        } catch(e){
+            el.innerHTML = '<div class="text-center text-danger py-4">Terjadi kesalahan</div>';
+        }
+    }
+    document.getElementById('logoutBtn').addEventListener('click', function(e){ e.preventDefault(); if(window.auth && typeof window.auth.logout === 'function') window.auth.logout(); else { localStorage.clear(); sessionStorage.clear(); window.location.href='login.html'; } });
+    async function init(){
+        initDarkMode();
+        loadUserInfo();
+        checkAdminMenu();
+        await loadApprovals();
+        console.log('✅ Approval page initialized');
+    }
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+})();
+</script>
+</body>
+</html>

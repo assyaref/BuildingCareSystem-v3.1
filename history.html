@@ -72,9 +72,6 @@
             background: #2a2a42;
         }
 
-        /* =============================================
-           SUMMARY CARDS - SAMA DENGAN MONITORING
-           ============================================= */
         .summary-card {
             transition: all 0.3s ease;
             border: none;
@@ -134,12 +131,20 @@
             color: #1a1a2e;
             margin: 0;
         }
+
+        /* Menu Admin - hidden by default */
+        .menu-admin {
+            display: none;
+        }
+        .menu-admin.visible {
+            display: flex;
+        }
     </style>
 </head>
 
 <body>
 
-<!-- LOADING OVERLAY (Tanpa Teks) -->
+<!-- LOADING OVERLAY -->
 <div id="loading" class="loading-overlay" style="display:none;">
     <div class="text-center">
         <div class="spinner-border text-light" role="status">
@@ -180,6 +185,11 @@
                 <i class="bi bi-check-circle"></i>
                 <span>Approval</span>
             </a>
+            <!-- 🔥 MENU ADMIN - hanya muncul untuk ADMINISTRATOR -->
+            <a href="admin.html" class="menu menu-admin" id="adminMenu">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Admin</span>
+            </a>
             <a href="#" id="logoutBtn" class="menu text-danger">
                 <i class="bi bi-box-arrow-right"></i>
                 <span>Logout</span>
@@ -216,9 +226,7 @@
                 </div>
             </header>
 
-            <!-- ==========================================================
-                 SUMMARY CARDS - SAMA DENGAN MONITORING (GRADIEN & SMOOTH)
-                 ========================================================== -->
+            <!-- SUMMARY CARDS -->
             <section class="row g-4 mt-2">
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                     <div class="summary-card total-card" style="background: linear-gradient(145deg, #ffffff, #f8faff); border: 1px solid rgba(75, 123, 236, 0.08);">
@@ -447,6 +455,32 @@
 <script>
 (function() {
     'use strict';
+
+    // =============================================
+    // 🔥 CHECK ADMIN MENU - tampilkan hanya untuk ADMINISTRATOR
+    // =============================================
+    function checkAdminMenu() {
+        const adminMenu = document.getElementById('adminMenu');
+        if (!adminMenu) return;
+        
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const role = (session.user.role || '').toUpperCase();
+                if (role === 'ADMINISTRATOR') {
+                    adminMenu.classList.add('visible');
+                    adminMenu.style.display = 'flex';
+                } else {
+                    adminMenu.classList.remove('visible');
+                    adminMenu.style.display = 'none';
+                }
+            } else {
+                adminMenu.style.display = 'none';
+            }
+        } catch (e) {
+            adminMenu.style.display = 'none';
+        }
+    }
 
     // DARK MODE
     function initDarkMode() {
@@ -844,6 +878,7 @@
 
     // INIT
     async function init() {
+        checkAdminMenu();      // 🔥 Tampilkan menu Admin jika role ADMINISTRATOR
         initDarkMode();
         loadUserInfo();
         loadUser();

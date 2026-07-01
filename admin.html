@@ -38,7 +38,6 @@
         .stat-card .stat-icon.green { background: #dcfce7; color: #22c55e; }
         .stat-card .stat-icon.orange { background: #fef3c7; color: #f59e0b; }
         .stat-card .stat-icon.purple { background: #f3e8ff; color: #a855f7; }
-        .stat-card .stat-icon.red { background: #fee2e2; color: #ef4444; }
 
         .admin-table th {
             font-size: 11px;
@@ -98,12 +97,18 @@
             margin-left: 4px;
         }
 
-        /* Menu admin di sidebar */
         .menu-admin {
             display: none;
         }
         .menu-admin.visible {
             display: flex;
+        }
+
+        /* 🔥 Fix: NIK dengan font monospace agar angka rapi */
+        .nik-cell {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
     </style>
 </head>
@@ -445,6 +450,8 @@
                 document.getElementById('totalReports').textContent = data.totalReports || 0;
                 document.getElementById('activeSessions').textContent = data.activeSessions || 0;
                 document.getElementById('lastUpdate').textContent = data.lastUpdate || '-';
+            } else {
+                console.warn('Load stats error:', response?.message);
             }
         } catch (e) {
             console.warn('Load stats error:', e);
@@ -463,7 +470,7 @@
             console.log('Users response:', response);
             
             if (!response || !response.success) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Gagal memuat user</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${response?.message || 'Gagal memuat user'}</td></tr>`;
                 return;
             }
             
@@ -480,7 +487,7 @@
                 const statusClass = user.status === 'ACTIVE' ? 'active' : 'inactive';
                 const isSuperAdmin = user.email === CONFIG.SUPER_ADMIN?.EMAIL;
                 
-                // 🔥 Pastikan NIK sebagai string agar leading zero tidak hilang
+                // 🔥 NIK ditampilkan sebagai string (leading zero tetap ada)
                 const nikDisplay = user.nik || '-';
                 
                 html += `
@@ -494,7 +501,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;font-family:monospace;">${nikDisplay}</td>
+                        <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;" class="nik-cell">${nikDisplay}</td>
                         <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${user.email || '-'}</td>
                         <td style="padding:10px 16px;"><span class="badge-role ${roleClass}">${user.role || 'USER'}</span></td>
                         <td style="padding:10px 16px;"><span class="status-badge ${statusClass}">${user.status || 'INACTIVE'}</span></td>
@@ -515,15 +522,21 @@
             
             // Event listeners
             document.querySelectorAll('.edit-user').forEach(btn => {
-                btn.addEventListener('click', () => openEditUser(btn.dataset.email));
+                btn.addEventListener('click', function() {
+                    const email = this.dataset.email;
+                    openEditUser(email);
+                });
             });
             document.querySelectorAll('.delete-user').forEach(btn => {
-                btn.addEventListener('click', () => deleteUser(btn.dataset.email));
+                btn.addEventListener('click', function() {
+                    const email = this.dataset.email;
+                    deleteUser(email);
+                });
             });
             
         } catch (e) {
             console.error('Load users error:', e);
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Terjadi kesalahan</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Terjadi kesalahan: ${e.message}</td></tr>`;
         }
     }
 
@@ -538,7 +551,7 @@
             const response = await BCS.Api.post('getAdminActivities', { limit: 20 });
             
             if (!response || !response.success) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Gagal memuat aktivitas</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">${response?.message || 'Gagal memuat aktivitas'}</td></tr>`;
                 return;
             }
             
@@ -569,31 +582,44 @@
     }
 
     // =============================================
-    // OPEN EDIT USER
+    // OPEN EDIT USER - FIX: Pastikan data user diisi dengan benar
     // =============================================
     function openEditUser(email) {
-        // Fetch user data
-        BCS.Api.post('getUser', { email }).then(response => {
+        // Tampilkan loading di modal
+        const modalTitle = document.getElementById('userModalTitle');
+        modalTitle.textContent = 'Memuat data...';
+        
+        BCS.Api.post('getUser', { email: email }).then(response => {
+            console.log('Get user response:', response);
+            
             if (response && response.success) {
-                const user = response.data;
+                const user = response.data.user;
+                if (!user) {
+                    Swal.fire('Error', 'Data user tidak ditemukan', 'error');
+                    return;
+                }
+                
                 document.getElementById('userModalTitle').textContent = 'Edit User';
                 document.getElementById('editEmail').value = email;
                 document.getElementById('userNama').value = user.nama || '';
                 document.getElementById('userNik').value = user.nik || '';
                 document.getElementById('userEmail').value = user.email || '';
                 document.getElementById('userEmail').disabled = true;
+                document.getElementById('userPassword').value = '';
                 document.getElementById('userPassword').placeholder = 'Kosongkan jika tidak diubah';
                 document.getElementById('userPassword').required = false;
-                document.getElementById('userPassword').value = '';
                 document.getElementById('userRole').value = user.role || 'USER';
                 document.getElementById('userStatus').value = user.status || 'ACTIVE';
                 document.getElementById('passwordField').querySelector('label').textContent = 'Password (kosongkan jika tidak diubah)';
+                
                 const modal = new bootstrap.Modal(document.getElementById('userModal'));
                 modal.show();
+            } else {
+                Swal.fire('Error', response?.message || 'Gagal memuat data user', 'error');
             }
         }).catch(e => {
             console.warn('Get user error:', e);
-            Swal.fire('Error', 'Gagal memuat data user', 'error');
+            Swal.fire('Error', 'Terjadi kesalahan saat memuat data', 'error');
         });
     }
 
@@ -611,7 +637,7 @@
             cancelButtonText: 'Batal'
         }).then(result => {
             if (result.isConfirmed) {
-                BCS.Api.post('deleteUser', { email }).then(response => {
+                BCS.Api.post('deleteUser', { email: email }).then(response => {
                     if (response && response.success) {
                         Swal.fire('Berhasil', 'User berhasil dihapus', 'success');
                         loadUsers();
@@ -645,7 +671,6 @@
             return;
         }
         
-        // 🔥 Perubahan: password minimal 5 karakter (bukan 6)
         if (!isEdit && (!data.password || data.password.length < 5)) {
             Swal.fire('Perhatian', 'Password minimal 5 karakter', 'warning');
             return;
@@ -694,7 +719,6 @@
         document.getElementById('passwordField').querySelector('label').textContent = 'Password';
     }
 
-    // Reset form when modal is closed
     document.getElementById('userModal').addEventListener('hidden.bs.modal', resetUserForm);
 
     // =============================================

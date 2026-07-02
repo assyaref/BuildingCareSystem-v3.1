@@ -83,20 +83,6 @@
             background: #4b7bec;
         }
 
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(0.8); }
-        }
-        .live-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #22c55e;
-            animation: pulse-dot 1.5s ease-in-out infinite;
-            margin-left: 4px;
-        }
-
         .menu-admin {
             display: none;
         }
@@ -693,10 +679,12 @@
     });
 
     // =============================================
-    // SAVE USER (Add / Edit)
+    // SAVE USER (Add / Edit) - FIXED
     // =============================================
     document.getElementById('saveUserBtn').addEventListener('click', async function() {
         const isEdit = !!document.getElementById('editEmail').value;
+        
+        // 🔥 Ambil data dari form
         const data = {
             email: document.getElementById('userEmail').value.trim(),
             nik: document.getElementById('userNik').value.trim(),
@@ -706,36 +694,55 @@
             status: document.getElementById('userStatus').value
         };
         
+        // 🔥 Validasi
         if (!data.email || !data.nik || !data.nama) {
             Swal.fire('Perhatian', 'Nama, NIK, dan Email wajib diisi', 'warning');
             return;
         }
         
+        // 🔥 Validasi password hanya untuk create (bukan edit)
         if (!isEdit && (!data.password || data.password.length < 5)) {
             Swal.fire('Perhatian', 'Password minimal 5 karakter', 'warning');
             return;
         }
         
+        // 🔥 Jika edit dan password kosong, hapus field password dari data
+        if (isEdit && !data.password) {
+            delete data.password;
+        }
+        
+        // 🔥 Disable tombol & tampilkan loading
         this.disabled = true;
         this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
         
         try {
             const action = isEdit ? 'updateUser' : 'createUser';
+            console.log('Sending data:', data);
+            
             const response = await BCS.Api.post(action, data);
+            console.log('Save user response:', response);
             
             if (response && response.success) {
-                Swal.fire('Berhasil', response.message, 'success');
+                // 🔥 Tutup modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'));
-                modal.hide();
-                loadUsers();
-                loadStats();
+                if (modal) modal.hide();
+                
+                // 🔥 Reset form
                 resetUserForm();
+                
+                // 🔥 Refresh data
+                await loadUsers();
+                await loadStats();
+                
+                Swal.fire('Berhasil', response.message, 'success');
             } else {
                 Swal.fire('Gagal', response?.message || 'Gagal menyimpan user', 'error');
             }
         } catch (e) {
-            Swal.fire('Error', 'Terjadi kesalahan', 'error');
+            console.error('Save user error:', e);
+            Swal.fire('Error', 'Terjadi kesalahan: ' + (e.message || 'Unknown error'), 'error');
         } finally {
+            // 🔥 Enable tombol kembali
             this.disabled = false;
             this.innerHTML = '<i class="bi bi-check-circle"></i> Simpan';
         }
@@ -759,7 +766,16 @@
         document.getElementById('passwordField').querySelector('label').textContent = 'Password';
     }
 
-    document.getElementById('userModal').addEventListener('hidden.bs.modal', resetUserForm);
+    // =============================================
+    // MODAL CLOSED - Reset form
+    // =============================================
+    document.getElementById('userModal').addEventListener('hidden.bs.modal', function() {
+        // Hanya reset jika tombol save tidak dalam keadaan loading
+        const saveBtn = document.getElementById('saveUserBtn');
+        if (!saveBtn.disabled) {
+            resetUserForm();
+        }
+    });
 
     // =============================================
     // LOGOUT

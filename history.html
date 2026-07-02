@@ -132,12 +132,28 @@
             margin: 0;
         }
 
-        /* Menu Admin - hidden by default */
         .menu-admin {
             display: none;
         }
         .menu-admin.visible {
             display: flex;
+        }
+
+        /* Toast custom styling */
+        .toast-success {
+            background: #dcfce7 !important;
+            color: #16a34a !important;
+            border-left: 4px solid #16a34a !important;
+        }
+        .toast-error {
+            background: #fee2e2 !important;
+            color: #dc2626 !important;
+            border-left: 4px solid #dc2626 !important;
+        }
+        .toast-warning {
+            background: #fef3c7 !important;
+            color: #d97706 !important;
+            border-left: 4px solid #d97706 !important;
         }
     </style>
 </head>
@@ -185,7 +201,6 @@
                 <i class="bi bi-check-circle"></i>
                 <span>Approval</span>
             </a>
-            <!-- 🔥 MENU ADMIN - hanya muncul untuk ADMINISTRATOR -->
             <a href="admin.html" class="menu menu-admin" id="adminMenu">
                 <i class="bi bi-shield-lock-fill"></i>
                 <span>Admin</span>
@@ -213,7 +228,6 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
-                    <!-- Dark Mode Toggle -->
                     <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
                         <i class="bi bi-moon-fill" id="darkModeIcon"></i>
                     </button>
@@ -350,7 +364,6 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <!-- Pagination Alignment -->
                             <nav class="mt-4">
                                 <ul class="pagination pagination-sm justify-content-center gap-1" id="pagination"></ul>
                             </nav>
@@ -457,12 +470,11 @@
     'use strict';
 
     // =============================================
-    // 🔥 CHECK ADMIN MENU - tampilkan hanya untuk ADMINISTRATOR
+    // CHECK ADMIN MENU
     // =============================================
     function checkAdminMenu() {
         const adminMenu = document.getElementById('adminMenu');
         if (!adminMenu) return;
-        
         try {
             const session = BCS.Storage.getSession();
             if (session && session.user) {
@@ -482,15 +494,15 @@
         }
     }
 
+    // =============================================
     // DARK MODE
+    // =============================================
     function initDarkMode() {
         const toggle = document.getElementById('darkModeToggle');
         const icon = document.getElementById('darkModeIcon');
         if (!toggle) return;
-
         const savedTheme = localStorage.getItem('bcs_theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
-        
         if (icon) {
             if (savedTheme === 'dark') {
                 icon.className = 'bi bi-sun-fill';
@@ -500,7 +512,6 @@
                 icon.style.color = '';
             }
         }
-
         toggle.addEventListener('click', function() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -518,7 +529,9 @@
         });
     }
 
+    // =============================================
     // LOAD USER INFO
+    // =============================================
     function loadUserInfo() {
         try {
             const session = BCS.Storage.getSession();
@@ -526,7 +539,6 @@
                 const user = session.user;
                 const nama = user.nama || user.name || 'User';
                 const role = user.role || 'User';
-
                 document.getElementById('userName').textContent = nama;
                 document.getElementById('userRole').textContent = role;
                 const avatar = document.getElementById('userAvatar');
@@ -541,7 +553,6 @@
     let allReports = [];
     let filteredReports = [];
     let currentUser = {};
-
     let currentPage = 1;
     const perPage = 10;
 
@@ -556,7 +567,42 @@
     const cardDone = document.getElementById('cardDone');
     const totalReportsSpan = document.getElementById('totalReports');
 
+    // =============================================
+    // SHOW TOAST NOTIFICATION
+    // =============================================
+    function showToast(message, type = 'success') {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        let icon = 'success';
+        let title = 'Berhasil!';
+        if (type === 'error') {
+            icon = 'error';
+            title = 'Gagal!';
+        } else if (type === 'warning') {
+            icon = 'warning';
+            title = 'Peringatan!';
+        }
+
+        Toast.fire({
+            icon: icon,
+            title: title,
+            text: message
+        });
+    }
+
+    // =============================================
     // LOAD USER
+    // =============================================
     function loadUser() {
         try {
             const session = BCS.Storage.getSession();
@@ -570,7 +616,9 @@
         }
     }
 
+    // =============================================
     // FETCH DATA
+    // =============================================
     async function fetchReports() {
         try {
             tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Memuat data...</td></tr>`;
@@ -618,7 +666,9 @@
         }
     }
 
+    // =============================================
     // FILTER & SORT
+    // =============================================
     function applyFilters() {
         const keyword = searchInput.value.toLowerCase().trim();
         const status = filterStatus.value;
@@ -653,7 +703,9 @@
         renderPagination();
     }
 
+    // =============================================
     // SUMMARY
+    // =============================================
     function updateSummary() {
         const total = filteredReports.length;
         const open = filteredReports.filter(r => (r.status || '').toUpperCase() === 'OPEN').length;
@@ -667,7 +719,9 @@
         totalReportsSpan.textContent = total;
     }
 
+    // =============================================
     // RENDER TABLE
+    // =============================================
     function renderTable() {
         const start = (currentPage - 1) * perPage;
         const pageData = filteredReports.slice(start, start + perPage);
@@ -680,8 +734,7 @@
         let html = '';
         pageData.forEach((r) => {
             const statusClass = (r.status || '').toUpperCase();
-            
-            let badgeStyle = 'background: #fee2e2; color: #ef4444; border: none;'; 
+            let badgeStyle = 'background: #fee2e2; color: #ef4444; border: none;';
             if (statusClass === 'PROGRESS') {
                 badgeStyle = 'background: #e0f2fe; color: #0284c7; border: none;';
             } else if (statusClass === 'DONE') {
@@ -689,7 +742,7 @@
             }
 
             const kategoriNama = (r.kategori || '').toUpperCase();
-            let kategoriIcon = '<i class="bi bi-lightning-charge-fill text-warning me-2"></i>'; 
+            let kategoriIcon = '<i class="bi bi-lightning-charge-fill text-warning me-2"></i>';
             if (kategoriNama.includes('GEDUNG') || kategoriNama.includes('KONDISI GEDUNG')) {
                 kategoriIcon = '<i class="bi bi-building text-purple me-2" style="color: #a855f7;"></i>';
             } else if (kategoriNama.includes('AC')) {
@@ -745,7 +798,9 @@
         });
     }
 
+    // =============================================
     // PAGINATION
+    // =============================================
     function renderPagination() {
         const totalPages = Math.ceil(filteredReports.length / perPage);
         if (totalPages <= 1) {
@@ -780,43 +835,55 @@
         });
     }
 
+    // =============================================
     // MODALS
+    // =============================================
     function openDetail(id) {
-        const report = allReports.find(r => r.id == id);
-        if (!report) return;
+    const report = allReports.find(r => r.id == id);
+    if (!report) return;
 
-        let html = `
-            <table class="table table-sm table-striped">
-                <tr><th>ID</th><td>${report.id || '-'}</td></tr>
-                <tr><th>Tanggal</th><td>${report.tanggal || report.createdAt || '-'}</td></tr>
-                <tr><th>Pelapor</th><td>${report.nama || report.pelapor || '-'}</td></tr>
-                <tr><th>Departemen</th><td>${report.departemen || '-'}</td></tr>
-                <tr><th>Kategori</th><td>${report.kategori || '-'}</td></tr>
-                <tr><th>Lokasi</th><td>${report.lokasi || '-'}</td></tr>
-                <tr><th>Prioritas</th><td>${report.prioritas || '-'}</td></tr>
-                <tr><th>Status</th><td>${report.status || '-'}</td></tr>
-                <tr><th>Deskripsi</th><td>${report.deskripsi || '-'}</td></tr>
-                <tr><th>Teknisi</th><td>${report.teknisi || '-'}</td></tr>
-                <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || '-'}</td></tr>
-                <tr><th>Foto</th><td>${report.foto ? `<a href="${report.foto}" target="_blank">Lihat Foto</a>` : '-'}</td></tr>
-            </table>
-        `;
-        document.getElementById('detailContent').innerHTML = html;
-        new bootstrap.Modal(document.getElementById('detailModal')).show();
+    // 🔥 Format data tambahan
+    const tglSelesai = report.tglSelesai || '-';
+    const durasi = report.durasi || '-';
+    const sla = report.sla || '-';
+
+    // 🔥 Warna badge SLA
+    let slaBadge = '';
+    if (sla === 'FAST') {
+        slaBadge = '<span class="badge bg-success">FAST</span>';
+    } else if (sla === 'NORMAL') {
+        slaBadge = '<span class="badge bg-warning text-dark">NORMAL</span>';
+    } else if (sla === 'LATE') {
+        slaBadge = '<span class="badge bg-danger">LATE</span>';
+    } else {
+        slaBadge = `<span class="badge bg-secondary">${sla}</span>`;
     }
 
-    function openUpdate(id) {
-        const report = allReports.find(r => r.id == id);
-        if (!report) return;
-
-        document.getElementById('updateId').value = report.id || '';
-        document.getElementById('updateStatus').value = report.status || 'OPEN';
-        document.getElementById('updateTeknisi').value = report.teknisi || '';
-        document.getElementById('updateCatatan').value = report.catatanTeknisi || '';
-
-        new bootstrap.Modal(document.getElementById('updateModal')).show();
-    }
-
+    let html = `
+        <table class="table table-sm table-striped">
+            <tr><th>ID</th><td>${report.id || '-'}</td></tr>
+            <tr><th>Tanggal Lapor</th><td>${report.tanggal || report.createdAt || '-'}</td></tr>
+            <tr><th>Tanggal Selesai</th><td>${tglSelesai}</td></tr>
+            <tr><th>Durasi</th><td>${durasi}</td></tr>
+            <tr><th>SLA</th><td>${slaBadge}</td></tr>
+            <tr><th>Pelapor</th><td>${report.nama || report.pelapor || '-'}</td></tr>
+            <tr><th>Departemen</th><td>${report.departemen || '-'}</td></tr>
+            <tr><th>Kategori</th><td>${report.kategori || '-'}</td></tr>
+            <tr><th>Lokasi</th><td>${report.lokasi || '-'}</td></tr>
+            <tr><th>Prioritas</th><td>${report.prioritas || '-'}</td></tr>
+            <tr><th>Status</th><td>${report.status || '-'}</td></tr>
+            <tr><th>Deskripsi</th><td>${report.deskripsi || '-'}</td></tr>
+            <tr><th>Teknisi</th><td>${report.teknisi || '-'}</td></tr>
+            <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || '-'}</td></tr>
+            <tr><th>Foto</th><td>${report.foto ? `<a href="${report.foto}" target="_blank">Lihat Foto</a>` : '-'}</td></tr>
+        </table>
+    `;
+    document.getElementById('detailContent').innerHTML = html;
+    new bootstrap.Modal(document.getElementById('detailModal')).show();
+}
+    // =============================================
+    // SAVE UPDATE - DENGAN TOAST NOTIFIKASI
+    // =============================================
     document.getElementById('saveUpdateBtn').addEventListener('click', async function() {
         const id = document.getElementById('updateId').value;
         const status = document.getElementById('updateStatus').value;
@@ -824,7 +891,7 @@
         const catatan = document.getElementById('updateCatatan').value.trim();
 
         if (!id) {
-            alert('ID tidak valid');
+            showToast('ID laporan tidak valid', 'error');
             return;
         }
 
@@ -837,23 +904,25 @@
             console.log('Update response:', response);
 
             if (response && response.success) {
-                alert('✅ Status berhasil diperbarui!');
+                showToast('✅ Status berhasil diperbarui!', 'success');
                 const modal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
                 if (modal) modal.hide();
                 await fetchReports();
             } else {
-                alert('❌ Gagal update: ' + (response?.message || 'Unknown error'));
+                showToast('❌ Gagal update: ' + (response?.message || 'Unknown error'), 'error');
             }
         } catch (err) {
             console.error('Update error:', err);
-            alert('❌ Terjadi kesalahan: ' + err.message);
+            showToast('❌ Terjadi kesalahan: ' + err.message, 'error');
         } finally {
             this.disabled = false;
             this.innerHTML = '<i class="bi bi-check-circle"></i> Simpan';
         }
     });
 
+    // =============================================
     // EVENT BINDING
+    // =============================================
     searchInput.addEventListener('input', applyFilters);
     filterStatus.addEventListener('change', applyFilters);
     sortOrder.addEventListener('change', applyFilters);
@@ -862,7 +931,9 @@
         fetchReports();
     });
 
+    // =============================================
     // LOGOUT
+    // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
         e.preventDefault();
         if (window.auth && typeof window.auth.logout === 'function') {
@@ -876,9 +947,11 @@
         }
     });
 
+    // =============================================
     // INIT
+    // =============================================
     async function init() {
-        checkAdminMenu();      // 🔥 Tampilkan menu Admin jika role ADMINISTRATOR
+        checkAdminMenu();
         initDarkMode();
         loadUserInfo();
         loadUser();

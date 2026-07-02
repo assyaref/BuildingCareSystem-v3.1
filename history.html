@@ -13,12 +13,14 @@
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-
     <link rel="stylesheet" href="assets/css/dashboard.css">
+
+    <!-- 🔥 Library untuk Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         .avatar-sm {
@@ -139,21 +141,14 @@
             display: flex;
         }
 
-        /* Toast custom styling */
-        .toast-success {
-            background: #dcfce7 !important;
-            color: #16a34a !important;
-            border-left: 4px solid #16a34a !important;
+        /* Export button style */
+        .export-btn-group .btn {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 6px;
         }
-        .toast-error {
-            background: #fee2e2 !important;
-            color: #dc2626 !important;
-            border-left: 4px solid #dc2626 !important;
-        }
-        .toast-warning {
-            background: #fef3c7 !important;
-            color: #d97706 !important;
-            border-left: 4px solid #d97706 !important;
+        .export-btn-group .btn i {
+            margin-right: 4px;
         }
     </style>
 </head>
@@ -330,17 +325,27 @@
                                         <option value="asc">Terlama</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4 text-end d-flex align-items-center justify-content-end gap-2">
+                                <div class="col-md-4 text-end d-flex align-items-center justify-content-end gap-2 flex-wrap">
                                     <small class="text-muted" style="font-size: 12px;">Total : <strong id="totalReports" class="text-dark">0</strong></small>
-                                    <button class="btn btn-sm btn-light border text-muted" id="refreshBtn" style="padding: 4px 8px;"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <button class="btn btn-sm btn-light border text-muted" id="refreshBtn" style="padding: 4px 8px;" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+                                    
+                                    <!-- 🔥 EXPORT BUTTONS -->
+                                    <div class="export-btn-group d-flex gap-1">
+                                        <button class="btn btn-sm btn-success" id="exportExcelBtn" title="Export ke Excel">
+                                            <i class="bi bi-file-earmark-excel"></i> Excel
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" id="exportPdfBtn" title="Export ke PDF">
+                                            <i class="bi bi-file-earmark-pdf"></i> PDF
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Table Content -->
                         <div class="card-body px-4 pb-4">
-                            <div class="table-responsive">
-                                <table class="table table-sm align-middle" style="font-size: 12px; min-width: 1000px;">
+                            <div class="table-responsive" id="historyTableWrapper">
+                                <table class="table table-sm align-middle" style="font-size: 12px; min-width: 1000px;" id="historyTableMain">
                                     <thead>
                                         <tr class="text-secondary" style="background-color: #f8f9fa; border-bottom: 1px solid #ededed;">
                                             <th class="py-3 px-2 fw-semibold text-dark" style="width: 15%;">ID</th>
@@ -443,6 +448,10 @@
             </div>
             <div class="modal-body">
                 <div id="detailContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" id="exportDetailPdfBtn"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -555,6 +564,7 @@
     let currentUser = {};
     let currentPage = 1;
     const perPage = 10;
+    let currentDetailReport = null;
 
     const tableBody = document.getElementById('historyTable');
     const paginationEl = document.getElementById('pagination');
@@ -836,53 +846,255 @@
     }
 
     // =============================================
-    // MODALS
+    // OPEN DETAIL - dengan export PDF
     // =============================================
     function openDetail(id) {
-    const report = allReports.find(r => r.id == id);
-    if (!report) return;
+        const report = allReports.find(r => r.id == id);
+        if (!report) return;
+        currentDetailReport = report;
 
-    // 🔥 Format data tambahan
-    const tglSelesai = report.tglSelesai || '-';
-    const durasi = report.durasi || '-';
-    const sla = report.sla || '-';
+        const tglSelesai = report.tglSelesai || '-';
+        const durasi = report.durasi || '-';
+        const sla = report.sla || '-';
 
-    // 🔥 Warna badge SLA
-    let slaBadge = '';
-    if (sla === 'FAST') {
-        slaBadge = '<span class="badge bg-success">FAST</span>';
-    } else if (sla === 'NORMAL') {
-        slaBadge = '<span class="badge bg-warning text-dark">NORMAL</span>';
-    } else if (sla === 'LATE') {
-        slaBadge = '<span class="badge bg-danger">LATE</span>';
-    } else {
-        slaBadge = `<span class="badge bg-secondary">${sla}</span>`;
+        let slaBadge = '';
+        if (sla === 'FAST') {
+            slaBadge = '<span class="badge bg-success">FAST</span>';
+        } else if (sla === 'NORMAL') {
+            slaBadge = '<span class="badge bg-warning text-dark">NORMAL</span>';
+        } else if (sla === 'LATE') {
+            slaBadge = '<span class="badge bg-danger">LATE</span>';
+        } else {
+            slaBadge = `<span class="badge bg-secondary">${sla}</span>`;
+        }
+
+        let html = `
+            <table class="table table-sm table-striped" id="detailReportTable">
+                <tr><th>ID</th><td>${report.id || '-'}</td></tr>
+                <tr><th>Tanggal Lapor</th><td>${report.tanggal || report.createdAt || '-'}</td></tr>
+                <tr><th>Tanggal Selesai</th><td>${tglSelesai}</td></tr>
+                <tr><th>Durasi</th><td>${durasi}</td></tr>
+                <tr><th>SLA</th><td>${slaBadge}</td></tr>
+                <tr><th>Pelapor</th><td>${report.nama || report.pelapor || '-'}</td></tr>
+                <tr><th>Departemen</th><td>${report.departemen || '-'}</td></tr>
+                <tr><th>Kategori</th><td>${report.kategori || '-'}</td></tr>
+                <tr><th>Lokasi</th><td>${report.lokasi || '-'}</td></tr>
+                <tr><th>Prioritas</th><td>${report.prioritas || '-'}</td></tr>
+                <tr><th>Status</th><td>${report.status || '-'}</td></tr>
+                <tr><th>Deskripsi</th><td>${report.deskripsi || '-'}</td></tr>
+                <tr><th>Teknisi</th><td>${report.teknisi || '-'}</td></tr>
+                <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || '-'}</td></tr>
+                <tr><th>Foto</th><td>${report.foto ? `<a href="${report.foto}" target="_blank">Lihat Foto</a>` : '-'}</td></tr>
+            </table>
+        `;
+        document.getElementById('detailContent').innerHTML = html;
+        new bootstrap.Modal(document.getElementById('detailModal')).show();
     }
 
-    let html = `
-        <table class="table table-sm table-striped">
-            <tr><th>ID</th><td>${report.id || '-'}</td></tr>
-            <tr><th>Tanggal Lapor</th><td>${report.tanggal || report.createdAt || '-'}</td></tr>
-            <tr><th>Tanggal Selesai</th><td>${tglSelesai}</td></tr>
-            <tr><th>Durasi</th><td>${durasi}</td></tr>
-            <tr><th>SLA</th><td>${slaBadge}</td></tr>
-            <tr><th>Pelapor</th><td>${report.nama || report.pelapor || '-'}</td></tr>
-            <tr><th>Departemen</th><td>${report.departemen || '-'}</td></tr>
-            <tr><th>Kategori</th><td>${report.kategori || '-'}</td></tr>
-            <tr><th>Lokasi</th><td>${report.lokasi || '-'}</td></tr>
-            <tr><th>Prioritas</th><td>${report.prioritas || '-'}</td></tr>
-            <tr><th>Status</th><td>${report.status || '-'}</td></tr>
-            <tr><th>Deskripsi</th><td>${report.deskripsi || '-'}</td></tr>
-            <tr><th>Teknisi</th><td>${report.teknisi || '-'}</td></tr>
-            <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || '-'}</td></tr>
-            <tr><th>Foto</th><td>${report.foto ? `<a href="${report.foto}" target="_blank">Lihat Foto</a>` : '-'}</td></tr>
-        </table>
-    `;
-    document.getElementById('detailContent').innerHTML = html;
-    new bootstrap.Modal(document.getElementById('detailModal')).show();
-}
     // =============================================
-    // SAVE UPDATE - DENGAN TOAST NOTIFIKASI
+    // EXPORT DETAIL TO PDF
+    // =============================================
+    document.getElementById('exportDetailPdfBtn').addEventListener('click', function() {
+        if (!currentDetailReport) {
+            showToast('Tidak ada data untuk diexport', 'error');
+            return;
+        }
+
+        const report = currentDetailReport;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+
+        // Title
+        doc.setFontSize(18);
+        doc.setTextColor(30, 94, 255);
+        doc.text('Building Care System Enterprise', 14, 20);
+
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Detail Laporan', 14, 30);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text('Radiant Group Duri', 14, 36);
+
+        // Line
+        doc.setDrawColor(30, 94, 255);
+        doc.line(14, 40, 196, 40);
+
+        // Data
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+
+        const fields = [
+            ['ID', report.id || '-'],
+            ['Tanggal Lapor', report.tanggal || report.createdAt || '-'],
+            ['Tanggal Selesai', report.tglSelesai || '-'],
+            ['Durasi', report.durasi || '-'],
+            ['SLA', report.sla || '-'],
+            ['Pelapor', report.nama || report.pelapor || '-'],
+            ['Departemen', report.departemen || '-'],
+            ['Kategori', report.kategori || '-'],
+            ['Lokasi', report.lokasi || '-'],
+            ['Prioritas', report.prioritas || '-'],
+            ['Status', report.status || '-'],
+            ['Deskripsi', report.deskripsi || '-'],
+            ['Teknisi', report.teknisi || '-'],
+            ['Catatan Teknisi', report.catatanTeknisi || '-']
+        ];
+
+        let y = 48;
+        fields.forEach(([label, value]) => {
+            if (y > 270) {
+                doc.addPage();
+                y = 20;
+            }
+            doc.setFont('helvetica', 'bold');
+            doc.text(label + ':', 14, y);
+            doc.setFont('helvetica', 'normal');
+            const wrappedText = doc.splitTextToSize(value || '-', 160);
+            doc.text(wrappedText, 60, y);
+            y += (wrappedText.length * 5) + 4;
+        });
+
+        // Footer
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Generated: ${new Date().toLocaleString('id-ID')}`, 14, 280);
+        doc.text('System developed by assyaref.dev', 14, 285);
+
+        doc.save(`Detail_Laporan_${report.id || 'export'}.pdf`);
+    });
+
+    // =============================================
+    // EXPORT TABLE TO EXCEL (CSV)
+    // =============================================
+    document.getElementById('exportExcelBtn').addEventListener('click', function() {
+        if (filteredReports.length === 0) {
+            showToast('Tidak ada data untuk diexport', 'warning');
+            return;
+        }
+
+        const data = filteredReports.map(r => ({
+            'ID': r.id || '-',
+            'Tanggal': r.tanggal || r.createdAt || '-',
+            'Pelapor': r.nama || r.pelapor || '-',
+            'Departemen': r.departemen || '-',
+            'Kategori': r.kategori || '-',
+            'Lokasi': r.lokasi || '-',
+            'Deskripsi': r.deskripsi || '-',
+            'Status': r.status || '-',
+            'Teknisi': r.teknisi || '-',
+            'SLA': r.sla || '-'
+        }));
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(data);
+        XLSX.utils.book_append_sheet(wb, ws, 'History');
+        XLSX.writeFile(wb, `Riwayat_Laporan_${new Date().toISOString().slice(0,10)}.xlsx`);
+        showToast(`Berhasil export ${data.length} data ke Excel!`, 'success');
+    });
+
+    // =============================================
+    // EXPORT TABLE TO PDF
+    // =============================================
+    document.getElementById('exportPdfBtn').addEventListener('click', function() {
+        if (filteredReports.length === 0) {
+            showToast('Tidak ada data untuk diexport', 'warning');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'mm', 'a4');
+
+        // Title
+        doc.setFontSize(16);
+        doc.setTextColor(30, 94, 255);
+        doc.text('Building Care System Enterprise', 14, 20);
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Riwayat Laporan', 14, 30);
+        doc.setFontSize(9);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Generated: ${new Date().toLocaleString('id-ID')} | Total: ${filteredReports.length} data`, 14, 36);
+
+        // Headers
+        const headers = ['ID', 'Tanggal', 'Pelapor', 'Kategori', 'Lokasi', 'Status', 'SLA'];
+        const colWidths = [30, 30, 35, 30, 35, 25, 20];
+        let y = 44;
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        headers.forEach((h, i) => {
+            const x = 14 + colWidths.slice(0, i).reduce((a, b) => a + b, 0);
+            doc.text(h, x, y);
+        });
+        y += 4;
+        doc.setDrawColor(200, 200, 200);
+        doc.line(14, y, 14 + colWidths.reduce((a, b) => a + b, 0), y);
+        y += 4;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        const rowsToExport = filteredReports.slice(0, 100); // Max 100 rows untuk PDF
+        rowsToExport.forEach((r, rowIndex) => {
+            if (y > 270) {
+                doc.addPage();
+                y = 20;
+                // Re-print headers on new page
+                doc.setFont('helvetica', 'bold');
+                headers.forEach((h, i) => {
+                    const x = 14 + colWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                    doc.text(h, x, y);
+                });
+                y += 4;
+                doc.line(14, y, 14 + colWidths.reduce((a, b) => a + b, 0), y);
+                y += 4;
+                doc.setFont('helvetica', 'normal');
+            }
+
+            const rowData = [
+                r.id || '-',
+                (r.tanggal || r.createdAt || '-').slice(0, 16),
+                (r.nama || r.pelapor || '-').slice(0, 15),
+                (r.kategori || '-').slice(0, 15),
+                (r.lokasi || '-').slice(0, 15),
+                r.status || '-',
+                r.sla || '-'
+            ];
+
+            rowData.forEach((val, i) => {
+                const x = 14 + colWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                doc.text(String(val), x, y);
+            });
+            y += 5;
+        });
+
+        // Footer
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text('System developed by assyaref.dev', 14, 290);
+
+        doc.save(`Riwayat_Laporan_${new Date().toISOString().slice(0,10)}.pdf`);
+        showToast(`Berhasil export ${rowsToExport.length} data ke PDF!`, 'success');
+    });
+
+    // =============================================
+    // OPEN UPDATE
+    // =============================================
+    function openUpdate(id) {
+        const report = allReports.find(r => r.id == id);
+        if (!report) return;
+
+        document.getElementById('updateId').value = report.id || '';
+        document.getElementById('updateStatus').value = report.status || 'OPEN';
+        document.getElementById('updateTeknisi').value = report.teknisi || '';
+        document.getElementById('updateCatatan').value = report.catatanTeknisi || '';
+
+        new bootstrap.Modal(document.getElementById('updateModal')).show();
+    }
+
+    // =============================================
+    // SAVE UPDATE
     // =============================================
     document.getElementById('saveUpdateBtn').addEventListener('click', async function() {
         const id = document.getElementById('updateId').value;
@@ -956,7 +1168,7 @@
         loadUserInfo();
         loadUser();
         await fetchReports();
-        console.log('✅ History page initialized');
+        console.log('✅ History page initialized with Export feature');
     }
 
     if (document.readyState === 'loading') {

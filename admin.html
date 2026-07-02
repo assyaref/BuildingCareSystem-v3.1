@@ -99,8 +99,10 @@
 </head>
 <body>
 
+<!-- APP WRAPPER -->
 <div class="wrapper">
 
+    <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="logo-area">
             <img src="assets/img/logo.png" class="logo" alt="Logo">
@@ -140,9 +142,11 @@
         </nav>
     </aside>
 
+    <!-- MAIN CONTENT -->
     <main class="content">
         <div class="container-fluid">
 
+            <!-- TOPBAR -->
             <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
                     <h3>Admin Panel</h3>
@@ -170,6 +174,7 @@
                 </div>
             </header>
 
+            <!-- STATISTICS CARDS -->
             <section class="row g-4 mt-1">
                 <div class="col-xl-3 col-md-6">
                     <div class="stat-card">
@@ -217,6 +222,7 @@
                 </div>
             </section>
 
+            <!-- USER MANAGEMENT -->
             <section class="row g-4 mt-3">
                 <div class="col-12">
                     <div class="card enterprise-card">
@@ -258,6 +264,7 @@
                 </div>
             </section>
 
+            <!-- RECENT ACTIVITIES -->
             <section class="row g-4 mt-3 mb-4">
                 <div class="col-12">
                     <div class="card enterprise-card">
@@ -297,6 +304,9 @@
     </main>
 </div>
 
+<!-- ======================================================
+     MODAL USER (Add / Edit)
+======================================================= -->
 <div class="modal fade" id="userModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
@@ -350,6 +360,9 @@
     </div>
 </div>
 
+<!-- ======================================================
+     MODAL UPLOAD EXCEL (With Template Feature)
+======================================================= -->
 <div class="modal fade" id="excelModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
@@ -360,15 +373,20 @@
             <div class="modal-body">
                 <div class="alert alert-info py-2" style="font-size: 12px;">
                     <h6><i class="bi bi-info-circle-fill"></i> Petunjuk Format Excel:</h6>
-                    <p class="mb-1">Pastikan baris pertama (Header) di Excel Anda menuliskan kolom berikut dengan tepat:</p>
+                    <p class="mb-1">Pastikan susunan struktur header tabel di file Excel Anda sama persis seperti contoh di bawah ini:</p>
                     <strong class="d-block text-center bg-white p-2 border rounded my-2 font-monospace" style="font-size:11px;">
                         nama | nik | email | password | role | status
                     </strong>
-                    <ul class="mb-0 ps-3">
+                    <ul class="mb-2 ps-3">
                         <li><strong>role:</strong> USER, ADMINISTRATOR, atau TECHNICIAN</li>
                         <li><strong>status:</strong> ACTIVE atau INACTIVE</li>
                         <li>Password minimal 5 karakter.</li>
                     </ul>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-light btn-sm text-primary fw-semibold border" id="downloadTemplateBtn" style="font-size: 11px;">
+                            <i class="bi bi-download"></i> Download Template Excel
+                        </button>
+                    </div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Pilih File Excel (.xlsx / .xls)</label>
@@ -386,8 +404,12 @@
     </div>
 </div>
 
+<!-- ======================================================
+     JAVASCRIPT
+======================================================= -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- CDN XLSX / SHEETJS UNTUK PARSING DAN CREATE TEMPLATE EXCEL -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script src="config/config.js"></script>
@@ -779,7 +801,7 @@
     });
 
     // =============================================
-    // LOGIKA PARSING DAN PROSES UPLOAD EXCEL (NEW)
+    // LOGIKA PROSES UPLOAD EXCEL
     // =============================================
     document.getElementById('processExcelBtn').addEventListener('click', async function() {
         const fileInput = document.getElementById('excelFileInput');
@@ -800,11 +822,9 @@
                 const dataBytes = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(dataBytes, { type: 'array' });
                 
-                // Mengambil sheet pertama
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
                 
-                // Konversi data sheet ke format JSON Array
                 const rawJson = XLSX.utils.sheet_to_json(worksheet);
                 
                 if (rawJson.length === 0) {
@@ -818,17 +838,14 @@
                 let failureCount = 0;
                 let errors = [];
 
-                // Looping item untuk memproses request API createUser berturut-turut
                 for (let i = 0; i < rawJson.length; i++) {
                     const row = rawJson[i];
                     
-                    // Normalisasi key ke lowercase agar toleran terhadap kapitalisasi header di Excel
                     const item = {};
                     Object.keys(row).forEach(k => {
                         item[k.toLowerCase().trim()] = row[k];
                     });
 
-                    // Validasi kecukupan data baris
                     if (!item.email || !item.nik || !item.nama) {
                         failureCount++;
                         errors.push(`Baris ${i + 2}: Nama, NIK, atau Email kosong.`);
@@ -839,7 +856,7 @@
                         email: String(item.email).trim(),
                         nik: String(item.nik).trim(),
                         nama: String(item.nama).trim(),
-                        password: item.password ? String(item.password) : '12345', // Default password jika kosong
+                        password: item.password ? String(item.password) : '12345', 
                         role: item.role ? String(item.role).toUpperCase().trim() : 'USER',
                         status: item.status ? String(item.status).toUpperCase().trim() : 'ACTIVE'
                     };
@@ -858,18 +875,14 @@
                     }
                 }
 
-                // Tutup Modal Excel
                 const modal = bootstrap.Modal.getInstance(document.getElementById('excelModal'));
                 if (modal) modal.hide();
 
-                // Reset Input
                 fileInput.value = '';
 
-                // Refresh tabel data user di latar belakang
                 await loadUsers();
                 await loadStats();
 
-                // Munculkan report hasil
                 if (failureCount === 0) {
                     Swal.fire('Berhasil Bulk Upload', `Sukses mendaftarkan ${successCount} user dari Excel.`, 'success');
                 } else {
@@ -890,6 +903,47 @@
         };
 
         reader.readAsArrayBuffer(file);
+    });
+
+    // =============================================
+    // LOGIKApembuatan / CREATE & DOWNLOAD TEMPLATE EXCEL (NEW)
+    // =============================================
+    document.getElementById('downloadTemplateBtn').addEventListener('click', function() {
+        try {
+            // 1. Definisikan header kolumn berserta contoh 1 baris dummy data
+            const templateData = [
+                {
+                    "nama": "Ahmad Fauzi",
+                    "nik": "01123",
+                    "email": "ahmad.fauzi@radiant.com",
+                    "password": "password123",
+                    "role": "USER",
+                    "status": "ACTIVE"
+                },
+                {
+                    "nama": "Siti Aminah",
+                    "nik": "01124",
+                    "email": "siti.aminah@radiant.com",
+                    "password": "password456",
+                    "role": "TECHNICIAN",
+                    "status": "ACTIVE"
+                }
+            ];
+
+            // 2. Buat objek worksheet baru bawaan dari pustaka SheetJS
+            const worksheet = XLSX.utils.json_to_sheet(templateData);
+            const workbook = XLSX.utils.book_new();
+            
+            // 3. Masukkan worksheet ke dalam workbook dengan nama sheet 'Template Users'
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Template Users");
+
+            // 4. Trigger download otomatis file .xlsx di browser admin
+            XLSX.writeFile(workbook, "Template_Bulk_Upload_Users.xlsx");
+
+        } catch (error) {
+            console.error('Gagal membuat template:', error);
+            Swal.fire('Error', 'Gagal mengunduh template Excel', 'error');
+        }
     });
 
     // =============================================
@@ -914,7 +968,6 @@
     // MODAL CLOSED - Reset form
     // =============================================
     document.getElementById('userModal').addEventListener('hidden.bs.modal', function() {
-        // Hanya reset jika tombol save tidak dalam keadaan loading
         const saveBtn = document.getElementById('saveUserBtn');
         if (!saveBtn.disabled) {
             resetUserForm();

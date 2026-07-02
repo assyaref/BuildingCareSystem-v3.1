@@ -150,6 +150,47 @@
         .export-btn-group .btn i {
             margin-right: 4px;
         }
+
+        /* 🔥 Detail Modal - Info Item */
+        .info-item {
+            display: grid;
+            grid-template-columns: 130px 1fr;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+            align-items: baseline;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .info-value {
+            font-size: 14px;
+            color: #0f172a;
+            word-break: break-word;
+        }
+        .info-value .badge {
+            font-size: 11px;
+            padding: 4px 12px;
+        }
+        @media (max-width: 576px) {
+            .info-item {
+                grid-template-columns: 1fr;
+                gap: 2px;
+                padding: 6px 0;
+            }
+            .info-label {
+                font-size: 11px;
+            }
+            .info-value {
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 
@@ -438,19 +479,21 @@
     </div>
 </div>
 
-<!-- Detail Modal -->
+<!-- 🔥 Detail Modal - Tampilan Rapi -->
 <div class="modal fade" id="detailModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-file-earmark-text"></i> Detail Laporan</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #1e5eff, #0d47a1); border-radius: 16px 16px 0 0; padding: 18px 28px;">
+                <h5 class="modal-title text-white"><i class="bi bi-file-earmark-text-fill me-2"></i>Detail Laporan</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div id="detailContent"></div>
+            <div class="modal-body p-4" id="detailContent">
+                <!-- Konten akan diisi oleh JavaScript -->
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-success" id="exportDetailPdfBtn"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
+            <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding: 14px 28px;">
+                <button class="btn btn-success" id="exportDetailPdfBtn">
+                    <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                </button>
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
@@ -846,7 +889,7 @@
     }
 
     // =============================================
-    // OPEN DETAIL - dengan export PDF
+    // OPEN DETAIL - Tampilan Rapi
     // =============================================
     function openDetail(id) {
         const report = allReports.find(r => r.id == id);
@@ -857,37 +900,161 @@
         const durasi = report.durasi || '-';
         const sla = report.sla || '-';
 
+        // Warna badge SLA
         let slaBadge = '';
         if (sla === 'FAST') {
-            slaBadge = '<span class="badge bg-success">FAST</span>';
+            slaBadge = '<span class="badge bg-success" style="font-size: 12px; padding: 5px 14px; border-radius: 20px;">FAST</span>';
         } else if (sla === 'NORMAL') {
-            slaBadge = '<span class="badge bg-warning text-dark">NORMAL</span>';
+            slaBadge = '<span class="badge bg-warning text-dark" style="font-size: 12px; padding: 5px 14px; border-radius: 20px;">NORMAL</span>';
         } else if (sla === 'LATE') {
-            slaBadge = '<span class="badge bg-danger">LATE</span>';
+            slaBadge = '<span class="badge bg-danger" style="font-size: 12px; padding: 5px 14px; border-radius: 20px;">LATE</span>';
         } else {
-            slaBadge = `<span class="badge bg-secondary">${sla}</span>`;
+            slaBadge = `<span class="badge bg-secondary" style="font-size: 12px; padding: 5px 14px; border-radius: 20px;">${sla}</span>`;
         }
 
+        // Warna badge Status
+        let statusBadge = '';
+        const status = report.status || 'OPEN';
+        if (status === 'DONE') {
+            statusBadge = '<span class="badge bg-success" style="font-size: 12px; padding: 5px 14px; border-radius: 20px;">DONE</span>';
+        } else if (status === 'PROGRESS') {
+            statusBadge = '<span class="badge bg-warning text-dark" style="font-size: 12px; padding: 5px 14px; border-radius: 20px;">PROGRESS</span>';
+        } else {
+            statusBadge = '<span class="badge bg-danger" style="font-size: 12px; padding: 5px 14px; border-radius: 20px;">OPEN</span>';
+        }
+
+        // Foto
+        const fotoHtml = report.foto ? `<a href="${report.foto}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-image"></i> Lihat Foto</a>` : '<span class="text-muted">-</span>';
+
         let html = `
-            <table class="table table-sm table-striped" id="detailReportTable">
-                <tr><th>ID</th><td>${report.id || '-'}</td></tr>
-                <tr><th>Tanggal Lapor</th><td>${report.tanggal || report.createdAt || '-'}</td></tr>
-                <tr><th>Tanggal Selesai</th><td>${tglSelesai}</td></tr>
-                <tr><th>Durasi</th><td>${durasi}</td></tr>
-                <tr><th>SLA</th><td>${slaBadge}</td></tr>
-                <tr><th>Pelapor</th><td>${report.nama || report.pelapor || '-'}</td></tr>
-                <tr><th>Departemen</th><td>${report.departemen || '-'}</td></tr>
-                <tr><th>Kategori</th><td>${report.kategori || '-'}</td></tr>
-                <tr><th>Lokasi</th><td>${report.lokasi || '-'}</td></tr>
-                <tr><th>Prioritas</th><td>${report.prioritas || '-'}</td></tr>
-                <tr><th>Status</th><td>${report.status || '-'}</td></tr>
-                <tr><th>Deskripsi</th><td>${report.deskripsi || '-'}</td></tr>
-                <tr><th>Teknisi</th><td>${report.teknisi || '-'}</td></tr>
-                <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || '-'}</td></tr>
-                <tr><th>Foto</th><td>${report.foto ? `<a href="${report.foto}" target="_blank">Lihat Foto</a>` : '-'}</td></tr>
-            </table>
+            <!-- Header Detail -->
+            <div class="d-flex justify-content-between align-items-start mb-4 pb-2" style="border-bottom: 2px solid #e2e8f0;">
+                <div>
+                    <h4 class="fw-bold" style="color: #0f172a;">${report.id || '-'}</h4>
+                    <span class="text-muted" style="font-size: 13px;">${report.tanggal || report.createdAt || '-'}</span>
+                </div>
+                <div class="d-flex gap-2">
+                    ${statusBadge}
+                    ${slaBadge}
+                </div>
+            </div>
+
+            <!-- Grid 2 Kolom -->
+            <div class="row g-3">
+                <!-- Kolom Kiri -->
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-calendar-event me-1"></i> Tanggal Lapor</span>
+                        <span class="info-value">${report.tanggal || report.createdAt || '-'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-calendar-check me-1"></i> Tanggal Selesai</span>
+                        <span class="info-value">${tglSelesai}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-clock me-1"></i> Durasi</span>
+                        <span class="info-value fw-semibold">${durasi}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-person me-1"></i> Pelapor</span>
+                        <span class="info-value">${report.nama || report.pelapor || '-'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-building me-1"></i> Departemen</span>
+                        <span class="info-value">${report.departemen || '-'}</span>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan -->
+                <div class="col-md-6">
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-tag me-1"></i> Kategori</span>
+                        <span class="info-value">${report.kategori || '-'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-geo-alt me-1"></i> Lokasi</span>
+                        <span class="info-value">${report.lokasi || '-'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-flag me-1"></i> Prioritas</span>
+                        <span class="info-value">${report.prioritas || '-'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-person-gear me-1"></i> Teknisi</span>
+                        <span class="info-value">${report.teknisi || '-'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="bi bi-image me-1"></i> Foto</span>
+                        <span class="info-value">${fotoHtml}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deskripsi -->
+            <div class="mt-4 pt-3" style="border-top: 1px solid #e2e8f0;">
+                <div class="info-item" style="grid-column: 1 / -1;">
+                    <span class="info-label"><i class="bi bi-file-text me-1"></i> Deskripsi</span>
+                    <div class="info-value" style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; margin-top: 4px; border-left: 3px solid #1e5eff; white-space: pre-wrap;">${report.deskripsi || '-'}</div>
+                </div>
+            </div>
+
+            <!-- Catatan Teknisi -->
+            ${report.catatanTeknisi ? `
+            <div class="mt-3">
+                <div class="info-item" style="grid-column: 1 / -1;">
+                    <span class="info-label"><i class="bi bi-sticky me-1"></i> Catatan Teknisi</span>
+                    <div class="info-value" style="background: #fef3c7; padding: 12px 16px; border-radius: 8px; margin-top: 4px; border-left: 3px solid #f59e0b; white-space: pre-wrap;">${report.catatanTeknisi}</div>
+                </div>
+            </div>
+            ` : ''}
         `;
-        document.getElementById('detailContent').innerHTML = html;
+
+        // CSS untuk info-item
+        const style = `
+            <style>
+                .info-item {
+                    display: grid;
+                    grid-template-columns: 130px 1fr;
+                    padding: 10px 0;
+                    border-bottom: 1px solid #f1f5f9;
+                    align-items: baseline;
+                }
+                .info-item:last-child {
+                    border-bottom: none;
+                }
+                .info-label {
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3px;
+                }
+                .info-value {
+                    font-size: 14px;
+                    color: #0f172a;
+                    word-break: break-word;
+                }
+                .info-value .badge {
+                    font-size: 11px;
+                    padding: 4px 12px;
+                }
+                @media (max-width: 576px) {
+                    .info-item {
+                        grid-template-columns: 1fr;
+                        gap: 2px;
+                        padding: 6px 0;
+                    }
+                    .info-label {
+                        font-size: 11px;
+                    }
+                    .info-value {
+                        font-size: 13px;
+                    }
+                }
+            </style>
+        `;
+
+        document.getElementById('detailContent').innerHTML = style + html;
         new bootstrap.Modal(document.getElementById('detailModal')).show();
     }
 
@@ -917,11 +1084,9 @@
         doc.setTextColor(100, 100, 100);
         doc.text('Radiant Group Duri', 14, 36);
 
-        // Line
         doc.setDrawColor(30, 94, 255);
         doc.line(14, 40, 196, 40);
 
-        // Data
         doc.setFontSize(11);
         doc.setTextColor(0, 0, 0);
 
@@ -956,7 +1121,6 @@
             y += (wrappedText.length * 5) + 4;
         });
 
-        // Footer
         doc.setFontSize(8);
         doc.setTextColor(150, 150, 150);
         doc.text(`Generated: ${new Date().toLocaleString('id-ID')}`, 14, 280);
@@ -966,7 +1130,7 @@
     });
 
     // =============================================
-    // EXPORT TABLE TO EXCEL (CSV)
+    // EXPORT TABLE TO EXCEL (XLSX)
     // =============================================
     document.getElementById('exportExcelBtn').addEventListener('click', function() {
         if (filteredReports.length === 0) {
@@ -1006,7 +1170,6 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('l', 'mm', 'a4');
 
-        // Title
         doc.setFontSize(16);
         doc.setTextColor(30, 94, 255);
         doc.text('Building Care System Enterprise', 14, 20);
@@ -1017,7 +1180,6 @@
         doc.setTextColor(100, 100, 100);
         doc.text(`Generated: ${new Date().toLocaleString('id-ID')} | Total: ${filteredReports.length} data`, 14, 36);
 
-        // Headers
         const headers = ['ID', 'Tanggal', 'Pelapor', 'Kategori', 'Lokasi', 'Status', 'SLA'];
         const colWidths = [30, 30, 35, 30, 35, 25, 20];
         let y = 44;
@@ -1035,12 +1197,11 @@
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7);
-        const rowsToExport = filteredReports.slice(0, 100); // Max 100 rows untuk PDF
+        const rowsToExport = filteredReports.slice(0, 100);
         rowsToExport.forEach((r, rowIndex) => {
             if (y > 270) {
                 doc.addPage();
                 y = 20;
-                // Re-print headers on new page
                 doc.setFont('helvetica', 'bold');
                 headers.forEach((h, i) => {
                     const x = 14 + colWidths.slice(0, i).reduce((a, b) => a + b, 0);
@@ -1069,7 +1230,6 @@
             y += 5;
         });
 
-        // Footer
         doc.setFontSize(8);
         doc.setTextColor(150, 150, 150);
         doc.text('System developed by assyaref.dev', 14, 290);

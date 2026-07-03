@@ -191,6 +191,123 @@
                 font-size: 13px;
             }
         }
+
+        /* ===== FILTER DATE RANGE STYLES ===== */
+        .date-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .date-filter-group .date-input {
+            padding: 4px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 12px;
+            background: #fafafa;
+            transition: all 0.2s;
+            min-width: 130px;
+        }
+        .date-filter-group .date-input:focus {
+            border-color: #4b7bec;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(75, 123, 236, 0.15);
+        }
+        .date-filter-group .filter-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #4a4a62;
+        }
+        .btn-filter-date {
+            padding: 4px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #4b7bec;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-filter-date:hover {
+            background: #3b6bd6;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(75, 123, 236, 0.3);
+        }
+        .btn-filter-date.btn-outline {
+            background: transparent;
+            color: #4b7bec;
+            border: 1px solid #4b7bec;
+        }
+        .btn-filter-date.btn-outline:hover {
+            background: #4b7bec;
+            color: white;
+        }
+        .btn-filter-date.btn-danger-outline {
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        .btn-filter-date.btn-danger-outline:hover {
+            background: #ef4444;
+            color: white;
+        }
+        .date-filter-group .filter-divider {
+            color: #d1d5db;
+            font-size: 14px;
+            font-weight: 300;
+        }
+        .date-filter-group .month-select {
+            padding: 4px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 12px;
+            background: #fafafa;
+            min-width: 140px;
+        }
+        .date-filter-group .month-select:focus {
+            border-color: #4b7bec;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(75, 123, 236, 0.15);
+        }
+
+        /* Quick filter pills */
+        .quick-filter-pills {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .quick-filter-pills .pill {
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            background: #f1f4f9;
+            color: #4a4a62;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .quick-filter-pills .pill:hover {
+            background: #e5e9f2;
+        }
+        .quick-filter-pills .pill.active {
+            background: #4b7bec;
+            color: white;
+            border-color: #4b7bec;
+        }
+        [data-theme="dark"] .quick-filter-pills .pill {
+            background: #2a2a42;
+            color: #c8c8d4;
+        }
+        [data-theme="dark"] .quick-filter-pills .pill:hover {
+            background: #3a3a52;
+        }
+        [data-theme="dark"] .quick-filter-pills .pill.active {
+            background: #4b7bec;
+            color: white;
+        }
     </style>
 </head>
 
@@ -346,38 +463,98 @@
                         <!-- Filter Header Row -->
                         <div class="card-header bg-white border-0 pt-4 px-4 pb-2">
                             <div class="row g-2 align-items-center">
-                                <div class="col-md-4">
-                                    <div class="input-group input-group-sm border rounded" style="background: #fdfdfd;">
-                                        <span class="input-group-text bg-transparent border-0 text-muted"><i class="bi bi-search"></i></span>
-                                        <input type="text" class="form-control bg-transparent border-0" id="searchInput" placeholder="Cari ID, pelapor, kategori atau lokasi" style="font-size: 13px;">
+                                <div class="col-md-12">
+                                    <div class="row g-2 align-items-center">
+                                        <!-- Search -->
+                                        <div class="col-md-3">
+                                            <div class="input-group input-group-sm border rounded" style="background: #fdfdfd;">
+                                                <span class="input-group-text bg-transparent border-0 text-muted"><i class="bi bi-search"></i></span>
+                                                <input type="text" class="form-control bg-transparent border-0" id="searchInput" placeholder="Cari ID, pelapor, kategori..." style="font-size: 13px;">
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Status Filter -->
+                                        <div class="col-md-2">
+                                            <select class="form-select form-select-sm" id="filterStatus" style="font-size: 13px; background-color: #fdfdfd;">
+                                                <option value="">Semua Status</option>
+                                                <option value="OPEN">OPEN</option>
+                                                <option value="PROGRESS">PROGRESS</option>
+                                                <option value="DONE">DONE</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- Sort -->
+                                        <div class="col-md-2">
+                                            <select class="form-select form-select-sm" id="sortOrder" style="font-size: 13px; background-color: #fdfdfd;">
+                                                <option value="desc">Terbaru</option>
+                                                <option value="asc">Terlama</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- 🔥 DATE FILTER -->
+                                        <div class="col-md-5">
+                                            <div class="date-filter-group">
+                                                <span class="filter-label"><i class="bi bi-calendar3 me-1"></i>Tanggal:</span>
+                                                <input type="date" class="date-input" id="filterDateStart" title="Tanggal Mulai">
+                                                <span class="filter-divider">-</span>
+                                                <input type="date" class="date-input" id="filterDateEnd" title="Tanggal Akhir">
+                                                <button class="btn-filter-date" id="applyDateFilter"><i class="bi bi-funnel"></i> Terapkan</button>
+                                                <button class="btn-filter-date btn-danger-outline" id="clearDateFilter"><i class="bi bi-x-circle"></i></button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-2">
-                                    <select class="form-select form-select-sm" id="filterStatus" style="font-size: 13px; background-color: #fdfdfd;">
-                                        <option value="">Semua Status</option>
-                                        <option value="OPEN">OPEN</option>
-                                        <option value="PROGRESS">PROGRESS</option>
-                                        <option value="DONE">DONE</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <select class="form-select form-select-sm" id="sortOrder" style="font-size: 13px; background-color: #fdfdfd;">
-                                        <option value="desc">Terbaru</option>
-                                        <option value="asc">Terlama</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4 text-end d-flex align-items-center justify-content-end gap-2 flex-wrap">
-                                    <small class="text-muted" style="font-size: 12px;">Total : <strong id="totalReports" class="text-dark">0</strong></small>
-                                    <button class="btn btn-sm btn-light border text-muted" id="refreshBtn" style="padding: 4px 8px;" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
-                                    
-                                    <!-- 🔥 EXPORT BUTTONS -->
-                                    <div class="export-btn-group d-flex gap-1">
-                                        <button class="btn btn-sm btn-success" id="exportExcelBtn" title="Export ke Excel">
-                                            <i class="bi bi-file-earmark-excel"></i> Excel
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" id="exportPdfBtn" title="Export ke PDF">
-                                            <i class="bi bi-file-earmark-pdf"></i> PDF
-                                        </button>
+                                
+                                <!-- Row kedua: Month Filter & Quick Filters & Export -->
+                                <div class="col-md-12 mt-2">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-md-4">
+                                            <div class="date-filter-group">
+                                                <span class="filter-label"><i class="bi bi-calendar-month me-1"></i>Bulan:</span>
+                                                <select class="month-select" id="filterMonth">
+                                                    <option value="">Semua Bulan</option>
+                                                    <option value="1">Januari</option>
+                                                    <option value="2">Februari</option>
+                                                    <option value="3">Maret</option>
+                                                    <option value="4">April</option>
+                                                    <option value="5">Mei</option>
+                                                    <option value="6">Juni</option>
+                                                    <option value="7">Juli</option>
+                                                    <option value="8">Agustus</option>
+                                                    <option value="9">September</option>
+                                                    <option value="10">Oktober</option>
+                                                    <option value="11">November</option>
+                                                    <option value="12">Desember</option>
+                                                </select>
+                                                <input type="number" class="date-input" id="filterYear" placeholder="Tahun" min="2020" max="2030" style="width:70px; min-width:60px;">
+                                                <button class="btn-filter-date" id="applyMonthFilter"><i class="bi bi-funnel"></i></button>
+                                                <button class="btn-filter-date btn-danger-outline" id="clearMonthFilter"><i class="bi bi-x-circle"></i></button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-4">
+                                            <div class="quick-filter-pills">
+                                                <span class="pill active" data-range="today">Hari Ini</span>
+                                                <span class="pill" data-range="week">Minggu Ini</span>
+                                                <span class="pill" data-range="month">Bulan Ini</span>
+                                                <span class="pill" data-range="last3months">3 Bulan</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-4 text-end d-flex align-items-center justify-content-end gap-2 flex-wrap">
+                                            <small class="text-muted" style="font-size: 12px;">Total : <strong id="totalReports" class="text-dark">0</strong></small>
+                                            <button class="btn btn-sm btn-light border text-muted" id="refreshBtn" style="padding: 4px 8px;" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+                                            
+                                            <!-- EXPORT BUTTONS -->
+                                            <div class="export-btn-group d-flex gap-1">
+                                                <button class="btn btn-sm btn-success" id="exportExcelBtn" title="Export ke Excel">
+                                                    <i class="bi bi-file-earmark-excel"></i> Excel
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" id="exportPdfBtn" title="Export ke PDF">
+                                                    <i class="bi bi-file-earmark-pdf"></i> PDF
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -479,7 +656,7 @@
     </div>
 </div>
 
-<!-- 🔥 Detail Modal - Tampilan Rapi -->
+<!-- Detail Modal -->
 <div class="modal fade" id="detailModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
@@ -608,6 +785,7 @@
     let currentPage = 1;
     const perPage = 10;
     let currentDetailReport = null;
+    let activeDateFilter = null; // 'today', 'week', 'month', 'last3months'
 
     const tableBody = document.getElementById('historyTable');
     const paginationEl = document.getElementById('pagination');
@@ -619,6 +797,12 @@
     const cardProgress = document.getElementById('cardProgress');
     const cardDone = document.getElementById('cardDone');
     const totalReportsSpan = document.getElementById('totalReports');
+
+    // Date filter elements
+    const filterDateStart = document.getElementById('filterDateStart');
+    const filterDateEnd = document.getElementById('filterDateEnd');
+    const filterMonth = document.getElementById('filterMonth');
+    const filterYear = document.getElementById('filterYear');
 
     // =============================================
     // SHOW TOAST NOTIFICATION
@@ -720,14 +904,87 @@
     }
 
     // =============================================
+    // DATE FILTER HELPER FUNCTIONS
+    // =============================================
+    function parseDate(dateStr) {
+        if (!dateStr) return null;
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return null;
+        return d;
+    }
+
+    function formatDateForCompare(date) {
+        if (!date) return null;
+        return date.toISOString().split('T')[0];
+    }
+
+    function isDateInRange(dateStr, startDate, endDate) {
+        if (!dateStr) return false;
+        const d = parseDate(dateStr);
+        if (!d) return false;
+        const dateOnly = formatDateForCompare(d);
+        if (!dateOnly) return false;
+        
+        if (startDate && dateOnly < formatDateForCompare(startDate)) return false;
+        if (endDate && dateOnly > formatDateForCompare(endDate)) return false;
+        return true;
+    }
+
+    function isDateInMonth(dateStr, month, year) {
+        if (!dateStr) return false;
+        const d = parseDate(dateStr);
+        if (!d) return false;
+        if (month && d.getMonth() + 1 !== parseInt(month)) return false;
+        if (year && d.getFullYear() !== parseInt(year)) return false;
+        return true;
+    }
+
+    function getTodayRange() {
+        const today = new Date();
+        return { start: today, end: today };
+    }
+
+    function getWeekRange() {
+        const now = new Date();
+        const start = new Date(now);
+        start.setDate(now.getDate() - now.getDay());
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        end.setHours(23, 59, 59, 999);
+        return { start, end };
+    }
+
+    function getMonthRange() {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        end.setHours(23, 59, 59, 999);
+        return { start, end };
+    }
+
+    function getLast3MonthsRange() {
+        const now = new Date();
+        const start = new Date(now);
+        start.setMonth(now.getMonth() - 3);
+        start.setDate(1);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        end.setHours(23, 59, 59, 999);
+        return { start, end };
+    }
+
+    // =============================================
     // FILTER & SORT
     // =============================================
     function applyFilters() {
         const keyword = searchInput.value.toLowerCase().trim();
         const status = filterStatus.value;
+        const sort = sortOrder.value;
 
         let result = allReports;
 
+        // Keyword filter
         if (keyword) {
             result = result.filter(r =>
                 (r.id || '').toLowerCase().includes(keyword) ||
@@ -738,11 +995,33 @@
             );
         }
 
+        // Status filter
         if (status) {
             result = result.filter(r => (r.status || '').toUpperCase() === status);
         }
 
-        const sort = sortOrder.value;
+        // Date range filter (from date inputs)
+        const startDate = filterDateStart.value ? parseDate(filterDateStart.value) : null;
+        const endDate = filterDateEnd.value ? parseDate(filterDateEnd.value) : null;
+        
+        if (startDate || endDate) {
+            result = result.filter(r => {
+                const reportDate = r.tanggal || r.createdAt;
+                return isDateInRange(reportDate, startDate, endDate);
+            });
+        }
+
+        // Month filter
+        const month = filterMonth.value;
+        const year = filterYear.value;
+        if (month || year) {
+            result = result.filter(r => {
+                const reportDate = r.tanggal || r.createdAt;
+                return isDateInMonth(reportDate, month, year);
+            });
+        }
+
+        // Sort
         result.sort((a, b) => {
             const dateA = new Date(a.tanggal || a.createdAt || 0);
             const dateB = new Date(b.tanggal || b.createdAt || 0);
@@ -754,6 +1033,56 @@
         currentPage = 1;
         renderTable();
         renderPagination();
+    }
+
+    // =============================================
+    // QUICK FILTER (Today, Week, Month, 3 Months)
+    // =============================================
+    function applyQuickFilter(range) {
+        // Clear date inputs
+        filterDateStart.value = '';
+        filterDateEnd.value = '';
+        filterMonth.value = '';
+        filterYear.value = '';
+        
+        // Update pill active state
+        document.querySelectorAll('.quick-filter-pills .pill').forEach(p => p.classList.remove('active'));
+        const activePill = document.querySelector(`.quick-filter-pills .pill[data-range="${range}"]`);
+        if (activePill) activePill.classList.add('active');
+        
+        activeDateFilter = range;
+        
+        let start, end;
+        switch(range) {
+            case 'today':
+                const todayRange = getTodayRange();
+                start = todayRange.start;
+                end = todayRange.end;
+                break;
+            case 'week':
+                const weekRange = getWeekRange();
+                start = weekRange.start;
+                end = weekRange.end;
+                break;
+            case 'month':
+                const monthRange = getMonthRange();
+                start = monthRange.start;
+                end = monthRange.end;
+                break;
+            case 'last3months':
+                const last3Range = getLast3MonthsRange();
+                start = last3Range.start;
+                end = last3Range.end;
+                break;
+            default:
+                return;
+        }
+        
+        // Set date inputs for display
+        filterDateStart.value = formatDateForCompare(start);
+        filterDateEnd.value = formatDateForCompare(end);
+        
+        applyFilters();
     }
 
     // =============================================
@@ -889,7 +1218,7 @@
     }
 
     // =============================================
-    // OPEN DETAIL - Tampilan Rapi
+    // OPEN DETAIL
     // =============================================
     function openDetail(id) {
         const report = allReports.find(r => r.id == id);
@@ -900,7 +1229,6 @@
         const durasi = report.durasi || '-';
         const sla = report.sla || '-';
 
-        // Warna badge SLA
         let slaBadge = '';
         if (sla === 'FAST') {
             slaBadge = '<span class="badge bg-success" style="font-size: 12px; padding: 5px 14px; border-radius: 20px;">FAST</span>';
@@ -912,7 +1240,6 @@
             slaBadge = `<span class="badge bg-secondary" style="font-size: 12px; padding: 5px 14px; border-radius: 20px;">${sla}</span>`;
         }
 
-        // Warna badge Status
         let statusBadge = '';
         const status = report.status || 'OPEN';
         if (status === 'DONE') {
@@ -923,11 +1250,9 @@
             statusBadge = '<span class="badge bg-danger" style="font-size: 12px; padding: 5px 14px; border-radius: 20px;">OPEN</span>';
         }
 
-        // Foto
         const fotoHtml = report.foto ? `<a href="${report.foto}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-image"></i> Lihat Foto</a>` : '<span class="text-muted">-</span>';
 
         let html = `
-            <!-- Header Detail -->
             <div class="d-flex justify-content-between align-items-start mb-4 pb-2" style="border-bottom: 2px solid #e2e8f0;">
                 <div>
                     <h4 class="fw-bold" style="color: #0f172a;">${report.id || '-'}</h4>
@@ -939,9 +1264,7 @@
                 </div>
             </div>
 
-            <!-- Grid 2 Kolom -->
             <div class="row g-3">
-                <!-- Kolom Kiri -->
                 <div class="col-md-6">
                     <div class="info-item">
                         <span class="info-label"><i class="bi bi-calendar-event me-1"></i> Tanggal Lapor</span>
@@ -965,7 +1288,6 @@
                     </div>
                 </div>
 
-                <!-- Kolom Kanan -->
                 <div class="col-md-6">
                     <div class="info-item">
                         <span class="info-label"><i class="bi bi-tag me-1"></i> Kategori</span>
@@ -990,7 +1312,6 @@
                 </div>
             </div>
 
-            <!-- Deskripsi -->
             <div class="mt-4 pt-3" style="border-top: 1px solid #e2e8f0;">
                 <div class="info-item" style="grid-column: 1 / -1;">
                     <span class="info-label"><i class="bi bi-file-text me-1"></i> Deskripsi</span>
@@ -998,7 +1319,6 @@
                 </div>
             </div>
 
-            <!-- Catatan Teknisi -->
             ${report.catatanTeknisi ? `
             <div class="mt-3">
                 <div class="info-item" style="grid-column: 1 / -1;">
@@ -1009,7 +1329,6 @@
             ` : ''}
         `;
 
-        // CSS untuk info-item
         const style = `
             <style>
                 .info-item {
@@ -1071,7 +1390,6 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
 
-        // Title
         doc.setFontSize(18);
         doc.setTextColor(30, 94, 255);
         doc.text('Building Care System Enterprise', 14, 20);
@@ -1130,7 +1448,7 @@
     });
 
     // =============================================
-    // EXPORT TABLE TO EXCEL (XLSX)
+    // EXPORT TABLE TO EXCEL
     // =============================================
     document.getElementById('exportExcelBtn').addEventListener('click', function() {
         if (filteredReports.length === 0) {
@@ -1293,6 +1611,65 @@
     });
 
     // =============================================
+    // DATE FILTER EVENT BINDING
+    // =============================================
+    // Apply Date Range Filter
+    document.getElementById('applyDateFilter').addEventListener('click', function() {
+        // Clear quick filter pills
+        document.querySelectorAll('.quick-filter-pills .pill').forEach(p => p.classList.remove('active'));
+        activeDateFilter = null;
+        applyFilters();
+    });
+
+    // Clear Date Range Filter
+    document.getElementById('clearDateFilter').addEventListener('click', function() {
+        filterDateStart.value = '';
+        filterDateEnd.value = '';
+        document.querySelectorAll('.quick-filter-pills .pill').forEach(p => p.classList.remove('active'));
+        activeDateFilter = null;
+        applyFilters();
+    });
+
+    // Apply Month Filter
+    document.getElementById('applyMonthFilter').addEventListener('click', function() {
+        // Clear date inputs
+        filterDateStart.value = '';
+        filterDateEnd.value = '';
+        document.querySelectorAll('.quick-filter-pills .pill').forEach(p => p.classList.remove('active'));
+        activeDateFilter = null;
+        applyFilters();
+    });
+
+    // Clear Month Filter
+    document.getElementById('clearMonthFilter').addEventListener('click', function() {
+        filterMonth.value = '';
+        filterYear.value = '';
+        applyFilters();
+    });
+
+    // Quick Filter Pills
+    document.querySelectorAll('.quick-filter-pills .pill').forEach(pill => {
+        pill.addEventListener('click', function() {
+            const range = this.dataset.range;
+            applyQuickFilter(range);
+        });
+    });
+
+    // Auto-apply when date inputs change (with debounce)
+    let dateFilterTimeout;
+    [filterDateStart, filterDateEnd, filterMonth, filterYear].forEach(el => {
+        el.addEventListener('change', function() {
+            clearTimeout(dateFilterTimeout);
+            dateFilterTimeout = setTimeout(() => {
+                // Clear quick filter pills
+                document.querySelectorAll('.quick-filter-pills .pill').forEach(p => p.classList.remove('active'));
+                activeDateFilter = null;
+                applyFilters();
+            }, 300);
+        });
+    });
+
+    // =============================================
     // EVENT BINDING
     // =============================================
     searchInput.addEventListener('input', applyFilters);
@@ -1328,7 +1705,7 @@
         loadUserInfo();
         loadUser();
         await fetchReports();
-        console.log('✅ History page initialized with Export feature');
+        console.log('✅ History page initialized with Date/Month filter feature');
     }
 
     if (document.readyState === 'loading') {

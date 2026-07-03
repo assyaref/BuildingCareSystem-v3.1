@@ -349,6 +349,70 @@
             font-weight: 700;
         }
 
+        /* Developer Credit - Elegant Version */
+        .developer-credit {
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            font-size: 10px;
+            color: #b0b8c9;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .developer-credit .dev-divider {
+            color: #d0d6e4;
+            font-size: 8px;
+        }
+
+        .developer-credit .dev-label {
+            color: #8a8fa6;
+            font-weight: 400;
+        }
+
+        .developer-credit .dev-name {
+            color: #1e5eff;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .developer-credit .dev-name::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: #1e5eff;
+            transition: width 0.3s ease;
+        }
+
+        .developer-credit .dev-name:hover::after {
+            width: 100%;
+        }
+
+        .developer-credit .dev-name:hover {
+            color: #0d47cc;
+        }
+
+        .developer-credit .dev-icon {
+            color: #8a8fa6;
+            font-size: 10px;
+            opacity: 0.6;
+        }
+
+        .developer-credit .dev-icon-accent {
+            color: #1e5eff;
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
         /* Loading Spinner di dalam button */
         .spinner-btn {
             display: inline-block;
@@ -398,6 +462,10 @@
             .logo-image {
                 width: 48px;
                 height: 48px;
+            }
+            .developer-credit {
+                font-size: 9px;
+                gap: 4px;
             }
         }
 
@@ -520,6 +588,18 @@
                 <p class="version">
                     Radiant Group Duri &bull; <span>v3.5.0</span>
                 </p>
+
+                <!-- Developer Credit - Elegant -->
+                <div class="developer-credit">
+                    <span class="dev-icon"><i class="fa-regular fa-copyright"></i></span>
+                    <span class="dev-label">2026</span>
+                    <span class="dev-divider">|</span>
+                    <span class="dev-icon"><i class="fa-solid fa-code"></i></span>
+                    <span>by</span>
+                    <a href="https://assyaref.dev" target="_blank" class="dev-name">Assyaref.dev</a>
+                    <span class="dev-divider">|</span>
+                    <span class="dev-icon-accent"><i class="fa-regular fa-gem"></i></span>
+                </div>
             </div>
 
         </div>

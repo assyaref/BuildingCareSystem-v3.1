@@ -1,362 +1,166 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Work Order Management</title>
-    
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Work Order Management - Building Care System Enterprise">
+    <meta name="author" content="Radiant Group Duri">
+
+    <title>Work Order — Building Care System Enterprise</title>
+
+    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+
     <style>
-        /* ===== RESET & BASE ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #f0f4ff;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        /* ===== DASHBOARD LAYOUT ===== */
-        .wo-dashboard {
-            max-width: 1440px;
-            margin: 0 auto;
-        }
-        
-        /* ===== HEADER ===== */
-        .wo-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 0 24px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-        
-        .wo-header .title-section h1 {
-            font-size: 24px;
-            font-weight: 800;
-            color: #1a1a2e;
-        }
-        
-        .wo-header .title-section p {
-            font-size: 13px;
-            color: #8a8fa6;
-        }
-        
-        .wo-header .action-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .btn-primary {
-            padding: 10px 24px;
-            background: linear-gradient(145deg, #1e5eff, #1557e8);
-            color: #ffffff;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 16px rgba(30, 94, 255, 0.25);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(30, 94, 255, 0.35);
-        }
-        
-        .btn-secondary {
-            padding: 10px 20px;
-            background: #ffffff;
-            color: #1a1a2e;
-            border: 2px solid #e8ecf5;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-        }
-        
-        .btn-secondary:hover {
-            border-color: #1e5eff;
-            color: #1e5eff;
-        }
-        
-        /* ===== STATISTICS CARDS ===== */
-        .wo-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .stat-card {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            border: 1px solid rgba(0, 0, 0, 0.04);
-            transition: all 0.3s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-        }
-        
-        .stat-card .stat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        
-        .stat-card .stat-icon {
+        .avatar-sm {
             width: 40px;
             height: 40px;
-            border-radius: 10px;
+            border-radius: 50%;
+            background: #4b7bec;
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-weight: 700;
             font-size: 18px;
         }
-        
-        .stat-card .stat-icon.blue { background: #e3f2fd; color: #0d47a1; }
-        .stat-card .stat-icon.green { background: #e8f5e9; color: #1b5e20; }
-        .stat-card .stat-icon.orange { background: #fff3e0; color: #e65100; }
-        .stat-card .stat-icon.purple { background: #f3e5f5; color: #6a1b9a; }
-        .stat-card .stat-icon.red { background: #fbe9e7; color: #b71c1c; }
-        .stat-card .stat-icon.teal { background: #e0f7fa; color: #00695c; }
-        
-        .stat-card .stat-label {
-            font-size: 12px;
-            color: #8a8fa6;
-            font-weight: 500;
+
+        .status-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            letter-spacing: 0.3px;
         }
-        
-        .stat-card .stat-value {
+        .status-open { background: #fee2e2; color: #dc2626; }
+        .status-assigned { background: #fef3c7; color: #d97706; }
+        .status-in_progress { background: #dbeafe; color: #1d4ed8; }
+        .status-pending_parts { background: #fce4ec; color: #c62828; }
+        .status-completed { background: #dcfce7; color: #16a34a; }
+        .status-cancelled { background: #e5e7eb; color: #6b7280; }
+
+        .priority-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .priority-low { background: #e8eaf6; color: #283593; }
+        .priority-medium { background: #e3f2fd; color: #0d47a1; }
+        .priority-high { background: #fff3e0; color: #e65100; }
+        .priority-critical { background: #fbe9e7; color: #b71c1c; }
+
+        .dark-toggle {
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .dark-toggle:hover {
+            background: #f0f2f5;
+            transform: rotate(20deg);
+        }
+        [data-theme="dark"] .dark-toggle {
+            border-color: #3a3a52;
+            color: #ffd700;
+        }
+        [data-theme="dark"] .dark-toggle:hover {
+            background: #2a2a42;
+        }
+
+        .summary-card {
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }
+        .summary-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+        }
+        .summary-card .summary-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .summary-card .summary-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
             font-size: 24px;
+            flex-shrink: 0;
+        }
+        .summary-card .summary-icon.bg-primary { background: linear-gradient(145deg, #4b7bec, #3b6bd6); }
+        .summary-card .summary-icon.bg-danger-soft { background: linear-gradient(145deg, #fca5a5, #ef4444); }
+        .summary-card .summary-icon.bg-warning-soft { background: linear-gradient(145deg, #fcd34d, #f59e0b); }
+        .summary-card .summary-icon.bg-success-soft { background: linear-gradient(145deg, #6ee7b7, #22c55e); }
+        .summary-card .summary-icon.bg-info-soft { background: linear-gradient(145deg, #7dd3fc, #0ea5e9); }
+        .summary-card .summary-icon.bg-purple-soft { background: linear-gradient(145deg, #c4b5fd, #8b5cf6); }
+        .summary-card h6 {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 500;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .summary-card h2 {
+            font-size: 32px;
             font-weight: 700;
             color: #1a1a2e;
+            margin: 0;
         }
-        
-        .stat-card .stat-change {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 2px 10px;
-            border-radius: 12px;
+
+        .menu-admin { display: none; }
+        .menu-admin.visible { display: flex; }
+
+        .wo-number {
+            font-weight: 700;
+            color: #4b7bec;
+            font-size: 12px;
         }
-        
-        .stat-change.up { background: #e8f5e9; color: #1b5e20; }
-        .stat-change.down { background: #fbe9e7; color: #b71c1c; }
-        
-        /* ===== FILTER & SEARCH ===== */
-        .wo-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 20px;
-            background: #ffffff;
-            padding: 16px 20px;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        }
-        
+
         .filter-group {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
             align-items: center;
         }
-        
         .filter-group select,
         .filter-group input {
-            padding: 8px 14px;
-            border: 2px solid #e8ecf5;
-            border-radius: 10px;
-            font-size: 13px;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #fafafc;
-            color: #1a1a2e;
-            transition: all 0.3s;
-            min-width: 120px;
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 12px;
+            background: #fafafa;
+            transition: all 0.2s;
         }
-        
         .filter-group select:focus,
         .filter-group input:focus {
-            border-color: #1e5eff;
+            border-color: #4b7bec;
             outline: none;
-            box-shadow: 0 0 0 4px rgba(30, 94, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(75, 123, 236, 0.15);
         }
-        
-        .filter-group .search-wrapper {
-            position: relative;
-        }
-        
-        .filter-group .search-wrapper input {
-            padding-left: 36px;
-            min-width: 200px;
-        }
-        
-        .filter-group .search-wrapper i {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #b0b8c9;
-        }
-        
-        .view-toggle {
-            display: flex;
-            gap: 4px;
-            background: #f0f2f7;
-            padding: 4px;
-            border-radius: 10px;
-        }
-        
-        .view-toggle button {
-            padding: 6px 14px;
-            border: none;
-            border-radius: 8px;
-            background: transparent;
-            color: #8a8fa6;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 12px;
-            transition: all 0.3s;
-        }
-        
-        .view-toggle button.active {
-            background: #ffffff;
-            color: #1e5eff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        }
-        
-        /* ===== TABLE ===== */
-        .wo-table-container {
-            background: #ffffff;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            border: 1px solid rgba(0, 0, 0, 0.04);
-        }
-        
-        .wo-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        
-        .wo-table thead {
-            background: #f8faff;
-            border-bottom: 2px solid #e8ecf5;
-        }
-        
-        .wo-table th {
-            padding: 14px 16px;
-            text-align: left;
-            font-weight: 600;
-            color: #4a4a62;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
-        }
-        
-        .wo-table td {
-            padding: 14px 16px;
-            border-bottom: 1px solid #f0f2f7;
-            color: #2d2d44;
-            vertical-align: middle;
-        }
-        
-        .wo-table tr:hover {
-            background: #f8faff;
-        }
-        
-        .wo-table .wo-number {
-            font-weight: 700;
-            color: #1e5eff;
-            font-size: 12px;
-        }
-        
-        .wo-table .wo-title {
-            font-weight: 600;
-            color: #1a1a2e;
-        }
-        
-        .wo-table .wo-title .wo-sub {
-            display: block;
-            font-weight: 400;
-            font-size: 11px;
-            color: #8a8fa6;
-        }
-        
-        /* ===== BADGES ===== */
-        .badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-            white-space: nowrap;
-        }
-        
-        .badge-status-open { background: #e3f2fd; color: #0d47a1; }
-        .badge-status-assigned { background: #e8eaf6; color: #283593; }
-        .badge-status-in_progress { background: #fff3e0; color: #e65100; }
-        .badge-status-pending_parts { background: #fbe9e7; color: #bf360c; }
-        .badge-status-completed { background: #e8f5e9; color: #1b5e20; }
-        .badge-status-cancelled { background: #eceff1; color: #546e7a; }
-        
-        .badge-priority-low { background: #e8eaf6; color: #283593; }
-        .badge-priority-medium { background: #e3f2fd; color: #0d47a1; }
-        .badge-priority-high { background: #fff3e0; color: #e65100; }
-        .badge-priority-critical { background: #fbe9e7; color: #b71c1c; }
-        
-        .badge-emergency {
-            background: #ffebee;
-            color: #b71c1c;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        /* ===== ACTION BUTTONS ===== */
-        .action-cell {
-            display: flex;
-            gap: 6px;
-        }
-        
+
         .btn-action {
             width: 32px;
             height: 32px;
@@ -364,1250 +168,988 @@
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             font-size: 13px;
         }
-        
         .btn-action.view { background: #e3f2fd; color: #0d47a1; }
         .btn-action.view:hover { background: #bbdefb; }
-        
         .btn-action.edit { background: #e8f5e9; color: #1b5e20; }
         .btn-action.edit:hover { background: #c8e6c9; }
-        
         .btn-action.delete { background: #fbe9e7; color: #b71c1c; }
         .btn-action.delete:hover { background: #ffcdd2; }
-        
         .btn-action.assign { background: #fff3e0; color: #e65100; }
         .btn-action.assign:hover { background: #ffe0b2; }
-        
         .btn-action.complete { background: #e0f7fa; color: #00695c; }
         .btn-action.complete:hover { background: #b2dfdb; }
-        
-        /* ===== PAGINATION ===== */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 20px;
-            border-top: 1px solid #f0f2f7;
-        }
-        
-        .pagination button {
-            padding: 6px 14px;
-            border: 2px solid #e8ecf5;
-            border-radius: 8px;
-            background: transparent;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 600;
-            font-size: 13px;
-        }
-        
-        .pagination button:hover {
-            border-color: #1e5eff;
-            color: #1e5eff;
-        }
-        
-        .pagination button:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-        
-        .pagination .page-info {
-            font-size: 13px;
-            color: #8a8fa6;
-        }
-        
-        /* ===== MODAL ===== */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .modal.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: #ffffff;
-            border-radius: 24px;
-            max-width: 720px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 0;
-            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
-        }
-        
-        .modal-header {
-            padding: 24px 28px;
-            border-bottom: 1px solid #f0f2f7;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            background: #ffffff;
-            border-radius: 24px 24px 0 0;
-            z-index: 1;
-        }
-        
-        .modal-header h3 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a1a2e;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .modal-close {
-            width: 36px;
-            height: 36px;
-            border: none;
-            background: #f0f2f7;
-            border-radius: 50%;
-            font-size: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #4a4a62;
-        }
-        
-        .modal-close:hover {
-            background: #ffebee;
-            color: #b71c1c;
-        }
-        
-        .modal-body {
-            padding: 28px;
-        }
-        
-        .modal-footer {
-            padding: 16px 28px;
-            border-top: 1px solid #f0f2f7;
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            background: #fafafc;
-            border-radius: 0 0 24px 24px;
-        }
-        
-        /* ===== FORM ===== */
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-        
-        .form-row.full-width {
-            grid-template-columns: 1fr;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        
-        .form-group label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #2d2d44;
-        }
-        
-        .form-group label .required {
-            color: #c62828;
-        }
-        
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 10px 14px;
-            border: 2px solid #e8ecf5;
-            border-radius: 10px;
-            font-size: 13px;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            transition: all 0.3s;
-            background: #fafafc;
-            color: #1a1a2e;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            border-color: #1e5eff;
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(30, 94, 255, 0.08);
-            background: #ffffff;
-        }
-        
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        
-        .form-group .helper-text {
-            font-size: 11px;
-            color: #8a8fa6;
-        }
-        
-        .btn-cancel {
-            padding: 10px 24px;
-            background: transparent;
-            border: 2px solid #e8ecf5;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            color: #4a4a62;
-            transition: all 0.3s;
-        }
-        
-        .btn-cancel:hover {
-            border-color: #c62828;
-            color: #c62828;
-        }
-        
-        .btn-save {
-            padding: 10px 28px;
-            background: #1e5eff;
-            color: #ffffff;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn-save:hover {
-            background: #1557e8;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(30, 94, 255, 0.3);
-        }
-        
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            .wo-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .wo-header .action-buttons {
-                flex-direction: column;
-            }
-            
-            .wo-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .filter-group {
-                flex-direction: column;
-                width: 100%;
-            }
-            
-            .filter-group select,
-            .filter-group input,
-            .filter-group .search-wrapper input {
-                width: 100%;
-                min-width: unset;
-            }
-            
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .wo-table-container {
-                overflow-x: auto;
-            }
-            
-            .wo-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .modal-content {
-                margin: 10px;
-                max-height: 95vh;
-            }
-            
-            .modal-body {
-                padding: 16px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .wo-stats {
-                grid-template-columns: 1fr;
-            }
-            
-            .wo-header .title-section h1 {
-                font-size: 20px;
-            }
-        }
-        
-        /* ===== EMPTY STATE ===== */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #8a8fa6;
-        }
-        
-        .empty-state i {
-            font-size: 48px;
-            color: #d0d6e4;
-            margin-bottom: 16px;
-        }
-        
-        .empty-state h3 {
-            color: #1a1a2e;
-            margin-bottom: 8px;
-        }
-        
-        /* ===== TIMELINE ===== */
-        .wo-timeline {
-            position: relative;
-            padding-left: 24px;
-        }
-        
-        .wo-timeline::before {
-            content: '';
-            position: absolute;
-            left: 6px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: #e8ecf5;
-        }
-        
+
         .timeline-item {
             position: relative;
-            padding: 8px 0 16px 20px;
+            padding: 8px 0 12px 28px;
+            border-left: 2px solid #e2e8f0;
+            margin-left: 8px;
         }
-        
         .timeline-item::before {
             content: '';
             position: absolute;
-            left: -20px;
+            left: -6px;
             top: 12px;
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background: #1e5eff;
-            border: 2px solid #ffffff;
-            box-shadow: 0 0 0 3px #1e5eff;
+            background: #4b7bec;
+            border: 2px solid #fff;
         }
-        
-        .timeline-item .timeline-time {
+        .timeline-item .time {
             font-size: 11px;
             color: #8a8fa6;
         }
-        
-        .timeline-item .timeline-status {
+        .timeline-item .status-label {
             font-weight: 600;
-            color: #1a1a2e;
-        }
-        
-        .timeline-item .timeline-notes {
             font-size: 13px;
+        }
+        .timeline-item .notes {
+            font-size: 12px;
             color: #4a4a62;
+        }
+
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+        .modal-header {
+            border-radius: 16px 16px 0 0;
+            padding: 16px 24px;
+        }
+        .modal-body {
+            padding: 24px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #2d2d44;
+            margin-bottom: 4px;
+        }
+        .form-group .required {
+            color: #dc2626;
+        }
+        .form-control, .form-select {
+            border-radius: 8px;
+            font-size: 13px;
+            padding: 8px 14px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #4b7bec;
+            box-shadow: 0 0 0 3px rgba(75, 123, 236, 0.15);
+        }
+
+        @media (max-width: 768px) {
+            .summary-card h2 { font-size: 24px; }
+            .filter-group { flex-direction: column; width: 100%; }
+            .filter-group select, .filter-group input { width: 100%; }
         }
     </style>
 </head>
+
 <body>
 
-    <div class="wo-dashboard">
-        <!-- ===== HEADER ===== -->
-        <div class="wo-header">
-            <div class="title-section">
-                <h1><i class="fas fa-clipboard-list" style="color:#1e5eff;margin-right:10px;"></i>Work Order Management</h1>
-                <p>Kelola semua permintaan perbaikan dan pemeliharaan</p>
-            </div>
-            <div class="action-buttons">
-                <button class="btn-secondary" id="exportBtn">
-                    <i class="fas fa-file-export"></i> Export
-                </button>
-                <button class="btn-primary" id="btnAddWO">
-                    <i class="fas fa-plus-circle"></i> Buat Work Order
-                </button>
-            </div>
-        </div>
-
-        <!-- ===== STATISTICS ===== -->
-        <div class="wo-stats" id="woStats">
-            <!-- Will be rendered by JavaScript -->
-        </div>
-
-        <!-- ===== CONTROLS ===== -->
-        <div class="wo-controls">
-            <div class="filter-group">
-                <select id="filterStatus">
-                    <option value="all">Semua Status</option>
-                    <option value="open">Open</option>
-                    <option value="assigned">Assigned</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="pending_parts">Pending Parts</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
-                <select id="filterPriority">
-                    <option value="all">Semua Prioritas</option>
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="critical">Critical</option>
-                </select>
-                <div class="search-wrapper">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Cari WO atau deskripsi...">
-                </div>
-            </div>
-            <div class="view-toggle">
-                <button class="active" data-view="table"><i class="fas fa-table"></i> Table</button>
-                <button data-view="grid"><i class="fas fa-th"></i> Grid</button>
-            </div>
-        </div>
-
-        <!-- ===== TABLE ===== -->
-        <div class="wo-table-container" id="woTableContainer">
-            <table class="wo-table">
-                <thead>
-                    <tr>
-                        <th style="width:120px;">No. WO</th>
-                        <th>Judul / Deskripsi</th>
-                        <th>Kategori</th>
-                        <th>Prioritas</th>
-                        <th>Status</th>
-                        <th>Pelapor</th>
-                        <th>Tanggal</th>
-                        <th style="width:150px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="woTableBody">
-                    <!-- Will be rendered by JavaScript -->
-                </tbody>
-            </table>
-            <div class="pagination">
-                <button id="prevPage" disabled><i class="fas fa-chevron-left"></i></button>
-                <span class="page-info" id="pageInfo">Halaman 1 dari 1</span>
-                <button id="nextPage" disabled><i class="fas fa-chevron-right"></i></button>
-            </div>
+<!-- LOADING OVERLAY -->
+<div id="loading" class="loading-overlay" style="display:none;">
+    <div class="text-center">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
     </div>
+</div>
 
-    <!-- ===== MODAL TAMBAH / EDIT ===== -->
-    <div class="modal" id="woModal">
+<!-- APP WRAPPER -->
+<div class="wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo-area">
+            <img src="assets/img/logo.png" class="logo" alt="Logo">
+            <h5>Building Care</h5>
+            <small>Enterprise v3.2</small>
+        </div>
+
+        <nav>
+            <a href="dashboard.html" class="menu">
+                <i class="bi bi-grid-fill"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="report.html" class="menu">
+                <i class="bi bi-file-earmark-plus"></i>
+                <span>Report</span>
+            </a>
+            <a href="monitoring.html" class="menu">
+                <i class="bi bi-display"></i>
+                <span>Monitoring</span>
+            </a>
+            <a href="history.html" class="menu">
+                <i class="bi bi-clock-history"></i>
+                <span>History</span>
+            </a>
+            <a href="wo.html" class="menu active">
+                <i class="bi bi-clipboard-check"></i>
+                <span>Work Order</span>
+            </a>
+            <a href="budget.html" class="menu">
+                <i class="bi bi-cash-stack"></i>
+                <span>Budget</span>
+            </a>
+            <a href="approval.html" class="menu">
+                <i class="bi bi-check-circle"></i>
+                <span>Approval</span>
+            </a>
+            <a href="admin.html" class="menu menu-admin" id="adminMenu">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Admin</span>
+            </a>
+            <a href="#" id="logoutBtn" class="menu text-danger">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+        <div class="container-fluid">
+
+            <!-- TOPBAR -->
+            <header class="topbar">
+                <div>
+                    <h3>Work Order Management</h3>
+                    <small>Kelola semua Work Order perbaikan dan pemeliharaan</small>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
+                        <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+                    </button>
+                    <div class="avatar-sm" id="userAvatar">U</div>
+                    <div>
+                        <div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary);">Loading...</div>
+                        <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- SUMMARY CARDS -->
+            <section class="row g-4 mt-2">
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card" style="background: linear-gradient(145deg, #ffffff, #f8faff); border: 1px solid rgba(75, 123, 236, 0.08);">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-primary"><i class="bi bi-clipboard-data"></i></div>
+                            <div>
+                                <h6>Total WO</h6>
+                                <h2 id="cardTotal">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card" style="background: linear-gradient(145deg, #ffffff, #fee2e2); border: 1px solid rgba(239, 68, 68, 0.08);">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-danger-soft"><i class="bi bi-exclamation-circle"></i></div>
+                            <div>
+                                <h6>Open</h6>
+                                <h2 id="cardOpen">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card" style="background: linear-gradient(145deg, #ffffff, #dbeafe); border: 1px solid rgba(30, 94, 255, 0.08);">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-info-soft"><i class="bi bi-arrow-repeat"></i></div>
+                            <div>
+                                <h6>In Progress</h6>
+                                <h2 id="cardProgress">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                    <div class="summary-card" style="background: linear-gradient(145deg, #ffffff, #dcfce7); border: 1px solid rgba(34, 197, 94, 0.08);">
+                        <div class="summary-top">
+                            <div class="summary-icon bg-success-soft"><i class="bi bi-check-circle-fill"></i></div>
+                            <div>
+                                <h6>Completed</h6>
+                                <h2 id="cardDone">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FILTER & TABLE -->
+            <section class="row g-4 mt-3">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                        <div class="card-header bg-white border-0 pt-4 px-4 pb-2">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-md-12">
+                                    <div class="row g-2">
+                                        <div class="col-md-3">
+                                            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Cari WO / deskripsi...">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select class="form-select form-select-sm" id="filterStatus">
+                                                <option value="">Semua Status</option>
+                                                <option value="open">Open</option>
+                                                <option value="assigned">Assigned</option>
+                                                <option value="in_progress">In Progress</option>
+                                                <option value="pending_parts">Pending Parts</option>
+                                                <option value="completed">Completed</option>
+                                                <option value="cancelled">Cancelled</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select class="form-select form-select-sm" id="filterPriority">
+                                                <option value="">Semua Prioritas</option>
+                                                <option value="low">Low</option>
+                                                <option value="medium">Medium</option>
+                                                <option value="high">High</option>
+                                                <option value="critical">Critical</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-5 text-end d-flex align-items-center justify-content-end gap-2">
+                                            <button class="btn btn-primary btn-sm" id="btnAddWO">
+                                                <i class="bi bi-plus-circle"></i> Buat WO
+                                            </button>
+                                            <button class="btn btn-success btn-sm" id="exportWoExcel">
+                                                <i class="bi bi-file-earmark-excel"></i> Excel
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" id="exportWoPdf">
+                                                <i class="bi bi-file-earmark-pdf"></i> PDF
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-body px-4 pb-4">
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle" style="font-size: 12px; min-width: 1000px;">
+                                    <thead>
+                                        <tr class="text-secondary" style="background: #f8f9fa;">
+                                            <th>No. WO</th>
+                                            <th>Judul</th>
+                                            <th>Kategori</th>
+                                            <th>Prioritas</th>
+                                            <th>Status</th>
+                                            <th>Teknisi</th>
+                                            <th>Tanggal</th>
+                                            <th class="text-center">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="woTableBody">
+                                        <tr><td colspan="8" class="text-center py-4 text-muted">Memuat data...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <nav class="mt-3">
+                                <ul class="pagination pagination-sm justify-content-center" id="pagination"></ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<!-- ===== MODAL TAMBAH/EDIT WO ===== -->
+<div class="modal fade" id="woModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-pen-to-square"></i> <span id="modalTitle">Buat Work Order</span></h3>
-                <button class="modal-close" id="closeModal">&times;</button>
+            <div class="modal-header" style="background: linear-gradient(135deg, #4b7bec, #3b6bd6);">
+                <h5 class="modal-title text-white"><i class="bi bi-pen"></i> <span id="modalTitle">Buat Work Order</span></h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="woForm">
                 <div class="modal-body">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Judul Work Order <span class="required">*</span></label>
-                            <input type="text" id="woTitle" placeholder="Masukkan judul WO" required>
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Judul Work Order <span class="required">*</span></label>
+                                <input type="text" class="form-control" id="woTitle" required placeholder="Masukkan judul WO">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Kategori <span class="required">*</span></label>
-                            <select id="woCategory" required>
-                                <option value="">Pilih Kategori...</option>
-                                <!-- Will be populated by JS -->
-                            </select>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Kategori <span class="required">*</span></label>
+                                <select class="form-select" id="woCategory" required>
+                                    <option value="">Pilih Kategori...</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row full-width">
-                        <div class="form-group">
-                            <label>Deskripsi <span class="required">*</span></label>
-                            <textarea id="woDescription" placeholder="Jelaskan detail pekerjaan yang diperlukan..." required></textarea>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Prioritas <span class="required">*</span></label>
+                                <select class="form-select" id="woPriority">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="critical">Critical</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Lokasi / Gedung</label>
-                            <input type="text" id="woBuilding" placeholder="Nama gedung / lokasi">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Deskripsi <span class="required">*</span></label>
+                                <textarea class="form-control" id="woDescription" rows="3" required placeholder="Jelaskan detail pekerjaan..."></textarea>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Lantai / Ruangan</label>
-                            <input type="text" id="woLocation" placeholder="Lantai dan nomor ruangan">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Lokasi / Gedung</label>
+                                <input type="text" class="form-control" id="woLocation" placeholder="Gedung / lokasi">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Prioritas <span class="required">*</span></label>
-                            <select id="woPriority" required>
-                                <option value="low">Low</option>
-                                <option value="medium" selected>Medium</option>
-                                <option value="high">High</option>
-                                <option value="critical">Critical</option>
-                            </select>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Lantai / Ruangan</label>
+                                <input type="text" class="form-control" id="woFloor" placeholder="Lantai & ruangan">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Status</label>
-                            <select id="woStatus">
-                                <option value="open">Open</option>
-                                <option value="assigned">Assigned</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="pending_parts">Pending Parts</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select class="form-select" id="woStatus">
+                                    <option value="open">Open</option>
+                                    <option value="assigned">Assigned</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="pending_parts">Pending Parts</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Ditugaskan Kepada</label>
-                            <select id="woAssignedTo">
-                                <option value="">Pilih Teknisi...</option>
-                                <!-- Will be populated by JS -->
-                            </select>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Ditugaskan Kepada</label>
+                                <select class="form-select" id="woAssignedTo">
+                                    <option value="">Pilih Teknisi...</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Jadwal Pengerjaan</label>
-                            <input type="date" id="woScheduledDate">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Jadwal Pengerjaan</label>
+                                <input type="date" class="form-control" id="woScheduledDate">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row full-width">
-                        <div class="form-group">
-                            <label>Catatan</label>
-                            <textarea id="woNotes" placeholder="Catatan tambahan..." rows="2"></textarea>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Darurat</label>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="woEmergency">
+                                    <label class="form-check-label" for="woEmergency">Tandai sebagai darurat</label>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row full-width">
-                        <div class="form-group">
-                            <label style="display:flex;align-items:center;gap:8px;">
-                                <input type="checkbox" id="woEmergency">
-                                <span>Darurat / Emergency</span>
-                            </label>
-                            <span class="helper-text">Centang jika ini adalah pekerjaan darurat yang membutuhkan penanganan segera</span>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Catatan</label>
+                                <textarea class="form-control" id="woNotes" rows="2" placeholder="Catatan tambahan..."></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-cancel" id="cancelWO">Batal</button>
-                    <button type="submit" class="btn-save">
-                        <i class="fas fa-save"></i> Simpan
-                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Simpan</button>
                 </div>
             </form>
         </div>
     </div>
+</div>
 
-    <!-- ===== MODAL DETAIL ===== -->
-    <div class="modal" id="detailModal">
-        <div class="modal-content" style="max-width:800px;">
-            <div class="modal-header">
-                <h3><i class="fas fa-info-circle"></i> Detail Work Order</h3>
-                <button class="modal-close" id="closeDetailModal">&times;</button>
+<!-- ===== MODAL DETAIL WO ===== -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #1e5eff, #0d47a1);">
+                <h5 class="modal-title text-white"><i class="bi bi-info-circle"></i> Detail Work Order</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="detailContent">
-                <!-- Will be rendered by JavaScript -->
+                <!-- Dinamis -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- ======================================================
-    JAVASCRIPT
-    ======================================================= -->
-    <script src="config/config.js"></script>
-    <script src="assets/js/core/session.js"></script>
-    <script src="assets/js/core/app.js"></script>
-    <script src="assets/js/core/api.js"></script>
-    <script src="assets/js/core/storage.js"></script>
-    <script src="assets/js/core/ui.js"></script>
-    <script src="assets/js/core/utils.js"></script>
-    
-    <script>
-    // ============================================
-    // WORK ORDER MODULE
-    // ============================================
-    class WorkOrderManager {
-        constructor() {
-            this.api = new APIClient();
-            this.currentPage = 1;
-            this.itemsPerPage = 10;
-            this.filters = {};
-            this.totalPages = 1;
-            this.isEditMode = false;
-            this.editId = null;
-            this.init();
-        }
+<!-- ====================================================== -->
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-        init() {
-            this.loadStats();
-            this.loadData();
-            this.loadCategories();
-            this.loadTechnicians();
-            this.bindEvents();
-        }
+<script src="config/config.js"></script>
+<script src="assets/js/core/app.js"></script>
+<script src="assets/js/core/api.js"></script>
+<script src="assets/js/core/storage.js"></script>
+<script src="assets/js/core/session.js"></script>
+<script src="assets/js/core/ui.js"></script>
+<script src="assets/js/core/utils.js"></script>
+<script src="assets/js/modules/auth.js"></script>
 
-        // ============================================
-        // LOAD DATA
-        // ============================================
-        async loadData() {
-            try {
-                const params = {
-                    page: this.currentPage,
-                    limit: this.itemsPerPage,
-                    status: this.filters.status || 'all',
-                    priority: this.filters.priority || 'all',
-                    search: this.filters.search || ''
-                };
-                
-                const response = await this.api.get('/api/workorders', params);
-                this.renderTable(response.data);
-                this.totalPages = response.pagination?.totalPages || 1;
-                this.updatePagination();
-            } catch (error) {
-                console.error('Error loading work orders:', error);
-                this.renderEmptyState();
-            }
-        }
+<script>
+(function() {
+    'use strict';
 
-        async loadStats() {
-            try {
-                const response = await this.api.get('/api/workorders/stats');
-                this.renderStats(response.data);
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
+    // STATE
+    let allWO = [];
+    let filteredWO = [];
+    let currentPage = 1;
+    const perPage = 10;
+    let isEditMode = false;
+    let editId = null;
+    let currentUser = {};
 
-        async loadCategories() {
-            try {
-                const response = await this.api.get('/api/workorders/categories');
-                const select = document.getElementById('woCategory');
-                select.innerHTML = '<option value="">Pilih Kategori...</option>';
-                response.data.forEach(cat => {
-                    select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
-                });
-            } catch (error) {
-                console.error('Error loading categories:', error);
-            }
-        }
+    // DOM refs
+    const tableBody = document.getElementById('woTableBody');
+    const paginationEl = document.getElementById('pagination');
 
-        async loadTechnicians() {
-            try {
-                const response = await this.api.get('/api/users/technicians');
-                const select = document.getElementById('woAssignedTo');
-                select.innerHTML = '<option value="">Pilih Teknisi...</option>';
-                response.data.forEach(user => {
-                    select.innerHTML += `<option value="${user.id}">${user.name}</option>`;
-                });
-            } catch (error) {
-                console.error('Error loading technicians:', error);
-            }
-        }
+    // =============================================
+    // HELPERS
+    // =============================================
+    function showToast(msg, type = 'success') {
+        Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        }).fire({
+            icon: type,
+            title: msg
+        });
+    }
 
-        // ============================================
-        // RENDER
-        // ============================================
-        renderStats(data) {
-            const container = document.getElementById('woStats');
-            const stats = [
-                { label: 'Total WO', value: data.total || 0, icon: 'fa-clipboard-list', color: 'blue' },
-                { label: 'Open', value: data.open || 0, icon: 'fa-circle', color: 'blue' },
-                { label: 'In Progress', value: data.in_progress || 0, icon: 'fa-spinner', color: 'orange' },
-                { label: 'Completed', value: data.completed || 0, icon: 'fa-check-circle', color: 'green' },
-                { label: 'Pending Parts', value: data.pending_parts || 0, icon: 'fa-clock', color: 'purple' },
-                { label: 'Critical', value: data.critical || 0, icon: 'fa-exclamation-triangle', color: 'red' }
-            ];
+    function formatDate(d) {
+        if (!d) return '-';
+        return new Date(d).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+    }
 
-            container.innerHTML = stats.map(stat => `
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <span class="stat-label">${stat.label}</span>
-                        <div class="stat-icon ${stat.color}"><i class="fas ${stat.icon}"></i></div>
-                    </div>
-                    <div class="stat-value">${stat.value}</div>
-                </div>
-            `).join('');
-        }
+    function formatStatus(s) {
+        const map = {
+            'open': 'Open',
+            'assigned': 'Assigned',
+            'in_progress': 'In Progress',
+            'pending_parts': 'Pending Parts',
+            'completed': 'Completed',
+            'cancelled': 'Cancelled'
+        };
+        return map[s] || s;
+    }
 
-        renderTable(data) {
-            const tbody = document.getElementById('woTableBody');
-            
-            if (!data || data.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8">
-                            <div class="empty-state">
-                                <i class="fas fa-clipboard-list"></i>
-                                <h3>Belum ada Work Order</h3>
-                                <p>Klik "Buat Work Order" untuk membuat permintaan baru</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+    function getStatusBadge(s) {
+        return `<span class="status-badge status-${s}">${formatStatus(s)}</span>`;
+    }
+
+    function getPriorityBadge(p) {
+        return `<span class="priority-badge priority-${p}">${p.charAt(0).toUpperCase() + p.slice(1)}</span>`;
+    }
+
+    // =============================================
+    // FETCH DATA
+    // =============================================
+    async function fetchWO() {
+        try {
+            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm"></div> Memuat...</td></tr>`;
+            BCS.App.Loading.show();
+
+            const response = await BCS.Api.post('getWorkOrders', {});
+            console.log('WO response:', response);
+
+            if (!response || !response.success) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat data</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = data.map(item => `
-                <tr>
-                    <td><span class="wo-number">WO-${item.wo_number}</span></td>
-                    <td>
-                        <div class="wo-title">
-                            ${item.title}
-                            ${item.is_emergency ? '<span class="badge badge-emergency">⚠️ Darurat</span>' : ''}
-                            <span class="wo-sub">${this.truncateText(item.description, 60)}</span>
-                        </div>
-                    </td>
-                    <td>${item.category_name || '-'}</td>
-                    <td><span class="badge badge-priority-${item.priority}">${this.capitalize(item.priority)}</span></td>
-                    <td><span class="badge badge-status-${item.status}">${this.formatStatus(item.status)}</span></td>
-                    <td>${item.reported_by_name || '-'}</td>
-                    <td>${this.formatDate(item.reported_date)}</td>
-                    <td>
-                        <div class="action-cell">
-                            <button class="btn-action view" data-id="${item.id}" title="Detail">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn-action edit" data-id="${item.id}" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            ${item.status !== 'completed' ? `
-                                <button class="btn-action assign" data-id="${item.id}" title="Assign">
-                                    <i class="fas fa-user-check"></i>
-                                </button>
-                                <button class="btn-action complete" data-id="${item.id}" title="Complete">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                            ` : ''}
-                            <button class="btn-action delete" data-id="${item.id}" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+            const data = response.data?.workOrders || [];
+            allWO = data;
+            applyFilters();
+            updateSummary();
 
-            // Bind action buttons
-            this.bindActionButtons();
-        }
-
-        renderEmptyState() {
-            document.getElementById('woTableBody').innerHTML = `
-                <tr>
-                    <td colspan="8">
-                        <div class="empty-state">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <h3>Gagal Memuat Data</h3>
-                            <p>Silakan coba lagi atau hubungi administrator</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }
-
-        updatePagination() {
-            const prevBtn = document.getElementById('prevPage');
-            const nextBtn = document.getElementById('nextPage');
-            const info = document.getElementById('pageInfo');
-            
-            prevBtn.disabled = this.currentPage <= 1;
-            nextBtn.disabled = this.currentPage >= this.totalPages;
-            info.textContent = `Halaman ${this.currentPage} dari ${this.totalPages || 1}`;
-        }
-
-        // ============================================
-        // BIND EVENTS
-        // ============================================
-        bindEvents() {
-            // Filter
-            document.getElementById('filterStatus').addEventListener('change', (e) => {
-                this.filters.status = e.target.value;
-                this.currentPage = 1;
-                this.loadData();
-            });
-
-            document.getElementById('filterPriority').addEventListener('change', (e) => {
-                this.filters.priority = e.target.value;
-                this.currentPage = 1;
-                this.loadData();
-            });
-
-            document.getElementById('searchInput').addEventListener('input', this.debounce((e) => {
-                this.filters.search = e.target.value;
-                this.currentPage = 1;
-                this.loadData();
-            }, 300));
-
-            // Pagination
-            document.getElementById('prevPage').addEventListener('click', () => {
-                if (this.currentPage > 1) {
-                    this.currentPage--;
-                    this.loadData();
-                }
-            });
-
-            document.getElementById('nextPage').addEventListener('click', () => {
-                if (this.currentPage < this.totalPages) {
-                    this.currentPage++;
-                    this.loadData();
-                }
-            });
-
-            // View toggle
-            document.querySelectorAll('.view-toggle button').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-
-            // Modal
-            document.getElementById('btnAddWO').addEventListener('click', () => this.openModal());
-            document.getElementById('closeModal').addEventListener('click', () => this.closeModal('woModal'));
-            document.getElementById('cancelWO').addEventListener('click', () => this.closeModal('woModal'));
-            document.getElementById('closeDetailModal').addEventListener('click', () => this.closeModal('detailModal'));
-
-            // Form submit
-            document.getElementById('woForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleFormSubmit();
-            });
-
-            // Export
-            document.getElementById('exportBtn').addEventListener('click', () => {
-                this.exportData();
-            });
-
-            // Close modal on overlay click
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        modal.classList.remove('active');
-                    }
-                });
-            });
-        }
-
-        bindActionButtons() {
-            document.querySelectorAll('.btn-action.view').forEach(btn => {
-                btn.addEventListener('click', () => this.viewDetail(btn.dataset.id));
-            });
-
-            document.querySelectorAll('.btn-action.edit').forEach(btn => {
-                btn.addEventListener('click', () => this.editWO(btn.dataset.id));
-            });
-
-            document.querySelectorAll('.btn-action.delete').forEach(btn => {
-                btn.addEventListener('click', () => this.deleteWO(btn.dataset.id));
-            });
-
-            document.querySelectorAll('.btn-action.assign').forEach(btn => {
-                btn.addEventListener('click', () => this.assignWO(btn.dataset.id));
-            });
-
-            document.querySelectorAll('.btn-action.complete').forEach(btn => {
-                btn.addEventListener('click', () => this.completeWO(btn.dataset.id));
-            });
-        }
-
-        // ============================================
-        // CRUD OPERATIONS
-        // ============================================
-        async handleFormSubmit() {
-            const form = document.getElementById('woForm');
-            const data = {
-                title: document.getElementById('woTitle').value.trim(),
-                category_id: document.getElementById('woCategory').value,
-                description: document.getElementById('woDescription').value.trim(),
-                building: document.getElementById('woBuilding').value.trim(),
-                location: document.getElementById('woLocation').value.trim(),
-                priority: document.getElementById('woPriority').value,
-                status: document.getElementById('woStatus').value,
-                assigned_to: document.getElementById('woAssignedTo').value || null,
-                scheduled_date: document.getElementById('woScheduledDate').value || null,
-                notes: document.getElementById('woNotes').value.trim(),
-                is_emergency: document.getElementById('woEmergency').checked
-            };
-
-            // Validate
-            if (!data.title || !data.description || !data.category_id) {
-                UI.showWarning('Mohon isi semua field yang wajib (judul, deskripsi, kategori)');
-                return;
-            }
-
-            try {
-                let response;
-                if (this.isEditMode && this.editId) {
-                    response = await this.api.put(`/api/workorders/${this.editId}`, data);
-                } else {
-                    response = await this.api.post('/api/workorders', data);
-                }
-
-                if (response.success) {
-                    UI.showSuccess(this.isEditMode ? 'Work Order berhasil diperbarui' : 'Work Order berhasil dibuat');
-                    this.closeModal('woModal');
-                    this.loadData();
-                    this.loadStats();
-                }
-            } catch (error) {
-                console.error('Error saving work order:', error);
-                UI.showError('Gagal menyimpan Work Order');
-            }
-        }
-
-        async deleteWO(id) {
-            const confirm = await Swal.fire({
-                title: 'Hapus Work Order?',
-                text: 'Data yang dihapus tidak dapat dikembalikan!',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            });
-
-            if (confirm.isConfirmed) {
-                try {
-                    const response = await this.api.delete(`/api/workorders/${id}`);
-                    if (response.success) {
-                        UI.showSuccess('Work Order berhasil dihapus');
-                        this.loadData();
-                        this.loadStats();
-                    }
-                } catch (error) {
-                    console.error('Error deleting work order:', error);
-                    UI.showError('Gagal menghapus Work Order');
-                }
-            }
-        }
-
-        async assignWO(id) {
-            Swal.fire({
-                title: 'Assign Work Order',
-                text: 'Fitur assign akan segera tersedia',
-                icon: 'info',
-                confirmButtonColor: '#1e5eff'
-            });
-        }
-
-        async completeWO(id) {
-            const confirm = await Swal.fire({
-                title: 'Selesaikan Work Order?',
-                text: 'Apakah pekerjaan ini sudah selesai 100%?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#2e7d32',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, Selesai!',
-                cancelButtonText: 'Batal'
-            });
-
-            if (confirm.isConfirmed) {
-                try {
-                    const response = await this.api.put(`/api/workorders/${id}/complete`);
-                    if (response.success) {
-                        UI.showSuccess('Work Order telah selesai!');
-                        this.loadData();
-                        this.loadStats();
-                    }
-                } catch (error) {
-                    console.error('Error completing work order:', error);
-                    UI.showError('Gagal menyelesaikan Work Order');
-                }
-            }
-        }
-
-        async viewDetail(id) {
-            try {
-                const response = await this.api.get(`/api/workorders/${id}`);
-                this.renderDetail(response.data);
-                document.getElementById('detailModal').classList.add('active');
-            } catch (error) {
-                console.error('Error loading detail:', error);
-                UI.showError('Gagal memuat detail Work Order');
-            }
-        }
-
-        renderDetail(data) {
-            const container = document.getElementById('detailContent');
-            container.innerHTML = `
-                <div style="display:grid;gap:16px;">
-                    <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:12px;">
-                        <div>
-                            <h2 style="font-size:20px;color:#1a1a2e;">${data.title}</h2>
-                            <span class="wo-number" style="font-size:14px;">WO-${data.wo_number}</span>
-                            ${data.is_emergency ? '<span class="badge badge-emergency" style="margin-left:8px;">⚠️ Darurat</span>' : ''}
-                        </div>
-                        <div style="display:flex;gap:8px;">
-                            <span class="badge badge-status-${data.status}">${this.formatStatus(data.status)}</span>
-                            <span class="badge badge-priority-${data.priority}">${this.capitalize(data.priority)}</span>
-                        </div>
-                    </div>
-
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;background:#f8faff;padding:16px;border-radius:12px;">
-                        <div>
-                            <div style="font-size:11px;color:#8a8fa6;">Kategori</div>
-                            <div style="font-weight:600;">${data.category_name || '-'}</div>
-                        </div>
-                        <div>
-                            <div style="font-size:11px;color:#8a8fa6;">Pelapor</div>
-                            <div style="font-weight:600;">${data.reported_by_name || '-'}</div>
-                        </div>
-                        <div>
-                            <div style="font-size:11px;color:#8a8fa6;">Ditugaskan Kepada</div>
-                            <div style="font-weight:600;">${data.assigned_to_name || 'Belum ditugaskan'}</div>
-                        </div>
-                        <div>
-                            <div style="font-size:11px;color:#8a8fa6;">Tanggal Laporan</div>
-                            <div style="font-weight:600;">${this.formatDate(data.reported_date)}</div>
-                        </div>
-                        <div>
-                            <div style="font-size:11px;color:#8a8fa6;">Jadwal</div>
-                            <div style="font-weight:600;">${this.formatDate(data.scheduled_date) || 'Belum dijadwalkan'}</div>
-                        </div>
-                        <div>
-                            <div style="font-size:11px;color:#8a8fa6;">Lokasi</div>
-                            <div style="font-weight:600;">${data.building || '-'} ${data.location ? ' - ' + data.location : ''}</div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div style="font-size:12px;font-weight:600;color:#4a4a62;margin-bottom:4px;">Deskripsi</div>
-                        <p style="color:#2d2d44;line-height:1.6;">${data.description || '-'}</p>
-                    </div>
-
-                    ${data.notes ? `
-                        <div>
-                            <div style="font-size:12px;font-weight:600;color:#4a4a62;margin-bottom:4px;">Catatan</div>
-                            <p style="color:#2d2d44;line-height:1.6;">${data.notes}</p>
-                        </div>
-                    ` : ''}
-
-                    <div style="border-top:1px solid #f0f2f7;padding-top:16px;">
-                        <div style="font-size:12px;font-weight:600;color:#4a4a62;margin-bottom:12px;">Timeline</div>
-                        <div class="wo-timeline">
-                            ${data.timeline && data.timeline.length > 0 ? data.timeline.map(item => `
-                                <div class="timeline-item">
-                                    <div class="timeline-time">${this.formatDateTime(item.created_at)}</div>
-                                    <div class="timeline-status">${this.formatStatus(item.status)}</div>
-                                    ${item.notes ? `<div class="timeline-notes">${item.notes}</div>` : ''}
-                                </div>
-                            `).join('') : '<p style="color:#8a8fa6;">Belum ada aktivitas</p>'}
-                        </div>
-                    </div>
-
-                    ${data.attachments && data.attachments.length > 0 ? `
-                        <div style="border-top:1px solid #f0f2f7;padding-top:16px;">
-                            <div style="font-size:12px;font-weight:600;color:#4a4a62;margin-bottom:8px;">Lampiran</div>
-                            ${data.attachments.map(file => `
-                                <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;background:#f8faff;border-radius:8px;margin-bottom:4px;">
-                                    <i class="fas fa-paperclip" style="color:#8a8fa6;"></i>
-                                    <span style="font-size:13px;">${file.file_name}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        }
-
-        // ============================================
-        // MODAL HANDLING
-        // ============================================
-        openModal(data = null) {
-            const modal = document.getElementById('woModal');
-            const title = document.getElementById('modalTitle');
-            const form = document.getElementById('woForm');
-
-            if (data) {
-                this.isEditMode = true;
-                this.editId = data.id;
-                title.textContent = 'Edit Work Order';
-                
-                document.getElementById('woTitle').value = data.title;
-                document.getElementById('woCategory').value = data.category_id || '';
-                document.getElementById('woDescription').value = data.description;
-                document.getElementById('woBuilding').value = data.building || '';
-                document.getElementById('woLocation').value = data.location || '';
-                document.getElementById('woPriority').value = data.priority;
-                document.getElementById('woStatus').value = data.status;
-                document.getElementById('woAssignedTo').value = data.assigned_to || '';
-                document.getElementById('woScheduledDate').value = data.scheduled_date || '';
-                document.getElementById('woNotes').value = data.notes || '';
-                document.getElementById('woEmergency').checked = data.is_emergency || false;
-            } else {
-                this.isEditMode = false;
-                this.editId = null;
-                title.textContent = 'Buat Work Order';
-                form.reset();
-                document.getElementById('woPriority').value = 'medium';
-                document.getElementById('woStatus').value = 'open';
-            }
-
-            modal.classList.add('active');
-        }
-
-        async editWO(id) {
-            try {
-                const response = await this.api.get(`/api/workorders/${id}`);
-                this.openModal(response.data);
-            } catch (error) {
-                console.error('Error loading work order for edit:', error);
-                UI.showError('Gagal memuat data untuk diedit');
-            }
-        }
-
-        closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        // ============================================
-        // EXPORT
-        // ============================================
-        async exportData() {
-            try {
-                const response = await this.api.get('/api/workorders/export', {
-                    format: 'excel',
-                    filters: this.filters
-                });
-                
-                const blob = new Blob([response.data], { 
-                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-                });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `work-orders-${new Date().toISOString().slice(0,10)}.xlsx`;
-                a.click();
-                URL.revokeObjectURL(url);
-                
-                UI.showSuccess('Export berhasil');
-            } catch (error) {
-                console.error('Error exporting data:', error);
-                UI.showError('Gagal mengekspor data');
-            }
-        }
-
-        // ============================================
-        // UTILITY FUNCTIONS
-        // ============================================
-        formatStatus(status) {
-            const map = {
-                'open': 'Open',
-                'assigned': 'Assigned',
-                'in_progress': 'In Progress',
-                'pending_parts': 'Pending Parts',
-                'completed': 'Completed',
-                'cancelled': 'Cancelled'
-            };
-            return map[status] || status;
-        }
-
-        formatDate(date) {
-            if (!date) return '-';
-            const d = new Date(date);
-            return d.toLocaleDateString('id-ID', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            });
-        }
-
-        formatDateTime(date) {
-            if (!date) return '-';
-            const d = new Date(date);
-            return d.toLocaleString('id-ID', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        capitalize(str) {
-            return str.charAt(0).toUpperCase() + str.slice(1);
-        }
-
-        truncateText(text, maxLength) {
-            if (!text) return '';
-            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-        }
-
-        debounce(func, wait) {
-            let timeout;
-            return function(...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(this, args), wait);
-            };
+        } catch (err) {
+            console.error(err);
+            tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error: ${err.message}</td></tr>`;
+        } finally {
+            BCS.App.Loading.hide();
         }
     }
 
-    // ============================================
-    // UI HELPERS
-    // ============================================
-    const UI = {
-        showSuccess(message) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: message,
-                timer: 2500,
-                showConfirmButton: false,
-                timerProgressBar: true
-            });
-        },
+    // =============================================
+    // FILTER
+    // =============================================
+    function applyFilters() {
+        const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+        const status = document.getElementById('filterStatus').value;
+        const priority = document.getElementById('filterPriority').value;
 
-        showError(message) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: message,
-                confirmButtonColor: '#1e5eff',
-                confirmButtonText: 'OK'
-            });
-        },
+        let result = allWO;
 
-        showWarning(message) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Perhatian',
-                text: message,
-                confirmButtonColor: '#1e5eff',
-                confirmButtonText: 'OK'
-            });
+        if (keyword) {
+            result = result.filter(w =>
+                (w.wo_number || '').toLowerCase().includes(keyword) ||
+                (w.title || '').toLowerCase().includes(keyword) ||
+                (w.description || '').toLowerCase().includes(keyword) ||
+                (w.location || '').toLowerCase().includes(keyword)
+            );
         }
-    };
+        if (status) result = result.filter(w => w.status === status);
+        if (priority) result = result.filter(w => w.priority === priority);
 
-    // ============================================
-    // INIT
-    // ============================================
-    document.addEventListener('DOMContentLoaded', () => {
-        // Check session
-        if (typeof checkSession === 'function') {
-            checkSession();
+        filteredWO = result;
+        currentPage = 1;
+        renderTable();
+        renderPagination();
+    }
+
+    // =============================================
+    // SUMMARY
+    // =============================================
+    function updateSummary() {
+        const total = allWO.length;
+        const open = allWO.filter(w => w.status === 'open').length;
+        const progress = allWO.filter(w => w.status === 'in_progress' || w.status === 'assigned').length;
+        const done = allWO.filter(w => w.status === 'completed').length;
+
+        document.getElementById('cardTotal').textContent = total;
+        document.getElementById('cardOpen').textContent = open;
+        document.getElementById('cardProgress').textContent = progress;
+        document.getElementById('cardDone').textContent = done;
+    }
+
+    // =============================================
+    // RENDER TABLE
+    // =============================================
+    function renderTable() {
+        const start = (currentPage - 1) * perPage;
+        const pageData = filteredWO.slice(start, start + perPage);
+
+        if (pageData.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-4 d-block"></i>Tidak ada data</td></tr>`;
+            return;
         }
-        
-        window.woManager = new WorkOrderManager();
-        console.log('✅ Work Order Module initialized');
+
+        let html = '';
+        pageData.forEach(w => {
+            html += `
+                <tr>
+                    <td><span class="wo-number">WO-${w.wo_number || w.id}</span></td>
+                    <td>
+                        <div class="fw-semibold">${w.title || '-'}</div>
+                        <div class="text-muted" style="font-size:10px;">${(w.description || '').substring(0, 40)}${w.description?.length > 40 ? '...' : ''}</div>
+                    </td>
+                    <td>${w.category || '-'}</td>
+                    <td>${getPriorityBadge(w.priority || 'medium')}</td>
+                    <td>${getStatusBadge(w.status || 'open')}</td>
+                    <td>${w.assigned_to || '-'}</td>
+                    <td>${formatDate(w.created_at || w.tanggal)}</td>
+                    <td class="text-center">
+                        <button class="btn-action view" data-id="${w.id}" title="Detail"><i class="bi bi-eye"></i></button>
+                        <button class="btn-action edit" data-id="${w.id}" title="Edit"><i class="bi bi-pencil"></i></button>
+                        ${w.status !== 'completed' && w.status !== 'cancelled' ? `
+                            <button class="btn-action complete" data-id="${w.id}" title="Selesai"><i class="bi bi-check-lg"></i></button>
+                        ` : ''}
+                        <button class="btn-action delete" data-id="${w.id}" title="Hapus"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+        tableBody.innerHTML = html;
+
+        // Bind events
+        tableBody.querySelectorAll('.view').forEach(btn => btn.addEventListener('click', () => viewDetail(btn.dataset.id)));
+        tableBody.querySelectorAll('.edit').forEach(btn => btn.addEventListener('click', () => openEdit(btn.dataset.id)));
+        tableBody.querySelectorAll('.complete').forEach(btn => btn.addEventListener('click', () => completeWO(btn.dataset.id)));
+        tableBody.querySelectorAll('.delete').forEach(btn => btn.addEventListener('click', () => deleteWO(btn.dataset.id)));
+    }
+
+    // =============================================
+    // PAGINATION
+    // =============================================
+    function renderPagination() {
+        const total = Math.ceil(filteredWO.length / perPage);
+        if (total <= 1) { paginationEl.innerHTML = ''; return; }
+        let html = '';
+        html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a></li>`;
+        for (let i = 1; i <= total; i++) {
+            html += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+        }
+        html += `<li class="page-item ${currentPage === total ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a></li>`;
+        paginationEl.innerHTML = html;
+        paginationEl.querySelectorAll('.page-link').forEach(el => {
+            el.addEventListener('click', function(e) {
+                e.preventDefault();
+                const p = parseInt(this.dataset.page);
+                if (p && p >= 1 && p <= total) { currentPage = p; renderTable(); renderPagination(); }
+            });
+        });
+    }
+
+    // =============================================
+    // CRUD
+    // =============================================
+    function openModal(data = null) {
+        const modal = new bootstrap.Modal(document.getElementById('woModal'));
+        const form = document.getElementById('woForm');
+        form.reset();
+
+        if (data) {
+            isEditMode = true;
+            editId = data.id;
+            document.getElementById('modalTitle').textContent = 'Edit Work Order';
+            document.getElementById('woTitle').value = data.title || '';
+            document.getElementById('woCategory').value = data.category_id || '';
+            document.getElementById('woPriority').value = data.priority || 'medium';
+            document.getElementById('woDescription').value = data.description || '';
+            document.getElementById('woLocation').value = data.location || '';
+            document.getElementById('woFloor').value = data.floor || '';
+            document.getElementById('woStatus').value = data.status || 'open';
+            document.getElementById('woAssignedTo').value = data.assigned_to || '';
+            document.getElementById('woScheduledDate').value = data.scheduled_date || '';
+            document.getElementById('woNotes').value = data.notes || '';
+            document.getElementById('woEmergency').checked = data.is_emergency || false;
+        } else {
+            isEditMode = false;
+            editId = null;
+            document.getElementById('modalTitle').textContent = 'Buat Work Order';
+            document.getElementById('woStatus').value = 'open';
+        }
+
+        // Load categories & technicians
+        loadCategories();
+        loadTechnicians();
+
+        modal.show();
+    }
+
+    async function loadCategories() {
+        try {
+            const res = await BCS.Api.post('getWOCategories', {});
+            const sel = document.getElementById('woCategory');
+            sel.innerHTML = '<option value="">Pilih Kategori...</option>';
+            if (res.success && res.data) {
+                res.data.forEach(c => {
+                    sel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                });
+            }
+        } catch (e) { console.warn('Load categories error:', e); }
+    }
+
+    async function loadTechnicians() {
+        try {
+            const res = await BCS.Api.post('getTechnicians', {});
+            const sel = document.getElementById('woAssignedTo');
+            sel.innerHTML = '<option value="">Pilih Teknisi...</option>';
+            if (res.success && res.data) {
+                res.data.forEach(u => {
+                    sel.innerHTML += `<option value="${u.id}">${u.name}</option>`;
+                });
+            }
+        } catch (e) { console.warn('Load technicians error:', e); }
+    }
+
+    document.getElementById('woForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const data = {
+            title: document.getElementById('woTitle').value.trim(),
+            category_id: document.getElementById('woCategory').value,
+            priority: document.getElementById('woPriority').value,
+            description: document.getElementById('woDescription').value.trim(),
+            location: document.getElementById('woLocation').value.trim(),
+            floor: document.getElementById('woFloor').value.trim(),
+            status: document.getElementById('woStatus').value,
+            assigned_to: document.getElementById('woAssignedTo').value || null,
+            scheduled_date: document.getElementById('woScheduledDate').value || null,
+            notes: document.getElementById('woNotes').value.trim(),
+            is_emergency: document.getElementById('woEmergency').checked
+        };
+
+        if (!data.title || !data.description || !data.category_id) {
+            showToast('Judul, deskripsi, dan kategori wajib diisi', 'warning');
+            return;
+        }
+
+        try {
+            const btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
+
+            let res;
+            if (isEditMode && editId) {
+                res = await BCS.Api.post('updateWorkOrder', { id: editId, ...data });
+            } else {
+                res = await BCS.Api.post('createWorkOrder', data);
+            }
+
+            if (res && res.success) {
+                showToast(isEditMode ? 'WO berhasil diperbarui' : 'WO berhasil dibuat');
+                bootstrap.Modal.getInstance(document.getElementById('woModal')).hide();
+                await fetchWO();
+            } else {
+                showToast(res?.message || 'Gagal menyimpan', 'error');
+            }
+        } catch (err) {
+            showToast('Error: ' + err.message, 'error');
+        } finally {
+            const btn = this.querySelector('button[type="submit"]');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-save"></i> Simpan';
+        }
     });
-    </script>
+
+    async function openEdit(id) {
+        const wo = allWO.find(w => w.id == id);
+        if (wo) openModal(wo);
+        else {
+            try {
+                const res = await BCS.Api.post('getWorkOrder', { id });
+                if (res.success) openModal(res.data);
+                else showToast('Gagal memuat data', 'error');
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
+        }
+    }
+
+    async function viewDetail(id) {
+        try {
+            const res = await BCS.Api.post('getWorkOrder', { id });
+            if (!res.success) { showToast('Gagal memuat detail', 'error'); return; }
+            const w = res.data;
+            const container = document.getElementById('detailContent');
+            container.innerHTML = `
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="fw-bold text-muted" style="font-size:11px;">NO. WO</div>
+                        <div class="fw-bold" style="font-size:16px;color:#4b7bec;">WO-${w.wo_number || w.id}</div>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        ${getStatusBadge(w.status)} ${getPriorityBadge(w.priority)}
+                        ${w.is_emergency ? '<span class="badge bg-danger ms-1">⚠️ Darurat</span>' : ''}
+                    </div>
+                    <div class="col-12"><hr></div>
+                    <div class="col-md-12">
+                        <h5>${w.title}</h5>
+                        <p class="text-muted" style="font-size:13px;">${w.description || '-'}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-muted" style="font-size:11px;">Kategori</div>
+                        <div>${w.category || '-'}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-muted" style="font-size:11px;">Lokasi</div>
+                        <div>${w.location || '-'} ${w.floor ? ' - Lantai ' + w.floor : ''}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-muted" style="font-size:11px;">Ditugaskan</div>
+                        <div>${w.assigned_to || 'Belum ditugaskan'}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-muted" style="font-size:11px;">Jadwal</div>
+                        <div>${formatDate(w.scheduled_date) || 'Belum dijadwalkan'}</div>
+                    </div>
+                    <div class="col-12">
+                        <div class="text-muted" style="font-size:11px;">Catatan</div>
+                        <div>${w.notes || '-'}</div>
+                    </div>
+                    <div class="col-12">
+                        <div class="text-muted" style="font-size:11px;">Timeline</div>
+                        ${w.timeline && w.timeline.length > 0 ? w.timeline.map(t => `
+                            <div class="timeline-item">
+                                <div class="time">${new Date(t.created_at).toLocaleString('id-ID')}</div>
+                                <div class="status-label">${formatStatus(t.status)}</div>
+                                <div class="notes">${t.notes || ''}</div>
+                            </div>
+                        `).join('') : '<div class="text-muted">Belum ada aktivitas</div>'}
+                    </div>
+                </div>
+            `;
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
+        } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    }
+
+    async function completeWO(id) {
+        const confirm = await Swal.fire({
+            title: 'Selesaikan WO?',
+            text: 'Apakah pekerjaan ini sudah selesai 100%?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#22c55e',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Ya, Selesai!'
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+            const res = await BCS.Api.post('completeWorkOrder', { id });
+            if (res.success) {
+                showToast('WO selesai!');
+                await fetchWO();
+            } else {
+                showToast(res?.message || 'Gagal', 'error');
+            }
+        } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    }
+
+    async function deleteWO(id) {
+        const confirm = await Swal.fire({
+            title: 'Hapus WO?',
+            text: 'Data tidak dapat dikembalikan!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Ya, Hapus!'
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+            const res = await BCS.Api.post('deleteWorkOrder', { id });
+            if (res.success) {
+                showToast('WO dihapus');
+                await fetchWO();
+            } else {
+                showToast(res?.message || 'Gagal', 'error');
+            }
+        } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    }
+
+    // =============================================
+    // EXPORT
+    // =============================================
+    document.getElementById('exportWoExcel').addEventListener('click', function() {
+        if (filteredWO.length === 0) { showToast('Tidak ada data', 'warning'); return; }
+        const data = filteredWO.map(w => ({
+            'No. WO': w.wo_number || w.id,
+            'Judul': w.title || '-',
+            'Kategori': w.category || '-',
+            'Prioritas': w.priority || '-',
+            'Status': formatStatus(w.status),
+            'Teknisi': w.assigned_to || '-',
+            'Lokasi': w.location || '-',
+            'Tanggal': formatDate(w.created_at || w.tanggal)
+        }));
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(data);
+        XLSX.utils.book_append_sheet(wb, ws, 'WorkOrder');
+        XLSX.writeFile(wb, `WorkOrder_${new Date().toISOString().slice(0,10)}.xlsx`);
+        showToast('Export Excel berhasil');
+    });
+
+    document.getElementById('exportWoPdf').addEventListener('click', function() {
+        if (filteredWO.length === 0) { showToast('Tidak ada data', 'warning'); return; }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'mm', 'a4');
+        doc.setFontSize(14);
+        doc.text('Work Order List', 14, 20);
+        doc.setFontSize(8);
+        doc.text(`Generated: ${new Date().toLocaleString('id-ID')}`, 14, 28);
+        const headers = ['WO', 'Judul', 'Kategori', 'Prioritas', 'Status', 'Teknisi', 'Tanggal'];
+        const cols = [25, 40, 25, 20, 25, 25, 25];
+        let y = 36;
+        doc.setFont('helvetica', 'bold');
+        headers.forEach((h, i) => {
+            const x = 14 + cols.slice(0, i).reduce((a, b) => a + b, 0);
+            doc.text(h, x, y);
+        });
+        y += 4;
+        doc.setFont('helvetica', 'normal');
+        filteredWO.slice(0, 50).forEach(w => {
+            if (y > 270) { doc.addPage(); y = 20; }
+            const row = [
+                w.wo_number || w.id,
+                (w.title || '').substring(0, 15),
+                w.category || '-',
+                w.priority || '-',
+                formatStatus(w.status),
+                w.assigned_to || '-',
+                formatDate(w.created_at || w.tanggal)
+            ];
+            row.forEach((val, i) => {
+                const x = 14 + cols.slice(0, i).reduce((a, b) => a + b, 0);
+                doc.text(String(val), x, y);
+            });
+            y += 5;
+        });
+        doc.save(`WorkOrder_${new Date().toISOString().slice(0,10)}.pdf`);
+        showToast('Export PDF berhasil');
+    });
+
+    // =============================================
+    // EVENT BINDING
+    // =============================================
+    document.getElementById('btnAddWO').addEventListener('click', () => openModal());
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('filterStatus').addEventListener('change', applyFilters);
+    document.getElementById('filterPriority').addEventListener('change', applyFilters);
+
+    // =============================================
+    // INIT
+    // =============================================
+    async function init() {
+        // User info
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const u = session.user;
+                document.getElementById('userName').textContent = u.nama || u.name || 'User';
+                document.getElementById('userRole').textContent = u.role || 'User';
+                document.getElementById('userAvatar').textContent = (u.nama || u.name || 'U').charAt(0).toUpperCase();
+            }
+        } catch (e) {}
+
+        // Dark mode
+        const saved = localStorage.getItem('bcs_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', saved);
+        document.getElementById('darkModeToggle').addEventListener('click', function() {
+            const cur = document.documentElement.getAttribute('data-theme');
+            const next = cur === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('bcs_theme', next);
+        });
+
+        // Admin menu
+        try {
+            const session = BCS.Storage.getSession();
+            if (session?.user?.role?.toUpperCase() === 'ADMINISTRATOR') {
+                document.getElementById('adminMenu').classList.add('visible');
+            }
+        } catch (e) {}
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Keluar?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            }
+        });
+
+        await fetchWO();
+        console.log('✅ Work Order page initialized');
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
 
 </body>
 </html>

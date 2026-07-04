@@ -10,7 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/dashboard.css" />
     <style>
-        /* ===== GLOBAL VARIABLES WITH RICH COLORS ===== */
+        /* (sama seperti sebelumnya) */
         :root {
             --bcs-primary: #3b82f6;
             --bcs-primary-gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
@@ -20,8 +20,6 @@
             --bcs-danger-light: #fee2e2;
             --bcs-warning: #f59e0b;
             --bcs-warning-light: #fef3c7;
-            
-            /* Category specific styles */
             --cat-kebersihan: #10b981;
             --cat-kebersihan-bg: #e6f7f0;
             --cat-ac: #06b6d4;
@@ -30,34 +28,22 @@
             --cat-listrik-bg: #fff8e1;
             --cat-default: #64748b;
             --cat-default-bg: #f1f5f9;
-
             --card-border-radius: 16px;
         }
-
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #f3f4f6;
         }
-
-        /* ===== ENHANCED GRADIENT TOPBAR ===== */
         .topbar {
             background: var(--bcs-primary-gradient) !important;
             border: none !important;
             border-radius: var(--card-border-radius) !important;
             box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15) !important;
         }
-        .topbar h3 {
-            color: #ffffff !important;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .topbar .text-muted {
-            color: #e0f2fe !important;
-        }
-        .topbar .text-primary {
-            color: #bae6fd !important;
-        }
+        .topbar h3 { color: #ffffff !important; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .topbar .text-muted { color: #e0f2fe !important; }
+        .topbar .text-primary { color: #bae6fd !important; }
 
-        /* ===== CARD DESIGN ===== */
         .enterprise-card {
             border-radius: var(--card-border-radius) !important;
             overflow: hidden;
@@ -65,7 +51,6 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
             background: #ffffff;
         }
-
         .card-header {
             padding: 22px 24px !important;
             font-size: 16px;
@@ -73,8 +58,6 @@
             background: #fafafa !important;
             border-bottom: 2px solid #f1f5f9 !important;
         }
-
-        /* ===== CATEGORY TAGS & ICON BADGES ===== */
         .category-indicator {
             display: inline-flex;
             align-items: center;
@@ -85,8 +68,6 @@
             font-size: 18px;
             flex-shrink: 0;
         }
-
-        /* ===== STATUS BADGES ===== */
         .status-badge {
             font-size: 11px;
             font-weight: 700;
@@ -102,7 +83,6 @@
         .status-approved { background: var(--bcs-success-light); color: var(--bcs-success); }
         .status-rejected { background: var(--bcs-danger-light); color: var(--bcs-danger); }
 
-        /* ===== CONTRAST DARK TOGGLE ===== */
         .dark-toggle {
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -116,12 +96,8 @@
             transition: all 0.2s ease;
             color: #ffffff;
         }
-        .dark-toggle:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: scale(1.05);
-        }
+        .dark-toggle:hover { background: rgba(255, 255, 255, 0.25); transform: scale(1.05); }
 
-        /* ===== USER PROFILE WHITE AVATAR ===== */
         .avatar-sm {
             width: 42px;
             height: 42px;
@@ -137,7 +113,6 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        /* ===== APPROVAL ITEM ROW ===== */
         .approval-item {
             display: flex;
             align-items: center;
@@ -151,16 +126,14 @@
         .approval-item:hover { 
             background: #f8fafc; 
             border-left: 5px solid var(--bcs-primary);
-            padding-left: 19px; /* Offset border-left width */
+            padding-left: 19px;
         }
-        
         .approval-item .info-wrapper {
             display: flex;
             align-items: center;
             gap: 16px;
             flex: 1;
         }
-
         .approval-item .info {
             display: flex;
             flex-direction: column;
@@ -179,11 +152,8 @@
             align-items: center;
             gap: 12px;
         }
-        .approval-item .info .sub span.divider {
-            color: #d1d5db;
-        }
+        .approval-item .info .sub span.divider { color: #d1d5db; }
 
-        /* ===== COLORFUL VIBRANT BUTTONS ===== */
         .approval-item .actions {
             display: flex;
             gap: 10px;
@@ -221,7 +191,6 @@
             box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35);
         }
 
-        /* ===== RESPONSIVE STYLING ===== */
         @media (max-width: 768px) {
             .approval-item { 
                 flex-direction: column; 
@@ -234,9 +203,7 @@
                 padding-left: 20px;
                 background: #f8fafc;
             }
-            .approval-item .info-wrapper {
-                width: 100%;
-            }
+            .approval-item .info-wrapper { width: 100%; }
             .approval-item .actions { 
                 width: 100%;
                 justify-content: flex-end; 
@@ -250,12 +217,10 @@
 </head>
 <body>
 <div class="wrapper">
-    <!-- SIDEBAR -->
     <aside class="sidebar"></aside>
 
     <main class="content">
         <div class="container-fluid py-4">
-            <!-- TOPBAR (GRADIENT) -->
             <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3 p-4 mb-4">
                 <div class="d-flex align-items-center gap-3">
                     <button class="btn btn-light d-lg-none" id="sidebarToggle">
@@ -280,16 +245,25 @@
                 </div>
             </header>
 
-            <!-- CONTAINER CARD -->
             <section class="row g-4">
                 <div class="col-12">
                     <div class="card enterprise-card">
-                        <div class="card-header d-flex align-items-center justify-content-between">
+                        <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
                             <div class="d-flex align-items-center gap-2 text-dark">
                                 <i class="bi bi-bookmark-dash-fill text-primary fs-5"></i>
                                 <span class="fw-bold">Daftar Antrean Persetujuan</span>
                             </div>
-                            <span class="badge rounded-pill bg-danger px-3 py-2 fs-7 shadow-sm" id="pendingCount">0</span>
+                            <div class="d-flex align-items-center gap-3">
+                                <!-- Tambahan filter prioritas -->
+                                <select class="form-select form-select-sm" id="filterPriority" style="width:150px; border-radius:8px;">
+                                    <option value="">Semua Prioritas</option>
+                                    <option value="low">Rendah</option>
+                                    <option value="medium">Sedang</option>
+                                    <option value="high">Tinggi</option>
+                                    <option value="critical">Kritis</option>
+                                </select>
+                                <span class="badge rounded-pill bg-danger px-3 py-2 fs-7 shadow-sm" id="pendingCount">0</span>
+                            </div>
                         </div>
                         <div class="card-body p-0" id="approvalListContainer">
                             <div id="approvalList" class="text-center text-muted py-5">
@@ -304,11 +278,9 @@
     </main>
 </div>
 
-<!-- ===== SKRIP EKSTERNAL ===== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- Modul internal -->
 <script src="config/config.js"></script>
 <script src="assets/js/core/app.js"></script>
 <script src="assets/js/core/api.js"></script>
@@ -328,37 +300,26 @@
         // ============================================================
         function checkAccess() {
             try {
-                // Ambil session menggunakan BCS.Storage jika tersedia
                 let session = null;
                 if (typeof BCS !== 'undefined' && BCS.Storage && typeof BCS.Storage.getSession === 'function') {
                     session = BCS.Storage.getSession();
                 } else {
-                    // Fallback ke localStorage
                     try {
                         const raw = localStorage.getItem('bcs_session');
                         if (raw) session = JSON.parse(raw);
                     } catch (e) {}
                 }
-
-                // Jika session tidak ada atau user tidak login → redirect
                 if (!session || !session.user) {
                     window.location.href = 'login.html';
                     return false;
                 }
-
-                // Ambil role dari session (case-insensitive)
                 const role = (session.user.role || '').toLowerCase().trim();
-                const allowedRoles = ['administrator', 'admin'];
-
-                if (!allowedRoles.includes(role)) {
-                    // Jika bukan administrator, redirect ke login
+                if (!['administrator', 'admin'].includes(role)) {
                     window.location.href = 'login.html';
                     return false;
                 }
-
                 console.log('✅ Akses Approval diterima untuk role:', role);
                 return true;
-
             } catch (err) {
                 console.error('Validasi akses Approval error:', err);
                 window.location.href = 'login.html';
@@ -387,15 +348,14 @@
         }
 
         // ============================================================
-        // DATA MOCK DENGAN KATEGORI BERWARNA
+        // DATA MOCK DENGAN KATEGORI DAN PRIORITAS
         // ============================================================
         let mockApprovals = [
-            { id: 'APR-001', kategori: 'Kebersihan', lokasi: 'Gedung A - Lantai 2', tanggal: '2026-07-02', status: 'pending', pelapor: 'Budi Santoso' },
-            { id: 'APR-002', kategori: 'Perbaikan AC', lokasi: 'Ruang Rapat Utama', tanggal: '2026-07-03', status: 'pending', pelapor: 'Siti Rahma' },
-            { id: 'APR-003', kategori: 'Listrik', lokasi: 'Gedung B - Lantai 1', tanggal: '2026-07-04', status: 'pending', pelapor: 'Agus Wijaya' },
+            { id: 'APR-001', kategori: 'Kebersihan', lokasi: 'Gedung A - Lantai 2', tanggal: '2026-07-02', status: 'pending', pelapor: 'Budi Santoso', priority: 'medium' },
+            { id: 'APR-002', kategori: 'Perbaikan AC', lokasi: 'Ruang Rapat Utama', tanggal: '2026-07-03', status: 'pending', pelapor: 'Siti Rahma', priority: 'high' },
+            { id: 'APR-003', kategori: 'Listrik', lokasi: 'Gedung B - Lantai 1', tanggal: '2026-07-04', status: 'pending', pelapor: 'Agus Wijaya', priority: 'critical' },
         ];
 
-        // Helper fungsi penentu warna indikator kategori otomatis
         function getCategoryStyle(kategori) {
             const kat = kategori.toLowerCase();
             if (kat.includes('bersih')) {
@@ -409,14 +369,25 @@
         }
 
         // ============================================================
-        // RENDER METHOD WITH COLORFUL LOGIC
+        // RENDER METHOD DENGAN FILTER PRIORITAS
         // ============================================================
         function renderApprovals() {
             const container = document.getElementById('approvalList');
             const countBadge = document.getElementById('pendingCount');
+            const priorityFilter = document.getElementById('filterPriority');
             if (!container) return;
 
-            const pending = mockApprovals.filter(a => a.status === 'pending');
+            const priorityVal = priorityFilter ? priorityFilter.value : '';
+
+            let pending = mockApprovals.filter(a => a.status === 'pending');
+
+            // ⭐ FILTER PRIORITAS (case-insensitive)
+            if (priorityVal) {
+                pending = pending.filter(a => {
+                    const p = (a.priority || 'medium').trim().toLowerCase();
+                    return p === priorityVal.toLowerCase();
+                });
+            }
 
             if (pending.length === 0) {
                 container.innerHTML = `
@@ -434,10 +405,11 @@
             let html = '';
             pending.forEach((item) => {
                 const style = getCategoryStyle(item.kategori);
+                // Tampilkan prioritas sebagai badge tambahan
+                const priorityLabel = (item.priority || 'medium').charAt(0).toUpperCase() + (item.priority || 'medium').slice(1);
                 html += `
                     <div class="approval-item" data-id="${item.id}">
                         <div class="info-wrapper">
-                            <!-- Indikator Berwarna Tergantung Kategori Laporan -->
                             <div class="category-indicator" style="background: ${style.bg}; color: ${style.color};">
                                 <i class="bi ${style.icon}"></i>
                             </div>
@@ -451,6 +423,7 @@
                                     <span><i class="bi bi-calendar-event me-1"></i>${item.tanggal}</span>
                                     <span class="divider">·</span>
                                     <span class="status-badge status-pending">Pending</span>
+                                    <span class="badge bg-secondary">${priorityLabel}</span>
                                 </div>
                             </div>
                         </div>
@@ -483,7 +456,7 @@
         }
 
         // ============================================================
-        // PROMPT CONFIRMATION INTERACTION
+        // PROMPT CONFIRMATION
         // ============================================================
         function handleAction(id, action) {
             const item = mockApprovals.find(a => a.id === id);
@@ -517,6 +490,9 @@
             });
         }
 
+        // ============================================================
+        // DARK MODE
+        // ============================================================
         function initDarkMode() {
             const toggle = document.getElementById('darkModeToggle');
             const icon = document.getElementById('darkModeIcon');
@@ -546,6 +522,9 @@
             });
         }
 
+        // ============================================================
+        // LOAD USER INFO
+        // ============================================================
         function loadUserInfo() {
             const session = getSession();
             const nameEl = document.getElementById('userName');
@@ -566,17 +545,21 @@
             }
         }
 
+        // ============================================================
+        // INIT
+        // ============================================================
         function init() {
-            // ============================================================
-            // VALIDASI AKSES — HARUS ADMINISTRATOR
-            // ============================================================
-            if (!checkAccess()) {
-                // checkAccess sudah melakukan redirect jika tidak lolos
-                return;
-            }
+            if (!checkAccess()) return;
 
             initDarkMode();
             loadUserInfo();
+
+            // Event listener filter prioritas
+            const priorityFilter = document.getElementById('filterPriority');
+            if (priorityFilter) {
+                priorityFilter.addEventListener('change', renderApprovals);
+            }
+
             renderApprovals();
             console.log('✅ Colorful Enterprise UI Loaded Successfully.');
         }

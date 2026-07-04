@@ -1,11 +1,11 @@
 // assets/js/core/components/sidebar.js
 // Sidebar Dinamis Premium UI - Match UI Design v4.3
-// 🔥 Update State Aktif Sesuai Gambar Referensi: image_7531de.png
+// 🔥 Added Custom Premium Toast Confirmation for Logout
 
 (function() {
     'use strict';
 
-    console.log('🔄 Premium sidebar.js updated with exact active state from image_7531de.png');
+    console.log('🔄 Premium sidebar.js updated with stunning custom logout toast');
 
     const styleId = 'premium-sidebar-css';
     if (!document.getElementById(styleId)) {
@@ -14,7 +14,6 @@
                 --sb-sidebar-bg: #f8fafc;
                 --sb-text-dark: #1e293b;
                 --sb-text-muted: #64748b;
-                /* Gradasi Aktif Premium Baru */
                 --sb-active-gradient: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
                 --sb-active-shadow: rgba(37, 99, 235, 0.25);
             }
@@ -127,9 +126,6 @@
                 color: var(--sb-text-dark) !important;
                 padding-left: 20px;
             }
-            [data-theme="dark"] .sb-menu-item:hover:not(.active) {
-                background: rgba(255, 255, 255, 0.03);
-            }
 
             .sb-icon-box {
                 width: 36px;
@@ -150,38 +146,31 @@
                 font-size: 13px;
                 color: var(--sb-text-muted);
                 opacity: 0.7;
-                transition: all 0.2s ease;
             }
 
-            /* 🎯 🌟 STATE ACTIVE TERBARU (PERSIS SEPERTI image_7531de.png) */
+            /* 🎯 STATE ACTIVE (image_7531de.png style) */
             .sb-menu-item.active {
                 background: var(--sb-active-gradient) !important;
                 color: #ffffff !important;
                 box-shadow: 0 8px 20px var(--sb-active-shadow);
             }
-            
-            /* Kotak Ikon Menjadi Putih Solid */
             .sb-menu-item.active .sb-icon-box {
                 background: #ffffff !important;
-                color: #2563eb !important; /* Warna ikon di dalam kotak menjadi biru */
+                color: #2563eb !important;
                 box-shadow: 0 2px 6px rgba(0,0,0,0.06);
             }
-
-            /* Chevron Kanan Menjadi Putih Bersih */
             .sb-menu-item.active .sb-arrow {
                 color: #ffffff !important;
                 opacity: 1;
             }
-
-            /* 🟠 Indikator Oranye/Kuning di Samping Kiri Tombol Aktif */
             .sb-menu-item.active::before {
                 content: '';
                 position: absolute;
-                left: -6px; /* Sedikit keluar dari padding utama */
+                left: -6px;
                 top: 25%;
                 height: 50%;
                 width: 5px;
-                background: #f59e0b; /* Warna Amber/Orange hangat */
+                background: #f59e0b;
                 border-radius: 0 4px 4px 0;
             }
 
@@ -190,14 +179,9 @@
                 background: rgba(0,0,0,0.05);
                 margin: 12px 16px;
             }
-            [data-theme="dark"] .sb-divider {
-                background: rgba(255,255,255,0.07);
-            }
 
             /* LOGOUT BOX */
-            .sb-logout-box {
-                padding: 5px 18px;
-            }
+            .sb-logout-box { padding: 5px 18px; }
             .sb-btn-logout {
                 background: #fff5f5 !important;
                 color: #ff3b30 !important;
@@ -208,7 +192,7 @@
                 color: #ff3b30 !important;
             }
 
-            /* USER CARD FOOTER & DEKORASI GELOMBANG BAWAH */
+            /* USER CARD FOOTER */
             .sb-footer {
                 padding: 15px 18px 50px 18px;
                 position: relative;
@@ -227,72 +211,108 @@
                 position: relative;
                 z-index: 2;
             }
-            [data-theme="dark"] .sb-user-card {
-                background: #1f2937;
-            }
             .sb-avatar-wrapper {
                 position: relative;
                 width: 42px;
                 height: 42px;
             }
             .sb-avatar {
-                width: 100%;
-                height: 100%;
-                border-radius: 50%;
-                background: #3b82f6;
-                color: #ffffff;
+                width: 100%; height: 100%; border-radius: 50%;
+                background: #3b82f6; color: #ffffff;
+                display: flex; align-items: center; justify-content: center;
+                font-weight: 600; font-size: 15px;
+            }
+            .sb-status-dot {
+                width: 11px; height: 11px; background: #22c55e;
+                border: 2px solid #eef2f6; border-radius: 50%;
+                position: absolute; bottom: -1px; right: -1px;
+            }
+            .sb-user-info { flex: 1; min-width: 0; }
+            .sb-user-name { font-weight: 700; font-size: 14px; color: var(--sb-text-dark); margin: 0 0 4px 0; line-height: 1.2; }
+            .sb-badge-role { background: #3b82f6; color: #ffffff; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 4px; display: inline-block; text-transform: uppercase; }
+            .sb-chevron-down { color: var(--sb-text-muted); font-size: 14px; }
+
+            /* 🌟 ✨ ANIMATED TOAST OVERLAY & BOX CSS ✨ 🌟 */
+            .sb-toast-overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100vw; height: 100vh;
+                background: rgba(15, 23, 42, 0.3);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                z-index: 9999;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-weight: 600;
-                font-size: 15px;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
-            .sb-status-dot {
-                width: 11px;
-                height: 11px;
-                background: #22c55e;
-                border: 2px solid #eef2f6;
+            .sb-toast-overlay.show {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            .sb-toast-box {
+                background: #ffffff;
+                border-radius: 24px;
+                padding: 32px;
+                width: 90%;
+                max-width: 400px;
+                text-align: center;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+                border: 1px solid rgba(255, 255, 255, 0.8);
+                transform: scale(0.85) translateY(20px);
+                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            .sb-toast-overlay.show .sb-toast-box {
+                transform: scale(1) translateY(0);
+            }
+            .sb-toast-icon {
+                width: 64px; height: 64px;
+                background: #fff5f5;
+                color: #ff3b30;
                 border-radius: 50%;
-                position: absolute;
-                bottom: -1px;
-                right: -1px;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 28px; margin: 0 auto 20px auto;
+                animation: pulseRed 2s infinite;
             }
-            [data-theme="dark"] .sb-status-dot {
-                border-color: #1f2937;
+            .sb-toast-title {
+                font-size: 20px; font-weight: 700;
+                color: #1e293b; margin-bottom: 8px;
             }
-            .sb-user-info {
-                flex: 1;
-                min-width: 0;
+            .sb-toast-desc {
+                font-size: 14px; color: #64748b;
+                margin-bottom: 24px; line-height: 1.5;
             }
-            .sb-user-name {
-                font-weight: 700;
-                font-size: 14px;
-                color: var(--sb-text-dark);
-                margin: 0 0 4px 0;
-                line-height: 1.2;
+            .sb-toast-actions {
+                display: flex; gap: 12px;
             }
-            .sb-user-dept {
-                display: none !important;
+            .sb-toast-btn {
+                flex: 1; padding: 12px 16px;
+                border-radius: 12px; font-size: 14px; font-weight: 600;
+                cursor: pointer; border: none; transition: all 0.2s ease;
             }
-            .sb-badge-role {
-                background: #3b82f6;
+            .sb-toast-btn-cancel {
+                background: #f1f5f9; color: #64748b;
+            }
+            .sb-toast-btn-cancel:hover { background: #e2e8f0; color: #0f172a; }
+            
+            .sb-toast-btn-confirm {
+                background: linear-gradient(135deg, #ff5252 0%, #ff3b30 100%);
                 color: #ffffff;
-                font-size: 9px;
-                font-weight: 700;
-                padding: 1px 6px;
-                border-radius: 4px;
-                display: inline-block;
-                text-transform: uppercase;
+                box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2);
             }
-            .sb-chevron-down {
-                color: var(--sb-text-muted);
-                font-size: 14px;
+            .sb-toast-btn-confirm:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 15px rgba(255, 59, 48, 0.3);
             }
 
-            .content {
-                margin-left: 280px !important;
-                width: calc(100% - 280px) !important;
+            @keyframes pulseRed {
+                0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.2); }
+                70% { box-shadow: 0 0 0 12px rgba(255, 59, 48, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
             }
+
+            .content { margin-left: 280px !important; width: calc(100% - 280px) !important; }
             @media (max-width: 991.98px) {
                 .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
                 .sidebar.open { transform: translateX(0); }
@@ -318,6 +338,62 @@
         return null;
     }
 
+    // Fungsi utilitas pembuat Modal Toast Konfirmasi Kustom
+    function createToastDOM() {
+        if (document.getElementById('sb-logout-toast-overlay')) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'sb-logout-toast-overlay';
+        overlay.className = 'sb-toast-overlay';
+        overlay.innerHTML = `
+            <div class="sb-toast-box">
+                <div class="sb-toast-icon">
+                    <i class="bi bi-box-arrow-right"></i>
+                </div>
+                <div class="sb-toast-title">Konfirmasi Keluar</div>
+                <div class="sb-toast-desc">Apakah Anda yakin ingin mengakhiri sesi dan keluar dari Building Care System?</div>
+                <div class="sb-toast-actions">
+                    <button class="sb-toast-btn sb-toast-btn-cancel" id="toast-cancel-btn">Batal</button>
+                    <button class="sb-toast-btn sb-toast-btn-confirm" id="toast-confirm-btn">Ya, Keluar</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        // Event listener internal toast
+        document.getElementById('toast-cancel-btn').addEventListener('click', hideLogoutToast);
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) hideLogoutToast();
+        });
+        
+        document.getElementById('toast-confirm-btn').addEventListener('click', function() {
+            // Animasi transisi sukses sebelum redirect
+            document.querySelector('.sb-toast-box').innerHTML = `
+                <div class="sb-toast-icon" style="background: #e6fbf4; color: #10b981; animation: none;">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="sb-toast-title">Berhasil Keluar</div>
+                <div class="sb-toast-desc" style="margin-bottom: 0;">Mengarahkan kembali ke halaman login...</div>
+            `;
+            setTimeout(() => {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            }, 1000);
+        });
+    }
+
+    function showLogoutToast() {
+        createToastDOM();
+        const overlay = document.getElementById('sb-logout-toast-overlay');
+        if (overlay) overlay.classList.add('show');
+    }
+
+    function hideLogoutToast() {
+        const overlay = document.getElementById('sb-logout-toast-overlay');
+        if (overlay) overlay.classList.remove('show');
+    }
+
     function renderSidebar() {
         const sidebarElement = document.querySelector('.sidebar');
         if (!sidebarElement) return;
@@ -333,7 +409,6 @@
 
         const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
 
-        // Tema warna default item (saat tidak aktif)
         const iconStyles = {
             'dashboard.html': { bg: '#e6f0ff', color: '#2563eb' },
             'report.html':    { bg: '#e6fbf4', color: '#10b981' },
@@ -380,13 +455,10 @@
 
             const activeClass = (currentPage === menu.href) ? 'active' : '';
             const styleConf = iconStyles[menu.href] || { bg: '#f1f5f9', color: '#64748b' };
-            
-            // 🔥 Sesuai gambar baru, Chevron kanan selalu ikut dirender (baik aktif maupun tidak)
             const chevronHTML = `<i class="bi bi-chevron-right sb-arrow"></i>`;
             
             sidebarHTML += `
                 <a href="${menu.href}" class="sb-menu-item ${activeClass}">
-                    <!-- Pengaturan style bawaan ditimpa otomatis oleh css .active ketika aktif -->
                     <div class="sb-icon-box" style="background: ${styleConf.bg}; color: ${styleConf.color};">
                         <i class="bi ${menu.icon}"></i>
                     </div>
@@ -425,15 +497,12 @@
 
         sidebarElement.innerHTML = sidebarHTML;
 
+        // Pemicu Toast Kustom saat tombol logout diklik
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                if (confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.href = 'login.html';
-                }
+                showLogoutToast();
             });
         }
     }

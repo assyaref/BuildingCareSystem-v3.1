@@ -10,7 +10,7 @@
   <style>
     * { box-sizing: border-box; }
     html, body { margin:0; padding:0; height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-serif; background:#f3f4f6; }
-    .app-card { width:100%; max-width:420px; height:100vh; max-height:900px; background:#1e5eff; border-radius:28px; box-shadow:0 20px 60px rgba(30,94,255,0.25); display:flex; flex-direction:column; overflow:hidden; margin:0 auto; }
+    .app-card { width:100%; max-width:420px; height:100vh; max-height:900px; background:#1e5eff; border-radius:28px; box-shadow:0 20px 60px rgba(30,94,255,0.25); display:flex; flex-direction:column; overflow:hidden; margin:0 auto; position: relative; }
     @media (max-width:480px){ .app-card { border-radius:0; max-height:100vh; } }
     .scroll-content { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scroll-behavior:smooth; -ms-overflow-style:none; scrollbar-width:none; }
     .scroll-content::-webkit-scrollbar { display:none; }
@@ -46,6 +46,10 @@
     .header-btn:hover { opacity:0.8; }
     .header-btn:active { transform:scale(0.95); }
     .avatar-circle { width:36px; height:36px; border-radius:50%; background:#4b7bec; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; }
+
+    /* Custom Toast Logout Style */
+    #logoutToast { transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    #logoutToast.show { transform: translateY(0); }
   </style>
 </head>
 <body>
@@ -106,6 +110,30 @@
   <div class="bottom-nav">
     <a href="#" id="navReport" class="text-gray-400"><i class="fa-solid fa-file-invoice"></i><span>Report</span></a>
     <a href="#" id="navHistory" class="text-[#1e5eff]"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
+  </div>
+
+  <!-- Modern Interactive Logout Toast Overlay -->
+  <div id="logoutOverlay" class="absolute inset-0 bg-black/40 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-end">
+    <div id="logoutToast" class="w-full bg-white rounded-t-3xl p-6 shadow-2xl space-y-5">
+      <div class="flex justify-center">
+        <div class="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+      </div>
+      <div class="text-center space-y-2">
+        <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-2 animate-bounce">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </div>
+        <h3 class="text-gray-800 font-bold text-lg">Ingin Keluar Aplikasi?</h3>
+        <p class="text-gray-500 text-sm max-w-xs mx-auto">Anda perlu memasukkan ulang kredensial untuk mengakses data kembali.</p>
+      </div>
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button id="cancelLogoutBtn" class="py-3.5 rounded-xl border border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 active:scale-[0.98] transition-all text-sm">
+          Batal
+        </button>
+        <button id="confirmLogoutBtn" class="py-3.5 rounded-xl bg-red-500 font-semibold text-white shadow-lg shadow-red-500/20 hover:bg-red-600 active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-2">
+          <span>Ya, Keluar</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -191,7 +219,6 @@
           return false;
         });
 
-        // Terapkan gabungan filter pencarian + status pertama kali
         applyFilter();
 
       } catch (err) {
@@ -254,12 +281,10 @@
       
       let filtered = allReports;
 
-      // 1. Saring berdasarkan status chip yang aktif
       if (currentStatusFilter !== 'ALL') {
         filtered = filtered.filter(r => (r.status || '').toUpperCase() === currentStatusFilter);
       }
 
-      // 2. Saring berdasarkan kata kunci pencarian
       if (keyword) {
         filtered = filtered.filter(r =>
           (r.lokasi || '').toLowerCase().includes(keyword) ||
@@ -271,10 +296,8 @@
       renderReports(filtered);
     }
 
-    // Listener Input Pencarian
     document.getElementById('searchHistory').addEventListener('input', applyFilter);
 
-    // Listener Klik Filter Chips Status
     document.querySelectorAll('.filter-chip').forEach(chip => {
       chip.addEventListener('click', function() {
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
@@ -313,22 +336,49 @@
     });
 
     // =============================================
-    // 6. NAVIGASI, NOTIF & LOGOUT
+    // 6. NAVIGASI, NOTIF & MODERN TOAST LOGOUT
     // =============================================
     document.getElementById('navReport').addEventListener('click', function(e) { e.preventDefault(); window.location.href = 'user-report.html'; });
     document.getElementById('navHistory').addEventListener('click', function(e) { e.preventDefault(); window.location.href = 'user-history.html'; });
     document.getElementById('notifBtn').addEventListener('click', function() { alert('Anda memiliki 3 notifikasi'); });
 
+    const logoutOverlay = document.getElementById('logoutOverlay');
+    const logoutToast = document.getElementById('logoutToast');
+
+    function openLogoutToast() {
+      logoutOverlay.classList.remove('opacity-0', 'pointer-events-none');
+      logoutToast.classList.add('show');
+    }
+
+    function closeLogoutToast() {
+      logoutOverlay.classList.add('opacity-0', 'pointer-events-none');
+      logoutToast.classList.remove('show');
+    }
+
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
-      if (!confirm('Apakah Anda yakin ingin keluar?')) return;
-      if (window.auth && typeof window.auth.logout === 'function') { window.auth.logout(); return; }
-      try {
-        if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') { BCS.Storage.removeSession(); }
-      } catch(e) {}
-      const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
-      keys.forEach(key => { localStorage.removeItem(key); sessionStorage.removeItem(key); });
-      window.location.href = 'login.html';
+      openLogoutToast();
+    });
+
+    document.getElementById('cancelLogoutBtn').addEventListener('click', closeLogoutToast);
+    logoutOverlay.addEventListener('click', function(e) {
+      if (e.target === this) closeLogoutToast();
+    });
+
+    document.getElementById('confirmLogoutBtn').addEventListener('click', function() {
+      // Menambahkan feedback loading saat keluar
+      this.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Memproses...</span>';
+      this.disabled = true;
+
+      setTimeout(() => {
+        if (window.auth && typeof window.auth.logout === 'function') { window.auth.logout(); return; }
+        try {
+          if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') { BCS.Storage.removeSession(); }
+        } catch(e) {}
+        const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
+        keys.forEach(key => { localStorage.removeItem(key); sessionStorage.removeItem(key); });
+        window.location.href = 'login.html';
+      }, 600);
     });
 
     // INIT

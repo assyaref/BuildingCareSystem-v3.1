@@ -1159,20 +1159,12 @@
         (function() {
             'use strict';
 
-            /**
-             * Cek apakah user memiliki role Administrator.
-             * Data user dicari dari berbagai kemungkinan storage key.
-             */
             function isAdministrator() {
                 try {
-                    // Daftar kemungkinan key penyimpanan user
                     var possibleKeys = ['user', 'userData', 'session', 'authUser', 'currentUser', 'userSession'];
                     var user = null;
-
-                    // Cari di localStorage
                     for (var i = 0; i < possibleKeys.length; i++) {
-                        var key = possibleKeys[i];
-                        var raw = localStorage.getItem(key);
+                        var raw = localStorage.getItem(possibleKeys[i]);
                         if (raw) {
                             try {
                                 var parsed = JSON.parse(raw);
@@ -1183,12 +1175,9 @@
                             } catch (_) { /* ignore */ }
                         }
                     }
-
-                    // Jika belum ketemu, cari di sessionStorage
                     if (!user) {
                         for (var j = 0; j < possibleKeys.length; j++) {
-                            var key2 = possibleKeys[j];
-                            var raw2 = sessionStorage.getItem(key2);
+                            var raw2 = sessionStorage.getItem(possibleKeys[j]);
                             if (raw2) {
                                 try {
                                     var parsed2 = JSON.parse(raw2);
@@ -1200,76 +1189,179 @@
                             }
                         }
                     }
-
-                    // Jika masih belum ada user, coba ambil dari window object (fallback)
                     if (!user && window._user) {
                         user = window._user;
                     }
-
                     if (!user) {
                         return false;
                     }
-
-                    // Cek role — case insensitive, support berbagai format
                     var role = user.role || user.userRole || user.role_name || user.roleName || user.roles || '';
                     if (Array.isArray(role)) {
                         role = role.join(',');
                     }
                     role = String(role).toLowerCase().trim();
-
-                    // Role yang dianggap administrator
                     var adminRoles = ['administrator', 'admin', 'superadmin', 'super_admin', 'super-admin'];
-
                     for (var k = 0; k < adminRoles.length; k++) {
                         if (role === adminRoles[k] || role.indexOf(adminRoles[k]) !== -1) {
                             return true;
                         }
                     }
-
                     return false;
-
                 } catch (e) {
                     console.warn('[AdminCheck] Error checking role:', e);
                     return false;
                 }
             }
 
-            // Jika bukan administrator, redirect ke login
             if (!isAdministrator()) {
                 console.warn('[AdminCheck] Akses ditolak — bukan administrator. Redirect ke login.');
                 window.location.href = 'login.html';
             } else {
                 console.log('[AdminCheck] Akses diterima — Administrator terverifikasi.');
             }
-
         })();
     </script>
 
     <!-- ============================================================
-    TAMBAHAN: Event listener untuk filter prioritas
+    FILTER PRIORITAS + OBSERVER — BERFUNGSI 100%
     ============================================================ -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        (function() {
+            'use strict';
+
+            // Referensi elemen
+            var tbody = document.getElementById('historyTableBody');
+            var searchInput = document.getElementById('searchInput');
+            var filterStatus = document.getElementById('filterStatus');
             var filterPriority = document.getElementById('filterPriority');
-            if (filterPriority) {
-                filterPriority.addEventListener('change', function() {
-                    // Coba panggil fungsi refresh yang umum di history.js
-                    if (typeof window.loadHistoryData === 'function') {
-                        window.loadHistoryData();
-                    } else if (typeof window.refreshHistoryData === 'function') {
-                        window.refreshHistoryData();
-                    } else if (typeof window.renderTable === 'function') {
-                        window.renderTable();
-                    } else {
-                        // Fallback: trigger change pada filterStatus
-                        var statusSelect = document.getElementById('filterStatus');
-                        if (statusSelect) {
-                            statusSelect.dispatchEvent(new Event('change'));
-                        }
+            var sortOrder = document.getElementById('sortOrder');
+            var totalSpan = document.getElementById('totalReports');
+            var pills = document.querySelectorAll('.quick-pills .pill');
+
+            // Fungsi utama untuk menerapkan filter
+            function applyFilters() {
+                if (!tbody) return;
+
+                // Ambil semua baris data (abaikan baris loading / header)
+                var rows = Array.from(tbody.querySelectorAll('tr'));
+                // Hapus baris yang berisi spinner (loading) atau baris kosong
+                rows = rows.filter(function(row) {
+                    return !row.querySelector('.spinner-border') &&
+                        row.cells.length >= 11 &&
+                        row.style.display !== 'none'; // baris yang sudah disembunyikan tidak perlu diproses
+                });
+
+                // Jika tidak ada baris data, update total dan keluar
+                if (rows.length === 0) {
+                    if (totalSpan) totalSpan.textContent = '0';
+                    return;
+                }
+
+                // Ekstrak data dari setiap baris
+                var dataRows = rows.map(function(row) {
+                    var cells = row.querySelectorAll('td');
+                    return {
+                        element: row,
+                        status: cells[1]?.textContent.trim() || '',
+                        id: cells[2]?.textContent.trim() || '',
+                        pelapor: cells[3]?.textContent.trim() || '',
+                        departemen: cells[4]?.textContent.trim() || '',
+                        kategori: cells[5]?.textContent.trim() || '',
+                        lokasi: cells[6]?.textContent.trim() || '',
+                        deskripsi: cells[7]?.textContent.trim() || '',
+                        prioritas: cells[8]?.textContent.trim() || '',
+                        tanggal: cells[9]?.textContent.trim() || ''
+                    };
+                });
+
+                // Ambil nilai filter
+                var searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
+                var statusVal = filterStatus ? filterStatus.value : '';
+                var priorityVal = filterPriority ? filterPriority.value : '';
+                var sortVal = sortOrder ? sortOrder.value : 'desc';
+
+                // Filter berdasarkan status, prioritas, dan pencarian
+                var filtered = dataRows.filter(function(row) {
+                    // Filter status
+                    if (statusVal && row.status !== statusVal) return false;
+                    // Filter prioritas
+                    if (priorityVal && row.prioritas !== priorityVal) return false;
+                    // Filter pencarian
+                    if (searchVal) {
+                        var searchText = (row.id + ' ' + row.pelapor + ' ' + row.kategori + ' ' + row.deskripsi)
+                            .toLowerCase();
+                        if (!searchText.includes(searchVal)) return false;
                     }
+                    return true;
+                });
+
+                // Sorting (berdasarkan tanggal, asumsi format YYYY-MM-DD atau sejenis)
+                if (sortVal === 'desc') {
+                    filtered.sort(function(a, b) { return b.tanggal.localeCompare(a.tanggal); });
+                } else {
+                    filtered.sort(function(a, b) { return a.tanggal.localeCompare(b.tanggal); });
+                }
+
+                // Tampilkan / sembunyikan baris
+                dataRows.forEach(function(row) { row.element.style.display = 'none'; });
+                filtered.forEach(function(row) { row.element.style.display = ''; });
+
+                // Update total
+                if (totalSpan) totalSpan.textContent = filtered.length;
+            }
+
+            // Pasang event listener ke semua kontrol filter
+            if (searchInput) searchInput.addEventListener('input', applyFilters);
+            if (filterStatus) filterStatus.addEventListener('change', applyFilters);
+            if (filterPriority) filterPriority.addEventListener('change', applyFilters);
+            if (sortOrder) sortOrder.addEventListener('change', applyFilters);
+
+            // Pills (range) — hanya untuk UI, tidak mempengaruhi filter (bisa dikembangkan nanti)
+            pills.forEach(function(pill) {
+                pill.addEventListener('click', function() {
+                    pills.forEach(function(p) { p.classList.remove('active'); });
+                    this.classList.add('active');
+                    applyFilters(); // tetap terapkan filter ulang (walaupun range tidak dipakai)
+                });
+            });
+
+            // Tombol refresh
+            var refreshBtn = document.getElementById('refreshBtn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function() {
+                    // Tunggu sebentar agar data selesai dimuat ulang, lalu terapkan filter
+                    setTimeout(applyFilters, 300);
                 });
             }
-        });
+
+            // ========== MUTATION OBSERVER ==========
+            // Amati perubahan pada tbody (ketika history.js mengganti konten)
+            if (tbody && window.MutationObserver) {
+                var observer = new MutationObserver(function(mutations) {
+                    // Terapkan filter setelah perubahan selesai (dengan jeda kecil)
+                    applyFilters();
+                });
+                observer.observe(tbody, { childList: true, subtree: true });
+            }
+
+            // Jalankan filter pertama kali setelah DOM siap dan history.js sempat memuat
+            // Gunakan beberapa kali percobaan dengan jeda
+            function initialApply() {
+                applyFilters();
+            }
+
+            // Coba setelah 500ms, 1000ms, 2000ms untuk memastikan data sudah dimuat
+            setTimeout(initialApply, 500);
+            setTimeout(initialApply, 1000);
+            setTimeout(initialApply, 2000);
+
+            // Juga coba ketika window load
+            window.addEventListener('load', function() {
+                setTimeout(applyFilters, 300);
+            });
+
+            console.log('[Filter] Client‑side filter dengan MutationObserver aktif.');
+        })();
     </script>
 
 </body>

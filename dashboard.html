@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
-    
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -454,15 +454,15 @@
 <script src="assets/js/modules/auth.js"></script>
 <script src="assets/js/modules/dashboard.js"></script>
 
-<!-- 🔥 SIDEBAR DINAMIS - PASTIKAN FILE INI ADA -->
-<script src="assets/js/components/sidebar.js"></script>
+<!-- 🔥 SIDEBAR DINAMIS -->
+<script src="assets/js/core/components/sidebar.js"></script>
 
 <script>
 (function() {
     'use strict';
 
     // =============================================
-    // CHECK ACCESS
+    // 🔥 GUARD: Hanya ADMINISTRATOR yang boleh akses dashboard
     // =============================================
     function checkAccess() {
         try {
@@ -471,13 +471,27 @@
                 window.location.href = 'login.html';
                 return false;
             }
+
+            var role = (session.user.role || '').toUpperCase();
+            if (role !== 'ADMINISTRATOR') {
+                // Redirect user biasa ke user-report.html
+                console.warn('⛔ Akses ditolak untuk role:', role, 'redirect ke user-report.html');
+                window.location.href = 'user-report.html';
+                return false;
+            }
+
             return true;
         } catch (e) {
+            console.warn('Guard error:', e);
             window.location.href = 'login.html';
             return false;
         }
     }
-    if (!checkAccess()) return;
+
+    // Jalankan guard sebelum apapun
+    if (!checkAccess()) {
+        return; // Stop execution jika redirect
+    }
 
     // =============================================
     // DARK MODE
@@ -626,7 +640,7 @@
         initLogout();
         startAutoRefresh();
 
-        // Panggil dashboard.js jika ada
+        // Panggil dashboard.js
         if (window.DashboardController && typeof window.DashboardController.init === 'function') {
             window.DashboardController.init();
         }

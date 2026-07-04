@@ -1,17 +1,15 @@
 <!DOCTYPE html>
 <html lang="id">
-    
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Riwayat Laporan — Building Care System</title>
 
-    <!-- ===== FONTS & ICONS ===== -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
-    <!-- ===== LIBRARY UNTUK EXPORT ===== -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
@@ -62,9 +60,6 @@
             --sidebar-active-bg: rgba(255, 255, 255, 0.12);
         }
 
-        /* ======================================================
-           GLOBAL STYLES
-           ====================================================== */
         * {
             margin: 0;
             padding: 0;
@@ -79,9 +74,6 @@
             min-height: 100vh;
         }
 
-        /* ======================================================
-           LOADING OVERLAY
-           ====================================================== */
         #loading {
             position: fixed;
             inset: 0;
@@ -101,9 +93,6 @@
             border-width: 0.3rem;
         }
 
-        /* ======================================================
-           SIDEBAR
-           ====================================================== */
         .wrapper {
             display: flex;
             min-height: 100vh;
@@ -184,14 +173,6 @@
             text-align: center;
             flex-shrink: 0;
         }
-        .sidebar nav a.menu .badge-menu {
-            margin-left: auto;
-            background: rgba(255, 255, 255, 0.2);
-            color: #fff;
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 12px;
-        }
         .sidebar nav a.menu.text-danger {
             color: #f87171 !important;
         }
@@ -200,9 +181,6 @@
             color: #fca5a5 !important;
         }
 
-        /* ======================================================
-           MAIN CONTENT
-           ====================================================== */
         .content {
             flex: 1;
             padding: 24px 32px 40px;
@@ -211,7 +189,6 @@
             transition: background 0.3s ease;
         }
 
-        /* Topbar */
         .topbar {
             padding-bottom: 20px;
             border-bottom: 1px solid var(--border-color);
@@ -286,9 +263,6 @@
             transform: rotate(20deg);
         }
 
-        /* ======================================================
-           SUMMARY CARDS
-           ====================================================== */
         .summary-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -364,9 +338,6 @@
             color: #ef4444;
         }
 
-        /* ======================================================
-           FILTER & TABLE CARD
-           ====================================================== */
         .enterprise-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -442,40 +413,6 @@
             outline: none;
             border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-        }
-        .filter-group .date-input {
-            min-width: 130px;
-        }
-        .filter-group .month-select {
-            min-width: 140px;
-        }
-
-        .filter-group .btn-filter {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: var(--accent-color);
-            color: #fff;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .filter-group .btn-filter:hover {
-            opacity: 0.85;
-            transform: translateY(-1px);
-        }
-        .filter-group .btn-filter.outline-danger {
-            background: transparent;
-            color: #ef4444;
-            border: 1px solid #ef4444;
-        }
-        .filter-group .btn-filter.outline-danger:hover {
-            background: #ef4444;
-            color: #fff;
         }
 
         .quick-pills {
@@ -564,9 +501,6 @@
             transform: translateY(-1px);
         }
 
-        /* ======================================================
-           TABLE
-           ====================================================== */
         .table-wrap {
             overflow-x: auto;
             margin-top: 4px;
@@ -662,9 +596,6 @@
             border-color: #f59e0b;
         }
 
-        /* ======================================================
-           PAGINATION
-           ====================================================== */
         .pagination-wrap {
             display: flex;
             justify-content: center;
@@ -704,9 +635,6 @@
             pointer-events: none;
         }
 
-        /* ======================================================
-           MODALS
-           ====================================================== */
         .modal-content {
             background: var(--bg-card);
             border-color: var(--border-color);
@@ -770,9 +698,6 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
 
-        /* ======================================================
-           EMPTY STATE
-           ====================================================== */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -788,9 +713,6 @@
             font-weight: 600;
         }
 
-        /* ======================================================
-           RESPONSIVE
-           ====================================================== */
         @media (max-width: 992px) {
             .sidebar {
                 width: 72px;
@@ -857,6 +779,7 @@
             .filter-group .search-wrap {
                 max-width: 100%;
             }
+            .filter-group select,
             .filter-group .date-input,
             .filter-group .month-select {
                 min-width: 100%;
@@ -894,9 +817,7 @@
 
 <body>
 
-    <!-- ======================================================
-    LOADING OVERLAY
-    ======================================================= -->
+    <!-- LOADING -->
     <div id="loading" class="loading-overlay">
         <div class="text-center">
             <div class="spinner-border text-light" role="status">
@@ -905,12 +826,10 @@
         </div>
     </div>
 
-    <!-- ======================================================
-    APP WRAPPER
-    ======================================================= -->
+    <!-- WRAPPER -->
     <div class="wrapper">
 
-        <!-- ===== SIDEBAR ===== -->
+        <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
             <div class="logo-area">
                 <img src="assets/img/logo.png" alt="Logo" onerror="this.style.display='none'">
@@ -922,10 +841,10 @@
             </nav>
         </aside>
 
-        <!-- ===== MAIN CONTENT ===== -->
+        <!-- MAIN CONTENT -->
         <main class="content">
 
-            <!-- ===== TOPBAR ===== -->
+            <!-- TOPBAR -->
             <header class="topbar">
                 <div>
                     <h3>Riwayat Laporan</h3>
@@ -946,8 +865,8 @@
                 </div>
             </header>
 
-            <!-- ===== SUMMARY CARDS ===== -->
-            <section class="summary-grid" id="summaryGrid">
+            <!-- SUMMARY -->
+            <section class="summary-grid">
                 <div class="summary-card">
                     <div class="top">
                         <div class="icon primary"><i class="bi bi-file-earmark-text-fill"></i></div>
@@ -990,7 +909,7 @@
                 </div>
             </section>
 
-            <!-- ===== FILTER & TABLE ===== -->
+            <!-- TABLE -->
             <section>
                 <div class="enterprise-card">
                     <div class="card-header">
@@ -1025,7 +944,6 @@
                     </div>
 
                     <div class="card-body">
-                        <!-- Table -->
                         <div class="table-wrap">
                             <table>
                                 <thead>
@@ -1050,14 +968,12 @@
                             </table>
                         </div>
 
-                        <!-- Empty State -->
                         <div id="emptyState" class="empty-state d-none">
                             <i class="bi bi-inbox"></i>
                             <h5>Tidak ada data</h5>
                             <p class="text-muted">Belum ada laporan yang tersedia atau filter terlalu ketat.</p>
                         </div>
 
-                        <!-- Pagination -->
                         <div class="pagination-wrap">
                             <ul class="pagination" id="pagination"></ul>
                         </div>
@@ -1068,11 +984,7 @@
         </main>
     </div>
 
-    <!-- ======================================================
-    MODALS
-    ======================================================= -->
-
-    <!-- Detail Modal -->
+    <!-- MODALS -->
     <div class="modal fade" id="detailModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -1089,7 +1001,6 @@
         </div>
     </div>
 
-    <!-- Update Modal -->
     <div class="modal fade" id="updateModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -1127,7 +1038,6 @@
         </div>
     </div>
 
-    <!-- Photo Modal -->
     <div class="modal fade" id="photoModal" tabindex="-1">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
@@ -1142,16 +1052,12 @@
         </div>
     </div>
 
-    <!-- ======================================================
-    SCRIPTS
-    ======================================================= -->
-
+    <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
     </script>
 
-    <!-- ===== Core BCS ===== -->
     <script src="assets/js/core/app.js">
     </script>
     <script src="assets/js/core/api.js">
@@ -1166,24 +1072,34 @@
     </script>
     <script src="assets/js/modules/auth.js">
     </script>
-
-    <!-- ===== SIDEBAR COMPONENT ===== -->
     <script src="assets/js/core/components/sidebar.js">
     </script>
 
-    <!-- ======================================================
-    MAIN APPLICATION SCRIPT
-    ======================================================= -->
     <script>
         (function() {
             'use strict';
 
-            // =============================================
-            // DARK MODE
-            // =============================================
+            // ============================================================
+            //  SAFE QUERY SELECTOR
+            // ============================================================
+            function $(sel) { return document.querySelector(sel); }
+
+            function $$(sel) { return document.querySelectorAll(sel); }
+
+            function safeAddEventListener(el, event, handler) {
+                if (el) {
+                    el.addEventListener(event, handler);
+                } else {
+                    console.warn('[History] Element not found for event:', event);
+                }
+            }
+
+            // ============================================================
+            //  DARK MODE
+            // ============================================================
             function initDarkMode() {
-                var toggle = document.getElementById('darkModeToggle');
-                var icon = document.getElementById('darkModeIcon');
+                var toggle = $('#darkModeToggle');
+                var icon = $('#darkModeIcon');
                 if (!toggle) return;
                 var saved = localStorage.getItem('bcs_theme') || 'light';
                 document.documentElement.setAttribute('data-theme', saved);
@@ -1208,9 +1124,9 @@
                 }
             }
 
-            // =============================================
-            // USER INFO
-            // =============================================
+            // ============================================================
+            //  USER INFO
+            // ============================================================
             function loadUserInfo() {
                 try {
                     var session = BCS.Storage.getSession();
@@ -1218,19 +1134,21 @@
                         var user = session.user;
                         var nama = user.nama || user.name || 'User';
                         var role = user.role || 'User';
-                        document.getElementById('userName').textContent = nama;
-                        document.getElementById('userRole').textContent = role;
-                        var avatar = document.getElementById('userAvatar');
-                        avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
+                        var nameEl = $('#userName');
+                        var roleEl = $('#userRole');
+                        var avatar = $('#userAvatar');
+                        if (nameEl) nameEl.textContent = nama;
+                        if (roleEl) roleEl.textContent = role;
+                        if (avatar) avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
                     }
                 } catch (e) {
                     console.warn('Load user info error:', e);
                 }
             }
 
-            // =============================================
-            // STATE
-            // =============================================
+            // ============================================================
+            //  STATE
+            // ============================================================
             var allReports = [];
             var filteredReports = [];
             var currentUser = {};
@@ -1239,23 +1157,22 @@
             var currentDetailReport = null;
             var isLoading = false;
 
-            // DOM refs
-            var tableBody = document.getElementById('historyTableBody');
-            var paginationEl = document.getElementById('pagination');
-            var emptyState = document.getElementById('emptyState');
-            var searchInput = document.getElementById('searchInput');
-            var filterStatus = document.getElementById('filterStatus');
-            var sortOrder = document.getElementById('sortOrder');
+            var tableBody = $('#historyTableBody');
+            var paginationEl = $('#pagination');
+            var emptyState = $('#emptyState');
+            var searchInput = $('#searchInput');
+            var filterStatus = $('#filterStatus');
+            var sortOrder = $('#sortOrder');
 
-            var cardTotal = document.getElementById('cardTotal');
-            var cardOpen = document.getElementById('cardOpen');
-            var cardProgress = document.getElementById('cardProgress');
-            var cardDone = document.getElementById('cardDone');
-            var totalReportsSpan = document.getElementById('totalReports');
+            var cardTotal = $('#cardTotal');
+            var cardOpen = $('#cardOpen');
+            var cardProgress = $('#cardProgress');
+            var cardDone = $('#cardDone');
+            var totalReportsSpan = $('#totalReports');
 
-            // =============================================
-            // TOAST
-            // =============================================
+            // ============================================================
+            //  TOAST
+            // ============================================================
             function showToast(msg, type) {
                 type = type || 'success';
                 var Toast = Swal.mixin({
@@ -1273,24 +1190,24 @@
                 });
             }
 
-            // =============================================
-            // LOADING
-            // =============================================
+            // ============================================================
+            //  LOADING
+            // ============================================================
             function showLoading() {
-                var el = document.getElementById('loading');
+                var el = $('#loading');
                 if (el) el.classList.add('show');
                 isLoading = true;
             }
 
             function hideLoading() {
-                var el = document.getElementById('loading');
+                var el = $('#loading');
                 if (el) el.classList.remove('show');
                 isLoading = false;
             }
 
-            // =============================================
-            // DATE HELPERS
-            // =============================================
+            // ============================================================
+            //  DATE HELPERS
+            // ============================================================
             function parseDate(dateStr) {
                 if (!dateStr) return null;
                 var d = new Date(dateStr);
@@ -1349,14 +1266,16 @@
                 return { start: start, end: end };
             }
 
-            // =============================================
-            // FETCH DATA
-            // =============================================
+            // ============================================================
+            //  FETCH DATA
+            // ============================================================
             async function fetchReports() {
                 if (isLoading) return;
                 showLoading();
-                tableBody.innerHTML =
-                    '<tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Memuat data...</td></tr>';
+                if (tableBody) {
+                    tableBody.innerHTML =
+                        '<tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Memuat data...</td></tr>';
+                }
 
                 try {
                     var api = window.BCS.Api || window.Api;
@@ -1369,7 +1288,6 @@
                     if (response && response.success) {
                         reports = response.data?.reports || [];
                     } else {
-                        // fallback dummy
                         reports = generateDummyData();
                     }
 
@@ -1406,7 +1324,6 @@
                 }
             }
 
-            // Dummy data fallback
             function generateDummyData() {
                 var dummy = [];
                 var now = new Date();
@@ -1441,13 +1358,13 @@
                 return dummy;
             }
 
-            // =============================================
-            // APPLY FILTERS
-            // =============================================
+            // ============================================================
+            //  APPLY FILTERS
+            // ============================================================
             function applyFilters() {
-                var keyword = searchInput.value.toLowerCase().trim();
-                var status = filterStatus.value;
-                var sort = sortOrder.value;
+                var keyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
+                var status = filterStatus ? filterStatus.value : '';
+                var sort = sortOrder ? sortOrder.value : 'desc';
 
                 var result = allReports.slice();
 
@@ -1512,9 +1429,9 @@
                 renderPagination();
             }
 
-            // =============================================
-            // SUMMARY
-            // =============================================
+            // ============================================================
+            //  SUMMARY
+            // ============================================================
             function updateSummary() {
                 var total = filteredReports.length;
                 var open = filteredReports.filter(function(r) { return (r.status || '').toUpperCase() === 'OPEN'; })
@@ -1524,11 +1441,11 @@
                 var done = filteredReports.filter(function(r) { return (r.status || '').toUpperCase() === 'DONE'; })
                 .length;
 
-                cardTotal.textContent = total;
-                cardOpen.textContent = open;
-                cardProgress.textContent = progress;
-                cardDone.textContent = done;
-                totalReportsSpan.textContent = total;
+                if (cardTotal) cardTotal.textContent = total;
+                if (cardOpen) cardOpen.textContent = open;
+                if (cardProgress) cardProgress.textContent = progress;
+                if (cardDone) cardDone.textContent = done;
+                if (totalReportsSpan) totalReportsSpan.textContent = total;
 
                 // Trends
                 var lastWeek = allReports.filter(function(r) {
@@ -1547,26 +1464,31 @@
                 var lwDone = lastWeek.filter(function(r) { return (r.status || '').toUpperCase() === 'DONE'; })
                 .length;
 
-                document.getElementById('totalTrend').textContent = total - lwTotal;
-                document.getElementById('openTrend').textContent = open - lwOpen;
-                document.getElementById('progressTrend').textContent = progress - lwProgress;
-                document.getElementById('doneTrend').textContent = done - lwDone;
+                var totalTrend = $('#totalTrend');
+                var openTrend = $('#openTrend');
+                var progressTrend = $('#progressTrend');
+                var doneTrend = $('#doneTrend');
+                if (totalTrend) totalTrend.textContent = total - lwTotal;
+                if (openTrend) openTrend.textContent = open - lwOpen;
+                if (progressTrend) progressTrend.textContent = progress - lwProgress;
+                if (doneTrend) doneTrend.textContent = done - lwDone;
             }
 
-            // =============================================
-            // RENDER TABLE
-            // =============================================
+            // ============================================================
+            //  RENDER TABLE
+            // ============================================================
             function renderTable() {
+                if (!tableBody) return;
                 var start = (currentPage - 1) * perPage;
                 var pageData = filteredReports.slice(start, start + perPage);
 
                 if (pageData.length === 0) {
                     tableBody.innerHTML =
                         '<tr><td colspan="7" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Tidak ada data</td></tr>';
-                    emptyState.classList.remove('d-none');
+                    if (emptyState) emptyState.classList.remove('d-none');
                     return;
                 }
-                emptyState.classList.add('d-none');
+                if (emptyState) emptyState.classList.add('d-none');
 
                 var html = '';
                 pageData.forEach(function(r, idx) {
@@ -1613,31 +1535,15 @@
                 });
                 tableBody.innerHTML = html;
 
-                // Bind events
-                document.querySelectorAll('.view-photo').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        document.getElementById('modalPhoto').src = this.dataset.src;
-                        new bootstrap.Modal(document.getElementById('photoModal')).show();
-                    });
-                });
-
-                document.querySelectorAll('.view-detail').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        openDetail(this.dataset.id);
-                    });
-                });
-
-                document.querySelectorAll('.edit-report').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        openUpdate(this.dataset.id);
-                    });
-                });
+                // Gunakan event delegation untuk aksi tombol
+                // Binding dilakukan di init dengan delegation
             }
 
-            // =============================================
-            // PAGINATION
-            // =============================================
+            // ============================================================
+            //  PAGINATION
+            // ============================================================
             function renderPagination() {
+                if (!paginationEl) return;
                 var totalPages = Math.ceil(filteredReports.length / perPage);
                 if (totalPages <= 1) {
                     paginationEl.innerHTML = '';
@@ -1674,9 +1580,9 @@
                 });
             }
 
-            // =============================================
-            // OPEN DETAIL
-            // =============================================
+            // ============================================================
+            //  OPEN DETAIL
+            // ============================================================
             function openDetail(id) {
                 var report = allReports.find(function(r) { return r.id == id; });
                 if (!report) {
@@ -1753,13 +1659,15 @@
                 ` : ''}
             `;
 
-                document.getElementById('detailContent').innerHTML = html;
-                new bootstrap.Modal(document.getElementById('detailModal')).show();
+                var detailContent = $('#detailContent');
+                if (detailContent) detailContent.innerHTML = html;
+                var modal = new bootstrap.Modal(document.getElementById('detailModal'));
+                modal.show();
             }
 
-            // =============================================
-            // OPEN UPDATE
-            // =============================================
+            // ============================================================
+            //  OPEN UPDATE
+            // ============================================================
             function openUpdate(id) {
                 var report = allReports.find(function(r) { return r.id == id; });
                 if (!report) {
@@ -1767,31 +1675,38 @@
                     return;
                 }
 
-                document.getElementById('updateId').value = report.id || '';
-                document.getElementById('updateStatus').value = report.status || 'OPEN';
-                document.getElementById('updateTeknisi').value = report.teknisi || '';
-                document.getElementById('updateCatatan').value = report.catatanTeknisi || '';
+                var updateId = $('#updateId');
+                var updateStatus = $('#updateStatus');
+                var updateTeknisi = $('#updateTeknisi');
+                var updateCatatan = $('#updateCatatan');
 
-                new bootstrap.Modal(document.getElementById('updateModal')).show();
+                if (updateId) updateId.value = report.id || '';
+                if (updateStatus) updateStatus.value = report.status || 'OPEN';
+                if (updateTeknisi) updateTeknisi.value = report.teknisi || '';
+                if (updateCatatan) updateCatatan.value = report.catatanTeknisi || '';
+
+                var modal = new bootstrap.Modal(document.getElementById('updateModal'));
+                modal.show();
             }
 
-            // =============================================
-            // SAVE UPDATE
-            // =============================================
-            document.getElementById('saveUpdateBtn').addEventListener('click', async function() {
-                var id = document.getElementById('updateId').value;
-                var status = document.getElementById('updateStatus').value;
-                var teknisi = document.getElementById('updateTeknisi').value.trim();
-                var catatan = document.getElementById('updateCatatan').value.trim();
+            // ============================================================
+            //  SAVE UPDATE
+            // ============================================================
+            async function saveUpdate() {
+                var id = $('#updateId') ? $('#updateId').value : '';
+                var status = $('#updateStatus') ? $('#updateStatus').value : '';
+                var teknisi = $('#updateTeknisi') ? $('#updateTeknisi').value.trim() : '';
+                var catatan = $('#updateCatatan') ? $('#updateCatatan').value.trim() : '';
 
                 if (!id) {
                     showToast('ID laporan tidak valid', 'error');
                     return;
                 }
 
+                var btn = $('#saveUpdateBtn');
                 try {
-                    this.disabled = true;
-                    this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...';
+                    if (btn) { btn.disabled = true;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...'; }
 
                     var api = window.BCS.Api || window.Api;
                     var payload = { id: id, status: status, teknisi: teknisi, catatan: catatan };
@@ -1809,15 +1724,15 @@
                     console.error('Update error:', err);
                     showToast('❌ Terjadi kesalahan: ' + err.message, 'error');
                 } finally {
-                    this.disabled = false;
-                    this.innerHTML = '<i class="bi bi-check-circle"></i> Simpan';
+                    if (btn) { btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-check-circle"></i> Simpan'; }
                 }
-            });
+            }
 
-            // =============================================
-            // EXPORT DETAIL PDF
-            // =============================================
-            document.getElementById('exportDetailPdfBtn').addEventListener('click', function() {
+            // ============================================================
+            //  EXPORT FUNCTIONS
+            // ============================================================
+            function exportDetailPDF() {
                 if (!currentDetailReport) {
                     showToast('Tidak ada data untuk diexport', 'error');
                     return;
@@ -1883,12 +1798,9 @@
 
                 doc.save('Detail_Laporan_' + (report.id || 'export') + '.pdf');
                 showToast('Export PDF berhasil', 'success');
-            });
+            }
 
-            // =============================================
-            // EXPORT EXCEL
-            // =============================================
-            document.getElementById('exportExcelBtn').addEventListener('click', function() {
+            function exportExcel() {
                 if (filteredReports.length === 0) {
                     showToast('Tidak ada data untuk diexport', 'warning');
                     return;
@@ -1914,12 +1826,9 @@
                 XLSX.utils.book_append_sheet(wb, ws, 'History');
                 XLSX.writeFile(wb, 'Riwayat_Laporan_' + new Date().toISOString().slice(0, 10) + '.xlsx');
                 showToast('Berhasil export ' + data.length + ' data ke Excel!', 'success');
-            });
+            }
 
-            // =============================================
-            // EXPORT PDF
-            // =============================================
-            document.getElementById('exportPdfBtn').addEventListener('click', function() {
+            function exportPDF() {
                 if (filteredReports.length === 0) {
                     showToast('Tidak ada data untuk diexport', 'warning');
                     return;
@@ -1998,46 +1907,11 @@
 
                 doc.save('Riwayat_Laporan_' + new Date().toISOString().slice(0, 10) + '.pdf');
                 showToast('Berhasil export ' + rowsToExport.length + ' data ke PDF!', 'success');
-            });
+            }
 
-            // =============================================
-            // QUICK FILTER PILLS
-            // =============================================
-            document.querySelectorAll('.quick-pills .pill').forEach(function(pill) {
-                pill.addEventListener('click', function() {
-                    document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
-                        p.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    applyFilters();
-                });
-            });
-
-            // =============================================
-            // EVENT BINDING
-            // =============================================
-            searchInput.addEventListener('input', function() {
-                document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
-                    p.classList.remove('active');
-                });
-                applyFilters();
-            });
-
-            filterStatus.addEventListener('change', function() {
-                applyFilters();
-            });
-
-            sortOrder.addEventListener('change', function() {
-                applyFilters();
-            });
-
-            document.getElementById('refreshBtn').addEventListener('click', function() {
-                fetchReports();
-            });
-
-            // =============================================
-            // UTILITY
-            // =============================================
+            // ============================================================
+            //  UTILITY
+            // ============================================================
             function escapeHtml(str) {
                 if (!str) return '';
                 return String(str)
@@ -2048,43 +1922,21 @@
                     .replace(/'/g, '&#039;');
             }
 
-            // =============================================
-            // SIDEBAR - Gunakan komponen yang sudah ada
-            // =============================================
+            // ============================================================
+            //  SIDEBAR - gunakan yang sudah ada dari sidebar.js
+            // ============================================================
             function initSidebar() {
-                // Jika ada fungsi global dari sidebar.js, panggil
-                if (typeof BCS.Sidebar !== 'undefined' && typeof BCS.Sidebar.render === 'function') {
-                    BCS.Sidebar.render('history');
-                } else if (typeof window.renderSidebar === 'function') {
-                    window.renderSidebar('history');
-                } else {
-                    // Fallback sederhana
-                    var nav = document.getElementById('sidebarNav');
-                    if (nav) {
-                        nav.innerHTML = `
-                            <a class="menu" href="dashboard.html"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a>
-                            <a class="menu" href="report.html"><i class="bi bi-plus-circle-fill"></i><span>Buat Laporan</span></a>
-                            <a class="menu active" href="history.html"><i class="bi bi-clock-history"></i><span>Riwayat</span></a>
-                            <a class="menu" href="monitoring.html"><i class="bi bi-gear-fill"></i><span>Monitoring</span></a>
-                            <a class="menu text-danger" href="#" id="logoutBtnSidebar"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
-                        `;
-                        var logoutBtn = document.getElementById('logoutBtnSidebar');
-                        if (logoutBtn) {
-                            logoutBtn.addEventListener('click', function(e) {
-                                e.preventDefault();
-                                if (confirm('Apakah Anda yakin ingin keluar?')) {
-                                    BCS.Storage.removeSession();
-                                    window.location.href = 'login.html';
-                                }
-                            });
-                        }
-                    }
+                // sidebar.js sudah otomatis memuat menu, tidak perlu intervensi
+                // Tapi pastikan menu "Riwayat" aktif
+                var activeMenu = document.querySelector('.sidebar nav a.menu[href*="history"]');
+                if (activeMenu) {
+                    activeMenu.classList.add('active');
                 }
             }
 
-            // =============================================
-            // INIT
-            // =============================================
+            // ============================================================
+            //  INIT
+            // ============================================================
             async function init() {
                 initDarkMode();
                 loadUserInfo();
@@ -2100,6 +1952,100 @@
                     }
                 } catch (e) {}
 
+                // ============================================================
+                //  EVENT DELEGATION (agar tombol aksi berfungsi)
+                // ============================================================
+                if (tableBody) {
+                    tableBody.addEventListener('click', function(e) {
+                        var target = e.target.closest('.view-detail');
+                        if (target) {
+                            e.preventDefault();
+                            openDetail(target.dataset.id);
+                            return;
+                        }
+                        var photoBtn = e.target.closest('.view-photo');
+                        if (photoBtn) {
+                            e.preventDefault();
+                            var src = photoBtn.dataset.src;
+                            if (src) {
+                                var modalPhoto = $('#modalPhoto');
+                                if (modalPhoto) modalPhoto.src = src;
+                                var modal = new bootstrap.Modal(document.getElementById('photoModal'));
+                                modal.show();
+                            }
+                            return;
+                        }
+                        var editBtn = e.target.closest('.edit-report');
+                        if (editBtn) {
+                            e.preventDefault();
+                            openUpdate(editBtn.dataset.id);
+                            return;
+                        }
+                    });
+                }
+
+                // ============================================================
+                //  FILTER EVENTS
+                // ============================================================
+                if (searchInput) {
+                    searchInput.addEventListener('input', function() {
+                        document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
+                            p.classList.remove('active');
+                        });
+                        applyFilters();
+                    });
+                }
+
+                if (filterStatus) {
+                    filterStatus.addEventListener('change', applyFilters);
+                }
+
+                if (sortOrder) {
+                    sortOrder.addEventListener('change', applyFilters);
+                }
+
+                // Quick pills
+                document.querySelectorAll('.quick-pills .pill').forEach(function(pill) {
+                    pill.addEventListener('click', function() {
+                        document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
+                            p.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        applyFilters();
+                    });
+                });
+
+                // Refresh
+                var refreshBtn = $('#refreshBtn');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', fetchReports);
+                }
+
+                // Export
+                var exportExcelBtn = $('#exportExcelBtn');
+                if (exportExcelBtn) {
+                    exportExcelBtn.addEventListener('click', exportExcel);
+                }
+
+                var exportPdfBtn = $('#exportPdfBtn');
+                if (exportPdfBtn) {
+                    exportPdfBtn.addEventListener('click', exportPDF);
+                }
+
+                var exportDetailPdfBtn = $('#exportDetailPdfBtn');
+                if (exportDetailPdfBtn) {
+                    exportDetailPdfBtn.addEventListener('click', exportDetailPDF);
+                }
+
+                // Save update
+                var saveUpdateBtn = $('#saveUpdateBtn');
+                if (saveUpdateBtn) {
+                    saveUpdateBtn.addEventListener('click', saveUpdate);
+                }
+
+                // ============================================================
+                //  FETCH DATA
+                // ============================================================
                 await fetchReports();
                 console.log('✅ History page initialized');
             }

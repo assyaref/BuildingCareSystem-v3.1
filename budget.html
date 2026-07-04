@@ -842,6 +842,8 @@
             // SUMMARY
             // =============================================
             function updateSummary() {
+                const totalAllBudgets = budgetData.reduce((sum, b) => sum + Number(b.total || 0), 0);
+
                 const totalEst = budgetData.filter(b => b.status === 'estimated' || b.status === 'pending').reduce(
                 (s, b) => s + b.total, 0);
                 const totalApp = budgetData.filter(b => b.status === 'approved' || b.status === 'paid').reduce(
@@ -1263,7 +1265,7 @@
                         b.id || '-',
                         b.woNumber || b.reportId || '-',
                         b.description || '-',
-                        formatCurrency(b.total),
+                        'Rp ' + Number(b.total || 0).toLocaleString('id-ID'),
                         getStatusLabel(b.status),
                         getPriorityLabel(b.priority),
                         formatDate(b.createdAt)

@@ -2,6 +2,7 @@
 // Sidebar Dinamis Premium UI - Match UI Design v4.7
 // 🔥 Custom Premium Toast Confirmation for Logout
 // 📱 Mobile Responsive: Topbar dengan menu horizontal langsung terlihat
+// ✨ User Card Premium dengan Glassmorphism + Inisial Avatar
 
 (function() {
     'use strict';
@@ -17,6 +18,8 @@
                 --sb-text-muted: #64748b;
                 --sb-active-gradient: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
                 --sb-active-shadow: rgba(37, 99, 235, 0.25);
+                --sb-card-bg: rgba(255, 255, 255, 0.75);
+                --sb-card-border: rgba(255, 255, 255, 0.3);
             }
             [data-theme="dark"] {
                 --sb-sidebar-bg: #111827;
@@ -24,6 +27,8 @@
                 --sb-text-muted: #9ca3af;
                 --sb-active-gradient: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
                 --sb-active-shadow: rgba(37, 99, 235, 0.4);
+                --sb-card-bg: rgba(31, 41, 55, 0.8);
+                --sb-card-border: rgba(55, 65, 81, 0.4);
             }
             
             .sidebar {
@@ -203,45 +208,164 @@
                 margin: 12px 16px;
             }
 
-            /* USER CARD FOOTER */
+            /* ================================================================
+               ✨ USER CARD PREMIUM — GLASSMORPHISM + INISIAL AVATAR
+               ================================================================ */
             .sb-footer {
-                padding: 15px 18px 50px 18px;
+                padding: 15px 18px 30px 18px;
                 position: relative;
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 60' preserveAspectRatio='none'%3E%3Cpath d='M0,30 C100,10 180,50 280,20 L280,60 L0,60 Z' fill='%233b82f6' opacity='0.4'/%3E%3Cpath d='M0,40 C120,20 160,50 280,35 L280,60 L0,60 Z' fill='%230044cc'/%3E%3C/svg%3E");
-                background-position: bottom center;
-                background-size: 100% 50px;
-                background-repeat: no-repeat;
+                background: transparent;
             }
+
             .sb-user-card {
-                background: #eef2f6;
-                border-radius: 16px;
-                padding: 14px 12px;
+                background: var(--sb-card-bg);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border: 1px solid var(--sb-card-border);
+                border-radius: 20px;
+                padding: 14px 14px 14px 16px;
                 display: flex;
                 align-items: center;
-                gap: 12px;
+                gap: 14px;
                 position: relative;
                 z-index: 2;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(255,255,255,0.5) inset;
+                cursor: default;
             }
+            .sb-user-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255,255,255,0.6) inset;
+                background: rgba(255, 255, 255, 0.85);
+            }
+            [data-theme="dark"] .sb-user-card:hover {
+                background: rgba(31, 41, 55, 0.9);
+                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(75, 85, 99, 0.4) inset;
+            }
+
+            /* AVATAR dengan inisial */
             .sb-avatar-wrapper {
                 position: relative;
-                width: 42px;
-                height: 42px;
+                flex-shrink: 0;
+                width: 48px;
+                height: 48px;
             }
             .sb-avatar {
-                width: 100%; height: 100%; border-radius: 50%;
-                background: #3b82f6; color: #ffffff;
-                display: flex; align-items: center justify-content: center;
-                font-weight: 600; font-size: 15px;
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 18px;
+                color: #ffffff;
+                background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+                text-transform: uppercase;
+                transition: all 0.3s ease;
+                user-select: none;
             }
+            .sb-user-card:hover .sb-avatar {
+                transform: scale(1.04);
+                box-shadow: 0 6px 18px rgba(59, 130, 246, 0.45);
+            }
+
+            /* Status dot dengan animasi pulse */
             .sb-status-dot {
-                width: 11px; height: 11px; background: #22c55e;
-                border: 2px solid #eef2f6; border-radius: 50%;
-                position: absolute; bottom: -1px; right: -1px;
+                width: 13px;
+                height: 13px;
+                background: #22c55e;
+                border: 2.5px solid #ffffff;
+                border-radius: 50%;
+                position: absolute;
+                bottom: -1px;
+                right: -1px;
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+                animation: sb-pulse-dot 2s infinite;
             }
-            .sb-user-info { flex: 1; min-width: 0; }
-            .sb-user-name { font-weight: 700; font-size: 14px; color: var(--sb-text-dark); margin: 0 0 4px 0; line-height: 1.2; }
-            .sb-badge-role { background: #3b82f6; color: #ffffff; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 4px; display: inline-block; text-transform: uppercase; }
-            .sb-chevron-down { color: var(--sb-text-muted); font-size: 14px; }
+            [data-theme="dark"] .sb-status-dot {
+                border-color: #1e293b;
+            }
+
+            @keyframes sb-pulse-dot {
+                0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+                70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+            }
+
+            /* Informasi user */
+            .sb-user-info {
+                flex: 1;
+                min-width: 0;
+            }
+            .sb-user-name {
+                font-weight: 700;
+                font-size: 15px;
+                color: var(--sb-text-dark);
+                margin: 0 0 3px 0;
+                line-height: 1.3;
+                letter-spacing: -0.01em;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .sb-user-role-wrap {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+            .sb-badge-role {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
+                color: #ffffff;
+                font-size: 9px;
+                font-weight: 700;
+                padding: 2px 10px 2px 8px;
+                border-radius: 20px;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+                line-height: 1.6;
+            }
+            .sb-badge-role i {
+                font-size: 8px;
+                opacity: 0.8;
+            }
+            .sb-user-email {
+                font-size: 11px;
+                color: var(--sb-text-muted);
+                opacity: 0.7;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100px;
+            }
+
+            /* Chevron / action */
+            .sb-chevron-down {
+                color: var(--sb-text-muted);
+                font-size: 16px;
+                opacity: 0.5;
+                transition: all 0.3s ease;
+                flex-shrink: 0;
+                margin-left: 4px;
+                background: rgba(0,0,0,0.03);
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+            }
+            .sb-user-card:hover .sb-chevron-down {
+                opacity: 0.9;
+                background: rgba(0,0,0,0.06);
+                transform: rotate(90deg);
+            }
 
             /* 🌟 TOAST OVERLAY & BOX CSS */
             .sb-toast-overlay {
@@ -311,7 +435,7 @@
             @media (max-width: 991.98px) {
                 .sidebar {
                     width: 100% !important;
-                    height: auto !important;            /* biarkan tinggi menyesuaikan isi */
+                    height: auto !important;
                     position: fixed;
                     top: 0; left: 0; right: 0;
                     border-right: none;
@@ -319,17 +443,16 @@
                     box-shadow: 0 4px 20px rgba(0,0,0,0.05);
                     z-index: 1050;
                     flex-direction: column;
-                    overflow: visible;                 /* biarkan menu horizontal terlihat */
+                    overflow: visible;
                 }
 
-                /* Header ringkas */
                 .sb-header {
                     padding: 0 20px;
                     height: 60px;
                     margin-bottom: 0;
                     display: flex;
                     align-items: center;
-                    justify-content: flex-start;      /* konten di kiri */
+                    justify-content: flex-start;
                     background: linear-gradient(135deg, #0d6efd 0%, #0044cc 100%) !important;
                     background-image: none !important;
                 }
@@ -349,10 +472,9 @@
                 .sb-brand-title { font-size: 16px; }
                 .sb-brand-subtitle { display: none; }
                 .sb-user-mobile {
-                    display: inline-block !important;   /* tampilkan nama user di header */
+                    display: inline-block !important;
                 }
 
-                /* Menu body menjadi horizontal scroll */
                 .sb-body {
                     display: flex;
                     flex-direction: row !important;
@@ -368,7 +490,7 @@
                     transition: none !important;
                     -webkit-overflow-scrolling: touch;
                     scrollbar-width: none;
-                    flex: 0 0 auto;                   /* jangan memenuhi sisa tinggi */
+                    flex: 0 0 auto;
                 }
                 .sb-body::-webkit-scrollbar { display: none; }
 
@@ -403,7 +525,6 @@
                 .sb-arrow { display: none; }
                 .sb-divider { display: none; }
 
-                /* Logout item tetap terlihat dalam scroll */
                 .logout-item {
                     color: #ff3b30 !important;
                     background: #fff5f5 !important;
@@ -413,20 +534,69 @@
                     color: #ff3b30 !important;
                 }
 
-                /* Footer: sembunyikan default, muncul saat toggle */
+                /* Footer user card di mobile: tetap muncul, lebih compact */
                 .sb-footer {
                     display: none;
-                    padding: 15px 24px 25px 24px;
-                    background-image: none !important;
+                    padding: 12px 18px 20px 18px;
+                    background: var(--sb-sidebar-bg);
+                    border-top: 1px solid rgba(0,0,0,0.04);
                 }
                 .sidebar.open .sb-footer {
                     display: block;
                 }
 
+                .sb-user-card {
+                    padding: 12px 14px;
+                    border-radius: 16px;
+                    gap: 12px;
+                    background: rgba(255,255,255,0.8);
+                    backdrop-filter: blur(8px);
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+                }
+                .sb-avatar-wrapper {
+                    width: 40px;
+                    height: 40px;
+                }
+                .sb-avatar {
+                    font-size: 15px;
+                }
+                .sb-user-name {
+                    font-size: 14px;
+                }
+                .sb-user-email {
+                    display: none;
+                }
+                .sb-chevron-down {
+                    width: 28px;
+                    height: 28px;
+                    font-size: 14px;
+                }
+
                 .content {
                     margin-left: 0 !important;
                     width: 100% !important;
-                    padding-top: 120px !important;   /* header 60px + menu ~50px + spacing */
+                    padding-top: 120px !important;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .sb-user-card {
+                    padding: 10px 12px;
+                    gap: 10px;
+                }
+                .sb-avatar-wrapper {
+                    width: 36px;
+                    height: 36px;
+                }
+                .sb-avatar {
+                    font-size: 13px;
+                }
+                .sb-user-name {
+                    font-size: 13px;
+                }
+                .sb-badge-role {
+                    font-size: 8px;
+                    padding: 1px 8px 1px 6px;
                 }
             }
         `;
@@ -518,11 +688,20 @@
         const session = getSession();
         let userName = 'John Doe';
         let userRole = 'ADMIN';
+        let userEmail = 'john.doe@example.com';
 
         if (session && session.user) {
             userName = session.user.nama || session.user.name || 'John Doe';
             userRole = session.user.role || 'ADMIN';
+            userEmail = session.user.email || session.user.username || 'user@company.com';
         }
+
+        // Ambil inisial untuk avatar
+        const initials = userName
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase())
+            .slice(0, 2)
+            .join('');
 
         const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
 
@@ -595,12 +774,15 @@
             <div class="sb-footer">
                 <div class="sb-user-card">
                     <div class="sb-avatar-wrapper">
-                        <div class="sb-avatar"><i class="bi bi-person-fill"></i></div>
+                        <div class="sb-avatar">${initials}</div>
                         <div class="sb-status-dot"></div>
                     </div>
                     <div class="sb-user-info">
                         <h6 class="sb-user-name">${userName}</h6>
-                        <span class="sb-badge-role">${userRole}</span>
+                        <div class="sb-user-role-wrap">
+                            <span class="sb-badge-role"><i class="bi bi-shield-fill-check"></i> ${userRole}</span>
+                            <span class="sb-user-email">${userEmail}</span>
+                        </div>
                     </div>
                     <i class="bi bi-chevron-down sb-chevron-down"></i>
                 </div>
@@ -641,7 +823,6 @@
         } else {
             toggleBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                // Di mobile, toggle hanya menampilkan / menyembunyikan user card (footer)
                 const isOpen = sidebar.classList.toggle('open');
                 const icon = toggleBtn.querySelector('i');
                 if (icon) {
@@ -650,7 +831,6 @@
             });
         }
 
-        // Tutup saat klik di luar sidebar
         document.addEventListener('click', function(e) {
             if (window.innerWidth <= 991.98 && 
                 sidebar.classList.contains('open') &&
@@ -660,14 +840,12 @@
             }
         });
 
-        // Otomatis tutup saat resize ke desktop
         window.addEventListener('resize', function() {
             if (window.innerWidth > 991.98 && sidebar.classList.contains('open')) {
                 closeSidebar();
             }
         });
 
-        // Tutup dengan tombol ESC
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && sidebar.classList.contains('open')) {
                 closeSidebar();

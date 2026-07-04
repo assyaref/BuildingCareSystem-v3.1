@@ -1,5 +1,5 @@
 // assets/js/core/components/sidebar.js
-// Sidebar Dinamis Premium UI - Match UI Design v4.3
+// Sidebar Dinamis Premium UI - Match UI Design v4.7
 // 🔥 Custom Premium Toast Confirmation for Logout
 // 📱 Mobile Responsive: Topbar dengan menu horizontal langsung terlihat
 

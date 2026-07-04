@@ -474,7 +474,6 @@
 
             var role = (session.user.role || '').toUpperCase();
             if (role !== 'ADMINISTRATOR') {
-                // Redirect user biasa ke user-report.html
                 console.warn('⛔ Akses ditolak untuk role:', role, 'redirect ke user-report.html');
                 window.location.href = 'user-report.html';
                 return false;
@@ -488,9 +487,8 @@
         }
     }
 
-    // Jalankan guard sebelum apapun
     if (!checkAccess()) {
-        return; // Stop execution jika redirect
+        return;
     }
 
     // =============================================
@@ -549,41 +547,29 @@
     }
 
     // =============================================
-    // AUTO-REFRESH
+    // AUTO-REFRESH (Tanpa Toast)
     // =============================================
     var refreshTimer = 7;
     var refreshInterval = null;
     var timerInterval = null;
     var isRefreshing = false;
 
-    function showRefreshToast() {
-        var toast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true
-        });
-        toast.fire({
-            icon: 'info',
-            title: '🔄 Data diperbarui...',
-            text: 'Dashboard sedang di-refresh',
-            timer: 2000
-        });
-    }
-
     function performRefresh() {
         if (isRefreshing) return;
         isRefreshing = true;
-        showRefreshToast();
+
         if (window.DashboardController && typeof window.DashboardController.refresh === 'function') {
             window.DashboardController.refresh();
         } else {
             window.location.reload();
         }
+
         refreshTimer = 7;
         updateTimerDisplay();
-        setTimeout(function() { isRefreshing = false; }, 1000);
+
+        setTimeout(function() {
+            isRefreshing = false;
+        }, 1000);
     }
 
     function updateTimerDisplay() {
@@ -594,16 +580,19 @@
     function startAutoRefresh() {
         if (refreshInterval) clearInterval(refreshInterval);
         if (timerInterval) clearInterval(timerInterval);
+
         timerInterval = setInterval(function() {
             refreshTimer--;
             if (refreshTimer <= 0) refreshTimer = 7;
             updateTimerDisplay();
         }, 1000);
+
         refreshInterval = setInterval(function() {
             performRefresh();
         }, 7000);
+
         updateTimerDisplay();
-        console.log('✅ Auto-refresh started (every 7 seconds)');
+        console.log('✅ Auto-refresh started (every 7 seconds) - without toast');
     }
 
     function stopAutoRefresh() {
@@ -640,12 +629,11 @@
         initLogout();
         startAutoRefresh();
 
-        // Panggil dashboard.js
         if (window.DashboardController && typeof window.DashboardController.init === 'function') {
             window.DashboardController.init();
         }
 
-        console.log('✅ Dashboard System Initialized');
+        console.log('✅ Dashboard System Initialized (Toast removed)');
     }
 
     window.addEventListener('beforeunload', function() {

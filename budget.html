@@ -571,6 +571,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <script src="config/config.js"></script>
     <script src="assets/js/core/app.js"></script>
@@ -1246,29 +1247,82 @@
             }
 
             function exportPdf() {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('landscape', 'mm', 'a4');
-                doc.setFontSize(16);
-                doc.text('Laporan Budget Building Care', 20, 20);
-                doc.setFontSize(10);
-                const rows = budgetData.map(b => [
-                    b.id,
-                    b.reportId,
-                    b.description.substring(0, 20),
-                    b.status,
-                    b.priority,
-                    'Rp ' + Number(b.total).toLocaleString('id-ID'),
-                ]);
-                doc.autoTable({
-                    head: [['ID Budget', 'Work Order', 'Deskripsi', 'Status', 'Prioritas', 'Total']],
-                    body: rows,
-                    startY: 30,
-                    styles: { fontSize: 8 },
-                    headStyles: { fillColor: [59, 130, 246] },
-                });
-                doc.save('Budget_Report.pdf');
-                Swal.fire('Sukses', 'File PDF berhasil diunduh.', 'success');
+                try {
+                    if (!window.jspdf || !window.jspdf.jsPDF) {
+                        throw new Error('Library jsPDF tidak tersedia');
+                    }
+
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({
+                        orientation: 'landscape',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    const rows = budgetData.map(b => [
+                        b.id || '-',
+                        b.woNumber || b.reportId || '-',
+                        b.description || '-',
+                        formatRupiah(b.total),
+                        getStatusLabel(b.status),
+                        getPriorityLabel(b.priority),
+                        formatDate(b.createdAt)
+                    ]);
+
+                    doc.setFontSize(18);
+                    doc.text('Laporan Budget & Estimasi Biaya', 14, 18);
+                    doc.setFontSize(10);
+                    doc.text('Building Care System Enterprise v4.3', 14, 25);
+
+                    const tableOptions = {
+                        startY: 32,
+                        head: [[
+                            'ID Budget',
+                            'Work Order',
+                            'Deskripsi',
+                            'Total Alokasi',
+                            'Status',
+                            'Prioritas',
+                            'Tanggal'
+                        ]],
+                        body: rows,
+                        styles: {
+                            fontSize: 8,
+                            cellPadding: 3
+                        },
+                        headStyles: {
+                            fontStyle: 'bold'
+                        },
+                        columnStyles: {
+                            0: { cellWidth: 38 },
+                            1: { cellWidth: 42 },
+                            2: { cellWidth: 55 },
+                            3: { cellWidth: 32 },
+                            4: { cellWidth: 25 },
+                            5: { cellWidth: 24 },
+                            6: { cellWidth: 28 }
+                        },
+                        margin: {
+                            left: 14,
+                            right: 14
+                        }
+                    };
+
+                    if (typeof doc.autoTable === 'function') {
+                        doc.autoTable(tableOptions);
+                    } else if (typeof window.jspdfAutoTable === 'function') {
+                        window.jspdfAutoTable(doc, tableOptions);
+                    } else {
+                        throw new Error('Plugin jsPDF AutoTable tidak tersedia. Lakukan hard refresh.');
+                    }
+
+                    doc.save(`Budget_BCS_${new Date().toISOString().slice(0, 10)}.pdf`);
+                } catch (err) {
+                    console.error('Export PDF Error:', err);
+                    Swal.fire('Export PDF Gagal', err.message, 'error');
+                }
             }
+
 
             // =============================================
             // INIT

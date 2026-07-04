@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
     <style>
-        /* ===== VARIABEL CSS (MODERN PALETTE) ===== */
+        /* (Sama seperti sebelumnya, tidak diubah) */
         :root {
             --bg-body: #f8fafc;
             --bg-card: #ffffff;
@@ -55,7 +55,6 @@
             transition: background 0.3s ease, color 0.3s ease;
         }
 
-        /* Modifikasi .content untuk menyelaraskan layout dengan sidebar.js */
         .content {
             background: var(--bg-body);
             padding: 2rem 1.5rem;
@@ -64,7 +63,6 @@
             transition: all 0.3s ease;
         }
 
-        /* ===== MODERN TOPBAR ===== */
         .topbar {
             background: var(--bg-card);
             padding: 1.25rem 1.5rem;
@@ -74,7 +72,6 @@
             margin-bottom: 2rem;
         }
 
-        /* ===== CARDS OVERHAUL ===== */
         .card,
         .enterprise-card {
             background: var(--bg-card);
@@ -87,21 +84,15 @@
         .enterprise-card:hover {
             box-shadow: var(--shadow-md);
         }
-
         .card-header {
             background: var(--bg-card);
             border-bottom: 1px solid var(--border-color);
             padding: 1.25rem 1.5rem;
         }
 
-        .text-muted {
-            color: var(--text-muted) !important;
-        }
-        .text-secondary {
-            color: var(--text-secondary) !important;
-        }
+        .text-muted { color: var(--text-muted) !important; }
+        .text-secondary { color: var(--text-secondary) !important; }
 
-        /* ===== AVATAR & TOGGLE ===== */
         .avatar-sm {
             width: 42px;
             height: 42px;
@@ -135,7 +126,6 @@
             transform: translateY(-2px);
         }
 
-        /* ===== BUDGET BADGES (SQUIRCLE CAPSULE) ===== */
         .budget-badge {
             font-size: 11px;
             font-weight: 600;
@@ -146,59 +136,17 @@
             gap: 6px;
             border: 1px solid transparent;
         }
-        .budget-estimated {
-            background: #eff6ff;
-            color: #2563eb;
-            border-color: #bfdbfe;
-        }
-        .budget-pending {
-            background: #fffbeb;
-            color: #d97706;
-            border-color: #fef3c7;
-        }
-        .budget-approved {
-            background: #f0fdf4;
-            color: #16a34a;
-            border-color: #bbf7d0;
-        }
-        .budget-paid {
-            background: #ecfdf5;
-            color: #059669;
-            border-color: #a7f3d0;
-        }
-        .budget-rejected {
-            background: #fef2f2;
-            color: #dc2626;
-            border-color: #fee2e2;
-        }
+        .budget-estimated { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+        .budget-pending { background: #fffbeb; color: #d97706; border-color: #fef3c7; }
+        .budget-approved { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+        .budget-paid { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+        .budget-rejected { background: #fef2f2; color: #dc2626; border-color: #fee2e2; }
+        [data-theme="dark"] .budget-estimated { background: #1e3a8a; color: #60a5fa; border-color: #1e40af; }
+        [data-theme="dark"] .budget-pending { background: #451a03; color: #fbbf24; border-color: #78350f; }
+        [data-theme="dark"] .budget-approved { background: #064e3b; color: #34d399; border-color: #047857; }
+        [data-theme="dark"] .budget-paid { background: #065f46; color: #6ee7b7; border-color: #047857; }
+        [data-theme="dark"] .budget-rejected { background: #7f1d1d; color: #f87171; border-color: #991b1b; }
 
-        [data-theme="dark"] .budget-estimated {
-            background: #1e3a8a;
-            color: #60a5fa;
-            border-color: #1e40af;
-        }
-        [data-theme="dark"] .budget-pending {
-            background: #451a03;
-            color: #fbbf24;
-            border-color: #78350f;
-        }
-        [data-theme="dark"] .budget-approved {
-            background: #064e3b;
-            color: #34d399;
-            border-color: #047857;
-        }
-        [data-theme="dark"] .budget-paid {
-            background: #065f46;
-            color: #6ee7b7;
-            border-color: #047857;
-        }
-        [data-theme="dark"] .budget-rejected {
-            background: #7f1d1d;
-            color: #f87171;
-            border-color: #991b1b;
-        }
-
-        /* ===== SUMMARY CARDS GLASSMORPHISM ===== */
         .summary-card {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: var(--radius-lg);
@@ -238,19 +186,10 @@
             font-size: 20px;
             flex-shrink: 0;
         }
-        .summary-card .summary-icon.bg-info {
-            background: linear-gradient(135deg, #38bdf8, #0284c7);
-        }
-        .summary-card .summary-icon.bg-success {
-            background: linear-gradient(135deg, #4ade80, #16a34a);
-        }
-        .summary-card .summary-icon.bg-warning {
-            background: linear-gradient(135deg, #fbbf24, #d97706);
-        }
-        .summary-card .summary-icon.bg-danger {
-            background: linear-gradient(135deg, #f87171, #dc2626);
-        }
-
+        .summary-card .summary-icon.bg-info { background: linear-gradient(135deg, #38bdf8, #0284c7); }
+        .summary-card .summary-icon.bg-success { background: linear-gradient(135deg, #4ade80, #16a34a); }
+        .summary-card .summary-icon.bg-warning { background: linear-gradient(135deg, #fbbf24, #d97706); }
+        .summary-card .summary-icon.bg-danger { background: linear-gradient(135deg, #f87171, #dc2626); }
         .summary-card h6 {
             font-size: 12px;
             color: var(--text-secondary);
@@ -266,7 +205,6 @@
             letter-spacing: -0.5px;
         }
 
-        /* ===== MODERN ACTION BUTTONS ===== */
         .btn-action {
             width: 34px;
             height: 34px;
@@ -280,53 +218,29 @@
             font-size: 14px;
             background: var(--bg-card);
         }
-        .btn-action.view {
-            color: #2563eb;
-        }
-        .btn-action.view:hover {
-            background: #eff6ff;
-            border-color: #bfdbfe;
-        }
-        .btn-action.edit {
-            color: #16a34a;
-        }
-        .btn-action.edit:hover {
-            background: #f0fdf4;
-            border-color: #bbf7d0;
-        }
-        .btn-action.delete {
-            color: #dc2626;
-        }
-        .btn-action.delete:hover {
-            background: #fef2f2;
-            border-color: #fee2e2;
-        }
+        .btn-action.view { color: #2563eb; }
+        .btn-action.view:hover { background: #eff6ff; border-color: #bfdbfe; }
+        .btn-action.edit { color: #16a34a; }
+        .btn-action.edit:hover { background: #f0fdf4; border-color: #bbf7d0; }
+        .btn-action.delete { color: #dc2626; }
+        .btn-action.delete:hover { background: #fef2f2; border-color: #fee2e2; }
 
-        /* ===== MODERN BOOTSTRAP OVERRIDES ===== */
         .table> :not(caption)>*>* {
             padding: 1rem 1rem;
             border-bottom-color: var(--border-color);
         }
-        .table tbody tr {
-            transition: background-color 0.2s ease;
-        }
-        .table tbody tr:hover {
-            background-color: var(--bg-card-hover) !important;
-        }
-
-        .form-control,
-        .form-select {
+        .table tbody tr { transition: background-color 0.2s ease; }
+        .table tbody tr:hover { background-color: var(--bg-card-hover) !important; }
+        .form-control, .form-select {
             border-radius: 10px;
             padding: 0.6rem 1rem;
             transition: all 0.2s ease;
         }
-        .form-control:focus,
-        .form-select:focus {
+        .form-control:focus, .form-select:focus {
             border-color: var(--accent-color);
             box-shadow: 0 0 0 4px var(--accent-soft);
         }
 
-        /* ===== REPETITIVE ITEM ROWS ===== */
         .item-row {
             display: grid;
             grid-template-columns: 2fr 0.7fr 1.2fr 1.2fr auto;
@@ -344,34 +258,25 @@
             box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
             border: 1px solid var(--border-color);
         }
-        .modal-header {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
+        .modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
 
         @media (max-width: 991.98px) {
             .content {
                 margin-left: 0 !important;
                 width: 100% !important;
                 padding-top: 140px !important;
-                /* Ruang udara untuk Mobile Topbar sidebar.js */
                 padding-left: 1rem;
                 padding-right: 1rem;
             }
         }
-
         @media (max-width: 768px) {
-            .item-row {
-                grid-template-columns: 1fr;
-                gap: 8px;
-            }
+            .item-row { grid-template-columns: 1fr; gap: 8px; }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- LOADING -->
     <div id="loading" class="loading-overlay" style="display:none;">
         <div class="text-center">
             <div class="spinner-border text-light" role="status">
@@ -380,21 +285,14 @@
         </div>
     </div>
 
-    <!-- APP WRAPPER -->
     <div class="wrapper">
-
-        <!-- SIDEBAR CONTAINER -->
-        <!-- Elemen dipertahankan kosong, struktur internal akan dirender otomatis secara dinamis oleh assets/js/core/components/sidebar.js -->
         <aside class="sidebar"></aside>
 
-        <!-- MAIN CONTENT -->
         <main class="content">
             <div class="container-fluid">
 
-                <!-- TOPBAR -->
                 <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <div class="d-flex align-items-center gap-2">
-                        <!-- Tombol burger menu pembantu khusus tampilan tablet/mobile -->
                         <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebarToggle" style="border-radius: 8px;">
                             <i class="bi bi-list" style="font-size: 18px;"></i>
                         </button>
@@ -417,7 +315,6 @@
                     </div>
                 </header>
 
-                <!-- SUMMARY CARDS -->
                 <section class="row g-4">
                     <div class="col-xl-3 col-sm-6">
                         <div class="summary-card" style="color: #0ea5e9;">
@@ -481,7 +378,6 @@
                     </div>
                 </section>
 
-                <!-- FILTER & DATA TABLE SECTION -->
                 <section class="row g-4 mt-2">
                     <div class="col-12">
                         <div class="card enterprise-card">
@@ -623,9 +519,7 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label class="form-label fw-semibold text-secondary mb-2" style="font-size:12px;">Rincian Item Pengeluaran</label>
-                                    <div id="itemsContainer">
-                                        <!-- Dinamis via JS -->
-                                    </div>
+                                    <div id="itemsContainer"></div>
                                     <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="addItem" style="border-radius:6px;">
                                         <i class="bi bi-plus-circle me-1"></i> Tambah Item Baru
                                     </button>
@@ -670,41 +564,21 @@
         </div>
     </div>
 
-    <!-- SCRIPTS CORE -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <!-- SISTEM CORE BCS -->
-    <script src="config/config.js">
-    </script>
-    <script src="assets/js/core/app.js">
-    </script>
-    <script src="assets/js/core/api.js">
-    </script>
-    <script src="assets/js/core/storage.js">
-    </script>
-    <script src="assets/js/core/session.js">
-    </script>
-    <script src="assets/js/core/ui.js">
-    </script>
-    <script src="assets/js/core/utils.js">
-    </script>
-    <script src="assets/js/modules/auth.js">
-    </script>
+    <script src="config/config.js"></script>
+    <script src="assets/js/core/app.js"></script>
+    <script src="assets/js/core/api.js"></script>
+    <script src="assets/js/core/storage.js"></script>
+    <script src="assets/js/core/session.js"></script>
+    <script src="assets/js/core/ui.js"></script>
+    <script src="assets/js/core/utils.js"></script>
+    <script src="assets/js/modules/auth.js"></script>
+    <script src="assets/js/core/components/sidebar.js"></script>
 
-    <!-- INJEKSI SIDEBAR OTOMATIS -->
-    <script src="assets/js/core/components/sidebar.js">
-    </script>
-
-    <!-- ============================================================
-    SCRIPT UTAMA BUDGET — dengan VALIDASI AKSES ADMINISTRATOR
-    ============================================================ -->
     <script>
         (function() {
             'use strict';
@@ -714,26 +588,16 @@
             // =============================================
             try {
                 const session = BCS.Storage.getSession();
-
-                // Jika session tidak ada atau user tidak login → redirect login
                 if (!session || !session.user) {
                     window.location.href = 'login.html';
                     return;
                 }
-
-                // Ambil role dari session (case-insensitive)
                 const role = (session.user.role || '').toLowerCase().trim();
-
-                // Role yang diperbolehkan: 'administrator' atau 'admin'
-                const allowedRoles = ['administrator', 'admin'];
-                if (!allowedRoles.includes(role)) {
-                    // Jika bukan administrator, redirect ke login
+                if (!['administrator', 'admin'].includes(role)) {
                     window.location.href = 'login.html';
                     return;
                 }
-
                 console.log('✅ Akses Budget diterima untuk role:', role);
-
             } catch (err) {
                 console.error('Validasi akses Budget error:', err);
                 window.location.href = 'login.html';
@@ -741,10 +605,8 @@
             }
 
             // =============================================
-            // 2. SISA LOGIKA BUDGET (dipertahankan)
+            // 2. DOM REFS
             // =============================================
-
-            // DOM refs
             const DOM = {
                 userName: document.getElementById('userName'),
                 userRole: document.getElementById('userRole'),
@@ -756,7 +618,6 @@
                 filterPriority: document.getElementById('filterPriority'),
                 budgetTableBody: document.getElementById('budgetTableBody'),
                 pagination: document.getElementById('pagination'),
-
                 totalEstimated: document.getElementById('totalEstimated'),
                 totalApproved: document.getElementById('totalApproved'),
                 totalPending: document.getElementById('totalPending'),
@@ -765,7 +626,6 @@
                 countApproved: document.getElementById('countApproved'),
                 countPending: document.getElementById('countPending'),
                 countRejected: document.getElementById('countRejected'),
-
                 btnAddBudget: document.getElementById('btnAddBudget'),
                 budgetModal: new bootstrap.Modal(document.getElementById('budgetModal')),
                 modalTitle: document.getElementById('modalTitle'),
@@ -829,7 +689,7 @@
             }
 
             // =============================================
-            // FAKE DATA BUDGET (contoh)
+            // FAKE DATA BUDGET
             // =============================================
             let budgetData = [];
             let editingId = null;
@@ -908,7 +768,6 @@
                     };
                     const statusLabel = statusMap[b.status] || b.status;
                     const priorityLabel = priorityMap[b.priority] || b.priority;
-
                     const date = b.createdAt ? new Date(b.createdAt).toLocaleDateString('id-ID', {
                         day: '2-digit',
                         month: 'short',
@@ -937,7 +796,6 @@
 
                 DOM.budgetTableBody.innerHTML = html;
 
-                // Event listeners
                 document.querySelectorAll('.btn-action.view').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const id = this.dataset.id;
@@ -945,7 +803,6 @@
                         if (item) showDetail(item);
                     });
                 });
-
                 document.querySelectorAll('.btn-action.edit').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const id = this.dataset.id;
@@ -953,7 +810,6 @@
                         if (item) openEditModal(item);
                     });
                 });
-
                 document.querySelectorAll('.btn-action.delete').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const id = this.dataset.id;
@@ -1002,7 +858,7 @@
             }
 
             // =============================================
-            // FILTER
+            // FILTER — PERBAIKAN CASE-INSENSITIVE
             // =============================================
             function applyFilters() {
                 const search = DOM.searchInput.value.toLowerCase().trim();
@@ -1014,7 +870,8 @@
                         b.reportId.toLowerCase().includes(search) ||
                         b.description.toLowerCase().includes(search);
                     const matchStatus = status ? b.status === status : true;
-                    const matchPriority = priority ? b.priority === priority : true;
+                    // ⭐ PRIORITY FILTER — CASE-INSENSITIVE
+                    const matchPriority = priority ? (b.priority || '').trim().toLowerCase() === priority.toLowerCase() : true;
                     return matchSearch && matchStatus && matchPriority;
                 });
 
@@ -1151,7 +1008,6 @@
                 `;
                 DOM.itemsContainer.appendChild(row);
 
-                // Event update subtotal
                 row.querySelectorAll('.item-qty, .item-price').forEach(inp => {
                     inp.addEventListener('input', function() {
                         updateRowSubtotal(row);
@@ -1221,7 +1077,6 @@
                 const total = items.reduce((s, it) => s + it.subtotal, 0);
 
                 if (editingId) {
-                    // Edit
                     const idx = budgetData.findIndex(b => b.id === editingId);
                     if (idx !== -1) {
                         budgetData[idx] = {
@@ -1238,7 +1093,6 @@
                     }
                     Swal.fire('Berhasil!', 'Budget berhasil diperbarui.', 'success');
                 } else {
-                    // Tambah baru
                     const newId = 'BUD-' + String(budgetData.length + 1).padStart(4, '0');
                     budgetData.push({
                         id: newId,
@@ -1288,7 +1142,6 @@
                 doc.setFontSize(16);
                 doc.text('Laporan Budget Building Care', 20, 20);
                 doc.setFontSize(10);
-
                 const rows = budgetData.map(b => [
                     b.id,
                     b.reportId,
@@ -1297,11 +1150,8 @@
                     b.priority,
                     'Rp ' + Number(b.total).toLocaleString('id-ID'),
                 ]);
-
                 doc.autoTable({
-                    head: [
-                        ['ID Budget', 'ID Laporan', 'Deskripsi', 'Status', 'Prioritas', 'Total']
-                    ],
+                    head: [['ID Budget', 'ID Laporan', 'Deskripsi', 'Status', 'Prioritas', 'Total']],
                     body: rows,
                     startY: 30,
                     styles: { fontSize: 8 },
@@ -1315,27 +1165,20 @@
             // INIT
             // =============================================
             function init() {
-                // Dark mode
                 initDarkMode();
-
-                // User info
                 loadUserInfo();
 
-                // Generate sample data jika belum ada
                 if (budgetData.length === 0) {
                     generateSampleData();
                 }
 
-                // Summary & table
                 updateSummary();
                 applyFilters();
 
-                // Event: filter
                 DOM.searchInput.addEventListener('input', applyFilters);
                 DOM.filterStatus.addEventListener('change', applyFilters);
                 DOM.filterPriority.addEventListener('change', applyFilters);
 
-                // Event: add budget
                 DOM.btnAddBudget.addEventListener('click', function() {
                     editingId = null;
                     DOM.modalTitle.textContent = 'Tambah Form Budget';
@@ -1349,20 +1192,16 @@
                     DOM.budgetModal.show();
                 });
 
-                // Event: add item
                 DOM.addItemBtn.addEventListener('click', function() {
                     addItemRow('', 1, 0);
                     updateGrandTotal();
                 });
 
-                // Event: submit form
                 DOM.budgetForm.addEventListener('submit', saveBudget);
 
-                // Event: export
                 document.getElementById('exportBudgetExcel').addEventListener('click', exportExcel);
                 document.getElementById('exportBudgetPdf').addEventListener('click', exportPdf);
 
-                // Sidebar toggle (mobile)
                 document.getElementById('sidebarToggle')?.addEventListener('click', function() {
                     const sidebar = document.querySelector('.sidebar');
                     if (sidebar) {
@@ -1373,7 +1212,6 @@
                 console.log('✅ Budget page initialized with administrator access only');
             }
 
-            // Jalankan init saat DOM siap
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {

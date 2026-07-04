@@ -39,6 +39,8 @@
             --sidebar-text: rgba(255, 255, 255, 0.85);
             --sidebar-text-hover: #ffffff;
             --sidebar-active-bg: rgba(255, 255, 255, 0.18);
+            --countdown-bg: rgba(0, 0, 0, 0.06);
+            --countdown-color: var(--text-primary);
         }
 
         [data-theme="dark"] {
@@ -58,6 +60,8 @@
             --sidebar-text: rgba(255, 255, 255, 0.8);
             --sidebar-text-hover: #ffffff;
             --sidebar-active-bg: rgba(255, 255, 255, 0.12);
+            --countdown-bg: rgba(255, 255, 255, 0.08);
+            --countdown-color: #f1f5f9;
         }
 
         * {
@@ -242,6 +246,60 @@
             font-size: 11px;
             color: var(--text-muted);
             font-weight: 500;
+        }
+
+        /* ======================================================
+           COUNTDOWN AUTO-REFRESH
+           ====================================================== */
+        .countdown-area {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--countdown-bg);
+            padding: 4px 14px 4px 18px;
+            border-radius: 30px;
+            font-size: 13px;
+            color: var(--countdown-color);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(4px);
+            transition: all 0.3s;
+        }
+        .countdown-area .countdown-number {
+            font-weight: 700;
+            font-size: 18px;
+            min-width: 24px;
+            text-align: center;
+            color: var(--accent-color);
+            font-variant-numeric: tabular-nums;
+        }
+        .countdown-area .countdown-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .countdown-area .btn-countdown {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 2px 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .countdown-area .btn-countdown:hover {
+            color: var(--accent-color);
+            background: var(--bg-card-hover);
+            transform: rotate(60deg);
+        }
+        .countdown-area .btn-countdown.paused {
+            color: #f59e0b;
+        }
+        .countdown-area.paused {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.08);
         }
 
         .dark-toggle {
@@ -771,6 +829,12 @@
                 min-width: 900px;
                 font-size: 11px;
             }
+            .countdown-area .countdown-label {
+                display: none;
+            }
+            .countdown-area {
+                padding: 4px 10px;
+            }
         }
 
         @media (max-width: 576px) {
@@ -827,6 +891,15 @@
             .topbar .user-area {
                 width: 100%;
                 justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+            .countdown-area {
+                margin-left: auto;
+                font-size: 11px;
+            }
+            .countdown-area .countdown-number {
+                font-size: 16px;
+                min-width: 18px;
             }
         }
     </style>
@@ -871,6 +944,19 @@
                     </small>
                 </div>
                 <div class="user-area">
+                    <!-- COUNTDOWN AUTO-REFRESH -->
+                    <div class="countdown-area" id="countdownArea">
+                        <span class="countdown-label">Refresh</span>
+                        <span class="countdown-number" id="countdownNumber">7</span>
+                        <span class="countdown-label">detik</span>
+                        <button class="btn-countdown" id="countdownReset" title="Reset countdown & refresh sekarang">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                        <button class="btn-countdown" id="countdownToggle" title="Pause/Resume auto-refresh">
+                            <i class="bi bi-pause-fill" id="countdownToggleIcon"></i>
+                        </button>
+                    </div>
+
                     <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
                         <i class="bi bi-moon-fill" id="darkModeIcon"></i>
                     </button>
@@ -1096,7 +1182,6 @@
     <script src="assets/js/core/components/sidebar.js">
     </script>
 
-    <!-- ✅ PERBAIKAN: Path yang benar ke history.js -->
     <script src="assets/js/modules/history.js">
     </script>
 

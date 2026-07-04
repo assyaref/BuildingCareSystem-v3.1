@@ -126,7 +126,7 @@
 </head>
 <body>
 <div class="wrapper">
-    <!-- SIDEBAR dirender secara otomatis oleh sidebar.js -->
+    <!-- SIDEBAR dirender secara otomatis oleh sidebar.js[cite: 2] -->
     <aside class="sidebar"></aside>
 
     <main class="content">
@@ -134,7 +134,7 @@
             <!-- TOPBAR -->
             <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 bg-white border rounded shadow-sm mb-4">
                 <div class="d-flex align-items-center gap-2">
-                    <!-- Tombol hamburger menu untuk mobile responsiveness dari sidebar.js -->
+                    <!-- Tombol hamburger untuk mobile[cite: 2] -->
                     <button class="btn btn-light d-lg-none" id="sidebarToggle">
                         <i class="bi bi-list"></i>
                     </button>
@@ -186,7 +186,7 @@
 <script src="assets/js/core/ui.js"></script>
 <script src="assets/js/core/utils.js"></script>
 <script src="assets/js/modules/auth.js"></script>
-<!-- Memuat sidebar.js yang menangani render & logika menu -->
+<!-- Memuat sidebar (15).js[cite: 2] -->
 <script src="assets/js/core/components/sidebar.js"></script>
 
 <script>
@@ -311,23 +311,23 @@
         }
 
         // ============================================================
-        //  5.  DARK MODE
+        //  5.  LIGHT MODE (DEFAULT)
         // ============================================================
         function initDarkMode() {
             const toggle = document.getElementById('darkModeToggle');
             const icon = document.getElementById('darkModeIcon');
             if (!toggle || !icon) return;
 
+            // Default ke light mode jika tidak ada setelan dark di localStorage
             const saved = localStorage.getItem('bcs_theme');
             if (saved === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
                 icon.className = 'bi bi-sun-fill';
-            } else if (saved === 'light') {
+            } else {
+                // Force Light Mode
                 document.documentElement.removeAttribute('data-theme');
                 icon.className = 'bi bi-moon-fill';
-            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                icon.className = 'bi bi-sun-fill';
+                localStorage.setItem('bcs_theme', 'light');
             }
 
             toggle.addEventListener('click', function() {
@@ -374,7 +374,7 @@
             initDarkMode();
             loadUserInfo();
             renderApprovals();
-            console.log('✅ Approval page content fully initialized');
+            console.log('✅ Approval page content fully initialized (Light Mode)');
         }
 
         if (document.readyState === 'loading') {

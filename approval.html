@@ -1,63 +1,192 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Approval — Building Care System</title>
-    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/dashboard.css" />
     <style>
-        .status-badge{font-size:10px;font-weight:700;padding:2px 10px;border-radius:6px;display:inline-block;letter-spacing:0.3px}
-        .status-pending{background:#fef3c7;color:#d97706}
-        .status-approved{background:#dcfce7;color:#16a34a}
-        .status-rejected{background:#fee2e2;color:#dc2626}
-        .dark-toggle{background:transparent;border:1px solid #e2e8f0;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s ease}
-        .dark-toggle:hover{background:#f0f2f5;transform:rotate(20deg)}
-        [data-theme="dark"] .dark-toggle{border-color:#3a3a52;color:#ffd700}
-        [data-theme="dark"] .dark-toggle:hover{background:#2a2a42}
-        .menu-admin{display:none}
-        .menu-admin.visible{display:flex}
-        .avatar-sm{width:40px;height:40px;border-radius:50%;background:#4b7bec;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
+        /* ===== GAYA TAMBAHAN (tidak mengganggu sidebar) ===== */
+        .status-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-approved { background: #dcfce7; color: #16a34a; }
+        .status-rejected { background: #fee2e2; color: #dc2626; }
+
+        .dark-toggle {
+            background: transparent;
+            border: 1px solid var(--bs-border-color, #e2e8f0);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .dark-toggle:hover {
+            background: rgba(0,0,0,0.05);
+            transform: rotate(20deg);
+        }
+        [data-theme="dark"] .dark-toggle {
+            border-color: #3a3a52;
+            color: #ffd700;
+        }
+        [data-theme="dark"] .dark-toggle:hover {
+            background: #2a2a42;
+        }
+
+        .avatar-sm {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #4b7bec;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        /* item approval */
+        .approval-item {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--bs-border-color, #e9edf4);
+            transition: background 0.2s;
+        }
+        .approval-item:last-child { border-bottom: 0; }
+        .approval-item:hover { background: rgba(75,123,236,0.03); }
+        .approval-item .info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+            min-width: 150px;
+        }
+        .approval-item .info .title {
+            font-weight: 600;
+            color: var(--bs-body-color, #1e293b);
+            font-size: 15px;
+        }
+        .approval-item .info .sub {
+            font-size: 13px;
+            color: var(--bs-secondary-color, #64748b);
+        }
+        .approval-item .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .btn-approve {
+            background: #16a34a;
+            color: #fff;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .btn-approve:hover { background: #15803d; transform: translateY(-1px); }
+        .btn-reject {
+            background: #dc2626;
+            color: #fff;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .btn-reject:hover { background: #b91c1c; transform: translateY(-1px); }
+
+        /* sidebar override agar logo dll tetap sesuai */
+        .sidebar .logo-area .logo {
+            width: 56px;
+            height: 56px;
+            background: #4b7bec;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        .sidebar .logo-area h5 {
+            font-weight: 600;
+            font-size: 18px;
+            margin: 0;
+        }
+        .sidebar .logo-area small {
+            font-size: 11px;
+            font-weight: 400;
+        }
+        .menu-admin { display: none; }
+        .menu-admin.visible { display: flex; }
+
+        @media (max-width: 768px) {
+            .approval-item { flex-direction: column; align-items: stretch; }
+            .approval-item .actions { justify-content: flex-end; }
+        }
     </style>
 </head>
 <body>
 <div class="wrapper">
-    <aside class="sidebar">
-        <div class="logo-area">
-            <img src="assets/img/logo.png" class="logo" alt="Logo">
-            <h5>Building Care</h5>
-            <small>Enterprise v3.2</small>
-        </div>
-        <nav>
-            <a href="dashboard.html" class="menu"><i class="bi bi-grid-fill"></i><span>Dashboard</span></a>
-            <a href="report.html" class="menu"><i class="bi bi-file-earmark-plus"></i><span>Report</span></a>
-            <a href="monitoring.html" class="menu"><i class="bi bi-display"></i><span>Monitoring</span></a>
-            <a href="history.html" class="menu"><i class="bi bi-clock-history"></i><span>History</span></a>
-            <a href="approval.html" class="menu active"><i class="bi bi-check-circle"></i><span>Approval</span></a>
-            <a href="admin.html" class="menu menu-admin" id="adminMenu"><i class="bi bi-shield-lock-fill"></i><span>Admin</span></a>
-            <a href="#" id="logoutBtn" class="menu text-danger"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
-        </nav>
+    <!-- SIDEBAR akan dirender oleh sidebar.js -->
+    <aside class="sidebar" id="sidebarContainer">
+        <!-- Konten sidebar akan diisi oleh JavaScript -->
     </aside>
+
     <main class="content">
         <div class="container-fluid">
-            <header class="topbar">
-                <div><h3>Approval</h3><small>Building Care System Enterprise<br><span class="brand-location">Radiant Group Duri</span></small></div>
+            <!-- TOPBAR -->
+            <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 bg-white border rounded shadow-sm mb-4">
+                <div>
+                    <h3 class="fw-bold m-0">Approval</h3>
+                    <small class="text-muted">Building Care System Enterprise<br /><span class="text-primary fw-semibold">Radiant Group Duri</span></small>
+                </div>
                 <div class="d-flex align-items-center gap-3">
-                    <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode"><i class="bi bi-moon-fill" id="darkModeIcon"></i></button>
+                    <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
+                        <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+                    </button>
                     <div class="avatar-sm" id="userAvatar">U</div>
-                    <div><div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary)">Loading...</div>
-                    <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500">User</div></div>
+                    <div>
+                        <div class="fw-bold" id="userName" style="font-size:14px;">Loading...</div>
+                        <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
+                    </div>
                 </div>
             </header>
-            <!-- Konten Approval (sederhana) -->
-            <section class="row g-4 mt-3">
+
+            <!-- KONTEN APPROVAL -->
+            <section class="row g-4 mt-2">
                 <div class="col-12">
-                    <div class="card enterprise-card">
-                        <div class="card-header"><span class="fw-semibold"><i class="bi bi-check-circle me-2 text-primary"></i>Pending Approval</span></div>
-                        <div class="card-body">
+                    <div class="card enterprise-card shadow-sm border-0">
+                        <div class="card-header bg-transparent border-bottom fw-semibold">
+                            <i class="bi bi-check-circle me-2 text-primary"></i>Pending Approval
+                            <span class="badge bg-primary ms-2" id="pendingCount">0</span>
+                        </div>
+                        <div class="card-body" id="approvalListContainer">
                             <div id="approvalList" class="text-center text-muted py-4">Memuat data...</div>
                         </div>
                     </div>
@@ -66,8 +195,12 @@
         </div>
     </main>
 </div>
+
+<!-- ===== SKRIP EKSTERNAL ===== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Modul internal -->
 <script src="config/config.js"></script>
 <script src="assets/js/core/app.js"></script>
 <script src="assets/js/core/api.js"></script>
@@ -76,61 +209,299 @@
 <script src="assets/js/core/ui.js"></script>
 <script src="assets/js/core/utils.js"></script>
 <script src="assets/js/modules/auth.js"></script>
+<script src="assets/js/core/components/sidebar.js"></script>
+
 <script>
-(function(){
-    'use strict';
-    function checkAdminMenu(){
-        const adminMenu = document.getElementById('adminMenu');
-        if(!adminMenu) return;
-        try {
-            const session = BCS.Storage.getSession();
-            if(session && session.user){
-                const role = (session.user.role || '').toUpperCase();
-                if(role === 'ADMINISTRATOR'){ adminMenu.classList.add('visible'); adminMenu.style.display='flex'; }
-                else { adminMenu.classList.remove('visible'); adminMenu.style.display='none'; }
-            } else { adminMenu.style.display='none'; }
-        } catch(e){ adminMenu.style.display='none'; }
-    }
-    function initDarkMode(){...}
-    function loadUserInfo(){...}
-    async function loadApprovals(){
-        // fungsi ambil data approval dari server (misal getPendingApproval)
-        const el = document.getElementById('approvalList');
-        try {
-            const response = await BCS.Api.post('getPendingApproval', {});
-            if(response && response.success){
-                const reports = response.data.reports || [];
-                if(reports.length === 0){
-                    el.innerHTML = '<div class="text-center text-muted py-4">Tidak ada laporan pending approval</div>';
-                } else {
-                    let html = '<div class="list-group">';
-                    reports.forEach(r => {
-                        html += `<div class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div><strong>${r.id}</strong> - ${r.kategori} (${r.lokasi})</div>
-                                    <span class="status-badge status-pending">PENDING</span>
-                                </div>`;
+    (function() {
+        'use strict';
+
+        // ============================================================
+        //  1.  INISIALISASI SIDEBAR (dari sidebar.js)
+        // ============================================================
+        if (typeof BCS !== 'undefined' && BCS.Sidebar && typeof BCS.Sidebar.init === 'function') {
+            BCS.Sidebar.init('sidebarContainer');
+        } else {
+            // Fallback: jika sidebar.js tidak berfungsi, kita render manual (opsional)
+            console.warn('Sidebar tidak ditemukan, gunakan fallback.');
+            const container = document.getElementById('sidebarContainer');
+            if (container) {
+                container.innerHTML = `
+                    <div class="logo-area text-center mb-4 pb-3 border-bottom">
+                        <div class="logo">BC</div>
+                        <h5>Building Care</h5>
+                        <small>Enterprise v3.2</small>
+                    </div>
+                    <nav class="d-flex flex-column gap-1">
+                        <a href="dashboard.html" class="menu"><i class="bi bi-grid-fill"></i><span>Dashboard</span></a>
+                        <a href="report.html" class="menu"><i class="bi bi-file-earmark-plus"></i><span>Report</span></a>
+                        <a href="monitoring.html" class="menu"><i class="bi bi-display"></i><span>Monitoring</span></a>
+                        <a href="history.html" class="menu"><i class="bi bi-clock-history"></i><span>History</span></a>
+                        <a href="approval.html" class="menu active"><i class="bi bi-check-circle"></i><span>Approval</span></a>
+                        <a href="admin.html" class="menu menu-admin" id="adminMenu"><i class="bi bi-shield-lock-fill"></i><span>Admin</span></a>
+                        <a href="#" id="logoutBtn" class="menu text-danger"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
+                    </nav>
+                `;
+                // setelah fallback, kita tetap attach event logout
+                document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
+            }
+        }
+
+        // ============================================================
+        //  2.  SESSION HELPER (gunakan BCS.Storage jika ada)
+        // ============================================================
+        function getSession() {
+            if (typeof BCS !== 'undefined' && BCS.Storage && typeof BCS.Storage.getSession === 'function') {
+                return BCS.Storage.getSession();
+            }
+            try {
+                const raw = localStorage.getItem('bcs_session');
+                return raw ? JSON.parse(raw) : null;
+            } catch { return null; }
+        }
+
+        function setSession(data) {
+            if (typeof BCS !== 'undefined' && BCS.Storage && typeof BCS.Storage.setSession === 'function') {
+                return BCS.Storage.setSession(data);
+            }
+            localStorage.setItem('bcs_session', JSON.stringify(data));
+        }
+
+        function clearSession() {
+            if (typeof BCS !== 'undefined' && BCS.Storage && typeof BCS.Storage.clearSession === 'function') {
+                return BCS.Storage.clearSession();
+            }
+            localStorage.removeItem('bcs_session');
+            sessionStorage.clear();
+        }
+
+        // ============================================================
+        //  3.  MOCK DATA APPROVAL
+        // ============================================================
+        let mockApprovals = [
+            { id: 'APR-001', kategori: 'Kebersihan', lokasi: 'Gedung A - Lantai 2', tanggal: '2026-07-02', status: 'pending', pelapor: 'Budi Santoso' },
+            { id: 'APR-002', kategori: 'Perbaikan AC', lokasi: 'Ruang Rapat Utama', tanggal: '2026-07-03', status: 'pending', pelapor: 'Siti Rahma' },
+            { id: 'APR-003', kategori: 'Listrik', lokasi: 'Gedung B - Lantai 1', tanggal: '2026-07-04', status: 'pending', pelapor: 'Agus Wijaya' },
+        ];
+
+        // ============================================================
+        //  4.  RENDER APPROVAL
+        // ============================================================
+        function renderApprovals() {
+            const container = document.getElementById('approvalList');
+            const countBadge = document.getElementById('pendingCount');
+            const pending = mockApprovals.filter(a => a.status === 'pending');
+
+            if (!container) return;
+
+            if (pending.length === 0) {
+                container.innerHTML = `<div class="text-center text-muted py-4"><i class="bi bi-check-circle-fill text-success me-2"></i> Semua laporan sudah diproses</div>`;
+                if (countBadge) countBadge.textContent = '0';
+                return;
+            }
+
+            if (countBadge) countBadge.textContent = pending.length;
+
+            let html = '';
+            pending.forEach((item) => {
+                html += `
+                    <div class="approval-item" data-id="${item.id}">
+                        <div class="info">
+                            <div class="title">${item.kategori} — ${item.lokasi}</div>
+                            <div class="sub">
+                                <i class="bi bi-person me-1"></i>${item.pelapor} &nbsp;·&nbsp;
+                                <i class="bi bi-calendar3 me-1"></i>${item.tanggal} &nbsp;·&nbsp;
+                                <span class="status-badge status-pending">Pending</span>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-approve" data-id="${item.id}"><i class="bi bi-check-lg me-1"></i>Setujui</button>
+                            <button class="btn-reject" data-id="${item.id}"><i class="bi bi-x-lg me-1"></i>Tolak</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // Event listener tombol aksi
+            container.querySelectorAll('.btn-approve').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleAction(btn.dataset.id, 'approve');
+                });
+            });
+            container.querySelectorAll('.btn-reject').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleAction(btn.dataset.id, 'reject');
+                });
+            });
+        }
+
+        // ============================================================
+        //  5.  HANDLE APPROVE / REJECT
+        // ============================================================
+        function handleAction(id, action) {
+            const item = mockApprovals.find(a => a.id === id);
+            if (!item) return;
+
+            const label = action === 'approve' ? 'menyetujui' : 'menolak';
+            const icon = action === 'approve' ? 'question' : 'warning';
+
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: `Anda yakin ${label} laporan ${item.id}?`,
+                icon: icon,
+                showCancelButton: true,
+                confirmButtonColor: action === 'approve' ? '#16a34a' : '#dc2626',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: `Ya, ${action === 'approve' ? 'Setujui' : 'Tolak'}`,
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    item.status = action === 'approve' ? 'approved' : 'rejected';
+                    renderApprovals();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: `Laporan ${item.id} telah ${action === 'approve' ? 'disetujui' : 'ditolak'}.`,
+                        timer: 2000,
+                        showConfirmButton: false
                     });
-                    html += '</div>';
-                    el.innerHTML = html;
+                }
+            });
+        }
+
+        // ============================================================
+        //  6.  DARK MODE
+        // ============================================================
+        function initDarkMode() {
+            const toggle = document.getElementById('darkModeToggle');
+            const icon = document.getElementById('darkModeIcon');
+            if (!toggle || !icon) return;
+
+            const saved = localStorage.getItem('bcs_theme');
+            if (saved === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                icon.className = 'bi bi-sun-fill';
+            } else if (saved === 'light') {
+                document.documentElement.removeAttribute('data-theme');
+                icon.className = 'bi bi-moon-fill';
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                icon.className = 'bi bi-sun-fill';
+            }
+
+            toggle.addEventListener('click', () => {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                if (isDark) {
+                    document.documentElement.removeAttribute('data-theme');
+                    icon.className = 'bi bi-moon-fill';
+                    localStorage.setItem('bcs_theme', 'light');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    icon.className = 'bi bi-sun-fill';
+                    localStorage.setItem('bcs_theme', 'dark');
+                }
+            });
+        }
+
+        // ============================================================
+        //  7.  USER INFO
+        // ============================================================
+        function loadUserInfo() {
+            const session = getSession();
+            const nameEl = document.getElementById('userName');
+            const roleEl = document.getElementById('userRole');
+            const avatarEl = document.getElementById('userAvatar');
+
+            if (session && session.user) {
+                const u = session.user;
+                if (nameEl) nameEl.textContent = u.name || u.username || 'User';
+                if (roleEl) roleEl.textContent = u.role || 'User';
+                if (avatarEl) avatarEl.textContent = (u.name || u.username || 'U')[0].toUpperCase();
+            } else {
+                // Default jika belum login (simulasi)
+                const defaultUser = { name: 'Andi Permana', role: 'Administrator' };
+                setSession({ user: defaultUser });
+                if (nameEl) nameEl.textContent = defaultUser.name;
+                if (roleEl) roleEl.textContent = defaultUser.role;
+                if (avatarEl) avatarEl.textContent = defaultUser.name[0];
+            }
+        }
+
+        // ============================================================
+        //  8.  ADMIN MENU VISIBILITY
+        // ============================================================
+        function checkAdminMenu() {
+            const menu = document.getElementById('adminMenu');
+            if (!menu) return;
+            const session = getSession();
+            if (session && session.user) {
+                const role = (session.user.role || '').toUpperCase();
+                if (role === 'ADMINISTRATOR' || role === 'ADMIN') {
+                    menu.style.display = 'flex';
+                    menu.classList.add('visible');
+                } else {
+                    menu.style.display = 'none';
+                    menu.classList.remove('visible');
                 }
             } else {
-                el.innerHTML = '<div class="text-center text-danger py-4">Gagal memuat data</div>';
+                menu.style.display = 'none';
             }
-        } catch(e){
-            el.innerHTML = '<div class="text-center text-danger py-4">Terjadi kesalahan</div>';
         }
-    }
-    document.getElementById('logoutBtn').addEventListener('click', function(e){ e.preventDefault(); if(window.auth && typeof window.auth.logout === 'function') window.auth.logout(); else { localStorage.clear(); sessionStorage.clear(); window.location.href='login.html'; } });
-    async function init(){
-        initDarkMode();
-        loadUserInfo();
-        checkAdminMenu();
-        await loadApprovals();
-        console.log('✅ Approval page initialized');
-    }
-    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-    else init();
-})();
+
+        // ============================================================
+        //  9.  LOGOUT HANDLER
+        // ============================================================
+        function handleLogout(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Logout',
+                text: 'Anda yakin ingin keluar?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#4b7bec',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Ya, Logout',
+                cancelButtonText: 'Batal'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    if (typeof window.auth !== 'undefined' && typeof window.auth.logout === 'function') {
+                        window.auth.logout();
+                    } else {
+                        clearSession();
+                        window.location.href = 'login.html';
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        //  10. INIT
+        // ============================================================
+        function init() {
+            initDarkMode();
+            loadUserInfo();
+            checkAdminMenu();
+            renderApprovals();
+
+            // Event logout (jika tombol logout ada di sidebar hasil render)
+            document.querySelectorAll('#logoutBtn').forEach(btn => {
+                btn.removeEventListener('click', handleLogout);
+                btn.addEventListener('click', handleLogout);
+            });
+
+            console.log('✅ Approval page initialized');
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+    })();
 </script>
 </body>
 </html>

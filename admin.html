@@ -755,33 +755,21 @@
     <!-- ======================================================
     JAVASCRIPT
     ======================================================= -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-    <script src="config/config.js">
-    </script>
-    <script src="assets/js/core/app.js">
-    </script>
-    <script src="assets/js/core/api.js">
-    </script>
-    <script src="assets/js/core/storage.js">
-    </script>
-    <script src="assets/js/core/session.js">
-    </script>
-    <script src="assets/js/core/ui.js">
-    </script>
-    <script src="assets/js/core/utils.js">
-    </script>
-    <script src="assets/js/modules/auth.js">
-    </script>
+    <script src="config/config.js"></script>
+    <script src="assets/js/core/app.js"></script>
+    <script src="assets/js/core/api.js"></script>
+    <script src="assets/js/core/storage.js"></script>
+    <script src="assets/js/core/session.js"></script>
+    <script src="assets/js/core/ui.js"></script>
+    <script src="assets/js/core/utils.js"></script>
+    <script src="assets/js/modules/auth.js"></script>
 
     <!-- 🚀 SIDEBAR DINAMIS -->
-    <script src="assets/js/core/components/sidebar.js">
-    </script>
+    <script src="assets/js/core/components/sidebar.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -861,32 +849,11 @@
             // =============================================
             function getDummyUsers() {
                 return [
-                    { nik: '0000', nama: 'Super Admin', email: 'admin@bcs.com', role: 'ADMINISTRATOR',
-                        status: 'ACTIVE' },
-                    { nik: '03233', nama: 'Syarif Hidayatullah', email: 'syarif@artech.com',
-                        role: 'ADMINISTRATOR', status: 'ACTIVE' },
-                    { nik: '03225', nama: 'Budi', email: 'teknisi@radiant.com', role: 'TECHNICIAN',
-                        status: 'ACTIVE' },
-                    { nik: '03226', nama: 'Tukang Lapor', email: 'user@radiant.com', role: 'USER',
-                        status: 'ACTIVE' },
-                    { nik: '1126', nama: 'Bowo Indratno', email: 'bowo@bcs.radiantduri.com', role: 'USER',
-                        status: 'ACTIVE' }
-                ];
-            }
-
-            function getDummyActivities() {
-                var now = new Date();
-                return [
-                    { user: 'Syarif Hidayatullah', action: 'LOGIN', module: 'Auth', description: 'Login berhasil',
-                        timestamp: now.toISOString() },
-                    { user: 'Syarif Hidayatullah', action: 'CREATE_USER', module: 'Admin',
-                        description: 'Menambahkan user diva.amanda@radiant-utama.com',
-                        timestamp: new Date(now - 300000).toISOString() },
-                    { user: 'Bowo Indratno', action: 'UPDATE_REPORT', module: 'Report',
-                        description: 'Update laporan BCS-20260701-163852',
-                        timestamp: new Date(now - 600000).toISOString() },
-                    { user: 'Tukang Lapor', action: 'LOGIN', module: 'Auth', description: 'Login berhasil',
-                        timestamp: new Date(now - 1200000).toISOString() }
+                    { nik: '0000', nama: 'Super Admin', email: 'admin@bcs.com', role: 'ADMINISTRATOR', status: 'ACTIVE' },
+                    { nik: '03233', nama: 'Syarif Hidayatullah', email: 'syarif@artech.com', role: 'ADMINISTRATOR', status: 'ACTIVE' },
+                    { nik: '03225', nama: 'Budi', email: 'teknisi@radiant.com', role: 'TECHNICIAN', status: 'ACTIVE' },
+                    { nik: '03226', nama: 'Tukang Lapor', email: 'user@radiant.com', role: 'USER', status: 'ACTIVE' },
+                    { nik: '1126', nama: 'Bowo Indratno', email: 'bowo@bcs.radiantduri.com', role: 'USER', status: 'ACTIVE' }
                 ];
             }
 
@@ -902,18 +869,14 @@
                         document.getElementById('totalUsers').textContent = d.totalUsers || 0;
                         document.getElementById('totalReports').textContent = d.totalReports || 0;
                         document.getElementById('activeSessions').textContent = d.activeSessions || 0;
-                        document.getElementById('lastUpdate').textContent = d.lastUpdate || d.timestamp || new Date()
-                            .toLocaleString();
+                        document.getElementById('lastUpdate').textContent = d.lastUpdate || d.timestamp || new Date().toLocaleString();
                     } else {
                         var resUsers = await BCS.Api.post('getUsers', {});
-                        var userCount = (resUsers && resUsers.success && resUsers.data) ? (Array.isArray(resUsers
-                            .data) ? resUsers.data.length : (resUsers.data.users || []).length) : getDummyUsers()
-                            .length;
+                        var userCount = (resUsers && resUsers.success && resUsers.data) ? (Array.isArray(resUsers.data) ? resUsers.data.length : (resUsers.data.users || []).length) : getDummyUsers().length;
 
                         document.getElementById('totalUsers').textContent = userCount;
                         document.getElementById('totalReports').textContent = 42;
-                        document.getElementById('activeSessions').textContent = document.getElementById('onlineToday')
-                            .textContent || 1;
+                        document.getElementById('activeSessions').textContent = document.getElementById('onlineToday').textContent || 1;
                         document.getElementById('lastUpdate').textContent = new Date().toLocaleString('id-ID');
                     }
                 } catch (e) {
@@ -926,7 +889,7 @@
             }
 
             // =============================================
-            // LOAD ONLINE STATISTICS
+            // LOAD ONLINE STATISTICS (FIXED: UNIQUE USERS PER PERIOD)
             // =============================================
             async function loadOnlineStats() {
                 try {
@@ -945,21 +908,51 @@
                     if (sessions.length > 0) {
                         var now = new Date();
                         var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                        
+                        // Awal minggu ini (Set ke hari Minggu/Senin jam 00:00:00)
                         var weekStart = new Date(now);
                         weekStart.setDate(now.getDate() - now.getDay());
                         weekStart.setHours(0, 0, 0, 0);
+                        
+                        // Awal bulan ini (Tanggal 1 jam 00:00:00)
                         var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+                        monthStart.setHours(0, 0, 0, 0);
+
+                        // Menggunakan Set untuk mencatat ID/Email unik user yang login di masing-masing periode
+                        var uniqueUsersToday = new Set();
+                        var uniqueUsersWeek = new Set();
+                        var uniqueUsersMonth = new Set();
 
                         sessions.forEach(function(s) {
                             var lastActive = s.lastActive || s.last_activity || s.login_at;
-                            if (lastActive) {
+                            // Mengambil identifier unik (email, user, atau nik)
+                            var userIdentifier = s.email || s.user || s.nik || s.userId;
+
+                            if (lastActive && userIdentifier) {
                                 var d = new Date(lastActive);
-                                if (d >= today) todayCount++;
-                                if (d >= weekStart) weekCount++;
-                                if (d >= monthStart) monthCount++;
+                                
+                                // Cek dan masukkan ke kelompok Hari Ini
+                                if (d >= today) {
+                                    uniqueUsersToday.add(userIdentifier);
+                                }
+                                // Cek dan masukkan ke kelompok Minggu Ini
+                                if (d >= weekStart) {
+                                    uniqueUsersWeek.add(userIdentifier);
+                                }
+                                // Cek dan masukkan ke kelompok Bulan Ini
+                                if (d >= monthStart) {
+                                    uniqueUsersMonth.add(userIdentifier);
+                                }
                             }
                         });
+
+                        // Ambil ukuran (size) dari Set yang mewakili total user unik
+                        todayCount = uniqueUsersToday.size;
+                        weekCount = uniqueUsersWeek.size;
+                        monthCount = uniqueUsersMonth.size;
+
                     } else {
+                        // Fallback dummy data jika response kosong
                         todayCount = Math.floor(Math.random() * 3) + 2;
                         weekCount = Math.floor(Math.random() * 10) + 12;
                         monthCount = Math.floor(Math.random() * 25) + 35;
@@ -969,12 +962,9 @@
                     document.getElementById('onlineWeek').textContent = weekCount;
                     document.getElementById('onlineMonth').textContent = monthCount;
 
-                    document.getElementById('trendToday').innerHTML = '<i class="bi bi-arrow-up"></i> <span>' + Math
-                        .floor(Math.random() * 2) + '</span> dari kemarin';
-                    document.getElementById('trendWeek').innerHTML = '<i class="bi bi-arrow-up"></i> <span>' + Math
-                        .floor(Math.random() * 5) + '</span> dari minggu lalu';
-                    document.getElementById('trendMonth').innerHTML = '<i class="bi bi-arrow-up"></i> <span>' + Math
-                        .floor(Math.random() * 12) + '</span> dari bulan lalu';
+                    document.getElementById('trendToday').innerHTML = '<i class="bi bi-arrow-up"></i> <span>' + Math.floor(Math.random() * 2) + '</span> dari kemarin';
+                    document.getElementById('trendWeek').innerHTML = '<i class="bi bi-arrow-up"></i> <span>' + Math.floor(Math.random() * 5) + '</span> dari minggu lalu';
+                    document.getElementById('trendMonth').innerHTML = '<i class="bi bi-arrow-up"></i> <span>' + Math.floor(Math.random() * 12) + '</span> dari bulan lalu';
 
                 } catch (e) {
                     console.warn('Load online stats error:', e);
@@ -990,8 +980,7 @@
             async function loadUsers() {
                 var tbody = document.getElementById('userTableBody');
                 if (!tbody) return;
-                tbody.innerHTML =
-                    '<tr><td colspan="6" class="text-center py-4 text-muted" style="color:var(--text-muted);"><div class="spinner-border spinner-border-sm mb-2"></div><br /> Memuat data...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted" style="color:var(--text-muted);"><div class="spinner-border spinner-border-sm mb-2"></div><br /> Memuat data...</td></tr>';
 
                 try {
                     var response = await BCS.Api.post('getUsers', {});
@@ -1018,8 +1007,7 @@
                 if (!tbody) return;
 
                 if (users.length === 0) {
-                    tbody.innerHTML =
-                        '<tr><td colspan="6" class="text-center text-muted py-4" style="color:var(--text-muted);">Belum ada user terdaftar</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4" style="color:var(--text-muted);">Belum ada user terdaftar</td></tr>';
                     return;
                 }
 
@@ -1027,10 +1015,8 @@
                 users.forEach(function(user) {
                     var initial = (user.nama || 'U').charAt(0).toUpperCase();
                     var role = (user.role || 'USER').toUpperCase();
-                    var roleClass = role === 'ADMINISTRATOR' ? 'admin' : role === 'TECHNICIAN' ? 'technician' :
-                        'user';
-                    var isSuperAdmin = user.email === 'admin@bcs.com' || user.nik === '0000' || role ===
-                    'SUPER_ADMIN';
+                    var roleClass = role === 'ADMINISTRATOR' ? 'admin' : role === 'TECHNICIAN' ? 'technician' : 'user';
+                    var isSuperAdmin = user.email === 'admin@bcs.com' || user.nik === '0000' || role === 'SUPER_ADMIN';
                     if (isSuperAdmin) roleClass = 'super_admin';
 
                     var statusClass = (user.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'active' : 'inactive';
@@ -1080,8 +1066,7 @@
             async function loadActivities() {
                 var tbody = document.getElementById('activityTableBody');
                 if (!tbody) return;
-                tbody.innerHTML =
-                    '<tr><td colspan="5" class="text-center py-4 text-muted" style="color:var(--text-muted);"><div class="spinner-border spinner-border-sm mb-2"></div><br /> Memuat aktivitas...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted" style="color:var(--text-muted);"><div class="spinner-border spinner-border-sm mb-2"></div><br /> Memuat aktivitas...</td></tr>';
 
                 try {
                     var response = await BCS.Api.post('getAdminActivities', { limit: 20 });
@@ -1091,13 +1076,19 @@
                     }
 
                     if (activities.length === 0) {
-                        activities = getDummyActivities();
+                        var now = new Date();
+                        activities = [
+                            { user: 'Syarif Hidayatullah', action: 'LOGIN', module: 'Auth', description: 'Login berhasil', timestamp: now.toISOString() },
+                            { user: 'Syarif Hidayatullah', action: 'CREATE_USER', module: 'Admin', description: 'Menambahkan user diva.amanda@radiant-utama.com', timestamp: new Date(now - 300000).toISOString() },
+                            { user: 'Bowo Indratno', action: 'UPDATE_REPORT', module: 'Report', description: 'Update laporan BCS-20260701-163852', timestamp: new Date(now - 600000).toISOString() },
+                            { user: 'Tukang Lapor', action: 'LOGIN', module: 'Auth', description: 'Login berhasil', timestamp: new Date(now - 1200000).toISOString() }
+                        ];
                     }
 
                     renderActivityTable(activities);
                 } catch (e) {
-                    console.warn('Load activities error, running fallback:', e);
-                    renderActivityTable(getDummyActivities());
+                    console.warn('Load activities error:', e);
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4" style="color:var(--text-muted);">Gagal memuat riwayat aktivitas</td></tr>';
                 }
             }
 
@@ -1106,8 +1097,7 @@
                 if (!tbody) return;
 
                 if (activities.length === 0) {
-                    tbody.innerHTML =
-                        '<tr><td colspan="5" class="text-center text-muted py-4" style="color:var(--text-muted);">Belum ada riwayat aktivitas</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4" style="color:var(--text-muted);">Belum ada riwayat aktivitas</td></tr>';
                     return;
                 }
 
@@ -1201,12 +1191,10 @@
                     if (result.isConfirmed) {
                         BCS.Api.post('deleteUser', { email: email }).then(function(response) {
                             if (response && response.success) {
-                                Swal.fire('Berhasil', response.message || 'User berhasil dihapus',
-                                    'success');
+                                Swal.fire('Berhasil', response.message || 'User berhasil dihapus', 'success');
                                 refreshAllData();
                             } else {
-                                Swal.fire('Gagal', response?.message || 'Gagal menghapus user',
-                                'error');
+                                Swal.fire('Gagal', response?.message || 'Gagal menghapus user', 'error');
                             }
                         }).catch(function() {
                             Swal.fire('Error', 'Terjadi masalah pada jaringan API', 'error');
@@ -1374,13 +1362,11 @@
                                     successCount++;
                                 } else {
                                     failureCount++;
-                                    errors.push('Baris ' + (i + 2) + ' (' + userData.email + '): ' + (response
-                                        ?.message || 'Gagal'));
+                                    errors.push('Baris ' + (i + 2) + ' (' + userData.email + '): ' + (response?.message || 'Gagal'));
                                 }
                             } catch (err) {
                                 failureCount++;
-                                errors.push('Baris ' + (i + 2) + ' (' + userData.email +
-                                    '): API Network Failure');
+                                errors.push('Baris ' + (i + 2) + ' (' + userData.email + '): API Network Failure');
                             }
                         }
 
@@ -1392,15 +1378,11 @@
                         refreshAllData();
 
                         if (failureCount === 0) {
-                            Swal.fire('Bulk Upload Sukses', 'Berhasil menambahkan ' + successCount +
-                                ' user baru.', 'success');
+                            Swal.fire('Bulk Upload Sukses', 'Berhasil menambahkan ' + successCount + ' user baru.', 'success');
                         } else {
                             Swal.fire({
                                 title: 'Bulk Upload Parsial',
-                                html: '<b>Berhasil:</b> ' + successCount + ' user<br><b>Gagal:</b> ' +
-                                    failureCount +
-                                    ' user.<br><br><div class="text-start border p-2 rounded bg-light font-monospace" style="max-height:130px;overflow-y:auto;font-size:11px;color:#d32f2f;">' +
-                                    errors.join('<br>') + '</div>',
+                                html: '<b>Berhasil:</b> ' + successCount + ' user<br><b>Gagal:</b> ' + failureCount + ' user.<br><br><div class="text-start border p-2 rounded bg-light font-monospace" style="max-height:130px;overflow-y:auto;font-size:11px;color:#d32f2f;">' + errors.join('<br>') + '</div>',
                                 icon: successCount > 0 ? 'warning' : 'error'
                             });
                         }
@@ -1421,10 +1403,8 @@
             document.getElementById('downloadTemplateBtn')?.addEventListener('click', function() {
                 try {
                     var templateData = [
-                        { "nama": "Ahmad Fauzi", "nik": "01123", "email": "ahmad.fauzi@radiant.com",
-                            "password": "password123", "role": "USER", "status": "ACTIVE" },
-                        { "nama": "Siti Aminah", "nik": "01124", "email": "siti.aminah@radiant.com",
-                            "password": "password456", "role": "TECHNICIAN", "status": "ACTIVE" }
+                        { "nama": "Ahmad Fauzi", "nik": "01123", "email": "ahmad.fauzi@radiant.com", "password": "password123", "role": "USER", "status": "ACTIVE" },
+                        { "nama": "Siti Aminah", "nik": "01124", "email": "siti.aminah@radiant.com", "password": "password456", "role": "TECHNICIAN", "status": "ACTIVE" }
                     ];
                     var worksheet = XLSX.utils.json_to_sheet(templateData);
                     var workbook = XLSX.utils.book_new();

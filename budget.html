@@ -1118,7 +1118,9 @@
                     budgetData = (Array.isArray(res.data) ? res.data : []).map(b => ({
                         id: b.id || '',
                         woId: b.wo_id || '',
-                        reportId: b.wo_id || b.report_id || '',
+                        woNumber: b.wo_number || '',
+                        woTitle: b.wo_title || '',
+                        reportId: b.wo_number || b.wo_id || b.report_id || '',
                         description: b.description || '',
                         status: String(b.status || 'pending').toLowerCase(),
                         priority: String(b.priority || 'medium').toLowerCase(),

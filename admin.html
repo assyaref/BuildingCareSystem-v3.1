@@ -975,6 +975,33 @@
             }
 
             // =============================================
+            // NORMALIZE API DATA
+            // Backend mengirim key PascalCase (Nama, NIK, Email, Role, Status),
+            // sementara UI sebelumnya membaca lowercase.
+            // =============================================
+            function normalizeUser(user) {
+                user = user || {};
+                return {
+                    nama: user.nama ?? user.Nama ?? user.name ?? user.Name ?? '',
+                    nik: user.nik ?? user.NIK ?? user.Nik ?? '',
+                    email: user.email ?? user.Email ?? user.EMAIL ?? '',
+                    role: user.role ?? user.Role ?? user.ROLE ?? 'USER',
+                    status: user.status ?? user.Status ?? user.STATUS ?? 'INACTIVE'
+                };
+            }
+
+            function normalizeActivity(act) {
+                act = act || {};
+                return {
+                    user: act.user ?? act.User ?? act.email ?? act.Email ?? '-',
+                    action: act.action ?? act.Action ?? '-',
+                    module: act.module ?? act.Module ?? '-',
+                    description: act.description ?? act.Description ?? '-',
+                    timestamp: act.timestamp ?? act.Timestamp ?? act.Datetime ?? act.DateTime ?? act.created_at ?? act.CreatedAt ?? ''
+                };
+            }
+
+            // =============================================
             // LOAD USERS
             // =============================================
             async function loadUsers() {
@@ -988,8 +1015,10 @@
 
                     var users = [];
                     if (response && response.success && response.data) {
-                        users = Array.isArray(response.data) ? response.data : (response.data.users || []);
+                        users = Array.isArray(response.data) ? response.data : (response.data.users || response.data.Users || []);
                     }
+
+                    users = users.map(normalizeUser);
 
                     if (users.length === 0) {
                         users = getDummyUsers();
@@ -1072,8 +1101,10 @@
                     var response = await BCS.Api.post('getAdminActivities', { limit: 20 });
                     var activities = [];
                     if (response && response.success && response.data) {
-                        activities = Array.isArray(response.data) ? response.data : (response.data.activities || []);
+                        activities = Array.isArray(response.data) ? response.data : (response.data.activities || response.data.Activities || []);
                     }
+
+                    activities = activities.map(normalizeActivity);
 
                     if (activities.length === 0) {
                         var now = new Date();
@@ -1085,7 +1116,7 @@
                         ];
                     }
 
-                    renderActivityTable(activities);
+                    renderActivityTable(activities.map(normalizeActivity));
                 } catch (e) {
                     console.warn('Load activities error:', e);
                     tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4" style="color:var(--text-muted);">Gagal memuat riwayat aktivitas</td></tr>';
@@ -1095,6 +1126,18 @@
             function renderActivityTable(activities) {
                 var tbody = document.getElementById('activityTableBody');
                 if (!tbody) return;
+
+                // Normalisasi ulang tepat sebelum render agar field API
+                // Action/Module/Description/Datetime pasti terbaca.
+                activities = (activities || []).map(function(act) {
+                    return {
+                        user: act.user ?? act.User ?? act.email ?? act.Email ?? '-',
+                        action: act.action ?? act.Action ?? act.ACTION ?? '-',
+                        module: act.module ?? act.Module ?? act.MODULE ?? '-',
+                        description: act.description ?? act.Description ?? act.DESCRIPTION ?? '-',
+                        timestamp: act.timestamp ?? act.Timestamp ?? act.Datetime ?? act.DateTime ?? act.DATETIME ?? act.created_at ?? act.CreatedAt ?? ''
+                    };
+                });
 
                 if (activities.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4" style="color:var(--text-muted);">Belum ada riwayat aktivitas</td></tr>';
@@ -1128,7 +1171,7 @@
                 BCS.Api.post('getUser', { email: email, nik: nik }).then(function(response) {
                         var user = null;
                         if (response && response.success && response.data) {
-                            user = response.data.user || response.data;
+                            user = normalizeUser(response.data.user || response.data.User || response.data);
                         }
 
                         if (!user || (!user.email && !user.nik)) {

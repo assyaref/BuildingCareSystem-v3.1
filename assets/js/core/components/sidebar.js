@@ -1,33 +1,26 @@
 // assets/js/core/components/sidebar.js
-// Sidebar Dinamis - Building Care System Enterprise v3.6
+// Sidebar Dinamis - Bedakan Admin vs User
 
 (function() {
     'use strict';
 
-    console.log('🔄 sidebar.js loaded from core/components/');
+    console.log('🔄 sidebar.js loaded');
 
     function getSession() {
-        // Coba dari BCS.Storage
         try {
             if (typeof BCS !== 'undefined' && BCS.Storage && typeof BCS.Storage.getSession === 'function') {
                 return BCS.Storage.getSession();
             }
         } catch (e) {}
 
-        // Fallback: langsung dari localStorage
         try {
             const raw = localStorage.getItem('bcs_session');
-            if (raw) {
-                return JSON.parse(raw);
-            }
+            if (raw) return JSON.parse(raw);
         } catch (e) {}
 
-        // Fallback: dari sessionStorage
         try {
             const raw = sessionStorage.getItem('bcs_session');
-            if (raw) {
-                return JSON.parse(raw);
-            }
+            if (raw) return JSON.parse(raw);
         } catch (e) {}
 
         return null;
@@ -36,16 +29,12 @@
     function renderSidebar() {
         console.log('📌 renderSidebar() called');
 
-        // Cari elemen nav di sidebar
         const sidebarNav = document.querySelector('.sidebar nav');
         if (!sidebarNav) {
-            console.warn('❌ .sidebar nav tidak ditemukan!');
+            console.warn('❌ .sidebar nav not found');
             return;
         }
 
-        console.log('✅ .sidebar nav ditemukan');
-
-        // Ambil session
         const session = getSession();
         let isAdmin = false;
         let userName = 'User';
@@ -58,38 +47,44 @@
             userRole = session.user.role || 'User';
             console.log('👤 User:', userName, 'Role:', userRole, 'isAdmin:', isAdmin);
         } else {
-            console.log('ℹ️ No session found, using default');
+            console.warn('⚠️ No session, redirect to login');
+            if (window.location.pathname.indexOf('login.html') === -1) {
+                window.location.href = 'login.html';
+            }
+            return;
         }
 
-        // Simpan nama user di localStorage untuk ditampilkan
-        try {
-            localStorage.setItem('bcs_username', userName);
-        } catch (e) {}
+        // 🔥 Tentukan menu berdasarkan role
+        let menus = [];
+        if (isAdmin) {
+            // Menu lengkap untuk ADMINISTRATOR
+            menus = [
+                { href: 'dashboard.html', icon: 'bi-grid-fill', label: 'Dashboard' },
+                { href: 'report.html', icon: 'bi-file-earmark-plus', label: 'Report' },
+                { href: 'monitoring.html', icon: 'bi-display', label: 'Monitoring' },
+                { href: 'history.html', icon: 'bi-clock-history', label: 'History' },
+                { href: 'wo.html', icon: 'bi-clipboard-check', label: 'Work Order' },
+                { href: 'budget.html', icon: 'bi-cash-stack', label: 'Budget' },
+                { href: 'approval.html', icon: 'bi-check-circle', label: 'Approval' },
+                { href: 'admin.html', icon: 'bi-shield-lock-fill', label: 'Admin' },
+                { href: '#', icon: 'bi-box-arrow-right', label: 'Logout', logout: true, class: 'text-danger' }
+            ];
+        } else {
+            // Menu terbatas untuk USER biasa
+            menus = [
+                { href: 'user-report.html', icon: 'bi-file-earmark-plus', label: 'Buat Laporan' },
+                { href: 'user-history.html', icon: 'bi-clock-history', label: 'Riwayat Saya' },
+                { href: '#', icon: 'bi-box-arrow-right', label: 'Logout', logout: true, class: 'text-danger' }
+            ];
+        }
 
         const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
-        console.log('📄 Current page:', currentPage);
-
-        const menus = [
-            { href: 'dashboard.html', icon: 'bi-grid-fill', label: 'Dashboard' },
-            { href: 'report.html', icon: 'bi-file-earmark-plus', label: 'Report' },
-            { href: 'monitoring.html', icon: 'bi-display', label: 'Monitoring' },
-            { href: 'history.html', icon: 'bi-clock-history', label: 'History' },
-            { href: 'wo.html', icon: 'bi-clipboard-check', label: 'Work Order' },
-            { href: 'budget.html', icon: 'bi-cash-stack', label: 'Budget' },
-            { href: 'approval.html', icon: 'bi-check-circle', label: 'Approval' },
-            { href: 'admin.html', icon: 'bi-shield-lock-fill', label: 'Admin', adminOnly: true },
-            { href: '#', icon: 'bi-box-arrow-right', label: 'Logout', logout: true, class: 'text-danger' }
-        ];
 
         let html = '';
         menus.forEach(menu => {
-            // Admin only
-            if (menu.adminOnly && !isAdmin) return;
-
             const active = (currentPage === menu.href) ? 'active' : '';
             const logoutAttr = menu.logout ? 'id="logoutBtn"' : '';
             const extraClass = menu.class || '';
-
             html += `
                 <a href="${menu.href}" class="menu ${active} ${extraClass}" ${logoutAttr}>
                     <i class="bi ${menu.icon}"></i>
@@ -99,7 +94,7 @@
         });
 
         sidebarNav.innerHTML = html;
-        console.log('✅ Sidebar rendered with', menus.filter(m => !m.adminOnly || isAdmin).length, 'menu items');
+        console.log('✅ Sidebar rendered with', menus.length, 'items');
 
         // Update user info di topbar
         try {
@@ -130,15 +125,13 @@
     // Jalankan setelah DOM siap
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
-            // Beri sedikit delay agar BCS.Storage siap
             setTimeout(renderSidebar, 200);
         });
     } else {
-        // DOM sudah siap, jalankan langsung dengan sedikit delay
         setTimeout(renderSidebar, 200);
     }
 
-    // Jika BCS.Storage sudah siap, render ulang (untuk update role)
+    // Jika BCS.Storage siap, render ulang
     if (typeof BCS !== 'undefined' && BCS.Storage) {
         const checkSession = setInterval(function() {
             try {
@@ -150,11 +143,11 @@
         }, 300);
     }
 
-    // Fallback: render ulang setelah 1 detik jika sidebar masih kosong
+    // Fallback jika sidebar masih kosong
     setTimeout(function() {
         const sidebarNav = document.querySelector('.sidebar nav');
         if (sidebarNav && sidebarNav.innerHTML.trim() === '') {
-            console.log('🔄 Retry rendering sidebar (fallback)...');
+            console.log('🔄 Retry rendering sidebar...');
             renderSidebar();
         }
     }, 1000);

@@ -118,32 +118,6 @@
         }
         .btn-reject:hover { background: #b91c1c; transform: translateY(-1px); }
 
-        /* fallback sidebar */
-        .sidebar .logo-area .logo {
-            width: 56px;
-            height: 56px;
-            background: #4b7bec;
-            border-radius: 14px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 6px;
-        }
-        .sidebar .logo-area h5 {
-            font-weight: 600;
-            font-size: 18px;
-            margin: 0;
-        }
-        .sidebar .logo-area small {
-            font-size: 11px;
-            font-weight: 400;
-        }
-        .menu-admin { display: none; }
-        .menu-admin.visible { display: flex; }
-
         @media (max-width: 768px) {
             .approval-item { flex-direction: column; align-items: stretch; }
             .approval-item .actions { justify-content: flex-end; }
@@ -152,18 +126,22 @@
 </head>
 <body>
 <div class="wrapper">
-    <!-- SIDEBAR akan dirender oleh sidebar.js atau fallback -->
-    <aside class="sidebar" id="sidebarContainer">
-        <!-- Konten akan diisi oleh JavaScript -->
-    </aside>
+    <!-- SIDEBAR dirender secara otomatis oleh sidebar.js -->
+    <aside class="sidebar"></aside>
 
     <main class="content">
         <div class="container-fluid">
             <!-- TOPBAR -->
             <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 bg-white border rounded shadow-sm mb-4">
-                <div>
-                    <h3 class="fw-bold m-0">Approval</h3>
-                    <small class="text-muted">Building Care System Enterprise<br /><span class="text-primary fw-semibold">Radiant Group Duri</span></small>
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Tombol hamburger menu untuk mobile responsiveness dari sidebar.js -->
+                    <button class="btn btn-light d-lg-none" id="sidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <div>
+                        <h3 class="fw-bold m-0">Approval</h3>
+                        <small class="text-muted">Building Care System Enterprise<br /><span class="text-primary fw-semibold">Radiant Group Duri</span></small>
+                    </div>
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
@@ -199,7 +177,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- Modul internal (pastikan path benar) -->
+<!-- Modul internal -->
 <script src="config/config.js"></script>
 <script src="assets/js/core/app.js"></script>
 <script src="assets/js/core/api.js"></script>
@@ -208,6 +186,7 @@
 <script src="assets/js/core/ui.js"></script>
 <script src="assets/js/core/utils.js"></script>
 <script src="assets/js/modules/auth.js"></script>
+<!-- Memuat sidebar.js yang menangani render & logika menu -->
 <script src="assets/js/core/components/sidebar.js"></script>
 
 <script>
@@ -215,7 +194,7 @@
         'use strict';
 
         // ============================================================
-        //  1.  SESSION HELPER (gunakan BCS jika ada)
+        //  1.  SESSION HELPER
         // ============================================================
         function getSession() {
             if (typeof BCS !== 'undefined' && BCS.Storage && typeof BCS.Storage.getSession === 'function') {
@@ -234,54 +213,8 @@
             localStorage.setItem('bcs_session', JSON.stringify(data));
         }
 
-        function clearSession() {
-            if (typeof BCS !== 'undefined' && BCS.Storage && typeof BCS.Storage.clearSession === 'function') {
-                return BCS.Storage.clearSession();
-            }
-            localStorage.removeItem('bcs_session');
-            sessionStorage.clear();
-        }
-
         // ============================================================
-        //  2.  INISIALISASI SIDEBAR
-        // ============================================================
-        function initSidebar() {
-            const container = document.getElementById('sidebarContainer');
-            if (!container) return;
-
-            // Coba gunakan BCS.Sidebar jika tersedia
-            if (typeof BCS !== 'undefined' && BCS.Sidebar && typeof BCS.Sidebar.init === 'function') {
-                try {
-                    BCS.Sidebar.init('sidebarContainer');
-                    console.log('✅ Sidebar initialized via BCS.Sidebar');
-                    return;
-                } catch (e) {
-                    console.warn('BCS.Sidebar.init gagal, fallback ke manual.', e);
-                }
-            }
-
-            // FALLBACK: render manual
-            container.innerHTML = `
-                <div class="logo-area text-center mb-4 pb-3 border-bottom">
-                    <div class="logo">BC</div>
-                    <h5>Building Care</h5>
-                    <small>Enterprise v3.2</small>
-                </div>
-                <nav class="d-flex flex-column gap-1">
-                    <a href="dashboard.html" class="menu"><i class="bi bi-grid-fill"></i><span>Dashboard</span></a>
-                    <a href="report.html" class="menu"><i class="bi bi-file-earmark-plus"></i><span>Report</span></a>
-                    <a href="monitoring.html" class="menu"><i class="bi bi-display"></i><span>Monitoring</span></a>
-                    <a href="history.html" class="menu"><i class="bi bi-clock-history"></i><span>History</span></a>
-                    <a href="approval.html" class="menu active"><i class="bi bi-check-circle"></i><span>Approval</span></a>
-                    <a href="admin.html" class="menu menu-admin" id="adminMenu"><i class="bi bi-shield-lock-fill"></i><span>Admin</span></a>
-                    <a href="#" id="logoutBtn" class="menu text-danger"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
-                </nav>
-            `;
-            console.log('✅ Sidebar fallback rendered');
-        }
-
-        // ============================================================
-        //  3.  MOCK DATA APPROVAL
+        //  2.  MOCK DATA APPROVAL
         // ============================================================
         let mockApprovals = [
             { id: 'APR-001', kategori: 'Kebersihan', lokasi: 'Gedung A - Lantai 2', tanggal: '2026-07-02', status: 'pending', pelapor: 'Budi Santoso' },
@@ -290,7 +223,7 @@
         ];
 
         // ============================================================
-        //  4.  RENDER APPROVAL
+        //  3.  RENDER APPROVAL
         // ============================================================
         function renderApprovals() {
             const container = document.getElementById('approvalList');
@@ -329,7 +262,6 @@
 
             container.innerHTML = html;
 
-            // Event listener tombol aksi (delegasi lebih aman)
             container.querySelectorAll('.btn-approve').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -345,7 +277,7 @@
         }
 
         // ============================================================
-        //  5.  HANDLE APPROVE / REJECT
+        //  4.  HANDLE APPROVE / REJECT
         // ============================================================
         function handleAction(id, action) {
             const item = mockApprovals.find(a => a.id === id);
@@ -379,7 +311,7 @@
         }
 
         // ============================================================
-        //  6.  DARK MODE
+        //  5.  DARK MODE
         // ============================================================
         function initDarkMode() {
             const toggle = document.getElementById('darkModeToggle');
@@ -413,7 +345,7 @@
         }
 
         // ============================================================
-        //  7.  USER INFO
+        //  6.  USER INFO
         // ============================================================
         function loadUserInfo() {
             const session = getSession();
@@ -423,12 +355,11 @@
 
             if (session && session.user) {
                 const u = session.user;
-                if (nameEl) nameEl.textContent = u.name || u.username || 'User';
+                if (nameEl) nameEl.textContent = u.nama || u.name || u.username || 'User';
                 if (roleEl) roleEl.textContent = u.role || 'User';
-                if (avatarEl) avatarEl.textContent = (u.name || u.username || 'U')[0].toUpperCase();
+                if (avatarEl) avatarEl.textContent = (u.nama || u.name || u.username || 'U')[0].toUpperCase();
             } else {
-                // Default jika belum login (simulasi)
-                const defaultUser = { name: 'Andi Permana', role: 'Administrator' };
+                const defaultUser = { name: 'Andi Permana', role: 'ADMIN' };
                 setSession({ user: defaultUser });
                 if (nameEl) nameEl.textContent = defaultUser.name;
                 if (roleEl) roleEl.textContent = defaultUser.role;
@@ -437,100 +368,15 @@
         }
 
         // ============================================================
-        //  8.  ADMIN MENU VISIBILITY
-        // ============================================================
-        function checkAdminMenu() {
-            // Cari elemen adminMenu di dalam sidebar (mungkin sudah dirender oleh sidebar.js)
-            let menu = document.getElementById('adminMenu');
-            if (!menu) {
-                // coba cari di dalam sidebarContainer
-                const container = document.getElementById('sidebarContainer');
-                if (container) {
-                    menu = container.querySelector('#adminMenu');
-                }
-            }
-            if (!menu) return;
-
-            const session = getSession();
-            if (session && session.user) {
-                const role = (session.user.role || '').toUpperCase();
-                if (role === 'ADMINISTRATOR' || role === 'ADMIN') {
-                    menu.style.display = 'flex';
-                    menu.classList.add('visible');
-                } else {
-                    menu.style.display = 'none';
-                    menu.classList.remove('visible');
-                }
-            } else {
-                menu.style.display = 'none';
-            }
-        }
-
-        // ============================================================
-        //  9.  LOGOUT HANDLER (aman)
-        // ============================================================
-        function handleLogout(e) {
-            e.preventDefault();
-            Swal.fire({
-                title: 'Logout',
-                text: 'Anda yakin ingin keluar?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#4b7bec',
-                cancelButtonColor: '#94a3b8',
-                confirmButtonText: 'Ya, Logout',
-                cancelButtonText: 'Batal'
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    if (typeof window.auth !== 'undefined' && typeof window.auth.logout === 'function') {
-                        window.auth.logout();
-                    } else {
-                        clearSession();
-                        window.location.href = 'login.html';
-                    }
-                }
-            });
-        }
-
-        // ============================================================
-        //  10. ATTACH LOGOUT EVENT (dengan pengecekan)
-        // ============================================================
-        function attachLogoutEvent() {
-            // Coba cari tombol logout di berbagai tempat
-            const logoutBtn = document.getElementById('logoutBtn') ||
-                              document.querySelector('#sidebarContainer #logoutBtn');
-            if (logoutBtn) {
-                // Hapus listener lama jika ada
-                logoutBtn.removeEventListener('click', handleLogout);
-                logoutBtn.addEventListener('click', handleLogout);
-            } else {
-                // Jika tombol belum ada, coba lagi setelah 500ms (sidebar mungkin render asinkron)
-                setTimeout(attachLogoutEvent, 500);
-            }
-        }
-
-        // ============================================================
-        //  11. INIT
+        //  7.  INIT
         // ============================================================
         function init() {
-            // Inisialisasi sidebar (akan render manual atau pakai BCS)
-            initSidebar();
-
-            // Inisialisasi komponen lainnya
             initDarkMode();
             loadUserInfo();
             renderApprovals();
-
-            // Admin menu visibility (setelah sidebar render)
-            setTimeout(checkAdminMenu, 300);
-
-            // Attach logout (dengan retry)
-            attachLogoutEvent();
-
-            console.log('✅ Approval page fully initialized');
+            console.log('✅ Approval page content fully initialized');
         }
 
-        // Jalankan setelah DOM siap
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {

@@ -839,12 +839,12 @@
                 pageData.forEach(function(w) {
                     html += `
                     <tr style="border-bottom:1px solid var(--border-color);">
-                        <td class="py-2 px-3"><span class="wo-number">WO-${w.wo_number || w.id}</span></td>
+                        <td class="py-2 px-3"><span class="wo-number">${w.wo_number || w.id}</span></td>
                         <td class="py-2">
                             <div class="fw-semibold" style="color:var(--text-primary);">${w.title || '-'}</div>
                             <div class="text-muted" style="font-size:10px;">${(w.description || '').substring(0, 40)}${w.description && w.description.length > 40 ? '...' : ''}</div>
                         </td>
-                        <td class="py-2" style="color:var(--text-secondary);">${w.category || '-'}</td>
+                        <td class="py-2" style="color:var(--text-secondary);">${w.category || w.category_id || '-'}</td>
                         <td class="py-2">${getPriorityBadge(w.priority || 'medium')}</td>
                         <td class="py-2">${getStatusBadge(w.status || 'open')}</td>
                         <td class="py-2" style="color:var(--text-secondary);">${w.assigned_to || '-'}</td>
@@ -935,7 +935,7 @@
                     document.getElementById('woAssignedTo').value = data.assigned_to || '';
                     document.getElementById('woScheduledDate').value = data.scheduled_date || '';
                     document.getElementById('woNotes').value = data.notes || '';
-                    document.getElementById('woEmergency').checked = data.is_emergency || false;
+                    document.getElementById('woEmergency').checked = data.is_emergency === true || String(data.is_emergency).toUpperCase() === 'TRUE';
                 } else {
                     isEditMode = false;
                     editId = null;
@@ -949,23 +949,14 @@
             }
 
             async function loadCategories() {
-                try {
-                    var res = await BCS.Api.post('getWOCategories', {});
-                    var sel = document.getElementById('woCategory');
-                    sel.innerHTML = '<option value="">Pilih Kategori...</option>';
-                    if (res.success && res.data && res.data.length > 0) {
-                        res.data.forEach(function(c) {
-                            sel.innerHTML += '<option value="' + c.id + '">' + c.name + '</option>';
-                        });
-                    } else {
-                        var fallback = ['AC', 'LISTRIK', 'KONDISI GEDUNG'];
-                        fallback.forEach(function(name, idx) {
-                            sel.innerHTML += '<option value="cat-' + (idx + 1) + '">' + name + '</option>';
-                        });
-                    }
-                } catch (e) {
-                    console.warn('Load categories error:', e);
-                }
+                var sel = document.getElementById('woCategory');
+                sel.innerHTML = `
+                    <option value="">Pilih Kategori...</option>
+                    <option value="AC">AC</option>
+                    <option value="LISTRIK">LISTRIK</option>
+                    <option value="AIR">AIR</option>
+                    <option value="GEDUNG">KONDISI GEDUNG</option>
+                `;
             }
 
             async function loadTechnicians() {
@@ -1011,7 +1002,8 @@
 
                     var res;
                     if (isEditMode && editId) {
-                        res = await BCS.Api.post('updateWorkOrder', { id: editId, data: data });
+                        data.id = editId;
+                        res = await BCS.Api.post('updateWorkOrder', data);
                     } else {
                         res = await BCS.Api.post('createWorkOrder', data);
                     }
@@ -1076,7 +1068,7 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="fw-bold text-muted" style="font-size:11px;color:var(--text-muted);">NO. WO</div>
-                            <div class="fw-bold" style="font-size:16px;color:#4b7bec;">WO-${w.wo_number || w.id}</div>
+                            <div class="fw-bold" style="font-size:16px;color:#4b7bec;">${w.wo_number || w.id}</div>
                         </div>
                         <div class="col-md-6 text-md-end">
                             ${getStatusBadge(w.status)} ${getPriorityBadge(w.priority)}
@@ -1089,7 +1081,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="text-muted" style="font-size:11px;color:var(--text-muted);">Kategori</div>
-                            <div style="color:var(--text-secondary);">${w.category || '-'}</div>
+                            <div style="color:var(--text-secondary);">${w.category || w.category_id || '-'}</div>
                         </div>
                         <div class="col-md-6">
                             <div class="text-muted" style="font-size:11px;color:var(--text-muted);">Lokasi</div>
@@ -1181,7 +1173,7 @@
                     return {
                         'No. WO': w.wo_number || w.id,
                         'Judul': w.title || '-',
-                        'Kategori': w.category || '-',
+                        'Kategori': w.category || w.category_id || '-',
                         'Prioritas': w.priority || '-',
                         'Status': formatStatus(w.status),
                         'Teknisi': w.assigned_to || '-',
@@ -1225,7 +1217,7 @@
                     var row = [
                         w.wo_number || w.id,
                         (w.title || '').substring(0, 15),
-                        w.category || '-',
+                        w.category || w.category_id || '-',
                         w.priority || '-',
                         formatStatus(w.status),
                         w.assigned_to || '-',

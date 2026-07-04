@@ -1,6 +1,6 @@
 // =====================================================
 // Building Care System Enterprise v7.6 FINAL - FIXED
-// history.js - Menggunakan CONFIG.API.URL
+// history.js - Auto Refresh 5 Menit (Background)
 // Radiant Group Duri
 // =====================================================
 
@@ -28,7 +28,7 @@
         sort: 'desc',
         loading: false,
         currentDetail: null,
-        countdown: 7,
+        countdown: 300,          // 🔥 5 MENIT = 300 detik
         autoRefresh: true,
         countdownInterval: null,
         errorCount: 0,
@@ -234,6 +234,15 @@
     }
 
     // ============================================================
+    //  FORMAT COUNTDOWN (M:SS)
+    // ============================================================
+    function formatCountdown(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    // ============================================================
     //  AUTO-REFRESH COUNTDOWN
     // ============================================================
     function startCountdown() {
@@ -244,7 +253,7 @@
 
         if (!state.autoRefresh) return;
 
-        state.countdown = 7;
+        state.countdown = 300;   // reset ke 5 menit
         updateCountdownDisplay();
 
         state.countdownInterval = setInterval(function() {
@@ -252,7 +261,7 @@
             updateCountdownDisplay();
 
             if (state.countdown <= 0) {
-                state.countdown = 7;
+                state.countdown = 300;
                 updateCountdownDisplay();
                 fetchReports();
             }
@@ -261,7 +270,7 @@
 
     function updateCountdownDisplay() {
         if (DOM.countdownNumber) {
-            DOM.countdownNumber.textContent = state.countdown;
+            DOM.countdownNumber.textContent = formatCountdown(state.countdown);
         }
         if (DOM.countdownArea) {
             if (!state.autoRefresh || state.hasError) {
@@ -284,7 +293,7 @@
             clearInterval(state.countdownInterval);
             state.countdownInterval = null;
         }
-        state.countdown = 7;
+        state.countdown = 300;
         state.errorCount = 0;
         state.hasError = false;
         state.autoRefresh = true;
@@ -298,7 +307,7 @@
     function toggleAutoRefresh() {
         state.autoRefresh = !state.autoRefresh;
         if (state.autoRefresh && !state.hasError) {
-            state.countdown = 7;
+            state.countdown = 300;
             updateCountdownDisplay();
             startCountdown();
         } else {
@@ -318,7 +327,7 @@
             DOM.countdownToggle.addEventListener('click', toggleAutoRefresh);
         }
         state.autoRefresh = true;
-        state.countdown = 7;
+        state.countdown = 300;
         updateCountdownDisplay();
         startCountdown();
     }
@@ -533,11 +542,11 @@
             applyFilters();
         } finally {
             if (!state.hasError && state.autoRefresh) {
-                state.countdown = 7;
+                state.countdown = 300;
                 updateCountdownDisplay();
                 startCountdown();
             } else if (state.hasError && state.autoRefresh) {
-                state.countdown = 7;
+                state.countdown = 300;
                 updateCountdownDisplay();
                 startCountdown();
             }
@@ -1176,7 +1185,7 @@
         bindEvents();
         initCountdown();
         await fetchReports();
-        console.log('✅ History page initialized with CONFIG.API.URL');
+        console.log('✅ History page initialized with auto-refresh 5 menit.');
     }
 
     if (document.readyState === 'loading') {

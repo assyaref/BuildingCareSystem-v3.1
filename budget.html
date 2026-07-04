@@ -56,9 +56,13 @@
             transition: background 0.3s ease, color 0.3s ease;
         }
 
+        /* Modifikasi .content untuk menyelaraskan layout dengan sidebar.js */
         .content {
             background: var(--bg-body);
             padding: 2rem 1.5rem;
+            margin-left: 280px !important; 
+            width: calc(100% - 280px) !important; 
+            transition: all 0.3s ease;
         }
 
         /* ===== MODERN TOPBAR ===== */
@@ -93,32 +97,6 @@
 
         .text-muted { color: var(--text-muted) !important; }
         .text-secondary { color: var(--text-secondary) !important; }
-
-        /* ===== SIDEBAR ===== */
-        .sidebar {
-            background: linear-gradient(185deg, #1e40af 0%, #1e3a8a 100%) !important;
-            box-shadow: 4px 0 25px rgba(0,0,0,0.05);
-        }
-        [data-theme="dark"] .sidebar {
-            background: linear-gradient(185deg, #1e293b 0%, #0f172a 100%) !important;
-        }
-        .sidebar nav a.menu {
-            border-radius: 8px;
-            margin: 4px 12px;
-            padding: 10px 16px;
-            transition: all 0.2s ease;
-            color: rgba(255, 255, 255, 0.75) !important;
-        }
-        .sidebar nav a.menu:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            color: #ffffff !important;
-            transform: translateX(4px);
-        }
-        .sidebar nav a.menu.active {
-            background: var(--accent-color) !important;
-            color: #ffffff !important;
-            font-weight: 500;
-        }
 
         /* ===== AVATAR & TOGGLE ===== */
         .avatar-sm {
@@ -300,9 +278,18 @@
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
+        @media (max-width: 991.98px) {
+            .content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding-top: 140px !important; /* Ruang udara untuk Mobile Topbar sidebar.js */
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .item-row { grid-template-columns: 1fr; gap: 8px; }
-            .content { padding: 1rem; }
         }
     </style>
 </head>
@@ -321,15 +308,9 @@
     <!-- APP WRAPPER -->
     <div class="wrapper">
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <div class="logo-area">
-                <img src="assets/img/logo.png" class="logo" alt="Logo">
-                <h5>Building Care</h5>
-                <small>Enterprise v4.3</small>
-            </div>
-            <nav></nav>
-        </aside>
+        <!-- SIDEBAR CONTAINER -->
+        <!-- Elemen dipertahankan kosong, struktur internal akan dirender otomatis secara dinamis oleh assets/js/core/components/sidebar.js -->
+        <aside class="sidebar"></aside>
 
         <!-- MAIN CONTENT -->
         <main class="content">
@@ -337,9 +318,15 @@
 
                 <!-- TOPBAR -->
                 <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
-                    <div>
-                        <h4 class="mb-1 fw-bold" style="color:var(--text-primary);">Budget & Estimasi Biaya</h4>
-                        <p class="mb-0 text-secondary" style="font-size:13px;">Kelola komparasi budget perbaikan dan estimasi pengeluaran operasional</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Tombol burger menu pembantu khusus tampilan tablet/mobile -->
+                        <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebarToggle" style="border-radius: 8px;">
+                            <i class="bi bi-list" style="font-size: 18px;"></i>
+                        </button>
+                        <div>
+                            <h4 class="mb-1 fw-bold" style="color:var(--text-primary);">Budget & Estimasi Biaya</h4>
+                            <p class="mb-0 text-secondary" style="font-size:13px;">Kelola komparasi budget perbaikan dan estimasi pengeluaran operasional</p>
+                        </div>
                     </div>
                     <div class="d-flex align-items-center gap-3">
                         <button class="dark-toggle" id="darkModeToggle" title="Ubah Tema">
@@ -476,7 +463,7 @@
                                                 <th class="fw-semibold text-secondary">STATUS</th>
                                                 <th class="fw-semibold text-secondary">PRIORITAS</th>
                                                 <th class="fw-semibold text-secondary">TANGGAL BUKU</th>
-                                                <th class="fw-semibold text-secondary text-centerpe-4">AKSI</th>
+                                                <th class="fw-semibold text-secondary text-center pe-4">AKSI</th>
                                             </tr>
                                         </thead>
                                         <tbody id="budgetTableBody">
@@ -614,6 +601,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+    <!-- INJEKSI SIDEBAR OTOMATIS -->
+    <script src="assets/js/core/components/sidebar.js"></script>
+    
     <!-- JS Aplikasi bawaan disisipkan di bawah script ini -->
 </body>
 </html>

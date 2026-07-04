@@ -1,7 +1,7 @@
 // =====================================================
-// Building Care System Enterprise v7.4
+// Building Care System Enterprise v7.5
 // history.js - Auto-Refresh 7 detik + Countdown
-// Loading hitam dihilangkan (no-op)
+// Error handling + Auto-stop after failures
 // Radiant Group Duri
 // =====================================================
 
@@ -31,7 +31,10 @@
         currentDetail: null,
         countdown: 7,
         autoRefresh: true,
-        countdownInterval: null
+        countdownInterval: null,
+        errorCount: 0,
+        maxErrors: 3,
+        hasError: false
     };
 
     // DOM cache
@@ -101,13 +104,9 @@
     // ============================================================
     //  LOADING - NO-OP (loading hitam dihilangkan)
     // ============================================================
-    function showLoading() {
-        // Tidak ada overlay hitam
-    }
+    function showLoading() { /* tidak ada overlay */ }
 
-    function hideLoading() {
-        // Tidak ada overlay hitam
-    }
+    function hideLoading() { /* tidak ada overlay */ }
 
     // ============================================================
     //  DATE HELPERS
@@ -291,14 +290,14 @@
             DOM.countdownNumber.textContent = state.countdown;
         }
         if (DOM.countdownArea) {
-            if (!state.autoRefresh) {
+            if (!state.autoRefresh || state.hasError) {
                 DOM.countdownArea.classList.add('paused');
             } else {
                 DOM.countdownArea.classList.remove('paused');
             }
         }
         if (DOM.countdownToggleIcon) {
-            if (state.autoRefresh) {
+            if (state.autoRefresh && !state.hasError) {
                 DOM.countdownToggleIcon.className = 'bi bi-pause-fill';
             } else {
                 DOM.countdownToggleIcon.className = 'bi bi-play-fill';
@@ -312,6 +311,9 @@
             state.countdownInterval = null;
         }
         state.countdown = 7;
+        state.errorCount = 0;
+        state.hasError = false;
+        state.autoRefresh = true;
         updateCountdownDisplay();
         fetchReports();
         if (state.autoRefresh) {
@@ -321,7 +323,7 @@
 
     function toggleAutoRefresh() {
         state.autoRefresh = !state.autoRefresh;
-        if (state.autoRefresh) {
+        if (state.autoRefresh && !state.hasError) {
             state.countdown = 7;
             updateCountdownDisplay();
             startCountdown();
@@ -358,7 +360,7 @@
             state.countdownInterval = null;
         }
 
-        // Tampilkan spinner di tabel sebagai indikator loading
+        // Tampilkan spinner di tabel
         if (DOM.tableBody) {
             DOM.tableBody.innerHTML =
                 '<tr><td colspan="11" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Sedang memuat data...</td></tr>';
@@ -378,13 +380,16 @@
 
             console.log('[History] getReports response:', response);
 
-            let reports = [];
+            // Jika response sukses, reset error count
             if (response && response.success) {
-                reports = response.data?.reports || [];
+                state.errorCount = 0;
+                state.hasError = false;
             } else {
-                console.warn('[History] No reports data, using empty array');
-                reports = [];
+                // Gagal mendapatkan data
+                throw new Error(response?.message || 'Gagal memuat data');
             }
+
+            let reports = response.data?.reports || [];
 
             // Filter berdasarkan role user
             const session = BCS.Storage.getSession();
@@ -411,11 +416,51 @@
 
         } catch (err) {
             console.error('[History] Fetch error:', err);
-            showToast('Gagal memuat data: ' + err.message, 'error');
+            state.errorCount++;
+            state.hasError = true;
+
+            // Tampilkan pesan error di tabel
+            if (DOM.tableBody) {
+                DOM.tableBody.innerHTML =
+                    `<tr><td colspan="11" class="text-center py-5 text-danger">
+                        <i class="bi bi-exclamation-triangle fs-2 d-block mb-2"></i>
+                        <strong>Gagal memuat data</strong><br>
+                        <span class="text-muted">${escapeHtml(err.message || 'Coba refresh halaman')}</span>
+                        <br><br>
+                        <button class="btn btn-sm btn-primary" id="retryBtnHistory"><i class="bi bi-arrow-clockwise"></i> Coba Lagi</button>
+                    </td></tr>`;
+                // Bind tombol retry
+                const retryBtn = document.getElementById('retryBtnHistory');
+                if (retryBtn) {
+                    retryBtn.addEventListener('click', function() {
+                        resetCountdown();
+                    });
+                }
+            }
+
+            // Jika error sudah lebih dari maxErrors, hentikan auto-refresh
+            if (state.errorCount >= state.maxErrors) {
+                state.autoRefresh = false;
+                if (state.countdownInterval) {
+                    clearInterval(state.countdownInterval);
+                    state.countdownInterval = null;
+                }
+                updateCountdownDisplay();
+                showToast('Auto-refresh dihentikan karena gagal beberapa kali. Klik tombol refresh untuk mencoba lagi.', 'warning');
+            } else {
+                showToast('Gagal memuat data: ' + err.message, 'error');
+            }
+
             state.reports = [];
             applyFilters();
         } finally {
-            if (state.autoRefresh) {
+            // Restart countdown hanya jika tidak error dan autoRefresh aktif
+            if (!state.hasError && state.autoRefresh) {
+                state.countdown = 7;
+                updateCountdownDisplay();
+                startCountdown();
+            } else if (state.hasError && state.autoRefresh) {
+                // Jika error tapi autoRefresh masih aktif, restart countdown
                 state.countdown = 7;
                 updateCountdownDisplay();
                 startCountdown();
@@ -546,6 +591,27 @@
 
         const start = (state.currentPage - 1) * state.perPage;
         const pageData = state.filtered.slice(start, start + state.perPage);
+
+        // Jika ada error, tampilkan pesan error (sudah ditangani di fetchReports)
+        if (state.hasError && state.reports.length === 0) {
+            // Tampilkan pesan error jika belum ada
+            if (DOM.tableBody && DOM.tableBody.innerHTML.includes('Memuat data')) {
+                DOM.tableBody.innerHTML =
+                    `<tr><td colspan="11" class="text-center py-5 text-danger">
+                        <i class="bi bi-exclamation-triangle fs-2 d-block mb-2"></i>
+                        <strong>Gagal memuat data</strong><br>
+                        <span class="text-muted">Silakan refresh halaman atau coba lagi nanti</span>
+                        <br><br>
+                        <button class="btn btn-sm btn-primary" id="retryBtnHistory"><i class="bi bi-arrow-clockwise"></i> Coba Lagi</button>
+                    </td></tr>`;
+                const retryBtn = document.getElementById('retryBtnHistory');
+                if (retryBtn) {
+                    retryBtn.addEventListener('click', resetCountdown);
+                }
+            }
+            if (DOM.emptyState) DOM.emptyState.classList.add('d-none');
+            return;
+        }
 
         if (pageData.length === 0) {
             DOM.tableBody.innerHTML =

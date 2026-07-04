@@ -23,7 +23,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        /* ===== VARIABEL CSS UNTUK DARK/LIGHT MODE ===== */
+        /* ===== VARIABEL CSS ===== */
         :root {
             --bg-body: #f0f4ff;
             --bg-card: #ffffff;
@@ -242,7 +242,6 @@
             margin-right: 4px;
         }
 
-        /* Detail Modal - Info Item */
         .info-item {
             display: grid;
             grid-template-columns: 130px 1fr;
@@ -265,25 +264,7 @@
             color: var(--text-primary);
             word-break: break-word;
         }
-        .info-value .badge {
-            font-size: 11px;
-            padding: 4px 12px;
-        }
-        @media (max-width: 576px) {
-            .info-item {
-                grid-template-columns: 1fr;
-                gap: 2px;
-                padding: 6px 0;
-            }
-            .info-label {
-                font-size: 11px;
-            }
-            .info-value {
-                font-size: 13px;
-            }
-        }
 
-        /* Date Filter Styles */
         .date-filter-group {
             display: flex;
             align-items: center;
@@ -297,7 +278,6 @@
             font-size: 12px;
             background: var(--bg-card);
             color: var(--text-primary);
-            transition: all 0.2s;
             min-width: 130px;
         }
         .date-filter-group .date-input:focus {
@@ -380,10 +360,6 @@
             color: white;
             border-color: #4b7bec;
         }
-        [data-theme="dark"] .quick-filter-pills .pill.active {
-            background: #4b7bec;
-            color: white;
-        }
 
         .sidebar nav a.menu {
             display: flex;
@@ -391,19 +367,19 @@
             gap: 12px;
             padding: 10px 16px;
             border-radius: 10px;
-            color: var(--text-secondary, #64748b);
+            color: var(--text-secondary);
             text-decoration: none;
             transition: all 0.3s ease;
             font-size: 14px;
             font-weight: 500;
         }
         .sidebar nav a.menu:hover {
-            background: var(--bg-card-hover, #f1f5f9);
-            color: var(--text-primary, #0f172a);
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
         }
         .sidebar nav a.menu.active {
-            background: var(--accent-soft, #dbeafe);
-            color: var(--accent-color, #2563eb);
+            background: var(--accent-soft);
+            color: var(--accent-color);
             font-weight: 600;
         }
         .sidebar nav a.menu i {
@@ -417,6 +393,20 @@
         .sidebar nav a.menu.text-danger:hover {
             background: #fef2f2 !important;
             color: #dc2626 !important;
+        }
+
+        @media (max-width: 576px) {
+            .info-item {
+                grid-template-columns: 1fr;
+                gap: 2px;
+                padding: 6px 0;
+            }
+            .info-label {
+                font-size: 11px;
+            }
+            .info-value {
+                font-size: 13px;
+            }
         }
     </style>
 </head>
@@ -442,7 +432,7 @@
                 <h5>Building Care</h5>
                 <small>Enterprise v4.3</small>
             </div>
-            <nav></nav> <!-- 🔥 SIDEBAR DINAMIS -->
+            <nav></nav>
         </aside>
 
         <!-- MAIN CONTENT -->
@@ -464,7 +454,6 @@
                         <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
                             <i class="bi bi-moon-fill" id="darkModeIcon"></i>
                         </button>
-
                         <div class="avatar-sm" id="userAvatar">U</div>
                         <div>
                             <div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary);">Loading...</div>
@@ -489,7 +478,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                         <div class="summary-card">
                             <div class="summary-top">
@@ -504,7 +492,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                         <div class="summary-card">
                             <div class="summary-top">
@@ -519,7 +506,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                         <div class="summary-card">
                             <div class="summary-top">
@@ -540,7 +526,6 @@
                 <section class="row g-4 mt-3">
                     <div class="col-12">
                         <div class="card enterprise-card">
-                            <!-- Filter Header -->
                             <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2">
                                 <div class="row g-2 align-items-center">
                                     <div class="col-md-12">
@@ -623,10 +608,10 @@
                                 </div>
                             </div>
 
-                            <!-- Table -->
+                            <!-- TABLE -->
                             <div class="card-body px-4 pb-4">
-                                <div class="table-responsive" id="historyTableWrapper">
-                                    <table class="table table-sm align-middle" style="font-size:12px;min-width:1000px;" id="historyTableMain">
+                                <div class="table-responsive">
+                                    <table class="table table-sm align-middle" style="font-size:12px;min-width:1000px;">
                                         <thead>
                                             <tr class="text-secondary" style="background:var(--bg-card-hover);border-bottom:1px solid var(--border-color);">
                                                 <th class="py-3 px-2 fw-semibold" style="color:var(--text-secondary);width:15%;">ID</th>
@@ -637,10 +622,10 @@
                                                 <th class="py-3 fw-semibold" style="color:var(--text-secondary);width:15%;">Deskripsi</th>
                                                 <th class="py-3 fw-semibold" style="color:var(--text-secondary);width:8%;">Status</th>
                                                 <th class="py-3 fw-semibold text-center" style="color:var(--text-secondary);width:5%;">Foto</th>
-                                                <th class="py-3 fw-semibold text-center" style="color:var(--text-secondary);width:8%;">Action</th>
+                                                <th class="py-3 fw-semibold text-center" style="color:var(--text-secondary);width:8%;">Aksi</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="historyTable" class="border-top-0">
+                                        <tbody id="historyTable">
                                             <tr>
                                                 <td colspan="9" class="text-center py-5 text-muted" style="color:var(--text-muted);">
                                                     <div class="spinner-border spinner-border-sm mb-2"></div><br>
@@ -671,7 +656,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content" style="background:var(--bg-card);border-color:var(--border-color);">
                 <div class="modal-header" style="border-bottom:1px solid var(--border-color);">
-                    <h5 class="modal-title" style="color:var(--text-primary);"><i class="bi bi-pencil-square"></i> Update Status Laporan</h5>
+                    <h5 class="modal-title" style="color:var(--text-primary);"><i class="bi bi-pencil-square"></i> Update Status</h5>
                     <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -713,7 +698,7 @@
                     <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center bg-light" style="background:var(--bg-card-hover);">
-                    <img id="modalPhoto" class="img-fluid rounded shadow" style="max-width:100%; max-height:80vh; object-fit:contain">
+                    <img id="modalPhoto" class="img-fluid rounded shadow" style="max-width:100%;max-height:80vh;object-fit:contain;">
                 </div>
             </div>
         </div>
@@ -727,13 +712,9 @@
                     <h5 class="modal-title text-white"><i class="bi bi-file-earmark-text-fill me-2"></i>Detail Laporan</h5>
                     <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4" id="detailContent" style="color:var(--text-primary);">
-                    <!-- Konten akan diisi oleh JavaScript -->
-                </div>
+                <div class="modal-body p-4" id="detailContent" style="color:var(--text-primary);"></div>
                 <div class="modal-footer" style="border-top:1px solid var(--border-color);padding:14px 28px;">
-                    <button class="btn btn-success" id="exportDetailPdfBtn">
-                        <i class="bi bi-file-earmark-pdf"></i> Export PDF
-                    </button>
+                    <button class="btn btn-success" id="exportDetailPdfBtn"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
                     <button class="btn btn-secondary" data-bs-dismiss="modal" style="background:var(--bg-card-hover);color:var(--text-primary);border-color:var(--border-color);">Tutup</button>
                 </div>
             </div>
@@ -771,15 +752,15 @@
                 var toggle = document.getElementById('darkModeToggle');
                 var icon = document.getElementById('darkModeIcon');
                 if (!toggle) return;
-                var savedTheme = localStorage.getItem('bcs_theme') || 'light';
-                document.documentElement.setAttribute('data-theme', savedTheme);
-                updateIcon(icon, savedTheme);
+                var saved = localStorage.getItem('bcs_theme') || 'light';
+                document.documentElement.setAttribute('data-theme', saved);
+                updateIcon(icon, saved);
                 toggle.addEventListener('click', function() {
-                    var currentTheme = document.documentElement.getAttribute('data-theme');
-                    var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                    document.documentElement.setAttribute('data-theme', newTheme);
-                    localStorage.setItem('bcs_theme', newTheme);
-                    updateIcon(icon, newTheme);
+                    var cur = document.documentElement.getAttribute('data-theme');
+                    var next = cur === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('bcs_theme', next);
+                    updateIcon(icon, next);
                 });
             }
 
@@ -823,7 +804,6 @@
             var currentPage = 1;
             var perPage = 10;
             var currentDetailReport = null;
-            var activeDateFilter = null;
 
             var tableBody = document.getElementById('historyTable');
             var paginationEl = document.getElementById('pagination');
@@ -842,26 +822,22 @@
             var filterYear = document.getElementById('filterYear');
 
             // =============================================
-            // SHOW TOAST
+            // TOAST
             // =============================================
-            function showToast(message, type) {
+            function showToast(msg, type) {
                 type = type || 'success';
                 var Toast = Swal.mixin({
                     toast: true,
                     position: 'top-end',
                     showConfirmButton: false,
                     timer: 3000,
-                    timerProgressBar: true,
-                    didOpen: function(toast) {
-                        toast.addEventListener('mouseenter', Swal.stopTimer);
-                        toast.addEventListener('mouseleave', Swal.resumeTimer);
-                    }
+                    timerProgressBar: true
                 });
                 var icon = type === 'success' ? 'success' : type === 'error' ? 'error' : 'warning';
                 Toast.fire({
                     icon: icon,
                     title: type === 'success' ? 'Berhasil!' : type === 'error' ? 'Gagal!' : 'Peringatan!',
-                    text: message
+                    text: msg
                 });
             }
 
@@ -882,63 +858,7 @@
             }
 
             // =============================================
-            // FETCH DATA with Fallback
-            // =============================================
-            async function fetchReports() {
-                try {
-                    tableBody.innerHTML =
-                        '<tr><td colspan="9" class="text-center py-5 text-muted" style="color:var(--text-muted);"><div class="spinner-border spinner-border-sm mb-2"></div><br>Memuat data...</td></tr>';
-                    BCS.App.Loading.show();
-
-                    var response = await BCS.Api.post('getReport', {});
-                    console.log('📥 History response:', response);
-
-                    var reports = [];
-                    if (response && response.success) {
-                        reports = response.data?.reports || [];
-                    } else {
-                        // 🔥 Fallback dummy data jika API gagal
-                        console.warn('API gagal, menggunakan data dummy');
-                        reports = generateDummyData();
-                    }
-
-                    console.log('📊 Total reports:', reports.length);
-
-                    var role = (currentUser.role || '').toUpperCase();
-                    var filtered = reports;
-
-                    if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
-                        var userNik = (currentUser.nik || '').trim();
-                        var userNama = (currentUser.nama || '').toLowerCase().trim();
-
-                        if (userNik || userNama) {
-                            filtered = reports.filter(function(r) {
-                                var rNik = String(r.nik || '').trim();
-                                var rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
-                                var match = false;
-                                if (userNik && rNik) match = rNik === userNik;
-                                if (!match && userNama && rNama) match = rNama === userNama;
-                                return match;
-                            });
-                            console.log('🔍 Filtered for user:', filtered.length);
-                        }
-                    }
-
-                    allReports = filtered;
-                    applyFilters();
-
-                } catch (err) {
-                    console.error('Fetch error:', err);
-                    tableBody.innerHTML =
-                        '<tr><td colspan="9" class="text-center text-danger py-4">Terjadi kesalahan: ' + err.message +
-                        '</td></tr>';
-                } finally {
-                    BCS.App.Loading.hide();
-                }
-            }
-
-            // =============================================
-            // GENERATE DUMMY DATA (untuk testing)
+            // 🔥 DUMMY DATA (fallback jika API gagal)
             // =============================================
             function generateDummyData() {
                 var dummy = [];
@@ -972,6 +892,66 @@
                     });
                 }
                 return dummy;
+            }
+
+            // =============================================
+            // 🔥 FETCH DATA - MENGGUNAKAN getReports (PLURAL)
+            // =============================================
+            async function fetchReports() {
+                try {
+                    tableBody.innerHTML =
+                        '<tr><td colspan="9" class="text-center py-5 text-muted" style="color:var(--text-muted);"><div class="spinner-border spinner-border-sm mb-2"></div><br>Memuat data...</td></tr>';
+                    BCS.App.Loading.show();
+
+                    // 🔥 PERBAIKAN: Gunakan getReports (bukan getReport)
+                    var response = await BCS.Api.post('getReports', {});
+                    console.log('📥 History response:', response);
+
+                    var reports = [];
+                    if (response && response.success) {
+                        reports = response.data?.reports || [];
+                    } else {
+                        // Fallback dummy jika API gagal
+                        console.warn('API getReports gagal, menggunakan data dummy');
+                        reports = generateDummyData();
+                    }
+
+                    console.log('📊 Total reports:', reports.length);
+
+                    // Filter berdasarkan role
+                    var role = (currentUser.role || '').toUpperCase();
+                    var filtered = reports;
+
+                    if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
+                        var userNik = (currentUser.nik || '').trim();
+                        var userNama = (currentUser.nama || '').toLowerCase().trim();
+
+                        if (userNik || userNama) {
+                            filtered = reports.filter(function(r) {
+                                var rNik = String(r.nik || '').trim();
+                                var rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
+                                var match = false;
+                                if (userNik && rNik) match = rNik === userNik;
+                                if (!match && userNama && rNama) match = rNama === userNama;
+                                return match;
+                            });
+                            console.log('🔍 Filtered for user:', filtered.length);
+                        }
+                    }
+
+                    allReports = filtered;
+                    applyFilters();
+
+                } catch (err) {
+                    console.error('Fetch error:', err);
+                    // Fallback dummy
+                    var dummy = generateDummyData();
+                    allReports = dummy;
+                    applyFilters();
+                    showToast('Menggunakan data contoh (koneksi API bermasalah)', 'warning');
+                } finally {
+                    BCS.App.Loading.hide();
+                }
             }
 
             // =============================================
@@ -1054,7 +1034,6 @@
 
                 var result = allReports.slice();
 
-                // Keyword
                 if (keyword) {
                     result = result.filter(function(r) {
                         return (r.id || '').toLowerCase().includes(keyword) ||
@@ -1065,12 +1044,10 @@
                     });
                 }
 
-                // Status
                 if (status) {
                     result = result.filter(function(r) { return (r.status || '').toUpperCase() === status; });
                 }
 
-                // Date range
                 var startDate = filterDateStart.value ? parseDate(filterDateStart.value) : null;
                 var endDate = filterDateEnd.value ? parseDate(filterDateEnd.value) : null;
                 if (startDate || endDate) {
@@ -1080,7 +1057,6 @@
                     });
                 }
 
-                // Month/Year
                 var month = filterMonth.value;
                 var year = filterYear.value;
                 if (month || year) {
@@ -1090,7 +1066,6 @@
                     });
                 }
 
-                // Sort
                 result.sort(function(a, b) {
                     var dateA = new Date(a.tanggal || a.createdAt || 0);
                     var dateB = new Date(b.tanggal || b.createdAt || 0);
@@ -1118,8 +1093,6 @@
                 });
                 var activePill = document.querySelector('.quick-filter-pills .pill[data-range="' + range + '"]');
                 if (activePill) activePill.classList.add('active');
-
-                activeDateFilter = range;
 
                 var start, end;
                 switch (range) {
@@ -1149,7 +1122,6 @@
 
                 filterDateStart.value = formatDateForCompare(start);
                 filterDateEnd.value = formatDateForCompare(end);
-
                 applyFilters();
             }
 
@@ -1216,9 +1188,9 @@
                     html +=
                         `
                     <tr style="border-bottom:1px solid var(--border-color);">
-                        <td class="py-3 px-2 fw-bold" style="color:var(--text-primary);"><span>${r.id || '-'}</span></td>
-                        <td class="text-secondary" style="color:var(--text-secondary);">${formattedDate}</td>
-                        <td class="fw-medium" style="color:var(--text-primary);">${r.nama || r.pelapor || '-'}</td>
+                        <td class="py-3 px-2 fw-bold" style="color:var(--text-primary);">${r.id || '-'}</td>
+                        <td style="color:var(--text-secondary);">${formattedDate}</td>
+                        <td style="color:var(--text-primary);font-weight:500;">${r.nama || r.pelapor || '-'}</td>
                         <td><div class="d-flex align-items-center" style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">${kategoriIcon} ${r.kategori || '-'}</div></td>
                         <td style="color:var(--text-secondary);">${r.lokasi || '-'}</td>
                         <td class="text-truncate" style="max-width:220px;color:var(--text-secondary);">${r.deskripsi || '-'}</td>
@@ -1228,8 +1200,8 @@
                         </td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-1">
-                                <button class="btn btn-sm btn-outline-primary view-detail" data-id="${r.id}" style="padding:2px 6px;font-size:11px;border-color:#bfdbfe;color:var(--text-primary);"><i class="bi bi-eye"></i></button>
-                                <button class="btn btn-sm btn-outline-warning edit-report" data-id="${r.id}" style="padding:2px 6px;font-size:11px;border-color:#fef08a;color:var(--text-primary);"><i class="bi bi-pencil-square"></i></button>
+                                <button class="btn btn-sm btn-outline-primary view-detail" data-id="${r.id}" style="padding:2px 6px;font-size:11px;border-color:var(--border-color);color:var(--text-primary);"><i class="bi bi-eye"></i></button>
+                                <button class="btn btn-sm btn-outline-warning edit-report" data-id="${r.id}" style="padding:2px 6px;font-size:11px;border-color:var(--border-color);color:var(--text-primary);"><i class="bi bi-pencil-square"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -1247,15 +1219,13 @@
 
                 document.querySelectorAll('.view-detail').forEach(function(btn) {
                     btn.addEventListener('click', function() {
-                        var id = this.dataset.id;
-                        openDetail(id);
+                        openDetail(this.dataset.id);
                     });
                 });
 
                 document.querySelectorAll('.edit-report').forEach(function(btn) {
                     btn.addEventListener('click', function() {
-                        var id = this.dataset.id;
-                        openUpdate(id);
+                        openUpdate(this.dataset.id);
                     });
                 });
             }
@@ -1433,7 +1403,7 @@
             }
 
             // =============================================
-            // EXPORT DETAIL TO PDF
+            // EXPORT DETAIL PDF
             // =============================================
             document.getElementById('exportDetailPdfBtn').addEventListener('click', function() {
                 if (!currentDetailReport) {
@@ -1500,10 +1470,11 @@
                 doc.text('System developed by assyaref.dev', 14, 285);
 
                 doc.save('Detail_Laporan_' + (report.id || 'export') + '.pdf');
+                showToast('Export PDF berhasil', 'success');
             });
 
             // =============================================
-            // EXPORT TABLE TO EXCEL
+            // EXPORT TABLE EXCEL
             // =============================================
             document.getElementById('exportExcelBtn').addEventListener('click', function() {
                 if (filteredReports.length === 0) {
@@ -1534,7 +1505,7 @@
             });
 
             // =============================================
-            // EXPORT TABLE TO PDF
+            // EXPORT TABLE PDF
             // =============================================
             document.getElementById('exportPdfBtn').addEventListener('click', function() {
                 if (filteredReports.length === 0) {
@@ -1575,7 +1546,7 @@
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(7);
                 var rowsToExport = filteredReports.slice(0, 100);
-                rowsToExport.forEach(function(r, rowIndex) {
+                rowsToExport.forEach(function(r) {
                     if (y > 270) {
                         doc.addPage();
                         y = 20;
@@ -1675,13 +1646,12 @@
             });
 
             // =============================================
-            // DATE FILTER EVENT BINDING
+            // EVENT BINDING
             // =============================================
             document.getElementById('applyDateFilter').addEventListener('click', function() {
                 document.querySelectorAll('.quick-filter-pills .pill').forEach(function(p) {
                     p.classList.remove('active');
                 });
-                activeDateFilter = null;
                 applyFilters();
             });
 
@@ -1691,7 +1661,6 @@
                 document.querySelectorAll('.quick-filter-pills .pill').forEach(function(p) {
                     p.classList.remove('active');
                 });
-                activeDateFilter = null;
                 applyFilters();
             });
 
@@ -1701,7 +1670,6 @@
                 document.querySelectorAll('.quick-filter-pills .pill').forEach(function(p) {
                     p.classList.remove('active');
                 });
-                activeDateFilter = null;
                 applyFilters();
             });
 
@@ -1713,8 +1681,7 @@
 
             document.querySelectorAll('.quick-filter-pills .pill').forEach(function(pill) {
                 pill.addEventListener('click', function() {
-                    var range = this.dataset.range;
-                    applyQuickFilter(range);
+                    applyQuickFilter(this.dataset.range);
                 });
             });
 
@@ -1726,15 +1693,11 @@
                         document.querySelectorAll('.quick-filter-pills .pill').forEach(function(p) {
                             p.classList.remove('active');
                         });
-                        activeDateFilter = null;
                         applyFilters();
                     }, 300);
                 });
             });
 
-            // =============================================
-            // SEARCH, STATUS, SORT
-            // =============================================
             searchInput.addEventListener('input', function() {
                 applyFilters();
             });

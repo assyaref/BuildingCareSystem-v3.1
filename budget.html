@@ -113,9 +113,6 @@
             color: #1a1a2e;
         }
 
-        .menu-admin { display: none; }
-        .menu-admin.visible { display: flex; }
-
         .filter-group {
             display: flex;
             gap: 10px;
@@ -170,6 +167,41 @@
         .form-group label { font-size: 12px; font-weight: 600; color: #2d2d44; margin-bottom: 4px; }
         .form-group .required { color: #dc2626; }
 
+        /* Sidebar Styles */
+        .sidebar nav a.menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            color: var(--text-secondary, #64748b);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .sidebar nav a.menu:hover {
+            background: var(--bg-card-hover, #f1f5f9);
+            color: var(--text-primary, #0f172a);
+        }
+        .sidebar nav a.menu.active {
+            background: var(--accent-soft, #dbeafe);
+            color: var(--accent-color, #2563eb);
+            font-weight: 600;
+        }
+        .sidebar nav a.menu i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        .sidebar nav a.menu.text-danger {
+            color: #ef4444 !important;
+        }
+        .sidebar nav a.menu.text-danger:hover {
+            background: #fef2f2 !important;
+            color: #dc2626 !important;
+        }
+
         @media (max-width: 768px) {
             .item-row { grid-template-columns: 1fr; }
             .filter-group { flex-direction: column; width: 100%; }
@@ -199,17 +231,7 @@
             <h5>Building Care</h5>
             <small>Enterprise v3.2</small>
         </div>
-        <nav>
-            <a href="dashboard.html" class="menu"><i class="bi bi-grid-fill"></i><span>Dashboard</span></a>
-            <a href="report.html" class="menu"><i class="bi bi-file-earmark-plus"></i><span>Report</span></a>
-            <a href="monitoring.html" class="menu"><i class="bi bi-display"></i><span>Monitoring</span></a>
-            <a href="history.html" class="menu"><i class="bi bi-clock-history"></i><span>History</span></a>
-            <a href="wo.html" class="menu"><i class="bi bi-clipboard-check"></i><span>Work Order</span></a>
-            <a href="budget.html" class="menu active"><i class="bi bi-cash-stack"></i><span>Budget</span></a>
-            <a href="approval.html" class="menu"><i class="bi bi-check-circle"></i><span>Approval</span></a>
-            <a href="admin.html" class="menu menu-admin" id="adminMenu"><i class="bi bi-shield-lock-fill"></i><span>Admin</span></a>
-            <a href="#" id="logoutBtn" class="menu text-danger"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
-        </nav>
+        <nav></nav> <!-- 🔥 SIDEBAR DINAMIS DIISI OLEH sidebar.js -->
     </aside>
 
     <!-- MAIN -->
@@ -478,10 +500,66 @@
 <script src="assets/js/core/utils.js"></script>
 <script src="assets/js/modules/auth.js"></script>
 
+<!-- 🔥 SIDEBAR DINAMIS - PATH YANG BENAR -->
+<script src="assets/js/core/components/sidebar.js"></script>
+
 <script>
 (function() {
     'use strict';
 
+    // =============================================
+    // DARK MODE
+    // =============================================
+    function initDarkMode() {
+        const toggle = document.getElementById('darkModeToggle');
+        const icon = document.getElementById('darkModeIcon');
+        if (!toggle) return;
+        const savedTheme = localStorage.getItem('bcs_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        if (icon) {
+            if (savedTheme === 'dark') {
+                icon.className = 'bi bi-sun-fill';
+                icon.style.color = '#ffd700';
+            } else {
+                icon.className = 'bi bi-moon-fill';
+                icon.style.color = '';
+            }
+        }
+        toggle.addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('bcs_theme', newTheme);
+            if (icon) {
+                if (newTheme === 'dark') {
+                    icon.className = 'bi bi-sun-fill';
+                    icon.style.color = '#ffd700';
+                } else {
+                    icon.className = 'bi bi-moon-fill';
+                    icon.style.color = '';
+                }
+            }
+        });
+    }
+
+    // =============================================
+    // LOAD USER INFO
+    // =============================================
+    function loadUserInfo() {
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const u = session.user;
+                document.getElementById('userName').textContent = u.nama || u.name || 'User';
+                document.getElementById('userRole').textContent = u.role || 'User';
+                document.getElementById('userAvatar').textContent = (u.nama || u.name || 'U').charAt(0).toUpperCase();
+            }
+        } catch (e) {
+            console.warn('Load user info error:', e);
+        }
+    }
+
+    // STATE
     let allBudget = [];
     let filteredBudget = [];
     let currentPage = 1;
@@ -925,7 +1003,7 @@
     // EXPORT
     // =============================================
     document.getElementById('exportBudgetExcel').addEventListener('click', function() {
-        if (filteredBudget.length === 0) { showToast('Tidak ada data', 'warning'); return; }
+        if (filteredBudget.length === 0) { showToast('Tidak ada数据', 'warning'); return; }
         const data = filteredBudget.map(b => ({
             'ID': b.id,
             'ID Laporan': b.report_id || '-',
@@ -990,46 +1068,29 @@
     document.getElementById('filterPriority').addEventListener('change', applyFilters);
 
     // =============================================
-    // INIT
+    // LOGOUT
     // =============================================
-    async function init() {
-        try {
-            const session = BCS.Storage.getSession();
-            if (session && session.user) {
-                const u = session.user;
-                document.getElementById('userName').textContent = u.nama || u.name || 'User';
-                document.getElementById('userRole').textContent = u.role || 'User';
-                document.getElementById('userAvatar').textContent = (u.nama || u.name || 'U').charAt(0).toUpperCase();
-            }
-        } catch (e) {}
-
-        const saved = localStorage.getItem('bcs_theme') || 'light';
-        document.documentElement.setAttribute('data-theme', saved);
-        document.getElementById('darkModeToggle').addEventListener('click', function() {
-            const cur = document.documentElement.getAttribute('data-theme');
-            const next = cur === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('bcs_theme', next);
-        });
-
-        try {
-            const session = BCS.Storage.getSession();
-            if (session?.user?.role?.toUpperCase() === 'ADMINISTRATOR') {
-                document.getElementById('adminMenu').classList.add('visible');
-            }
-        } catch (e) {}
-
-        document.getElementById('logoutBtn').addEventListener('click', function(e) {
-            e.preventDefault();
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (window.auth && typeof window.auth.logout === 'function') {
+            window.auth.logout();
+        } else {
             if (confirm('Keluar?')) {
                 localStorage.clear();
                 sessionStorage.clear();
                 window.location.href = 'login.html';
             }
-        });
+        }
+    });
 
+    // =============================================
+    // INIT
+    // =============================================
+    async function init() {
+        initDarkMode();
+        loadUserInfo();
         await fetchBudget();
-        console.log('✅ Budget page initialized');
+        console.log('✅ Budget page initialized with dynamic sidebar');
     }
 
     document.addEventListener('DOMContentLoaded', init);

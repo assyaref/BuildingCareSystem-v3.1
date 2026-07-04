@@ -842,26 +842,54 @@
             // SUMMARY
             // =============================================
             function updateSummary() {
-                const totalAllBudgets = budgetData.reduce((sum, b) => sum + Number(b.total || 0), 0);
+                const totalAllBudgets = budgetData.reduce(
+                    (sum, b) => sum + Number(b.total || 0),
+                    0
+                );
 
-                const totalEst = budgetData.filter(b => b.status === 'estimated' || b.status === 'pending').reduce(
-                (s, b) => s + b.total, 0);
-                const totalApp = budgetData.filter(b => b.status === 'approved' || b.status === 'paid').reduce(
-                (s, b) => s + b.total, 0);
-                const totalPen = budgetData.filter(b => b.status === 'pending').reduce((s, b) => s + b.total, 0);
-                const totalRej = budgetData.filter(b => b.status === 'rejected').reduce((s, b) => s + b.total, 0);
+                const approvedBudgets = budgetData.filter(
+                    b => b.status === 'approved' || b.status === 'paid'
+                );
+                const pendingBudgets = budgetData.filter(
+                    b => b.status === 'pending' || b.status === 'estimated'
+                );
+                const rejectedBudgets = budgetData.filter(
+                    b => b.status === 'rejected' || b.status === 'void'
+                );
 
-                DOM.totalEstimated.textContent = 'Rp ' + totalEst.toLocaleString('id-ID');
-                DOM.totalApproved.textContent = 'Rp ' + totalApp.toLocaleString('id-ID');
-                DOM.totalPending.textContent = 'Rp ' + totalPen.toLocaleString('id-ID');
-                DOM.totalRejected.textContent = 'Rp ' + totalRej.toLocaleString('id-ID');
+                const totalApp = approvedBudgets.reduce(
+                    (sum, b) => sum + Number(b.total || 0),
+                    0
+                );
+                const totalPen = pendingBudgets.reduce(
+                    (sum, b) => sum + Number(b.total || 0),
+                    0
+                );
+                const totalRej = rejectedBudgets.reduce(
+                    (sum, b) => sum + Number(b.total || 0),
+                    0
+                );
 
-                DOM.countEstimated.textContent = budgetData.filter(b => b.status === 'estimated' || b.status === 'pending')
-                    .length + ' budget';
-                DOM.countApproved.textContent = budgetData.filter(b => b.status === 'approved' || b.status === 'paid')
-                .length + ' budget';
-                DOM.countPending.textContent = budgetData.filter(b => b.status === 'pending').length + ' budget';
-                DOM.countRejected.textContent = budgetData.filter(b => b.status === 'rejected').length + ' budget';
+                // TOTAL ESTIMASI = seluruh budget, apa pun statusnya
+                DOM.totalEstimated.textContent =
+                    'Rp ' + totalAllBudgets.toLocaleString('id-ID');
+                DOM.countEstimated.textContent =
+                    budgetData.length + ' budget';
+
+                DOM.totalApproved.textContent =
+                    'Rp ' + totalApp.toLocaleString('id-ID');
+                DOM.countApproved.textContent =
+                    approvedBudgets.length + ' budget';
+
+                DOM.totalPending.textContent =
+                    'Rp ' + totalPen.toLocaleString('id-ID');
+                DOM.countPending.textContent =
+                    pendingBudgets.length + ' budget';
+
+                DOM.totalRejected.textContent =
+                    'Rp ' + totalRej.toLocaleString('id-ID');
+                DOM.countRejected.textContent =
+                    rejectedBudgets.length + ' budget';
             }
 
             // =============================================

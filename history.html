@@ -983,6 +983,13 @@
                                 <option value="PROGRESS">PROGRESS</option>
                                 <option value="DONE">DONE</option>
                             </select>
+                            <!-- ======== FILTER PRIORITAS ======== -->
+                            <select id="filterPriority">
+                                <option value="">Semua Prioritas</option>
+                                <option value="NORMAL">Normal</option>
+                                <option value="HIGH">High</option>
+                                <option value="URGENT">Urgent</option>
+                            </select>
                             <select id="sortOrder">
                                 <option value="desc">Terbaru</option>
                                 <option value="asc">Terlama</option>
@@ -1236,6 +1243,33 @@
             }
 
         })();
+    </script>
+
+    <!-- ============================================================
+    TAMBAHAN: Event listener untuk filter prioritas
+    ============================================================ -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var filterPriority = document.getElementById('filterPriority');
+            if (filterPriority) {
+                filterPriority.addEventListener('change', function() {
+                    // Coba panggil fungsi refresh yang umum di history.js
+                    if (typeof window.loadHistoryData === 'function') {
+                        window.loadHistoryData();
+                    } else if (typeof window.refreshHistoryData === 'function') {
+                        window.refreshHistoryData();
+                    } else if (typeof window.renderTable === 'function') {
+                        window.renderTable();
+                    } else {
+                        // Fallback: trigger change pada filterStatus
+                        var statusSelect = document.getElementById('filterStatus');
+                        if (statusSelect) {
+                            statusSelect.dispatchEvent(new Event('change'));
+                        }
+                    }
+                });
+            }
+        });
     </script>
 
 </body>

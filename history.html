@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
-    
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -961,7 +961,7 @@
                                     <tr>
                                         <td colspan="7" class="text-center py-5 text-muted">
                                             <div class="spinner-border spinner-border-sm mb-2"></div><br>
-                                            Memuat data...
+                                            Sedang memuat data...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -1086,14 +1086,6 @@
 
             function $$(sel) { return document.querySelectorAll(sel); }
 
-            function safeAddEventListener(el, event, handler) {
-                if (el) {
-                    el.addEventListener(event, handler);
-                } else {
-                    console.warn('[History] Element not found for event:', event);
-                }
-            }
-
             // ============================================================
             //  DARK MODE
             // ============================================================
@@ -1156,6 +1148,7 @@
             var perPage = 10;
             var currentDetailReport = null;
             var isLoading = false;
+            var loadError = false;
 
             var tableBody = $('#historyTableBody');
             var paginationEl = $('#pagination');
@@ -1267,15 +1260,18 @@
             }
 
             // ============================================================
-            //  FETCH DATA
+            //  FETCH DATA (TANPA DUMMY)
             // ============================================================
             async function fetchReports() {
                 if (isLoading) return;
                 showLoading();
+                loadError = false;
+
                 if (tableBody) {
                     tableBody.innerHTML =
-                        '<tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Memuat data...</td></tr>';
+                        '<tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Sedang memuat data...</td></tr>';
                 }
+                if (emptyState) emptyState.classList.add('d-none');
 
                 try {
                     var api = window.BCS.Api || window.Api;
@@ -1288,7 +1284,10 @@
                     if (response && response.success) {
                         reports = response.data?.reports || [];
                     } else {
-                        reports = generateDummyData();
+                        // Gagal mendapatkan data dari API
+                        loadError = true;
+                        showToast('Gagal memuat data dari server', 'error');
+                        reports = [];
                     }
 
                     // Filter by role
@@ -1316,46 +1315,13 @@
 
                 } catch (err) {
                     console.error('[History] Fetch error:', err);
+                    loadError = true;
                     showToast('Gagal memuat data: ' + err.message, 'error');
-                    allReports = generateDummyData();
+                    allReports = [];
                     applyFilters();
                 } finally {
                     hideLoading();
                 }
-            }
-
-            function generateDummyData() {
-                var dummy = [];
-                var now = new Date();
-                var categories = ['AC', 'LISTRIK', 'KONDISI GEDUNG'];
-                var statuses = ['OPEN', 'PROGRESS', 'DONE'];
-                var names = ['Syarif Hidayatullah', 'Tukang Lapor', 'Bowo Indratno', 'Yuriko Fittria', 'Diva Amanda'];
-                var locations = ['Ruang Server', 'LT2 Procurement', 'Yard Warehouse', 'Pos Security', 'Ruang Meeting'];
-
-                for (var i = 0; i < 15; i++) {
-                    var d = new Date(now);
-                    d.setDate(d.getDate() - i * 2);
-                    dummy.push({
-                        id: 'BCS-20260704-' + String(i + 1).padStart(3, '0'),
-                        tanggal: d.toISOString(),
-                        createdAt: d.toISOString(),
-                        nama: names[i % names.length],
-                        nik: 'NIK' + (1000 + i),
-                        departemen: 'IT',
-                        kategori: categories[i % categories.length],
-                        lokasi: locations[i % locations.length],
-                        deskripsi: 'Deskripsi laporan ' + (i + 1),
-                        status: statuses[i % statuses.length],
-                        foto: i % 2 === 0 ? 'https://via.placeholder.com/50' : '',
-                        teknisi: i % 3 === 0 ? 'Kasno' : '',
-                        catatanTeknisi: i % 3 === 0 ? 'Catatan teknisi' : '',
-                        tglSelesai: i % 2 === 0 ? d.toISOString() : '',
-                        durasi: '2 Jam',
-                        sla: i % 3 === 0 ? 'FAST' : i % 3 === 1 ? 'NORMAL' : 'LATE',
-                        prioritas: i % 3 === 0 ? 'TINGGI' : 'NORMAL'
-                    });
-                }
-                return dummy;
             }
 
             // ============================================================
@@ -1447,7 +1413,7 @@
                 if (cardDone) cardDone.textContent = done;
                 if (totalReportsSpan) totalReportsSpan.textContent = total;
 
-                // Trends
+                // Trends (hanya jika ada data)
                 var lastWeek = allReports.filter(function(r) {
                     var d = parseDate(r.tanggal || r.createdAt);
                     if (!d) return false;
@@ -1481,6 +1447,14 @@
                 if (!tableBody) return;
                 var start = (currentPage - 1) * perPage;
                 var pageData = filteredReports.slice(start, start + perPage);
+
+                // Jika ada error load, tampilkan pesan error
+                if (loadError && allReports.length === 0) {
+                    tableBody.innerHTML =
+                        '<tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-exclamation-triangle fs-4 d-block mb-2"></i>Gagal memuat data. Silakan refresh halaman.</td></tr>';
+                    if (emptyState) emptyState.classList.add('d-none');
+                    return;
+                }
 
                 if (pageData.length === 0) {
                     tableBody.innerHTML =
@@ -1535,8 +1509,7 @@
                 });
                 tableBody.innerHTML = html;
 
-                // Gunakan event delegation untuk aksi tombol
-                // Binding dilakukan di init dengan delegation
+                // Event delegation untuk aksi tombol di tabel (sudah di binding di init)
             }
 
             // ============================================================

@@ -1,8 +1,9 @@
 // =====================================================
-// Building Care System Enterprise v7.6
+// Building Care System Enterprise v7.6 FINAL
 // history.js - Auto-Refresh 7 detik + Countdown
 // Error handling + Auto-stop after failures
-// Only ADMIN can access this page
+// ONLY ADMIN can access this page
+// Loading overlay removed
 // Radiant Group Duri
 // =====================================================
 
@@ -238,7 +239,6 @@
                 if (DOM.userName) DOM.userName.textContent = nama;
                 if (DOM.userRole) DOM.userRole.textContent = role;
                 if (DOM.userAvatar) DOM.userAvatar.textContent = nama.charAt(0).toUpperCase() || 'U';
-                // Return user info for authorization check
                 return { user, role, nama };
             }
         } catch (e) {
@@ -264,7 +264,7 @@
     }
 
     // ============================================================
-    //  AUTHORIZATION CHECK - HANYA ADMIN YANG BOLEH AKSES
+    //  AUTHORIZATION CHECK - ONLY ADMIN CAN ACCESS
     // ============================================================
     function checkAuthorization() {
         try {
@@ -276,10 +276,9 @@
             }
 
             const role = (session.user.role || '').toUpperCase();
-            // Hanya ADMIN atau ADMINISTRATOR yang diizinkan
+            // Only ADMIN or ADMINISTRATOR allowed
             if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
                 console.warn('[History] Unauthorized role:', role, 'redirecting to dashboard');
-                // Tampilkan pesan toast sebelum redirect
                 showToast('Akses ditolak. Hanya ADMIN yang dapat melihat riwayat.', 'error');
                 setTimeout(() => {
                     window.location.href = 'dashboard.html';
@@ -386,7 +385,7 @@
     }
 
     // ============================================================
-    //  FETCH REPORTS (Menggunakan getReports dari backend)
+    //  FETCH REPORTS (Using getReports from backend)
     // ============================================================
     async function fetchReports() {
         if (state.loading) return;
@@ -396,7 +395,7 @@
             state.countdownInterval = null;
         }
 
-        // Tampilkan spinner di tabel
+        // Show spinner in table
         if (DOM.tableBody) {
             DOM.tableBody.innerHTML =
                 '<tr><td colspan="11" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Sedang memuat data...</td></tr>';
@@ -416,18 +415,16 @@
 
             console.log('[History] getReports response:', response);
 
-            // Jika response sukses, reset error count
             if (response && response.success) {
                 state.errorCount = 0;
                 state.hasError = false;
             } else {
-                // Gagal mendapatkan data
                 throw new Error(response?.message || 'Gagal memuat data');
             }
 
             let reports = response.data?.reports || [];
 
-            // Filter berdasarkan role user (sudah admin, tapi tetap aman)
+            // Filter by role (already admin, but safe)
             const session = BCS.Storage.getSession();
             const user = session?.user || {};
             const role = (user.role || '').toUpperCase();
@@ -455,7 +452,7 @@
             state.errorCount++;
             state.hasError = true;
 
-            // Tampilkan pesan error di tabel
+            // Show error in table
             if (DOM.tableBody) {
                 DOM.tableBody.innerHTML =
                     `<tr><td colspan="11" class="text-center py-5 text-danger">
@@ -465,16 +462,12 @@
                         <br><br>
                         <button class="btn btn-sm btn-primary" id="retryBtnHistory"><i class="bi bi-arrow-clockwise"></i> Coba Lagi</button>
                     </td></tr>`;
-                // Bind tombol retry
                 const retryBtn = document.getElementById('retryBtnHistory');
                 if (retryBtn) {
-                    retryBtn.addEventListener('click', function() {
-                        resetCountdown();
-                    });
+                    retryBtn.addEventListener('click', resetCountdown);
                 }
             }
 
-            // Jika error sudah lebih dari maxErrors, hentikan auto-refresh
             if (state.errorCount >= state.maxErrors) {
                 state.autoRefresh = false;
                 if (state.countdownInterval) {
@@ -490,13 +483,11 @@
             state.reports = [];
             applyFilters();
         } finally {
-            // Restart countdown hanya jika tidak error dan autoRefresh aktif
             if (!state.hasError && state.autoRefresh) {
                 state.countdown = 7;
                 updateCountdownDisplay();
                 startCountdown();
             } else if (state.hasError && state.autoRefresh) {
-                // Jika error tapi autoRefresh masih aktif, restart countdown
                 state.countdown = 7;
                 updateCountdownDisplay();
                 startCountdown();
@@ -628,9 +619,7 @@
         const start = (state.currentPage - 1) * state.perPage;
         const pageData = state.filtered.slice(start, start + state.perPage);
 
-        // Jika ada error, tampilkan pesan error (sudah ditangani di fetchReports)
         if (state.hasError && state.reports.length === 0) {
-            // Tampilkan pesan error jika belum ada
             if (DOM.tableBody && DOM.tableBody.innerHTML.includes('Memuat data')) {
                 DOM.tableBody.innerHTML =
                     `<tr><td colspan="11" class="text-center py-5 text-danger">
@@ -1154,9 +1143,9 @@
         loadUserInfo();
         initSidebar();
 
-        // 🔐 CEK OTORISASI: HANYA ADMIN YANG BOLEH
+        // 🔐 AUTHORIZATION CHECK - ONLY ADMIN
         if (!checkAuthorization()) {
-            return; // redirect sudah terjadi di dalam checkAuthorization
+            return;
         }
 
         bindEvents();

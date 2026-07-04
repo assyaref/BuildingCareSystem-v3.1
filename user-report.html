@@ -14,7 +14,7 @@
   <style>
     * { box-sizing: border-box; }
     html, body { margin:0; padding:0; height:100%; overflow:hidden; font-family:'Plus Jakarta Sans',sans-serif; background:#f3f4f6; }
-    .app-card { width:100%; max-width:420px; height:100vh; max-height:900px; background:#1e5eff; border-radius:28px; box-shadow:0 20px 60px rgba(30,94,255,0.25); display:flex; flex-direction:column; overflow:hidden; margin:0 auto; }
+    .app-card { width:100%; max-width:420px; height:100vh; max-height:900px; background:#1e5eff; border-radius:28px; box-shadow:0 20px 60px rgba(30,94,255,0.25); display:flex; flex-direction:column; overflow:hidden; margin:0 auto; position: relative; }
     @media (max-width:480px){ .app-card { border-radius:0; max-height:100vh; } }
     .scroll-content { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scroll-behavior:smooth; -ms-overflow-style:none; scrollbar-width:none; }
     .scroll-content::-webkit-scrollbar { display:none; }
@@ -98,6 +98,61 @@
     }
     .swal2-icon.swal2-error .swal2-x-mark {
       display: none;
+    }
+
+    /* Modern Interactive Logout Toast Overlay */
+    #logoutOverlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      display: flex;
+      align-items: flex-end;
+    }
+    #logoutOverlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #logoutToast {
+      width: 100%;
+      background: #fff;
+      border-radius: 28px 28px 0 0;
+      padding: 24px 24px 32px;
+      box-shadow: 0 -12px 40px rgba(0,0,0,0.12);
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #logoutOverlay.show #logoutToast {
+      transform: translateY(0);
+    }
+    .toast-handle {
+      width: 48px;
+      height: 5px;
+      background: #e5e7eb;
+      border-radius: 8px;
+      margin: 0 auto 20px;
+    }
+    .logout-icon {
+      width: 64px;
+      height: 64px;
+      background: #fef2f2;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 28px;
+      color: #ef4444;
+      animation: bounce 1.2s infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
     }
   </style>
 </head>
@@ -194,10 +249,30 @@
     <div style="height:8px;"></div>
   </div>
 
-  <!-- Bottom Nav (Tetap Ada) -->
+  <!-- Bottom Nav -->
   <div class="bottom-nav">
     <a href="#" class="text-[#1e5eff]" id="navReport"><i class="fa-solid fa-file-invoice"></i><span>Report</span></a>
     <a href="#" class="text-gray-400" id="navHistory"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
+  </div>
+
+  <!-- Modern Interactive Logout Toast Overlay (sama persis seperti di user-history.html) -->
+  <div id="logoutOverlay">
+    <div id="logoutToast">
+      <div class="toast-handle"></div>
+      <div class="logout-icon">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </div>
+      <h3 class="text-center text-gray-800 font-bold text-lg mb-1">Ingin Keluar Aplikasi?</h3>
+      <p class="text-center text-gray-500 text-sm max-w-xs mx-auto mb-6">Anda perlu memasukkan ulang kredensial untuk mengakses data kembali.</p>
+      <div class="grid grid-cols-2 gap-3">
+        <button id="cancelLogoutBtn" class="py-3.5 rounded-xl border border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 active:scale-[0.98] transition-all text-sm">
+          Batal
+        </button>
+        <button id="confirmLogoutBtn" class="py-3.5 rounded-xl bg-red-500 font-semibold text-white shadow-lg shadow-red-500/20 hover:bg-red-600 active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-2">
+          <span>Ya, Keluar</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -241,25 +316,18 @@
         }
       };
 
-      // Success: auto close, tidak perlu tombol
       if (icon === 'success') {
         config.showConfirmButton = false;
         config.timer = 2000;
         config.timerProgressBar = true;
         config.confirmButtonColor = '#22c55e';
       }
-
-      // Warning: tombol kuning
       if (icon === 'warning') {
         config.confirmButtonColor = '#f59e0b';
       }
-      
-      // Error: tombol merah
       if (icon === 'error') {
         config.confirmButtonColor = '#ef4444';
       }
-
-      // Info: tombol biru
       if (icon === 'info') {
         config.confirmButtonColor = '#3b82f6';
       }
@@ -426,7 +494,6 @@
     const submitBtn = document.getElementById('submitReport');
 
     async function submitReport() {
-      // Validasi
       const lokasi = document.getElementById('lokasi').value.trim();
       if (!lokasi) {
         showCenterAlert('warning', '⚠️ Lokasi kerusakan wajib diisi');
@@ -456,13 +523,11 @@
 
       const prioritas = document.getElementById('prioritySelect').value;
 
-      // Ambil data user dari Session
       const session = BCS.Storage.getSession();
       const user = session?.user || {};
       const nama = user.nama || user.name || 'User';
       const nik = session?.nik || user.nik || '';
 
-      // Konversi foto ke base64
       let photoBase64 = '';
       let filename = '';
       if (currentFile) {
@@ -481,7 +546,6 @@
         }
       }
 
-      // Buat payload
       const payload = {
         nama: nama,
         nik: nik,
@@ -496,7 +560,6 @@
 
       console.log('📤 Payload:', payload);
 
-      // Nonaktifkan tombol & tampilkan spinner
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...';
 
@@ -505,10 +568,7 @@
         console.log('📥 Response:', response);
 
         if (response && response.success) {
-          // ✅ Toast Center - Sukses (auto close 2 detik)
           showCenterAlert('success', '✅ Report berhasil dikirim!');
-          
-          // Reset form
           document.getElementById('lokasi').value = '';
           document.getElementById('departemen').value = '';
           document.getElementById('deskripsi').value = '';
@@ -518,9 +578,7 @@
           prioritySelect.value = 'NORMAL';
           updatePriorityBadge('NORMAL');
         } else {
-          showCenterAlert('error', '❌ Gagal mengirim report', { 
-            confirmButtonText: 'Coba Lagi' 
-          });
+          showCenterAlert('error', '❌ Gagal mengirim report', { confirmButtonText: 'Coba Lagi' });
         }
       } catch (err) {
         console.error('Submit error:', err);
@@ -541,7 +599,7 @@
     });
 
     // =============================================
-    // 8. NAVIGASI (Tetap Ada & Berfungsi)
+    // 8. NAVIGASI
     // =============================================
     document.getElementById('navHistory').addEventListener('click', function(e) {
       e.preventDefault();
@@ -558,61 +616,43 @@
     });
 
     // =============================================
-    // 9. LOGOUT - LEBIH BAGUS & BERWARNA
+    // 9. LOGOUT — MODERN TOAST SAMA SEPERTI user-history.html
     // =============================================
+    const logoutOverlay = document.getElementById('logoutOverlay');
+    const logoutToast = document.getElementById('logoutToast');
+
+    function openLogoutToast() {
+      logoutOverlay.classList.add('show');
+    }
+
+    function closeLogoutToast() {
+      logoutOverlay.classList.remove('show');
+    }
+
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
+      openLogoutToast();
+    });
 
-      Swal.fire({
-        title: '🚪 Keluar dari Sistem',
-        text: 'Apakah Anda yakin ingin keluar dari akun Anda?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Ya, Keluar!',
-        cancelButtonText: 'Batal',
-        reverseButtons: true,
-        background: '#ffffff',
-        backdrop: 'rgba(0,0,0,0.4)',
-        showClass: {
-          popup: 'animate__animated animate__fadeInUp animate__faster'
-        },
-        hideClass: {
-          popup: 'animate__animated animate__fadeOutDown animate__faster'
-        },
-        customClass: {
-          popup: 'swal2-popup',
-          confirmButton: 'swal2-confirm btn-danger',
-          cancelButton: 'swal2-cancel',
-          title: 'fw-bold',
-          htmlContainer: 'text-secondary'
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          // Proses logout
-          if (window.auth && typeof window.auth.logout === 'function') {
-            window.auth.logout();
-          } else {
-            // Fallback manual
-            try {
-              if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
-                BCS.Storage.removeSession();
-              } else if (window.Session && typeof Session.clear === 'function') {
-                Session.clear();
-              }
-            } catch (e) {}
+    document.getElementById('cancelLogoutBtn').addEventListener('click', closeLogoutToast);
+    logoutOverlay.addEventListener('click', function(e) {
+      if (e.target === this) closeLogoutToast();
+    });
 
-            const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
-            keys.forEach(key => {
-              localStorage.removeItem(key);
-              sessionStorage.removeItem(key);
-            });
+    document.getElementById('confirmLogoutBtn').addEventListener('click', function() {
+      // feedback loading
+      this.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Memproses...</span>';
+      this.disabled = true;
 
-            window.location.href = 'login.html';
-          }
-        }
-      });
+      setTimeout(() => {
+        if (window.auth && typeof window.auth.logout === 'function') { window.auth.logout(); return; }
+        try {
+          if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') { BCS.Storage.removeSession(); }
+        } catch(e) {}
+        const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
+        keys.forEach(key => { localStorage.removeItem(key); sessionStorage.removeItem(key); });
+        window.location.href = 'login.html';
+      }, 600);
     });
 
     // =============================================

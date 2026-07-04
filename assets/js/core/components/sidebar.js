@@ -1,50 +1,33 @@
 // assets/js/components/sidebar.js
-// Sidebar Dinamis - Building Care System Enterprise
-// Versi Final - 04 Juli 2026
+// Sidebar Dinamis - Building Care System Enterprise v3.6
 
 (function() {
     'use strict';
 
     function renderSidebar() {
-        var sidebarNav = document.querySelector('.sidebar nav');
+        const sidebarNav = document.querySelector('.sidebar nav');
         if (!sidebarNav) {
-            console.warn('Sidebar nav element not found');
+            console.warn('⚠️ Sidebar nav not found');
             return;
         }
 
-        // Ambil session untuk cek role
-        var isAdmin = false;
-        var session = null;
-
+        // Ambil session untuk cek role admin
+        let isAdmin = false;
+        let currentUser = null;
         try {
-            // Coba ambil dari BCS.Storage jika tersedia
-            if (typeof BCS !== 'undefined' && BCS.Storage && typeof BCS.Storage.getSession === 'function') {
-                session = BCS.Storage.getSession();
-            } else {
-                // Fallback: ambil dari localStorage langsung
-                var raw = localStorage.getItem('bcs_session');
-                if (raw) {
-                    try {
-                        session = JSON.parse(raw);
-                    } catch (e) {}
-                }
-            }
-
+            const session = BCS.Storage.getSession();
             if (session && session.user) {
-                var role = (session.user.role || '').toUpperCase();
+                currentUser = session.user;
+                const role = (session.user.role || '').toUpperCase();
                 isAdmin = (role === 'ADMINISTRATOR');
-                console.log('✅ Session loaded. Role:', role);
-            } else {
-                console.log('ℹ️ No session found');
             }
         } catch (e) {
-            console.warn('Gagal membaca session:', e);
+            console.warn('Gagal ambil session:', e);
         }
 
-        var currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
-        console.log('📍 Current page:', currentPage);
+        const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
 
-        var menus = [
+        const menus = [
             { href: 'dashboard.html', icon: 'bi-grid-fill', label: 'Dashboard' },
             { href: 'report.html', icon: 'bi-file-earmark-plus', label: 'Report' },
             { href: 'monitoring.html', icon: 'bi-display', label: 'Monitoring' },
@@ -56,48 +39,56 @@
             { href: '#', icon: 'bi-box-arrow-right', label: 'Logout', logout: true, class: 'text-danger' }
         ];
 
-        var html = '';
-        menus.forEach(function(menu) {
+        let html = '';
+        menus.forEach(menu => {
+            // Sembunyikan menu Admin jika bukan admin
             if (menu.adminOnly && !isAdmin) return;
 
-            var active = (currentPage === menu.href) ? 'active' : '';
-            var logoutAttr = menu.logout ? 'id="logoutBtn"' : '';
-            var extraClass = menu.class || '';
+            const isActive = (currentPage === menu.href) ? 'active' : '';
+            const logoutAttr = menu.logout ? 'id="logoutBtn"' : '';
+            const extraClass = menu.class || '';
 
-            html += '<a href="' + menu.href + '" class="menu ' + active + ' ' + extraClass + '" ' + logoutAttr + '>';
-            html += '<i class="bi ' + menu.icon + '"></i>';
-            html += '<span>' + menu.label + '</span>';
-            html += '</a>';
+            html += `
+                <a href="${menu.href}" class="menu ${isActive} ${extraClass}" ${logoutAttr}>
+                    <i class="bi ${menu.icon}"></i>
+                    <span>${menu.label}</span>
+                </a>
+            `;
         });
 
         sidebarNav.innerHTML = html;
-        console.log('✅ Sidebar rendered with ' + menus.filter(m => !m.adminOnly || isAdmin).length + ' menus');
 
         // Bind logout
-        var logoutBtn = document.getElementById('logoutBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
-            logoutBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (window.auth && typeof window.auth.logout === 'function') {
-                    window.auth.logout();
-                } else {
-                    if (confirm('Apakah Anda yakin ingin keluar?')) {
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        window.location.href = 'login.html';
+            // Hapus event listener lama jika ada
+            logoutBtn.replaceWith(logoutBtn.cloneNode(true));
+            const newLogoutBtn = document.getElementById('logoutBtn');
+            if (newLogoutBtn) {
+                newLogoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.auth && typeof window.auth.logout === 'function') {
+                        window.auth.logout();
+                    } else {
+                        if (confirm('Apakah Anda yakin ingin keluar?')) {
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            window.location.href = 'login.html';
+                        }
                     }
-                }
-            });
+                });
+            }
         }
+
+        console.log('✅ Sidebar rendered. Admin:', isAdmin);
     }
 
     // Jalankan setelah DOM siap
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', renderSidebar);
     } else {
-        renderSidebar();
+        // Tunggu sebentar agar BCS.Storage siap
+        setTimeout(renderSidebar, 100);
     }
 
-    // Expose function untuk reload sidebar jika perlu
-    window.renderSidebar = renderSidebar;
 })();

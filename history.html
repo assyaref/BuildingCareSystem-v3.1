@@ -87,7 +87,7 @@
             min-height: 100vh;
         }
 
-        /* ========== SIDEBAR (akan diganti oleh sidebar.js) ========== */
+        /* ========== SIDEBAR ========== */
         .sidebar {
             width: 280px;
             min-height: 100vh;
@@ -890,7 +890,7 @@
     <div class="wrapper">
 
         <!-- ============================================================
-        SIDEBAR (akan di-render oleh sidebar.js)
+        SIDEBAR
         ============================================================ -->
         <aside class="sidebar"></aside>
 
@@ -928,7 +928,7 @@
                         <i class="bi bi-moon-fill" id="darkModeIcon"></i>
                     </button>
 
-                    <!-- User Avatar (akan diisi oleh script) -->
+                    <!-- User Avatar -->
                     <div class="avatar-sm" id="userAvatar">U</div>
                     <div class="user-info">
                         <div class="name" id="userName">Loading...</div>
@@ -1142,7 +1142,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
     </script>
 
-    <!-- Core Dependencies (sesuai dengan struktur folder Anda) -->
+    <!-- 🔥 PASTIKAN CONFIG.JS DI-LOAD PERTAMA KALI -->
+    <script src="config/config.js"></script>
+
+    <!-- Core Dependencies -->
     <script src="assets/js/core/app.js"></script>
     <script src="assets/js/core/api.js"></script>
     <script src="assets/js/core/storage.js"></script>
@@ -1152,7 +1155,7 @@
     <script src="assets/js/modules/auth.js"></script>
     <script src="assets/js/core/components/sidebar.js"></script>
 
-    <!-- MAIN HISTORY LOGIC (sudah include semua fitur) -->
+    <!-- MAIN HISTORY LOGIC -->
     <script src="assets/js/modules/history.js"></script>
 
 </body>

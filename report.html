@@ -156,14 +156,6 @@
             overflow-y: auto;
         }
 
-        /* Menu Admin - hidden by default */
-        .menu-admin {
-            display: none;
-        }
-        .menu-admin.visible {
-            display: flex;
-        }
-
         .status-badge {
             font-size: 10px;
             font-weight: 700;
@@ -178,6 +170,41 @@
         [data-theme="dark"] .status-open { background: #3d2e00; color: #ffd700; }
         [data-theme="dark"] .status-progress { background: #00264d; color: #66b0ff; }
         [data-theme="dark"] .status-done { background: #003d1a; color: #00e676; }
+
+        /* Sidebar Styles */
+        .sidebar nav a.menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            color: var(--text-secondary, #64748b);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .sidebar nav a.menu:hover {
+            background: var(--bg-card-hover, #f1f5f9);
+            color: var(--text-primary, #0f172a);
+        }
+        .sidebar nav a.menu.active {
+            background: var(--accent-soft, #dbeafe);
+            color: var(--accent-color, #2563eb);
+            font-weight: 600;
+        }
+        .sidebar nav a.menu i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        .sidebar nav a.menu.text-danger {
+            color: #ef4444 !important;
+        }
+        .sidebar nav a.menu.text-danger:hover {
+            background: #fef2f2 !important;
+            color: #dc2626 !important;
+        }
     </style>
 </head>
 
@@ -193,8 +220,7 @@
             <h5>Building Care</h5>
             <small>Enterprise v3.2</small>
         </div>
-
-        <nav></nav> <!-- Sidebar dinamis -->
+        <nav></nav> <!-- 🔥 SIDEBAR DINAMIS DIISI OLEH sidebar.js -->
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -485,39 +511,17 @@
 <script src="assets/js/core/ui.js"></script>
 <script src="assets/js/core/utils.js"></script>
 <script src="assets/js/modules/auth.js"></script>
-<script src="assets/js/components/sidebar.js"></script>
+
+<!-- 🔥 SIDEBAR DINAMIS - PATH YANG BENAR -->
+<script src="assets/js/core/components/sidebar.js"></script>
 
 <script>
 (function() {
     'use strict';
 
     // =============================================
-    // 🔥 CHECK ADMIN MENU - tampilkan hanya untuk ADMINISTRATOR
-    // =============================================
-    function checkAdminMenu() {
-        const adminMenu = document.getElementById('adminMenu');
-        if (!adminMenu) return;
-        
-        try {
-            const session = BCS.Storage.getSession();
-            if (session && session.user) {
-                const role = (session.user.role || '').toUpperCase();
-                if (role === 'ADMINISTRATOR') {
-                    adminMenu.classList.add('visible');
-                    adminMenu.style.display = 'flex';
-                } else {
-                    adminMenu.classList.remove('visible');
-                    adminMenu.style.display = 'none';
-                }
-            } else {
-                adminMenu.style.display = 'none';
-            }
-        } catch (e) {
-            adminMenu.style.display = 'none';
-        }
-    }
-
     // DOM REFS
+    // =============================================
     const DOM = {
         userName: document.getElementById('userName'),
         userRole: document.getElementById('userRole'),
@@ -548,7 +552,9 @@
     let currentFile = null;
     let userInfo = { nama: '', nik: '' };
 
+    // =============================================
     // DARK MODE
+    // =============================================
     function initDarkMode() {
         const toggle = document.getElementById('darkModeToggle');
         const icon = document.getElementById('darkModeIcon');
@@ -584,7 +590,9 @@
         });
     }
 
+    // =============================================
     // LOAD USER INFO
+    // =============================================
     function loadUserInfo() {
         try {
             const session = BCS.Storage.getSession();
@@ -608,7 +616,9 @@
         }
     }
 
+    // =============================================
     // LOAD USER HISTORY
+    // =============================================
     async function loadUserHistory() {
         try {
             DOM.historyTableBody.innerHTML = `
@@ -699,7 +709,9 @@
         }
     }
 
+    // =============================================
     // OPEN DETAIL MODAL
+    // =============================================
     function openDetail(report) {
         let html = `
             <table class="table table-sm table-striped">
@@ -722,7 +734,9 @@
         modal.show();
     }
 
+    // =============================================
     // PHOTO HANDLING
+    // =============================================
     function showPreview(file) {
         if (!file) return;
         const reader = new FileReader();
@@ -746,7 +760,9 @@
         currentFile = null;
     }
 
+    // =============================================
     // SUBMIT REPORT
+    // =============================================
     async function submitReport(e) {
         e.preventDefault();
 
@@ -820,7 +836,9 @@
         }
     }
 
+    // =============================================
     // RESET FORM
+    // =============================================
     function resetForm() {
         DOM.lokasi.value = '';
         DOM.kategori.value = '';
@@ -830,7 +848,9 @@
         loadUserInfo();
     }
 
+    // =============================================
     // LOGOUT
+    // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
         e.preventDefault();
         if (window.auth && typeof window.auth.logout === 'function') {
@@ -844,7 +864,9 @@
         }
     });
 
+    // =============================================
     // EVENT BINDING
+    // =============================================
     DOM.takePhotoBtn.addEventListener('click', function() {
         DOM.photo.setAttribute('capture', 'environment');
         DOM.photo.click();
@@ -873,13 +895,14 @@
     DOM.resetBtn.addEventListener('click', resetForm);
     DOM.form.addEventListener('submit', submitReport);
 
+    // =============================================
     // INIT
+    // =============================================
     async function init() {
-        checkAdminMenu();      // 🔥 Tampilkan menu Admin jika role ADMINISTRATOR
         initDarkMode();
         loadUserInfo();
         await loadUserHistory();
-        console.log('✅ Report page initialized with history');
+        console.log('✅ Report page initialized with dynamic sidebar');
     }
 
     if (document.readyState === 'loading') {

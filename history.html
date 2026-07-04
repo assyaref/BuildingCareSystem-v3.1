@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
-    
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -509,25 +509,29 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
-            min-width: 800px;
+            min-width: 1200px;
         }
         .table-wrap thead th {
-            padding: 12px 12px;
+            padding: 10px 10px;
             text-align: left;
             font-weight: 600;
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.4px;
             color: var(--text-muted);
             border-bottom: 2px solid var(--border-color);
             background: var(--bg-card-hover);
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
         .table-wrap tbody td {
-            padding: 12px 12px;
+            padding: 10px 10px;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-secondary);
             vertical-align: middle;
+            font-size: 12px;
         }
         .table-wrap tbody tr:hover {
             background: var(--bg-card-hover);
@@ -535,15 +539,16 @@
         .table-wrap tbody .report-id {
             font-weight: 600;
             color: var(--text-primary);
-            font-size: 12px;
+            font-size: 11px;
         }
         .table-wrap .badge-status {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 6px;
+            padding: 2px 8px;
+            border-radius: 4px;
             display: inline-block;
             letter-spacing: 0.3px;
+            white-space: nowrap;
         }
         .badge-status.open {
             background: #fee2e2;
@@ -571,12 +576,12 @@
         }
 
         .table-wrap .btn-action {
-            padding: 4px 8px;
+            padding: 3px 6px;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 4px;
             background: transparent;
             color: var(--text-secondary);
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
             display: inline-flex;
@@ -594,6 +599,14 @@
         .table-wrap .btn-action.warning:hover {
             color: #f59e0b;
             border-color: #f59e0b;
+        }
+
+        .table-wrap .text-truncate-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            max-width: 180px;
         }
 
         .pagination-wrap {
@@ -754,6 +767,10 @@
             .topbar h3 {
                 font-size: 20px;
             }
+            .table-wrap table {
+                min-width: 900px;
+                font-size: 11px;
+            }
         }
 
         @media (max-width: 576px) {
@@ -796,12 +813,12 @@
                 padding: 14px 16px;
             }
             .table-wrap table {
-                font-size: 11px;
-                min-width: 600px;
+                font-size: 10px;
+                min-width: 750px;
             }
             .table-wrap thead th,
             .table-wrap tbody td {
-                padding: 8px 8px;
+                padding: 6px 6px;
             }
             .topbar {
                 flex-direction: column;
@@ -818,7 +835,7 @@
 <body>
 
     <!-- LOADING -->
-    <div id="loading" class="loading-overlay">
+    <div id="loading">
         <div class="text-center">
             <div class="spinner-border text-light" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -830,7 +847,7 @@
     <div class="wrapper">
 
         <!-- SIDEBAR -->
-        <aside class="sidebar" id="sidebar">
+        <aside class="sidebar">
             <div class="logo-area">
                 <img src="assets/img/logo.png" alt="Logo" onerror="this.style.display='none'">
                 <h5>Building Care</h5>
@@ -948,18 +965,22 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th style="width:60px;">#</th>
-                                        <th style="width:100px;">Status</th>
-                                        <th style="min-width:140px;">Lokasi</th>
+                                        <th style="width:40px;">#</th>
+                                        <th style="width:70px;">Status</th>
+                                        <th style="min-width:110px;">ID</th>
+                                        <th style="min-width:110px;">Pelapor</th>
+                                        <th style="min-width:110px;">Departemen</th>
                                         <th style="min-width:120px;">Kategori</th>
-                                        <th style="min-width:100px;">Prioritas</th>
-                                        <th style="min-width:130px;">Tanggal</th>
-                                        <th style="width:140px;">Aksi</th>
+                                        <th style="min-width:120px;">Lokasi</th>
+                                        <th style="min-width:150px;">Deskripsi</th>
+                                        <th style="min-width:90px;">Prioritas</th>
+                                        <th style="min-width:120px;">Tanggal</th>
+                                        <th style="width:110px;">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="historyTableBody">
                                     <tr>
-                                        <td colspan="7" class="text-center py-5 text-muted">
+                                        <td colspan="11" class="text-center py-5 text-muted">
                                             <div class="spinner-border spinner-border-sm mb-2"></div><br>
                                             Sedang memuat data...
                                         </td>
@@ -1074,962 +1095,7 @@
     </script>
     <script src="assets/js/core/components/sidebar.js">
     </script>
-
-    <script>
-        (function() {
-            'use strict';
-
-            // ============================================================
-            //  SAFE QUERY SELECTOR
-            // ============================================================
-            function $(sel) { return document.querySelector(sel); }
-
-            function $$(sel) { return document.querySelectorAll(sel); }
-
-            // ============================================================
-            //  DARK MODE
-            // ============================================================
-            function initDarkMode() {
-                var toggle = $('#darkModeToggle');
-                var icon = $('#darkModeIcon');
-                if (!toggle) return;
-                var saved = localStorage.getItem('bcs_theme') || 'light';
-                document.documentElement.setAttribute('data-theme', saved);
-                updateIcon(icon, saved);
-                toggle.addEventListener('click', function() {
-                    var cur = document.documentElement.getAttribute('data-theme');
-                    var next = cur === 'dark' ? 'light' : 'dark';
-                    document.documentElement.setAttribute('data-theme', next);
-                    localStorage.setItem('bcs_theme', next);
-                    updateIcon(icon, next);
-                });
-            }
-
-            function updateIcon(icon, theme) {
-                if (!icon) return;
-                if (theme === 'dark') {
-                    icon.className = 'bi bi-sun-fill';
-                    icon.style.color = '#ffd700';
-                } else {
-                    icon.className = 'bi bi-moon-fill';
-                    icon.style.color = '';
-                }
-            }
-
-            // ============================================================
-            //  USER INFO
-            // ============================================================
-            function loadUserInfo() {
-                try {
-                    var session = BCS.Storage.getSession();
-                    if (session && session.user) {
-                        var user = session.user;
-                        var nama = user.nama || user.name || 'User';
-                        var role = user.role || 'User';
-                        var nameEl = $('#userName');
-                        var roleEl = $('#userRole');
-                        var avatar = $('#userAvatar');
-                        if (nameEl) nameEl.textContent = nama;
-                        if (roleEl) roleEl.textContent = role;
-                        if (avatar) avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
-                    }
-                } catch (e) {
-                    console.warn('Load user info error:', e);
-                }
-            }
-
-            // ============================================================
-            //  STATE
-            // ============================================================
-            var allReports = [];
-            var filteredReports = [];
-            var currentUser = {};
-            var currentPage = 1;
-            var perPage = 10;
-            var currentDetailReport = null;
-            var isLoading = false;
-            var loadError = false;
-
-            var tableBody = $('#historyTableBody');
-            var paginationEl = $('#pagination');
-            var emptyState = $('#emptyState');
-            var searchInput = $('#searchInput');
-            var filterStatus = $('#filterStatus');
-            var sortOrder = $('#sortOrder');
-
-            var cardTotal = $('#cardTotal');
-            var cardOpen = $('#cardOpen');
-            var cardProgress = $('#cardProgress');
-            var cardDone = $('#cardDone');
-            var totalReportsSpan = $('#totalReports');
-
-            // ============================================================
-            //  TOAST
-            // ============================================================
-            function showToast(msg, type) {
-                type = type || 'success';
-                var Toast = Swal.mixin({
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true
-                });
-                var icon = type === 'success' ? 'success' : type === 'error' ? 'error' : 'warning';
-                Toast.fire({
-                    icon: icon,
-                    title: type === 'success' ? 'Berhasil!' : type === 'error' ? 'Gagal!' : 'Peringatan!',
-                    text: msg
-                });
-            }
-
-            // ============================================================
-            //  LOADING
-            // ============================================================
-            function showLoading() {
-                var el = $('#loading');
-                if (el) el.classList.add('show');
-                isLoading = true;
-            }
-
-            function hideLoading() {
-                var el = $('#loading');
-                if (el) el.classList.remove('show');
-                isLoading = false;
-            }
-
-            // ============================================================
-            //  DATE HELPERS
-            // ============================================================
-            function parseDate(dateStr) {
-                if (!dateStr) return null;
-                var d = new Date(dateStr);
-                if (isNaN(d.getTime())) return null;
-                return d;
-            }
-
-            function formatDateForCompare(date) {
-                if (!date) return null;
-                return date.toISOString().split('T')[0];
-            }
-
-            function isDateInRange(dateStr, startDate, endDate) {
-                if (!dateStr) return false;
-                var d = parseDate(dateStr);
-                if (!d) return false;
-                var dateOnly = formatDateForCompare(d);
-                if (!dateOnly) return false;
-                if (startDate && dateOnly < formatDateForCompare(startDate)) return false;
-                if (endDate && dateOnly > formatDateForCompare(endDate)) return false;
-                return true;
-            }
-
-            function getTodayRange() {
-                var today = new Date();
-                return { start: today, end: today };
-            }
-
-            function getWeekRange() {
-                var now = new Date();
-                var start = new Date(now);
-                start.setDate(now.getDate() - now.getDay());
-                start.setHours(0, 0, 0, 0);
-                var end = new Date(start);
-                end.setDate(start.getDate() + 6);
-                end.setHours(23, 59, 59, 999);
-                return { start: start, end: end };
-            }
-
-            function getMonthRange() {
-                var now = new Date();
-                var start = new Date(now.getFullYear(), now.getMonth(), 1);
-                var end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-                end.setHours(23, 59, 59, 999);
-                return { start: start, end: end };
-            }
-
-            function getLast3MonthsRange() {
-                var now = new Date();
-                var start = new Date(now);
-                start.setMonth(now.getMonth() - 3);
-                start.setDate(1);
-                start.setHours(0, 0, 0, 0);
-                var end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-                end.setHours(23, 59, 59, 999);
-                return { start: start, end: end };
-            }
-
-            // ============================================================
-            //  FETCH DATA (TANPA DUMMY)
-            // ============================================================
-            async function fetchReports() {
-                if (isLoading) return;
-                showLoading();
-                loadError = false;
-
-                if (tableBody) {
-                    tableBody.innerHTML =
-                        '<tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Sedang memuat data...</td></tr>';
-                }
-                if (emptyState) emptyState.classList.add('d-none');
-
-                try {
-                    var api = window.BCS.Api || window.Api;
-                    if (!api) throw new Error('API tidak tersedia');
-
-                    var response = await api.post('getReports', {});
-                    console.log('[History] getReports response:', response);
-
-                    var reports = [];
-                    if (response && response.success) {
-                        reports = response.data?.reports || [];
-                    } else {
-                        // Gagal mendapatkan data dari API
-                        loadError = true;
-                        showToast('Gagal memuat data dari server', 'error');
-                        reports = [];
-                    }
-
-                    // Filter by role
-                    var role = (currentUser.role || '').toUpperCase();
-                    var filtered = reports;
-
-                    if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
-                        var userNik = (currentUser.nik || '').trim();
-                        var userNama = (currentUser.nama || '').toLowerCase().trim();
-
-                        if (userNik || userNama) {
-                            filtered = reports.filter(function(r) {
-                                var rNik = String(r.nik || '').trim();
-                                var rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
-                                var match = false;
-                                if (userNik && rNik) match = rNik === userNik;
-                                if (!match && userNama && rNama) match = rNama === userNama;
-                                return match;
-                            });
-                        }
-                    }
-
-                    allReports = filtered;
-                    applyFilters();
-
-                } catch (err) {
-                    console.error('[History] Fetch error:', err);
-                    loadError = true;
-                    showToast('Gagal memuat data: ' + err.message, 'error');
-                    allReports = [];
-                    applyFilters();
-                } finally {
-                    hideLoading();
-                }
-            }
-
-            // ============================================================
-            //  APPLY FILTERS
-            // ============================================================
-            function applyFilters() {
-                var keyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
-                var status = filterStatus ? filterStatus.value : '';
-                var sort = sortOrder ? sortOrder.value : 'desc';
-
-                var result = allReports.slice();
-
-                if (keyword) {
-                    result = result.filter(function(r) {
-                        return (r.id || '').toLowerCase().includes(keyword) ||
-                            (r.nama || r.pelapor || '').toLowerCase().includes(keyword) ||
-                            (r.kategori || '').toLowerCase().includes(keyword) ||
-                            (r.lokasi || '').toLowerCase().includes(keyword) ||
-                            (r.deskripsi || '').toLowerCase().includes(keyword);
-                    });
-                }
-
-                if (status) {
-                    result = result.filter(function(r) { return (r.status || '').toUpperCase() === status; });
-                }
-
-                // Quick filter pills
-                var activePill = document.querySelector('.quick-pills .pill.active');
-                if (activePill) {
-                    var range = activePill.dataset.range;
-                    var start, end;
-                    switch (range) {
-                        case 'today':
-                            var tr = getTodayRange();
-                            start = tr.start;
-                            end = tr.end;
-                            break;
-                        case 'week':
-                            var wr = getWeekRange();
-                            start = wr.start;
-                            end = wr.end;
-                            break;
-                        case 'month':
-                            var mr = getMonthRange();
-                            start = mr.start;
-                            end = mr.end;
-                            break;
-                        case 'last3months':
-                            var lr = getLast3MonthsRange();
-                            start = lr.start;
-                            end = lr.end;
-                            break;
-                    }
-                    if (start || end) {
-                        result = result.filter(function(r) {
-                            return isDateInRange(r.tanggal || r.createdAt, start, end);
-                        });
-                    }
-                }
-
-                result.sort(function(a, b) {
-                    var dateA = new Date(a.tanggal || a.createdAt || 0);
-                    var dateB = new Date(b.tanggal || b.createdAt || 0);
-                    return sort === 'desc' ? dateB - dateA : dateA - dateB;
-                });
-
-                filteredReports = result;
-                updateSummary();
-                currentPage = 1;
-                renderTable();
-                renderPagination();
-            }
-
-            // ============================================================
-            //  SUMMARY
-            // ============================================================
-            function updateSummary() {
-                var total = filteredReports.length;
-                var open = filteredReports.filter(function(r) { return (r.status || '').toUpperCase() === 'OPEN'; })
-                .length;
-                var progress = filteredReports.filter(function(r) { return (r.status || '').toUpperCase() === 'PROGRESS'; })
-                    .length;
-                var done = filteredReports.filter(function(r) { return (r.status || '').toUpperCase() === 'DONE'; })
-                .length;
-
-                if (cardTotal) cardTotal.textContent = total;
-                if (cardOpen) cardOpen.textContent = open;
-                if (cardProgress) cardProgress.textContent = progress;
-                if (cardDone) cardDone.textContent = done;
-                if (totalReportsSpan) totalReportsSpan.textContent = total;
-
-                // Trends (hanya jika ada data)
-                var lastWeek = allReports.filter(function(r) {
-                    var d = parseDate(r.tanggal || r.createdAt);
-                    if (!d) return false;
-                    var now = new Date();
-                    var weekAgo = new Date(now);
-                    weekAgo.setDate(now.getDate() - 7);
-                    return d >= weekAgo;
-                });
-                var lwTotal = lastWeek.length;
-                var lwOpen = lastWeek.filter(function(r) { return (r.status || '').toUpperCase() === 'OPEN'; })
-                .length;
-                var lwProgress = lastWeek.filter(function(r) { return (r.status || '').toUpperCase() === 'PROGRESS'; })
-                    .length;
-                var lwDone = lastWeek.filter(function(r) { return (r.status || '').toUpperCase() === 'DONE'; })
-                .length;
-
-                var totalTrend = $('#totalTrend');
-                var openTrend = $('#openTrend');
-                var progressTrend = $('#progressTrend');
-                var doneTrend = $('#doneTrend');
-                if (totalTrend) totalTrend.textContent = total - lwTotal;
-                if (openTrend) openTrend.textContent = open - lwOpen;
-                if (progressTrend) progressTrend.textContent = progress - lwProgress;
-                if (doneTrend) doneTrend.textContent = done - lwDone;
-            }
-
-            // ============================================================
-            //  RENDER TABLE
-            // ============================================================
-            function renderTable() {
-                if (!tableBody) return;
-                var start = (currentPage - 1) * perPage;
-                var pageData = filteredReports.slice(start, start + perPage);
-
-                // Jika ada error load, tampilkan pesan error
-                if (loadError && allReports.length === 0) {
-                    tableBody.innerHTML =
-                        '<tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-exclamation-triangle fs-4 d-block mb-2"></i>Gagal memuat data. Silakan refresh halaman.</td></tr>';
-                    if (emptyState) emptyState.classList.add('d-none');
-                    return;
-                }
-
-                if (pageData.length === 0) {
-                    tableBody.innerHTML =
-                        '<tr><td colspan="7" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Tidak ada data</td></tr>';
-                    if (emptyState) emptyState.classList.remove('d-none');
-                    return;
-                }
-                if (emptyState) emptyState.classList.add('d-none');
-
-                var html = '';
-                pageData.forEach(function(r, idx) {
-                    var globalIdx = start + idx + 1;
-                    var status = (r.status || 'OPEN').toUpperCase();
-                    var statusClass = status === 'OPEN' ? 'open' : status === 'PROGRESS' ? 'progress' : 'done';
-
-                    var tanggal = r.tanggal || r.createdAt || '';
-                    var formattedDate = tanggal ? new Date(tanggal).toLocaleString('id-ID', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    }).replace('.', ':') : '-';
-
-                    var prioritas = r.prioritas || r.priority || 'NORMAL';
-                    var prioritasBadge = prioritas === 'HIGH' || prioritas === 'TINGGI' ?
-                        '<span class="badge bg-danger">TINGGI</span>' :
-                        prioritas === 'MEDIUM' || prioritas === 'SEDANG' ?
-                        '<span class="badge bg-warning text-dark">SEDANG</span>' :
-                        '<span class="badge bg-secondary">RENDAH</span>';
-
-                    var hasPhoto = r.foto && r.foto.trim() !== '';
-
-                    html +=
-                        `
-                    <tr>
-                        <td class="report-id">${globalIdx}</td>
-                        <td><span class="badge-status ${statusClass}">${status}</span></td>
-                        <td><strong>${escapeHtml(r.lokasi || '-')}</strong></td>
-                        <td>${escapeHtml(r.kategori || '-')}</td>
-                        <td>${prioritasBadge}</td>
-                        <td>${formattedDate}</td>
-                        <td>
-                            <div class="d-flex gap-1">
-                                <button class="btn-action primary view-detail" data-id="${escapeHtml(r.id)}" title="Detail"><i class="bi bi-eye"></i></button>
-                                ${hasPhoto ? `<button class="btn-action view-photo" data-src="${escapeHtml(r.foto)}" title="Foto"><i class="bi bi-image"></i></button>` : ''}
-                                <button class="btn-action warning edit-report" data-id="${escapeHtml(r.id)}" title="Update"><i class="bi bi-pencil-square"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                });
-                tableBody.innerHTML = html;
-
-                // Event delegation untuk aksi tombol di tabel (sudah di binding di init)
-            }
-
-            // ============================================================
-            //  PAGINATION
-            // ============================================================
-            function renderPagination() {
-                if (!paginationEl) return;
-                var totalPages = Math.ceil(filteredReports.length / perPage);
-                if (totalPages <= 1) {
-                    paginationEl.innerHTML = '';
-                    return;
-                }
-
-                var html = '';
-                html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') +
-                    '"><a class="page-link" href="#" data-page="' + (currentPage - 1) + '">&laquo;</a></li>';
-
-                for (var i = 1; i <= totalPages; i++) {
-                    if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-                        html += '<li class="page-item ' + (i === currentPage ? 'active' : '') +
-                            '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
-                    } else if (i === currentPage - 2 || i === currentPage + 2) {
-                        html += '<li class="page-item disabled"><span class="page-link">…</span></li>';
-                    }
-                }
-
-                html += '<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') +
-                    '"><a class="page-link" href="#" data-page="' + (currentPage + 1) + '">&raquo;</a></li>';
-                paginationEl.innerHTML = html;
-
-                paginationEl.querySelectorAll('.page-link').forEach(function(link) {
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        var page = parseInt(this.dataset.page);
-                        if (page && page >= 1 && page <= totalPages) {
-                            currentPage = page;
-                            renderTable();
-                            renderPagination();
-                        }
-                    });
-                });
-            }
-
-            // ============================================================
-            //  OPEN DETAIL
-            // ============================================================
-            function openDetail(id) {
-                var report = allReports.find(function(r) { return r.id == id; });
-                if (!report) {
-                    showToast('Data tidak ditemukan', 'error');
-                    return;
-                }
-                currentDetailReport = report;
-
-                var status = report.status || 'OPEN';
-                var statusBadge = status === 'DONE' ?
-                    '<span class="badge bg-success" style="font-size:13px;padding:5px 14px;">DONE</span>' :
-                    status === 'PROGRESS' ?
-                    '<span class="badge bg-warning text-dark" style="font-size:13px;padding:5px 14px;">PROGRESS</span>' :
-                    '<span class="badge bg-danger" style="font-size:13px;padding:5px 14px;">OPEN</span>';
-
-                var sla = report.sla || '-';
-                var slaBadge = sla === 'FAST' ?
-                    '<span class="badge bg-success" style="font-size:12px;padding:4px 12px;">FAST</span>' :
-                    sla === 'NORMAL' ?
-                    '<span class="badge bg-warning text-dark" style="font-size:12px;padding:4px 12px;">NORMAL</span>' :
-                    sla === 'LATE' ?
-                    '<span class="badge bg-danger" style="font-size:12px;padding:4px 12px;">LATE</span>' :
-                    '<span class="badge bg-secondary" style="font-size:12px;padding:4px 12px;">' + sla + '</span>';
-
-                var fotoHtml = report.foto ?
-                    '<a href="' + report.foto +
-                    '" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-image"></i> Lihat Foto</a>' :
-                    '<span class="text-muted">-</span>';
-
-                var html =
-                    `
-                <div class="d-flex justify-content-between align-items-start mb-3 pb-2" style="border-bottom:2px solid var(--border-color);">
-                    <div>
-                        <h5 class="fw-bold" style="color:var(--text-primary);">${escapeHtml(report.id || '-')}</h5>
-                        <span class="text-muted" style="font-size:13px;">${report.tanggal || report.createdAt || '-'}</span>
-                    </div>
-                    <div class="d-flex gap-2">
-                        ${statusBadge}
-                        ${slaBadge}
-                    </div>
-                </div>
-
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="info-grid"><span class="label">Tanggal Lapor</span><span class="value">${report.tanggal || report.createdAt || '-'}</span></div>
-                        <div class="info-grid"><span class="label">Tanggal Selesai</span><span class="value">${report.tglSelesai || '-'}</span></div>
-                        <div class="info-grid"><span class="label">Durasi</span><span class="value fw-semibold">${report.durasi || '-'}</span></div>
-                        <div class="info-grid"><span class="label">Pelapor</span><span class="value">${escapeHtml(report.nama || report.pelapor || '-')}</span></div>
-                        <div class="info-grid"><span class="label">Departemen</span><span class="value">${escapeHtml(report.departemen || '-')}</span></div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="info-grid"><span class="label">Kategori</span><span class="value">${escapeHtml(report.kategori || '-')}</span></div>
-                        <div class="info-grid"><span class="label">Lokasi</span><span class="value">${escapeHtml(report.lokasi || '-')}</span></div>
-                        <div class="info-grid"><span class="label">Prioritas</span><span class="value">${escapeHtml(report.prioritas || '-')}</span></div>
-                        <div class="info-grid"><span class="label">Teknisi</span><span class="value">${escapeHtml(report.teknisi || '-')}</span></div>
-                        <div class="info-grid"><span class="label">Foto</span><span class="value">${fotoHtml}</span></div>
-                    </div>
-                </div>
-
-                <div class="mt-3 pt-2" style="border-top:1px solid var(--border-color);">
-                    <div class="info-grid" style="grid-template-columns:1fr;">
-                        <span class="label">Deskripsi</span>
-                        <div class="value deskripsi-box">${escapeHtml(report.deskripsi || '-')}</div>
-                    </div>
-                </div>
-
-                ${report.catatanTeknisi ? `
-                <div class="mt-3">
-                    <div class="info-grid" style="grid-template-columns:1fr;">
-                        <span class="label">Catatan Teknisi</span>
-                        <div class="value deskripsi-box" style="border-left-color:#f59e0b;">${escapeHtml(report.catatanTeknisi)}</div>
-                    </div>
-                </div>
-                ` : ''}
-            `;
-
-                var detailContent = $('#detailContent');
-                if (detailContent) detailContent.innerHTML = html;
-                var modal = new bootstrap.Modal(document.getElementById('detailModal'));
-                modal.show();
-            }
-
-            // ============================================================
-            //  OPEN UPDATE
-            // ============================================================
-            function openUpdate(id) {
-                var report = allReports.find(function(r) { return r.id == id; });
-                if (!report) {
-                    showToast('Data tidak ditemukan', 'error');
-                    return;
-                }
-
-                var updateId = $('#updateId');
-                var updateStatus = $('#updateStatus');
-                var updateTeknisi = $('#updateTeknisi');
-                var updateCatatan = $('#updateCatatan');
-
-                if (updateId) updateId.value = report.id || '';
-                if (updateStatus) updateStatus.value = report.status || 'OPEN';
-                if (updateTeknisi) updateTeknisi.value = report.teknisi || '';
-                if (updateCatatan) updateCatatan.value = report.catatanTeknisi || '';
-
-                var modal = new bootstrap.Modal(document.getElementById('updateModal'));
-                modal.show();
-            }
-
-            // ============================================================
-            //  SAVE UPDATE
-            // ============================================================
-            async function saveUpdate() {
-                var id = $('#updateId') ? $('#updateId').value : '';
-                var status = $('#updateStatus') ? $('#updateStatus').value : '';
-                var teknisi = $('#updateTeknisi') ? $('#updateTeknisi').value.trim() : '';
-                var catatan = $('#updateCatatan') ? $('#updateCatatan').value.trim() : '';
-
-                if (!id) {
-                    showToast('ID laporan tidak valid', 'error');
-                    return;
-                }
-
-                var btn = $('#saveUpdateBtn');
-                try {
-                    if (btn) { btn.disabled = true;
-                        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...'; }
-
-                    var api = window.BCS.Api || window.Api;
-                    var payload = { id: id, status: status, teknisi: teknisi, catatan: catatan };
-                    var response = await api.post('updateReport', payload);
-
-                    if (response && response.success) {
-                        showToast('✅ Status berhasil diperbarui!', 'success');
-                        var modal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
-                        if (modal) modal.hide();
-                        await fetchReports();
-                    } else {
-                        showToast('❌ Gagal update: ' + (response?.message || 'Unknown error'), 'error');
-                    }
-                } catch (err) {
-                    console.error('Update error:', err);
-                    showToast('❌ Terjadi kesalahan: ' + err.message, 'error');
-                } finally {
-                    if (btn) { btn.disabled = false;
-                        btn.innerHTML = '<i class="bi bi-check-circle"></i> Simpan'; }
-                }
-            }
-
-            // ============================================================
-            //  EXPORT FUNCTIONS
-            // ============================================================
-            function exportDetailPDF() {
-                if (!currentDetailReport) {
-                    showToast('Tidak ada data untuk diexport', 'error');
-                    return;
-                }
-
-                var report = currentDetailReport;
-                var jsPDF = window.jspdf.jsPDF;
-                var doc = new jsPDF('p', 'mm', 'a4');
-
-                doc.setFontSize(18);
-                doc.setTextColor(30, 94, 255);
-                doc.text('Building Care System Enterprise', 14, 20);
-
-                doc.setFontSize(14);
-                doc.setTextColor(0, 0, 0);
-                doc.text('Detail Laporan', 14, 30);
-
-                doc.setFontSize(10);
-                doc.setTextColor(100, 100, 100);
-                doc.text('Radiant Group Duri', 14, 36);
-
-                doc.setDrawColor(30, 94, 255);
-                doc.line(14, 40, 196, 40);
-
-                doc.setFontSize(11);
-                doc.setTextColor(0, 0, 0);
-
-                var fields = [
-                    ['ID', report.id || '-'],
-                    ['Tanggal Lapor', report.tanggal || report.createdAt || '-'],
-                    ['Tanggal Selesai', report.tglSelesai || '-'],
-                    ['Durasi', report.durasi || '-'],
-                    ['SLA', report.sla || '-'],
-                    ['Pelapor', report.nama || report.pelapor || '-'],
-                    ['Departemen', report.departemen || '-'],
-                    ['Kategori', report.kategori || '-'],
-                    ['Lokasi', report.lokasi || '-'],
-                    ['Prioritas', report.prioritas || '-'],
-                    ['Status', report.status || '-'],
-                    ['Deskripsi', report.deskripsi || '-'],
-                    ['Teknisi', report.teknisi || '-'],
-                    ['Catatan Teknisi', report.catatanTeknisi || '-']
-                ];
-
-                var y = 48;
-                fields.forEach(function(field) {
-                    if (y > 270) {
-                        doc.addPage();
-                        y = 20;
-                    }
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(field[0] + ':', 14, y);
-                    doc.setFont('helvetica', 'normal');
-                    var wrappedText = doc.splitTextToSize(field[1] || '-', 160);
-                    doc.text(wrappedText, 60, y);
-                    y += (wrappedText.length * 5) + 4;
-                });
-
-                doc.setFontSize(8);
-                doc.setTextColor(150, 150, 150);
-                doc.text('Generated: ' + new Date().toLocaleString('id-ID'), 14, 280);
-                doc.text('System by Radiant Group', 14, 285);
-
-                doc.save('Detail_Laporan_' + (report.id || 'export') + '.pdf');
-                showToast('Export PDF berhasil', 'success');
-            }
-
-            function exportExcel() {
-                if (filteredReports.length === 0) {
-                    showToast('Tidak ada data untuk diexport', 'warning');
-                    return;
-                }
-
-                var data = filteredReports.map(function(r) {
-                    return {
-                        'ID': r.id || '-',
-                        'Tanggal': r.tanggal || r.createdAt || '-',
-                        'Pelapor': r.nama || r.pelapor || '-',
-                        'Departemen': r.departemen || '-',
-                        'Kategori': r.kategori || '-',
-                        'Lokasi': r.lokasi || '-',
-                        'Deskripsi': r.deskripsi || '-',
-                        'Status': r.status || '-',
-                        'Teknisi': r.teknisi || '-',
-                        'SLA': r.sla || '-'
-                    };
-                });
-
-                var wb = XLSX.utils.book_new();
-                var ws = XLSX.utils.json_to_sheet(data);
-                XLSX.utils.book_append_sheet(wb, ws, 'History');
-                XLSX.writeFile(wb, 'Riwayat_Laporan_' + new Date().toISOString().slice(0, 10) + '.xlsx');
-                showToast('Berhasil export ' + data.length + ' data ke Excel!', 'success');
-            }
-
-            function exportPDF() {
-                if (filteredReports.length === 0) {
-                    showToast('Tidak ada data untuk diexport', 'warning');
-                    return;
-                }
-
-                var jsPDF = window.jspdf.jsPDF;
-                var doc = new jsPDF('l', 'mm', 'a4');
-
-                doc.setFontSize(16);
-                doc.setTextColor(30, 94, 255);
-                doc.text('Building Care System Enterprise', 14, 20);
-                doc.setFontSize(12);
-                doc.setTextColor(0, 0, 0);
-                doc.text('Riwayat Laporan', 14, 30);
-                doc.setFontSize(9);
-                doc.setTextColor(100, 100, 100);
-                doc.text('Generated: ' + new Date().toLocaleString('id-ID') + ' | Total: ' + filteredReports.length +
-                    ' data', 14, 36);
-
-                var headers = ['ID', 'Tanggal', 'Pelapor', 'Kategori', 'Lokasi', 'Status', 'SLA'];
-                var colWidths = [30, 30, 35, 30, 35, 25, 20];
-                var y = 44;
-
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(8);
-                headers.forEach(function(h, i) {
-                    var x = 14;
-                    for (var j = 0; j < i; j++) x += colWidths[j];
-                    doc.text(h, x, y);
-                });
-                y += 4;
-                doc.setDrawColor(200, 200, 200);
-                doc.line(14, y, 14 + colWidths.reduce(function(a, b) { return a + b; }, 0), y);
-                y += 4;
-
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(7);
-                var rowsToExport = filteredReports.slice(0, 100);
-                rowsToExport.forEach(function(r) {
-                    if (y > 270) {
-                        doc.addPage();
-                        y = 20;
-                        doc.setFont('helvetica', 'bold');
-                        headers.forEach(function(h, i) {
-                            var x = 14;
-                            for (var j = 0; j < i; j++) x += colWidths[j];
-                            doc.text(h, x, y);
-                        });
-                        y += 4;
-                        doc.line(14, y, 14 + colWidths.reduce(function(a, b) { return a + b; }, 0), y);
-                        y += 4;
-                        doc.setFont('helvetica', 'normal');
-                    }
-
-                    var rowData = [
-                        r.id || '-',
-                        (r.tanggal || r.createdAt || '-').slice(0, 16),
-                        (r.nama || r.pelapor || '-').slice(0, 15),
-                        (r.kategori || '-').slice(0, 15),
-                        (r.lokasi || '-').slice(0, 15),
-                        r.status || '-',
-                        r.sla || '-'
-                    ];
-
-                    var x = 14;
-                    rowData.forEach(function(val, i) {
-                        doc.text(String(val), x, y);
-                        x += colWidths[i];
-                    });
-                    y += 5;
-                });
-
-                doc.setFontSize(8);
-                doc.setTextColor(150, 150, 150);
-                doc.text('System by Radiant Group', 14, 290);
-
-                doc.save('Riwayat_Laporan_' + new Date().toISOString().slice(0, 10) + '.pdf');
-                showToast('Berhasil export ' + rowsToExport.length + ' data ke PDF!', 'success');
-            }
-
-            // ============================================================
-            //  UTILITY
-            // ============================================================
-            function escapeHtml(str) {
-                if (!str) return '';
-                return String(str)
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/"/g, '&quot;')
-                    .replace(/'/g, '&#039;');
-            }
-
-            // ============================================================
-            //  SIDEBAR - gunakan yang sudah ada dari sidebar.js
-            // ============================================================
-            function initSidebar() {
-                // sidebar.js sudah otomatis memuat menu, tidak perlu intervensi
-                // Tapi pastikan menu "Riwayat" aktif
-                var activeMenu = document.querySelector('.sidebar nav a.menu[href*="history"]');
-                if (activeMenu) {
-                    activeMenu.classList.add('active');
-                }
-            }
-
-            // ============================================================
-            //  INIT
-            // ============================================================
-            async function init() {
-                initDarkMode();
-                loadUserInfo();
-                initSidebar();
-
-                // Load user data
-                try {
-                    var session = BCS.Storage.getSession();
-                    if (session && session.user) {
-                        currentUser = session.user;
-                        currentUser.nik = session.nik || currentUser.nik || '';
-                        currentUser.nama = currentUser.nama || currentUser.name || '';
-                    }
-                } catch (e) {}
-
-                // ============================================================
-                //  EVENT DELEGATION (agar tombol aksi berfungsi)
-                // ============================================================
-                if (tableBody) {
-                    tableBody.addEventListener('click', function(e) {
-                        var target = e.target.closest('.view-detail');
-                        if (target) {
-                            e.preventDefault();
-                            openDetail(target.dataset.id);
-                            return;
-                        }
-                        var photoBtn = e.target.closest('.view-photo');
-                        if (photoBtn) {
-                            e.preventDefault();
-                            var src = photoBtn.dataset.src;
-                            if (src) {
-                                var modalPhoto = $('#modalPhoto');
-                                if (modalPhoto) modalPhoto.src = src;
-                                var modal = new bootstrap.Modal(document.getElementById('photoModal'));
-                                modal.show();
-                            }
-                            return;
-                        }
-                        var editBtn = e.target.closest('.edit-report');
-                        if (editBtn) {
-                            e.preventDefault();
-                            openUpdate(editBtn.dataset.id);
-                            return;
-                        }
-                    });
-                }
-
-                // ============================================================
-                //  FILTER EVENTS
-                // ============================================================
-                if (searchInput) {
-                    searchInput.addEventListener('input', function() {
-                        document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
-                            p.classList.remove('active');
-                        });
-                        applyFilters();
-                    });
-                }
-
-                if (filterStatus) {
-                    filterStatus.addEventListener('change', applyFilters);
-                }
-
-                if (sortOrder) {
-                    sortOrder.addEventListener('change', applyFilters);
-                }
-
-                // Quick pills
-                document.querySelectorAll('.quick-pills .pill').forEach(function(pill) {
-                    pill.addEventListener('click', function() {
-                        document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
-                            p.classList.remove('active');
-                        });
-                        this.classList.add('active');
-                        applyFilters();
-                    });
-                });
-
-                // Refresh
-                var refreshBtn = $('#refreshBtn');
-                if (refreshBtn) {
-                    refreshBtn.addEventListener('click', fetchReports);
-                }
-
-                // Export
-                var exportExcelBtn = $('#exportExcelBtn');
-                if (exportExcelBtn) {
-                    exportExcelBtn.addEventListener('click', exportExcel);
-                }
-
-                var exportPdfBtn = $('#exportPdfBtn');
-                if (exportPdfBtn) {
-                    exportPdfBtn.addEventListener('click', exportPDF);
-                }
-
-                var exportDetailPdfBtn = $('#exportDetailPdfBtn');
-                if (exportDetailPdfBtn) {
-                    exportDetailPdfBtn.addEventListener('click', exportDetailPDF);
-                }
-
-                // Save update
-                var saveUpdateBtn = $('#saveUpdateBtn');
-                if (saveUpdateBtn) {
-                    saveUpdateBtn.addEventListener('click', saveUpdate);
-                }
-
-                // ============================================================
-                //  FETCH DATA
-                // ============================================================
-                await fetchReports();
-                console.log('✅ History page initialized');
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-
-        })();
+    <script src="history.js">
     </script>
 
 </body>

@@ -10,7 +10,7 @@
 
     function renderSidebar() {
         console.log('📌 renderSidebar() called');
-
+        
         // Cari elemen sidebar nav
         var sidebarNav = document.querySelector('.sidebar nav');
         if (!sidebarNav) {

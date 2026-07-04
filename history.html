@@ -1223,7 +1223,7 @@
     </script>
 
     <!-- ============================================================
-    FILTER PRIORITAS + OBSERVER — BERFUNGSI 100%
+    FILTER PRIORITAS + OBSERVER — PERBAIKAN TOTAL
     ============================================================ -->
     <script>
         (function() {
@@ -1244,11 +1244,9 @@
 
                 // Ambil semua baris data (abaikan baris loading / header)
                 var rows = Array.from(tbody.querySelectorAll('tr'));
-                // Hapus baris yang berisi spinner (loading) atau baris kosong
                 rows = rows.filter(function(row) {
-                    return !row.querySelector('.spinner-border') &&
-                        row.cells.length >= 11 &&
-                        row.style.display !== 'none'; // baris yang sudah disembunyikan tidak perlu diproses
+                    // Hanya baris yang memiliki minimal 11 kolom dan tidak mengandung spinner
+                    return row.cells.length >= 11 && !row.querySelector('.spinner-border');
                 });
 
                 // Jika tidak ada baris data, update total dan keluar
@@ -1262,25 +1260,25 @@
                     var cells = row.querySelectorAll('td');
                     return {
                         element: row,
-                        status: cells[1]?.textContent.trim() || '',
-                        id: cells[2]?.textContent.trim() || '',
-                        pelapor: cells[3]?.textContent.trim() || '',
-                        departemen: cells[4]?.textContent.trim() || '',
-                        kategori: cells[5]?.textContent.trim() || '',
-                        lokasi: cells[6]?.textContent.trim() || '',
-                        deskripsi: cells[7]?.textContent.trim() || '',
-                        prioritas: cells[8]?.textContent.trim() || '',
-                        tanggal: cells[9]?.textContent.trim() || ''
+                        status: cells[1] ? cells[1].textContent.trim().toUpperCase() : '',
+                        id: cells[2] ? cells[2].textContent.trim() : '',
+                        pelapor: cells[3] ? cells[3].textContent.trim() : '',
+                        departemen: cells[4] ? cells[4].textContent.trim() : '',
+                        kategori: cells[5] ? cells[5].textContent.trim() : '',
+                        lokasi: cells[6] ? cells[6].textContent.trim() : '',
+                        deskripsi: cells[7] ? cells[7].textContent.trim() : '',
+                        prioritas: cells[8] ? cells[8].textContent.trim().toUpperCase() : '',
+                        tanggal: cells[9] ? cells[9].textContent.trim() : ''
                     };
                 });
 
                 // Ambil nilai filter
                 var searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
-                var statusVal = filterStatus ? filterStatus.value : '';
-                var priorityVal = filterPriority ? filterPriority.value : '';
+                var statusVal = filterStatus ? filterStatus.value.toUpperCase() : '';
+                var priorityVal = filterPriority ? filterPriority.value.toUpperCase() : '';
                 var sortVal = sortOrder ? sortOrder.value : 'desc';
 
-                // Filter berdasarkan status, prioritas, dan pencarian
+                // Filter
                 var filtered = dataRows.filter(function(row) {
                     // Filter status
                     if (statusVal && row.status !== statusVal) return false;
@@ -1295,7 +1293,7 @@
                     return true;
                 });
 
-                // Sorting (berdasarkan tanggal, asumsi format YYYY-MM-DD atau sejenis)
+                // Sorting
                 if (sortVal === 'desc') {
                     filtered.sort(function(a, b) { return b.tanggal.localeCompare(a.tanggal); });
                 } else {
@@ -1308,6 +1306,15 @@
 
                 // Update total
                 if (totalSpan) totalSpan.textContent = filtered.length;
+
+                // DEBUG: log hasil filter
+                console.log('[Filter] Status:', statusVal, 'Prioritas:', priorityVal, 'Search:', searchVal, 'Total ditemukan:', filtered
+                    .length);
+                if (filtered.length === 0 && priorityVal) {
+                    // Tampilkan semua data prioritas untuk debugging
+                    var allPriorities = dataRows.map(function(r) { return r.prioritas; });
+                    console.log('[Filter] Data prioritas yang tersedia:', allPriorities);
+                }
             }
 
             // Pasang event listener ke semua kontrol filter
@@ -1316,12 +1323,12 @@
             if (filterPriority) filterPriority.addEventListener('change', applyFilters);
             if (sortOrder) sortOrder.addEventListener('change', applyFilters);
 
-            // Pills (range) — hanya untuk UI, tidak mempengaruhi filter (bisa dikembangkan nanti)
+            // Pills (range) — hanya untuk UI (tidak mempengaruhi filter)
             pills.forEach(function(pill) {
                 pill.addEventListener('click', function() {
                     pills.forEach(function(p) { p.classList.remove('active'); });
                     this.classList.add('active');
-                    applyFilters(); // tetap terapkan filter ulang (walaupun range tidak dipakai)
+                    applyFilters();
                 });
             });
 
@@ -1329,38 +1336,35 @@
             var refreshBtn = document.getElementById('refreshBtn');
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', function() {
-                    // Tunggu sebentar agar data selesai dimuat ulang, lalu terapkan filter
                     setTimeout(applyFilters, 300);
                 });
             }
 
             // ========== MUTATION OBSERVER ==========
-            // Amati perubahan pada tbody (ketika history.js mengganti konten)
             if (tbody && window.MutationObserver) {
-                var observer = new MutationObserver(function(mutations) {
-                    // Terapkan filter setelah perubahan selesai (dengan jeda kecil)
+                var observer = new MutationObserver(function() {
                     applyFilters();
                 });
                 observer.observe(tbody, { childList: true, subtree: true });
             }
 
-            // Jalankan filter pertama kali setelah DOM siap dan history.js sempat memuat
-            // Gunakan beberapa kali percobaan dengan jeda
+            // Jalankan filter secara berkala untuk memastikan data termuat
             function initialApply() {
                 applyFilters();
             }
 
-            // Coba setelah 500ms, 1000ms, 2000ms untuk memastikan data sudah dimuat
+            // Coba setelah 500ms, 1000ms, 2000ms, 3000ms
             setTimeout(initialApply, 500);
             setTimeout(initialApply, 1000);
             setTimeout(initialApply, 2000);
+            setTimeout(initialApply, 3000);
 
-            // Juga coba ketika window load
+            // Juga saat window load
             window.addEventListener('load', function() {
                 setTimeout(applyFilters, 300);
             });
 
-            console.log('[Filter] Client‑side filter dengan MutationObserver aktif.');
+            console.log('[Filter] Client‑side filter dengan case‑insensitive dan debugging aktif.');
         })();
     </script>
 

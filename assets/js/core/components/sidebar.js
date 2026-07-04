@@ -1,12 +1,12 @@
 // assets/js/core/components/sidebar.js
 // Sidebar Dinamis Premium UI - Match UI Design v4.3
 // 🔥 Added Custom Premium Toast Confirmation for Logout
-// 📱 Added Mobile Responsive Toggle (Hamburger) & Click-Outside-to-Close
+// 📱 Mobile Responsive: Transforms into a Sleek Topbar on Mobile View
 
 (function() {
     'use strict';
 
-    console.log('🔄 Premium sidebar.js loaded with mobile responsive toggle');
+    console.log('🔄 Premium sidebar.js loaded with Mobile Topbar transformation');
 
     const styleId = 'premium-sidebar-css';
     if (!document.getElementById(styleId)) {
@@ -220,7 +220,7 @@
             .sb-avatar {
                 width: 100%; height: 100%; border-radius: 50%;
                 background: #3b82f6; color: #ffffff;
-                display: flex; align-items: center; justify-content: center;
+                display: flex; align-items: center justify-content: center;
                 font-weight: 600; font-size: 15px;
             }
             .sb-status-dot {
@@ -269,43 +269,19 @@
             }
             .sb-toast-icon {
                 width: 64px; height: 64px;
-                background: #fff5f5;
-                color: #ff3b30;
-                border-radius: 50%;
+                background: #fff5f5; color: #ff3b30; border-radius: 50%;
                 display: flex; align-items: center; justify-content: center;
                 font-size: 28px; margin: 0 auto 20px auto;
                 animation: pulseRed 2s infinite;
             }
-            .sb-toast-title {
-                font-size: 20px; font-weight: 700;
-                color: #1e293b; margin-bottom: 8px;
-            }
-            .sb-toast-desc {
-                font-size: 14px; color: #64748b;
-                margin-bottom: 24px; line-height: 1.5;
-            }
-            .sb-toast-actions {
-                display: flex; gap: 12px;
-            }
-            .sb-toast-btn {
-                flex: 1; padding: 12px 16px;
-                border-radius: 12px; font-size: 14px; font-weight: 600;
-                cursor: pointer; border: none; transition: all 0.2s ease;
-            }
-            .sb-toast-btn-cancel {
-                background: #f1f5f9; color: #64748b;
-            }
+            .sb-toast-title { font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+            .sb-toast-desc { font-size: 14px; color: #64748b; margin-bottom: 24px; line-height: 1.5; }
+            .sb-toast-actions { display: flex; gap: 12px; }
+            .sb-toast-btn { flex: 1; padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s ease; }
+            .sb-toast-btn-cancel { background: #f1f5f9; color: #64748b; }
             .sb-toast-btn-cancel:hover { background: #e2e8f0; color: #0f172a; }
-            
-            .sb-toast-btn-confirm {
-                background: linear-gradient(135deg, #ff5252 0%, #ff3b30 100%);
-                color: #ffffff;
-                box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2);
-            }
-            .sb-toast-btn-confirm:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 15px rgba(255, 59, 48, 0.3);
-            }
+            .sb-toast-btn-confirm { background: linear-gradient(135deg, #ff5252 0%, #ff3b30 100%); color: #ffffff; box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2); }
+            .sb-toast-btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 59, 48, 0.3); }
 
             @keyframes pulseRed {
                 0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.2); }
@@ -314,33 +290,94 @@
             }
 
             /* ===================================================== */
-            /* 📱 RESPONSIVE MOBILE - SIDEBAR SLIDE IN/OUT          */
+            /* 📱 RESPONSIVE MOBILE - TRANSFORMS INTO TOPBAR         */
             /* ===================================================== */
-            .content { margin-left: 280px !important; width: calc(100% - 280px) !important; }
+            .content { 
+                margin-left: 280px !important; 
+                width: calc(100% - 280px) !important; 
+                transition: all 0.3s ease;
+            }
             
             @media (max-width: 991.98px) {
                 .sidebar {
-                    transform: translateX(-100%);
-                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    width: 280px !important;
+                    width: 100% !important;
+                    height: 70px; /* Tinggi saat Topbar ciut */
+                    position: fixed;
+                    top: 0; left: 0; right: 0;
+                    border-right: none;
+                    border-bottom: 1px solid rgba(0,0,0,0.05);
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+                    transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                    z-index: 1050;
                 }
+                
+                /* Saat Topbar dibuka / diklik hamburger menu-nya */
                 .sidebar.open {
-                    transform: translateX(0);
+                    height: 100vh; /* Memenuhi layar ke bawah */
+                    overflow-y: auto;
                 }
+
+                /* Modifikasi Header Wave menjadi Bar Tipis Kompak di Tengah Atas */
+                .sb-header {
+                    padding: 0 20px;
+                    height: 70px;
+                    margin-bottom: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center; /* Konten logo dan teks berada tepat di tengah-atas */
+                    background: linear-gradient(135deg, #0d6efd 0%, #0044cc 100%) !important;
+                    background-image: none !important;
+                }
+                .sb-header::before { display: none; }
+                
+                .sb-header-content {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                .sb-logo-container {
+                    width: 38px; height: 38px;
+                    margin: 0;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                    padding: 3px;
+                }
+                .sb-brand-title { font-size: 18px; }
+                .sb-brand-subtitle { display: none; } /* Sembunyikan subtitle agar minimalis */
+
+                /* Menu Body (Disembunyikan bawaan, muncul mulus saat .open) */
+                .sb-body {
+                    opacity: 0;
+                    visibility: hidden;
+                    transform: translateY(-10px);
+                    transition: all 0.3s ease;
+                    padding: 20px 24px 10px 24px;
+                }
+                .sidebar.open .sb-body {
+                    opacity: 1;
+                    visibility: visible;
+                    transform: translateY(0);
+                }
+
+                .sb-logout-box, .sb-footer {
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.3s ease;
+                }
+                .sidebar.open .sb-logout-box,
+                .sidebar.open .sb-footer {
+                    opacity: 1;
+                    visibility: visible;
+                }
+
+                .sb-footer {
+                    padding: 15px 24px 40px 24px;
+                    background-image: none !important;
+                }
+
                 .content {
                     margin-left: 0 !important;
                     width: 100% !important;
-                }
-                /* Tambahan overlay gelap opsional (bisa ditambahkan nanti) */
-                .sidebar-overlay {
-                    display: none;
-                    position: fixed;
-                    top: 0; left: 0; width: 100%; height: 100%;
-                    background: rgba(0,0,0,0.3);
-                    z-index: 1039;
-                }
-                .sidebar-overlay.active {
-                    display: block;
+                    padding-top: 70px; /* Cegah konten utama tertimpa topbar */
                 }
             }
         `;
@@ -539,64 +576,58 @@
     }
 
     // ================================================================
-    // 4. 📱 FUNGSI TOGGLE MOBILE (RESPONSIVE)
+    // 4. 📱 FUNGSI TOGGLE MOBILE (TOPBAR MODE)
     // ================================================================
     function initMobileToggle() {
         const toggleBtn = document.getElementById('sidebarToggle');
         const sidebar = document.querySelector('.sidebar');
 
-        // Jika tombol toggle tidak ada, beri peringatan tapi tetap jalan
-        if (!toggleBtn) {
-            console.warn('⚠️ Sidebar toggle button (#sidebarToggle) tidak ditemukan. Tambahkan ke header Anda.');
-            return;
-        }
         if (!sidebar) return;
 
-        // --- Event: Buka / Tutup Sidebar ---
-        toggleBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            sidebar.classList.toggle('open');
-            
-            // Ubah icon hamburger (opsional, jika pakai bi-list / bi-x)
-            const icon = toggleBtn.querySelector('i');
-            if (icon) {
-                if (sidebar.classList.contains('open')) {
-                    icon.className = 'bi bi-x-lg';
-                } else {
-                    icon.className = 'bi bi-list';
-                }
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            if (toggleBtn) {
+                const icon = toggleBtn.querySelector('i');
+                if (icon) icon.className = 'bi bi-list';
             }
-        });
+        }
 
-        // --- Event: Tutup saat klik di LUAR sidebar (hanya di mobile) ---
+        if (!toggleBtn) {
+            console.warn('⚠️ Sidebar toggle button (#sidebarToggle) tidak ditemukan.');
+        } else {
+            // --- Event: Buka / Tutup Dropdown Topbar ---
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isOpen = sidebar.classList.toggle('open');
+                
+                const icon = toggleBtn.querySelector('i');
+                if (icon) {
+                    icon.className = isOpen ? 'bi bi-x-lg' : 'bi bi-list';
+                }
+            });
+        }
+
+        // --- Event: Tutup saat klik di luar area menu topbar ---
         document.addEventListener('click', function(e) {
-            // Cek apakah lebar layar <= 991.98px (mobile)
             if (window.innerWidth <= 991.98 && 
                 sidebar.classList.contains('open') &&
                 !sidebar.contains(e.target) && 
-                !toggleBtn.contains(e.target)) {
-                sidebar.classList.remove('open');
-                // Reset icon
-                const icon = toggleBtn.querySelector('i');
-                if (icon) icon.className = 'bi bi-list';
+                (toggleBtn && !toggleBtn.contains(e.target))) {
+                closeSidebar();
             }
         });
 
-        // --- Event: Tutup otomatis saat window di-resize ke desktop ---
+        // --- Event: Otomatis tutup topbar saat resize ke desktop ---
         window.addEventListener('resize', function() {
             if (window.innerWidth > 991.98 && sidebar.classList.contains('open')) {
-                sidebar.classList.remove('open');
-                const icon = toggleBtn.querySelector('i');
-                if (icon) icon.className = 'bi bi-list';
+                closeSidebar();
             }
         });
 
         // --- Event: Tutup saat tombol ESC ditekan ---
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && sidebar.classList.contains('open')) {
-                sidebar.classList.remove('open');
-                const icon = toggleBtn.querySelector('i');
-                if (icon) icon.className = 'bi bi-list';
+                closeSidebar();
             }
         });
     }
@@ -606,7 +637,6 @@
     // ================================================================
     function startApp() {
         renderSidebar();
-        // Beri jeda kecil agar DOM benar-benar siap sebelum pasang event listener
         setTimeout(initMobileToggle, 100);
     }
 

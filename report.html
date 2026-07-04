@@ -1338,15 +1338,52 @@
             }
 
             // =============================================
-            // INIT
+            // INIT — dengan validasi role ADMINISTRATOR
             // =============================================
             async function init() {
+                // -------------------------------------------------------
+                // 1. VALIDASI AKSES: HANYA ADMINISTRATOR YANG BOLEH MASUK
+                // -------------------------------------------------------
+                try {
+                    const session = BCS.Storage.getSession();
+
+                    // Jika session tidak ada atau user tidak login → redirect login
+                    if (!session || !session.user) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+
+                    // Ambil role dari session (case-insensitive)
+                    const role = (session.user.role || '').toLowerCase().trim();
+
+                    // Role yang diperbolehkan: 'administrator' atau 'admin'
+                    const allowedRoles = ['administrator', 'admin'];
+                    if (!allowedRoles.includes(role)) {
+                        // Jika bukan administrator, redirect ke login
+                        window.location.href = 'login.html';
+                        return;
+                    }
+
+                    // Jika lolos validasi, lanjutkan inisialisasi halaman
+                    console.log('✅ Akses diterima untuk role:', role);
+
+                } catch (err) {
+                    // Jika terjadi error saat validasi, redirect ke login
+                    console.error('Validasi akses error:', err);
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // -------------------------------------------------------
+                // 2. INISIALISASI KOMPONEN
+                // -------------------------------------------------------
                 initDarkMode();
                 loadUserInfo();
                 await loadUserHistory();
                 console.log('✅ Report page initialized with working light/dark mode');
             }
 
+            // Jalankan init ketika DOM siap
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {

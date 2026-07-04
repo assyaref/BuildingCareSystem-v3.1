@@ -323,6 +323,52 @@
     (function() {
         'use strict';
 
+        // ============================================================
+        // 1. VALIDASI AKSES: HANYA ADMINISTRATOR
+        // ============================================================
+        function checkAccess() {
+            try {
+                // Ambil session menggunakan BCS.Storage jika tersedia
+                let session = null;
+                if (typeof BCS !== 'undefined' && BCS.Storage && typeof BCS.Storage.getSession === 'function') {
+                    session = BCS.Storage.getSession();
+                } else {
+                    // Fallback ke localStorage
+                    try {
+                        const raw = localStorage.getItem('bcs_session');
+                        if (raw) session = JSON.parse(raw);
+                    } catch (e) {}
+                }
+
+                // Jika session tidak ada atau user tidak login → redirect
+                if (!session || !session.user) {
+                    window.location.href = 'login.html';
+                    return false;
+                }
+
+                // Ambil role dari session (case-insensitive)
+                const role = (session.user.role || '').toLowerCase().trim();
+                const allowedRoles = ['administrator', 'admin'];
+
+                if (!allowedRoles.includes(role)) {
+                    // Jika bukan administrator, redirect ke login
+                    window.location.href = 'login.html';
+                    return false;
+                }
+
+                console.log('✅ Akses Approval diterima untuk role:', role);
+                return true;
+
+            } catch (err) {
+                console.error('Validasi akses Approval error:', err);
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+
+        // ============================================================
+        // FUNGSI GET/SET SESSION (FALLBACK)
+        // ============================================================
         function getSession() {
             if (typeof BCS !== 'undefined' && BCS.Storage && typeof BCS.Storage.getSession === 'function') {
                 return BCS.Storage.getSession();
@@ -521,6 +567,14 @@
         }
 
         function init() {
+            // ============================================================
+            // VALIDASI AKSES — HARUS ADMINISTRATOR
+            // ============================================================
+            if (!checkAccess()) {
+                // checkAccess sudah melakukan redirect jika tidak lolos
+                return;
+            }
+
             initDarkMode();
             loadUserInfo();
             renderApprovals();

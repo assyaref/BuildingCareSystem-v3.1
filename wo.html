@@ -808,18 +808,43 @@
             'use strict';
 
             // =============================================
+            // ADMIN ACCESS CHECK — HARUS ADMIN!
+            // =============================================
+            function checkAdminAccess() {
+                try {
+                    var session = BCS.Storage.getSession();
+                    if (!session || !session.user) {
+                        window.location.href = 'login.html';
+                        return false;
+                    }
+
+                    var role = (session.user.role || '').toLowerCase();
+                    if (role !== 'administrator' && role !== 'admin') {
+                        window.location.href = 'login.html';
+                        return false;
+                    }
+
+                    return true;
+                } catch (e) {
+                    console.warn('Admin access check error:', e);
+                    window.location.href = 'login.html';
+                    return false;
+                }
+            }
+
+            // =============================================
             // DARK MODE
             // =============================================
             function initDarkMode() {
-                const toggle = document.getElementById('darkModeToggle');
-                const icon = document.getElementById('darkModeIcon');
+                var toggle = document.getElementById('darkModeToggle');
+                var icon = document.getElementById('darkModeIcon');
                 if (!toggle) return;
-                const saved = localStorage.getItem('bcs_theme') || 'light';
+                var saved = localStorage.getItem('bcs_theme') || 'light';
                 document.documentElement.setAttribute('data-theme', saved);
                 updateIcon(icon, saved);
                 toggle.addEventListener('click', function() {
-                    const cur = document.documentElement.getAttribute('data-theme');
-                    const next = cur === 'dark' ? 'light' : 'dark';
+                    var cur = document.documentElement.getAttribute('data-theme');
+                    var next = cur === 'dark' ? 'light' : 'dark';
                     document.documentElement.setAttribute('data-theme', next);
                     localStorage.setItem('bcs_theme', next);
                     updateIcon(icon, next);
@@ -842,9 +867,9 @@
             // =============================================
             function loadUserInfo() {
                 try {
-                    const session = BCS.Storage.getSession();
+                    var session = BCS.Storage.getSession();
                     if (session && session.user) {
-                        const u = session.user;
+                        var u = session.user;
                         document.getElementById('userName').textContent = u.nama || u.name || 'User';
                         document.getElementById('userRole').textContent = u.role || 'User';
                         document.getElementById('userAvatar').textContent = (u.nama || u.name || 'U').charAt(0)
@@ -858,18 +883,18 @@
             // =============================================
             // STATE
             // =============================================
-            let allWO = [];
-            let filteredWO = [];
-            let currentPage = 1;
-            const perPage = 10;
-            let isEditMode = false;
-            let editId = null;
+            var allWO = [];
+            var filteredWO = [];
+            var currentPage = 1;
+            var perPage = 10;
+            var isEditMode = false;
+            var editId = null;
 
-            const tableBody = document.getElementById('woTableBody');
-            const paginationEl = document.getElementById('pagination');
-            const searchInput = document.getElementById('searchInput');
-            const filterStatus = document.getElementById('filterStatus');
-            const filterPriority = document.getElementById('filterPriority');
+            var tableBody = document.getElementById('woTableBody');
+            var paginationEl = document.getElementById('pagination');
+            var searchInput = document.getElementById('searchInput');
+            var filterStatus = document.getElementById('filterStatus');
+            var filterPriority = document.getElementById('filterPriority');
 
             // =============================================
             // HELPERS
@@ -900,7 +925,7 @@
             }
 
             function formatStatus(s) {
-                const map = {
+                var map = {
                     'open': 'Open',
                     'assigned': 'Assigned',
                     'in_progress': 'In Progress',
@@ -929,7 +954,7 @@
                         '<tr><td colspan="8" class="text-center py-4 text-muted" style="color:var(--text-muted);"><div class="spinner-border spinner-border-sm"></div> Memuat...</td></tr>';
                     BCS.App.Loading.show();
 
-                    const response = await BCS.Api.post('getWorkOrders', {});
+                    var response = await BCS.Api.post('getWorkOrders', {});
                     console.log('📊 WO response:', response);
 
                     if (!response || !response.success) {
@@ -938,7 +963,6 @@
                         return;
                     }
 
-                    // 🔥 Fix: response.data langsung adalah array work orders
                     allWO = response.data || [];
                     applyFilters();
                     updateSummary();
@@ -957,11 +981,11 @@
             // FILTER
             // =============================================
             function applyFilters() {
-                const keyword = searchInput.value.toLowerCase().trim();
-                const status = filterStatus.value;
-                const priority = filterPriority.value;
+                var keyword = searchInput.value.toLowerCase().trim();
+                var status = filterStatus.value;
+                var priority = filterPriority.value;
 
-                let result = allWO;
+                var result = allWO;
 
                 if (keyword) {
                     result = result.filter(function(w) {
@@ -1144,7 +1168,7 @@
                             sel.innerHTML += '<option value="' + c.id + '">' + c.name + '</option>';
                         });
                     } else {
-                        // 🔥 Fallback: kategori dari MASTER_CATEGORY atau default
+                        // Fallback jika API tidak tersedia
                         var fallback = ['AC', 'LISTRIK', 'KONDISI GEDUNG'];
                         fallback.forEach(function(name, idx) {
                             sel.innerHTML += '<option value="cat-' + (idx + 1) + '">' + name + '</option>';
@@ -1456,13 +1480,18 @@
             });
 
             // =============================================
-            // INIT
+            // INIT — dengan pengecekan akses ADMIN
             // =============================================
             async function init() {
+                // 🔐 Cek akses: hanya ADMIN yang boleh masuk
+                if (!checkAdminAccess()) {
+                    return;
+                }
+
                 initDarkMode();
                 loadUserInfo();
                 await fetchWO();
-                console.log('✅ Work Order page initialized with dynamic sidebar');
+                console.log('✅ Work Order page initialized — ADMIN ONLY');
             }
 
             document.addEventListener('DOMContentLoaded', init);

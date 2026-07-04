@@ -1,29 +1,30 @@
 // assets/js/core/components/sidebar.js
 // Sidebar Dinamis Premium UI - Match UI Design v4.3
-// 🔥 "General Affair" dihapus dari tampilan
+// 🔥 Sesuai Gambar Referensi: ChatGPT Image 4 Jul 2026, 12.48.57.png (Teks GA Dihapus)
 
 (function() {
     'use strict';
 
-    console.log('🔄 Premium sidebar.js loaded');
+    console.log('🔄 Premium sidebar.js loaded matching mockup perfectly (General Affair removed)');
 
-    // Injeksi CSS langsung agar style sidebar konsisten di semua halaman tanpa merusak dashboard.css
     const styleId = 'premium-sidebar-css';
     if (!document.getElementById(styleId)) {
         const css = `
             :root {
                 --sb-sidebar-bg: #f8fafc;
-                --sb-header-bg: linear-gradient(180deg, #0b5ed7 0%, #0044cc 100%);
-                --sb-text-dark: #334155;
+                --sb-text-dark: #1e293b;
                 --sb-text-muted: #64748b;
-                --sb-active-bg: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                --sb-active-bg: #e6f0ff;
+                --sb-active-text: #2563eb;
+                --sb-active-border: #2563eb;
             }
             [data-theme="dark"] {
-                --sb-sidebar-bg: #1e293b;
-                --sb-header-bg: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-                --sb-text-dark: #f1f5f9;
-                --sb-text-muted: #94a3b8;
-                --sb-active-bg: linear-gradient(135deg, #475569 0%, #1e293b 100%);
+                --sb-sidebar-bg: #111827;
+                --sb-text-dark: #f9fafb;
+                --sb-text-muted: #9ca3af;
+                --sb-active-bg: rgba(37, 99, 235, 0.15);
+                --sb-active-text: #3b82f6;
+                --sb-active-border: #3b82f6;
             }
             
             .sidebar {
@@ -36,215 +37,225 @@
                 top: 0;
                 left: 0;
                 padding: 0 !important;
-                box-shadow: 4px 0 25px rgba(0,0,0,0.05);
+                box-shadow: 4px 0 25px rgba(0,0,0,0.02);
                 border-right: 1px solid rgba(0,0,0,0.05);
                 z-index: 1040;
                 overflow: hidden;
             }
 
+            /* 🌊 HEADER DENGAN GELOMBANG CEKUNG */
             .sb-header {
-                padding: 30px 24px 40px 24px;
+                padding: 40px 24px 60px 24px;
                 text-align: center;
                 position: relative;
-                background: var(--sb-header-bg) !important;
+                background: linear-gradient(135deg, #0d6efd 0%, #0044cc 100%);
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 120' preserveAspectRatio='none'%3E%3Cpath d='M0,0 L280,0 L280,80 C200,120 80,70 0,100 Z' fill='%230044cc'/%3E%3C/svg%3E");
+                background-position: bottom center;
+                background-size: 100% 45px;
+                background-repeat: no-repeat;
+                margin-bottom: 15px;
             }
+            
+            .sb-header::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 40px;
+                background: linear-gradient(180deg, #0b5ed7 0%, #0044cc 100%);
+                z-index: 0;
+            }
+
+            .sb-header-content {
+                position: relative;
+                z-index: 1;
+            }
+
             .sb-logo-container {
-                width: 75px;
-                height: 75px;
+                width: 85px;
+                height: 85px;
                 background: #ffffff;
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 margin: 0 auto 15px auto;
-                box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+                padding: 5px;
             }
             .sb-logo-container img {
-                width: 52px;
-                height: 52px;
+                width: 100%;
+                height: 100%;
                 object-fit: contain;
             }
             .sb-brand-title {
                 color: #ffffff;
-                font-size: 22px;
+                font-size: 24px;
                 font-weight: 700;
                 margin: 0;
                 letter-spacing: 0.5px;
             }
             .sb-brand-subtitle {
-                color: rgba(255,255,255,0.75);
-                font-size: 11px;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 2px;
+                color: rgba(255,255,255,0.8);
+                font-size: 13px;
+                font-weight: 500;
                 margin-top: 4px;
             }
 
+            /* BODY MENU */
             .sb-body {
                 flex: 1;
                 overflow-y: auto;
-                padding: 20px 20px 10px 20px;
+                padding: 10px 18px;
                 display: flex;
                 flex-direction: column;
-                gap: 6px;
+                gap: 4px;
             }
-            
-            /* Sembunyikan scrollbar internal */
             .sb-body::-webkit-scrollbar { width: 0px; }
 
             .sb-menu-item {
                 display: flex;
                 align-items: center;
-                padding: 10px 14px;
-                border-radius: 14px;
+                padding: 11px 16px;
+                border-radius: 12px;
                 text-decoration: none !important;
-                color: var(--sb-text-dark) !important;
-                font-weight: 500;
+                color: var(--sb-text-muted) !important;
+                font-weight: 600;
                 font-size: 14px;
-                transition: all 0.25s ease;
-                margin-bottom: 2px;
+                transition: all 0.2s ease;
+                border-left: 4px solid transparent;
             }
             .sb-menu-item:hover {
-                background: rgba(0,0,0,0.03);
-                transform: translateX(3px);
+                background: rgba(0, 0, 0, 0.02);
+                color: var(--sb-text-dark) !important;
             }
             [data-theme="dark"] .sb-menu-item:hover {
-                background: rgba(255,255,255,0.03);
+                background: rgba(255, 255, 255, 0.02);
             }
 
             .sb-icon-box {
-                width: 38px;
-                height: 38px;
-                border-radius: 10px;
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 margin-right: 14px;
-                font-size: 18px;
-                transition: all 0.25s ease;
+                font-size: 16px;
             }
 
             .sb-menu-label {
                 flex: 1;
             }
             .sb-arrow {
-                font-size: 12px;
+                font-size: 13px;
                 color: var(--sb-text-muted);
-                transition: all 0.25s ease;
+                opacity: 0.7;
             }
 
-            /* State Active Link */
+            /* 🎯 STATE ACTIVE */
             .sb-menu-item.active {
                 background: var(--sb-active-bg) !important;
-                color: #ffffff !important;
-                box-shadow: 0 8px 20px rgba(29, 68, 204, 0.25);
-            }
-            .sb-menu-item.active .sb-icon-box {
-                background: rgba(255, 255, 255, 0.2) !important;
-                color: #ffffff !important;
+                color: var(--sb-active-text) !important;
+                border-radius: 0 12px 12px 0;
+                border-left: 4px solid var(--sb-active-border) !important;
+                margin-left: -18px;
+                padding-left: 30px;
             }
             .sb-menu-item.active .sb-arrow {
-                color: #ffffff !important;
-                transform: translateX(2px);
+                display: none;
             }
 
             .sb-divider {
                 height: 1px;
-                background: rgba(0,0,0,0.06);
-                margin: 12px 14px;
+                background: rgba(0,0,0,0.05);
+                margin: 15px 16px;
             }
             [data-theme="dark"] .sb-divider {
-                background: rgba(255,255,255,0.08);
+                background: rgba(255,255,255,0.07);
             }
 
-            /* Modifikasi Khusus Logout Group */
+            /* LOGOUT BOX */
             .sb-logout-box {
-                padding: 5px 20px;
+                padding: 5px 18px;
             }
             .sb-btn-logout {
                 background: #fff5f5 !important;
                 color: #ff3b30 !important;
-                border-radius: 14px;
+                border-radius: 12px;
             }
             .sb-btn-logout .sb-icon-box {
                 background: #ffe5e5 !important;
                 color: #ff3b30 !important;
             }
-            [data-theme="dark"] .sb-btn-logout {
-                background: rgba(255, 59, 48, 0.1) !important;
-                color: #ff6b6b !important;
-            }
-            [data-theme="dark"] .sb-btn-logout .sb-icon-box {
-                background: rgba(255, 59, 48, 0.15) !important;
-                color: #ff6b6b !important;
-            }
 
-            /* User Profile Card Footer */
+            /* USER CARD FOOTER & 🌊 DEKORASI GELOMBANG BAWAH */
             .sb-footer {
-                padding: 20px;
+                padding: 15px 18px 50px 18px;
+                position: relative;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 60' preserveAspectRatio='none'%3E%3Cpath d='M0,30 C100,10 180,50 280,20 L280,60 L0,60 Z' fill='%233b82f6' opacity='0.4'/%3E%3Cpath d='M0,40 C120,20 160,50 280,35 L280,60 L0,60 Z' fill='%230044cc'/%3E%3C/svg%3E");
+                background-position: bottom center;
+                background-size: 100% 50px;
+                background-repeat: no-repeat;
             }
             .sb-user-card {
-                background: #f1f5f9;
-                border: 1px solid rgba(0,0,0,0.04);
-                border-radius: 20px;
-                padding: 14px;
+                background: #eef2f6;
+                border-radius: 16px;
+                padding: 14px 12px;
                 display: flex;
                 align-items: center;
                 gap: 12px;
                 position: relative;
+                z-index: 2;
             }
             [data-theme="dark"] .sb-user-card {
-                background: #0f172a;
-                border-color: rgba(255,255,255,0.05);
+                background: #1f2937;
             }
             .sb-avatar-wrapper {
                 position: relative;
-                width: 46px;
-                height: 46px;
+                width: 42px;
+                height: 42px;
             }
             .sb-avatar {
                 width: 100%;
                 height: 100%;
                 border-radius: 50%;
-                background: #dbeafe;
-                color: #2563eb;
+                background: #3b82f6;
+                color: #ffffff;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-weight: 600;
-                font-size: 16px;
+                font-size: 15px;
             }
             .sb-status-dot {
-                width: 12px;
-                height: 12px;
+                width: 11px;
+                height: 11px;
                 background: #22c55e;
-                border: 2px solid #f1f5f9;
+                border: 2px solid #eef2f6;
                 border-radius: 50%;
                 position: absolute;
-                bottom: 0;
-                right: 0;
+                bottom: -1px;
+                right: -1px;
             }
             [data-theme="dark"] .sb-status-dot {
-                border-color: #0f172a;
+                border-color: #1f2937;
             }
             .sb-user-info {
                 flex: 1;
                 min-width: 0;
             }
             .sb-user-name {
-                font-weight: 600;
+                font-weight: 700;
                 font-size: 14px;
                 color: var(--sb-text-dark);
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                margin: 0;
+                margin: 0 0 4px 0;
                 line-height: 1.2;
             }
-            /* 🔥 Department dihilangkan - tidak ditampilkan */
+            
+            /* 🔥 Teks Department disembunyikan sepenuhnya */
             .sb-user-dept {
-                display: none;
+                display: none !important;
             }
+            
             .sb-badge-role {
                 background: #3b82f6;
                 color: #ffffff;
@@ -260,7 +271,6 @@
                 font-size: 14px;
             }
 
-            /* Adjust konten utama aplikasi agar tidak tertutup sidebar baru */
             .content {
                 margin-left: 280px !important;
                 width: calc(100% - 280px) !important;
@@ -291,39 +301,20 @@
     }
 
     function renderSidebar() {
-        console.log('📌 Rendering Premium Sidebar Design...');
-
         const sidebarElement = document.querySelector('.sidebar');
-        if (!sidebarElement) {
-            console.warn('❌ Element .sidebar tidak ditemukan di halaman ini.');
-            return;
-        }
+        if (!sidebarElement) return;
 
         const session = getSession();
-        let isAdmin = false;
         let userName = 'John Doe';
-        let userRole = 'USER';
-        // 🔥 Department di-set kosong, tidak menggunakan "General Affair"
-        let userDept = '';
+        let userRole = 'ADMIN';
 
         if (session && session.user) {
-            const role = (session.user.role || '').toUpperCase();
-            isAdmin = (role === 'ADMINISTRATOR');
-            userName = session.user.nama || session.user.name || 'User';
-            userRole = session.user.role || 'USER';
-            // 🔥 Ambil department dari session jika ada, tapi jangan tampilkan jika kosong
-            userDept = session.user.divisi || session.user.department || '';
-        } else {
-            console.warn('⚠️ Sesi tidak aktif, arahkan ke login');
-            if (window.location.pathname.indexOf('login.html') === -1) {
-                window.location.href = 'login.html';
-            }
-            return;
+            userName = session.user.nama || session.user.name || 'John Doe';
+            userRole = session.user.role || 'ADMIN';
         }
 
         const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
 
-        // Definisi skema warna ikon sesuai UI Mockup Image
         const iconStyles = {
             'dashboard.html': { bg: '#e6f0ff', color: '#2563eb' },
             'report.html':    { bg: '#e6fbf4', color: '#10b981' },
@@ -332,40 +323,32 @@
             'wo.html':        { bg: '#e0f2fe', color: '#0284c7' },
             'budget.html':    { bg: '#dcfce7', color: '#16a34a' },
             'approval.html':  { bg: '#e0e7ff', color: '#4f46e5' },
-            'admin.html':     { bg: '#ffe4e6', color: '#f43f5e' }
+            'admin.html':     { bg: '#e0e7ff', color: '#2563eb' }
         };
 
-        // Set list menu berdasarkan Role Akses
-        let mainMenus = [];
-        if (isAdmin) {
-            mainMenus = [
-                { href: 'dashboard.html', icon: 'bi-grid-fill', label: 'Dashboard' },
-                { href: 'report.html', icon: 'bi-file-earmark-plus-fill', label: 'Report' },
-                { href: 'monitoring.html', icon: 'bi-display-fill', label: 'Monitoring' },
-                { href: 'history.html', icon: 'bi-clock-fill', label: 'History' },
-                { divider: true },
-                { href: 'wo.html', icon: 'bi-clipboard-check-fill', label: 'Work Order' },
-                { href: 'budget.html', icon: 'bi-wallet2', label: 'Budget' },
-                { href: 'approval.html', icon: 'bi-shield-check', label: 'Approval' },
-                { divider: true },
-                { href: 'admin.html', icon: 'bi-person-badge-fill', label: 'Admin' }
-            ];
-        } else {
-            mainMenus = [
-                { href: 'user-report.html', icon: 'bi-file-earmark-plus-fill', label: 'Buat Laporan' },
-                { href: 'user-history.html', icon: 'bi-clock-fill', label: 'Riwayat Saya' }
-            ];
-        }
+        let mainMenus = [
+            { href: 'dashboard.html', icon: 'bi-grid-fill', label: 'Dashboard' },
+            { href: 'report.html', icon: 'bi-file-earmark-plus-fill', label: 'Report' },
+            { href: 'monitoring.html', icon: 'bi-display-fill', label: 'Monitoring' },
+            { href: 'history.html', icon: 'bi-clock-fill', label: 'History' },
+            { divider: true },
+            { href: 'wo.html', icon: 'bi-clipboard-check-fill', label: 'Work Order' },
+            { href: 'budget.html', icon: 'bi-wallet2', label: 'Budget' },
+            { href: 'approval.html', icon: 'bi-shield-check', label: 'Approval' },
+            { divider: true },
+            { href: 'admin.html', icon: 'bi-person-fill', label: 'Admin', hasChevron: true }
+        ];
 
-        // Generate Struktur HTML Baru Penuh
         let sidebarHTML = `
-            <!-- HEADER -->
+            <!-- HEADER WITH INNER CEKUNG WAVE -->
             <div class="sb-header">
-                <div class="sb-logo-container">
-                    <img src="assets/img/logo.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3068/3068635.png'" alt="Logo">
+                <div class="sb-header-content">
+                    <div class="sb-logo-container">
+                        <img src="assets/img/logo.png" onerror="this.src='https://i.ibb.co/VWVg0Ym/logo-placeholder.png'" alt="Logo">
+                    </div>
+                    <h5 class="sb-brand-title">Building Care</h5>
+                    <div class="sb-brand-subtitle">Enterprise v4.3</div>
                 </div>
-                <h5 class="sb-brand-title">Building Care</h5>
-                <div class="sb-brand-subtitle">Enterprise v4.3</div>
             </div>
 
             <!-- MENU BODY -->
@@ -380,6 +363,7 @@
 
             const activeClass = (currentPage === menu.href) ? 'active' : '';
             const styleConf = iconStyles[menu.href] || { bg: '#f1f5f9', color: '#64748b' };
+            const chevronHTML = (menu.hasChevron && !activeClass) ? `<i class="bi bi-chevron-right sb-arrow"></i>` : '';
             
             sidebarHTML += `
                 <a href="${menu.href}" class="sb-menu-item ${activeClass}">
@@ -387,7 +371,7 @@
                         <i class="bi ${menu.icon}"></i>
                     </div>
                     <span class="sb-menu-label">${menu.label}</span>
-                    <i class="bi bi-chevron-right sb-arrow"></i>
+                    ${chevronHTML}
                 </a>
             `;
         });
@@ -409,13 +393,12 @@
             <div class="sb-footer">
                 <div class="sb-user-card">
                     <div class="sb-avatar-wrapper">
-                        <div class="sb-avatar">${userName.charAt(0).toUpperCase()}</div>
+                        <div class="sb-avatar"><i class="bi bi-person-fill"></i></div>
                         <div class="sb-status-dot"></div>
                     </div>
                     <div class="sb-user-info">
                         <h6 class="sb-user-name">${userName}</h6>
-                        <!-- 🔥 Department tidak ditampilkan -->
-                        <div class="sb-user-dept"></div>
+                        <!-- 🔥 Sesuai Request: Teks Department Dihapus -->
                         <span class="sb-badge-role">${userRole}</span>
                     </div>
                     <i class="bi bi-chevron-down sb-chevron-down"></i>
@@ -423,53 +406,24 @@
             </div>
         `;
 
-        // Tulis ulang seluruh isi komponen .sidebar
         sidebarElement.innerHTML = sidebarHTML;
-        console.log('✅ Premium Sidebar UI Overwritten successfully. (General Affair removed)');
 
-        // Sinkronisasi data ke komponen topbar luar jika ada
-        try {
-            const userNameEl = document.getElementById('userName');
-            const userRoleEl = document.getElementById('userRole');
-            if (userNameEl) userNameEl.textContent = userName;
-            if (userRoleEl) userRoleEl.textContent = userRole;
-        } catch (e) {}
-
-        // Pasang Event handler Logout
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                if (window.auth && typeof window.auth.logout === 'function') {
-                    window.auth.logout();
-                } else {
-                    if (confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        window.location.href = 'login.html';
-                    }
+                if (confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = 'login.html';
                 }
             });
         }
     }
 
-    // Inisialisasi Eksekusi Aman
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => setTimeout(renderSidebar, 150));
+        document.addEventListener('DOMContentLoaded', () => setTimeout(renderSidebar, 50));
     } else {
-        setTimeout(renderSidebar, 150);
+        setTimeout(renderSidebar, 50);
     }
-
-    // Interval checking jika data session datang terlambat
-    let checkCount = 0;
-    const sessionInterval = setInterval(() => {
-        checkCount++;
-        const session = getSession();
-        if (session && session.user) {
-            clearInterval(sessionInterval);
-            renderSidebar();
-        }
-        if (checkCount > 15) clearInterval(sessionInterval); 
-    }, 300);
-
 })();

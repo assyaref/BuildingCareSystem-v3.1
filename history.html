@@ -134,13 +134,6 @@
             margin: 0;
         }
 
-        .menu-admin {
-            display: none;
-        }
-        .menu-admin.visible {
-            display: flex;
-        }
-
         /* Export button style */
         .export-btn-group .btn {
             font-size: 12px;
@@ -308,6 +301,41 @@
             background: #4b7bec;
             color: white;
         }
+
+        /* Sidebar Styles */
+        .sidebar nav a.menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            color: var(--text-secondary, #64748b);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .sidebar nav a.menu:hover {
+            background: var(--bg-card-hover, #f1f5f9);
+            color: var(--text-primary, #0f172a);
+        }
+        .sidebar nav a.menu.active {
+            background: var(--accent-soft, #dbeafe);
+            color: var(--accent-color, #2563eb);
+            font-weight: 600;
+        }
+        .sidebar nav a.menu i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        .sidebar nav a.menu.text-danger {
+            color: #ef4444 !important;
+        }
+        .sidebar nav a.menu.text-danger:hover {
+            background: #fef2f2 !important;
+            color: #dc2626 !important;
+        }
     </style>
 </head>
 
@@ -332,37 +360,7 @@
             <h5>Building Care</h5>
             <small>Enterprise v3.2</small>
         </div>
-
-        <nav>
-            <a href="dashboard.html" class="menu">
-                <i class="bi bi-grid-fill"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="report.html" class="menu">
-                <i class="bi bi-file-earmark-plus"></i>
-                <span>Report</span>
-            </a>
-            <a href="monitoring.html" class="menu">
-                <i class="bi bi-display"></i>
-                <span>Monitoring</span>
-            </a>
-            <a href="history.html" class="menu active">
-                <i class="bi bi-clock-history"></i>
-                <span>History</span>
-            </a>
-            <a href="approval.html" class="menu">
-                <i class="bi bi-check-circle"></i>
-                <span>Approval</span>
-            </a>
-            <a href="admin.html" class="menu menu-admin" id="adminMenu">
-                <i class="bi bi-shield-lock-fill"></i>
-                <span>Admin</span>
-            </a>
-            <a href="#" id="logoutBtn" class="menu text-danger">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Logout</span>
-            </a>
-        </nav>
+        <nav></nav> <!-- 🔥 SIDEBAR DINAMIS DIISI OLEH sidebar.js -->
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -694,34 +692,12 @@
 <script src="assets/js/core/utils.js"></script>
 <script src="assets/js/modules/auth.js"></script>
 
+<!-- 🔥 SIDEBAR DINAMIS - PATH YANG BENAR -->
+<script src="assets/js/core/components/sidebar.js"></script>
+
 <script>
 (function() {
     'use strict';
-
-    // =============================================
-    // CHECK ADMIN MENU
-    // =============================================
-    function checkAdminMenu() {
-        const adminMenu = document.getElementById('adminMenu');
-        if (!adminMenu) return;
-        try {
-            const session = BCS.Storage.getSession();
-            if (session && session.user) {
-                const role = (session.user.role || '').toUpperCase();
-                if (role === 'ADMINISTRATOR') {
-                    adminMenu.classList.add('visible');
-                    adminMenu.style.display = 'flex';
-                } else {
-                    adminMenu.classList.remove('visible');
-                    adminMenu.style.display = 'none';
-                }
-            } else {
-                adminMenu.style.display = 'none';
-            }
-        } catch (e) {
-            adminMenu.style.display = 'none';
-        }
-    }
 
     // =============================================
     // DARK MODE
@@ -785,7 +761,7 @@
     let currentPage = 1;
     const perPage = 10;
     let currentDetailReport = null;
-    let activeDateFilter = null; // 'today', 'week', 'month', 'last3months'
+    let activeDateFilter = null;
 
     const tableBody = document.getElementById('historyTable');
     const paginationEl = document.getElementById('pagination');
@@ -1036,16 +1012,14 @@
     }
 
     // =============================================
-    // QUICK FILTER (Today, Week, Month, 3 Months)
+    // QUICK FILTER
     // =============================================
     function applyQuickFilter(range) {
-        // Clear date inputs
         filterDateStart.value = '';
         filterDateEnd.value = '';
         filterMonth.value = '';
         filterYear.value = '';
         
-        // Update pill active state
         document.querySelectorAll('.quick-filter-pills .pill').forEach(p => p.classList.remove('active'));
         const activePill = document.querySelector(`.quick-filter-pills .pill[data-range="${range}"]`);
         if (activePill) activePill.classList.add('active');
@@ -1078,7 +1052,6 @@
                 return;
         }
         
-        // Set date inputs for display
         filterDateStart.value = formatDateForCompare(start);
         filterDateEnd.value = formatDateForCompare(end);
         
@@ -1613,15 +1586,12 @@
     // =============================================
     // DATE FILTER EVENT BINDING
     // =============================================
-    // Apply Date Range Filter
     document.getElementById('applyDateFilter').addEventListener('click', function() {
-        // Clear quick filter pills
         document.querySelectorAll('.quick-filter-pills .pill').forEach(p => p.classList.remove('active'));
         activeDateFilter = null;
         applyFilters();
     });
 
-    // Clear Date Range Filter
     document.getElementById('clearDateFilter').addEventListener('click', function() {
         filterDateStart.value = '';
         filterDateEnd.value = '';
@@ -1630,9 +1600,7 @@
         applyFilters();
     });
 
-    // Apply Month Filter
     document.getElementById('applyMonthFilter').addEventListener('click', function() {
-        // Clear date inputs
         filterDateStart.value = '';
         filterDateEnd.value = '';
         document.querySelectorAll('.quick-filter-pills .pill').forEach(p => p.classList.remove('active'));
@@ -1640,14 +1608,12 @@
         applyFilters();
     });
 
-    // Clear Month Filter
     document.getElementById('clearMonthFilter').addEventListener('click', function() {
         filterMonth.value = '';
         filterYear.value = '';
         applyFilters();
     });
 
-    // Quick Filter Pills
     document.querySelectorAll('.quick-filter-pills .pill').forEach(pill => {
         pill.addEventListener('click', function() {
             const range = this.dataset.range;
@@ -1655,13 +1621,11 @@
         });
     });
 
-    // Auto-apply when date inputs change (with debounce)
     let dateFilterTimeout;
     [filterDateStart, filterDateEnd, filterMonth, filterYear].forEach(el => {
         el.addEventListener('change', function() {
             clearTimeout(dateFilterTimeout);
             dateFilterTimeout = setTimeout(() => {
-                // Clear quick filter pills
                 document.querySelectorAll('.quick-filter-pills .pill').forEach(p => p.classList.remove('active'));
                 activeDateFilter = null;
                 applyFilters();
@@ -1700,12 +1664,11 @@
     // INIT
     // =============================================
     async function init() {
-        checkAdminMenu();
         initDarkMode();
         loadUserInfo();
         loadUser();
         await fetchReports();
-        console.log('✅ History page initialized with Date/Month filter feature');
+        console.log('✅ History page initialized with dynamic sidebar');
     }
 
     if (document.readyState === 'loading') {

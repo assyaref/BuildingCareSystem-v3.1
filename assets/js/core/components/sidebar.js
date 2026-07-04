@@ -1,27 +1,22 @@
 // assets/js/components/sidebar.js
-// Dynamic Sidebar Component - Building Care System Enterprise
+// Sidebar Dinamis - Building Care System Enterprise
 
 (function() {
     'use strict';
 
-    /**
-     * Render sidebar dinamis
-     */
     function renderSidebar() {
-        const sidebarNav = document.querySelector('.sidebar nav');
-        if (!sidebarNav) return;
+        const sidebar = document.querySelector('.sidebar nav');
+        if (!sidebar) return;
 
-        // Cek role user untuk admin menu
+        // Ambil session untuk cek role
         let isAdmin = false;
         try {
             const session = BCS.Storage.getSession();
             if (session && session.user) {
                 const role = (session.user.role || '').toUpperCase();
-                isAdmin = (role === 'ADMINISTRATOR' || role === 'SUPER ADMIN');
+                isAdmin = (role === 'ADMINISTRATOR');
             }
-        } catch (e) {
-            console.warn('Gagal cek session:', e);
-        }
+        } catch (e) {}
 
         const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
 
@@ -39,10 +34,10 @@
 
         let html = '';
         menus.forEach(menu => {
-            // Skip admin menu if not admin
+            // Sembunyikan menu Admin jika bukan admin
             if (menu.adminOnly && !isAdmin) return;
 
-            const active = (currentPage === menu.href) ? 'active' : '';
+            const active = currentPage === menu.href ? 'active' : '';
             const logoutAttr = menu.logout ? 'id="logoutBtn"' : '';
             const extraClass = menu.class || '';
 
@@ -54,9 +49,9 @@
             `;
         });
 
-        sidebarNav.innerHTML = html;
+        sidebar.innerHTML = html;
 
-        // Bind logout event
+        // Bind logout jika ada
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', function(e) {
@@ -72,15 +67,12 @@
                 }
             });
         }
-
-        console.log('✅ Sidebar rendered dynamically');
     }
 
-    // Inisialisasi saat DOM ready
+    // Jalankan setelah DOM siap
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', renderSidebar);
     } else {
         renderSidebar();
     }
-
 })();

@@ -4,43 +4,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="Building Care System Enterprise - Radiant Group Duri">
-    <meta name="author" content="Radiant Group Duri">
+    <title>Riwayat Laporan — Building Care System</title>
 
-    <title>Riwayat Laporan — Building Care System Enterprise</title>
-
-    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
-
+    <!-- ===== FONTS & ICONS ===== -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/dashboard.css">
 
-    <!-- 🔥 Library untuk Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- ===== LIBRARY UNTUK EXPORT ===== -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
+    </script>
 
     <style>
-        /* ===== VARIABEL CSS ===== */
+        /* ======================================================
+           ROOT VARIABLES (Light & Dark Mode)
+           ====================================================== */
         :root {
             --bg-body: #f0f4ff;
             --bg-card: #ffffff;
             --bg-card-hover: #f1f5f9;
+            --bg-input: #ffffff;
             --border-color: #e2e8f0;
             --text-primary: #0f172a;
             --text-secondary: #475569;
             --text-muted: #94a3b8;
             --accent-color: #2563eb;
             --accent-soft: #dbeafe;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.08);
+            --radius: 16px;
+            --sidebar-bg: linear-gradient(180deg, #0b5ed7 0%, #0044cc 100%);
+            --sidebar-text: rgba(255, 255, 255, 0.85);
+            --sidebar-text-hover: #ffffff;
+            --sidebar-active-bg: rgba(255, 255, 255, 0.18);
         }
 
         [data-theme="dark"] {
             --bg-body: #0f172a;
             --bg-card: #1e293b;
             --bg-card-hover: #334155;
+            --bg-input: #1e293b;
             --border-color: #334155;
             --text-primary: #f1f5f9;
             --text-secondary: #cbd5e1;
@@ -48,6 +55,20 @@
             --accent-color: #60a5fa;
             --accent-soft: #1e3a5f;
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.5);
+            --sidebar-bg: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            --sidebar-text: rgba(255, 255, 255, 0.8);
+            --sidebar-text-hover: #ffffff;
+            --sidebar-active-bg: rgba(255, 255, 255, 0.12);
+        }
+
+        /* ======================================================
+           GLOBAL STYLES
+           ====================================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
@@ -55,60 +76,195 @@
             background: var(--bg-body);
             color: var(--text-primary);
             transition: background 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
         }
 
-        .content {
-            background: var(--bg-body);
+        /* ======================================================
+           LOADING OVERLAY
+           ====================================================== */
+        #loading {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        #loading.show {
+            display: flex;
+        }
+        #loading .spinner-border {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-width: 0.3rem;
         }
 
-        .card,
-        .enterprise-card {
-            background: var(--bg-card);
-            border-color: var(--border-color);
-            box-shadow: var(--shadow);
-        }
-        .card-header {
-            background: var(--bg-card);
-            border-bottom-color: var(--border-color);
-        }
-        .text-muted {
-            color: var(--text-muted) !important;
-        }
-        .text-secondary {
-            color: var(--text-secondary) !important;
+        /* ======================================================
+           SIDEBAR
+           ====================================================== */
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
         }
 
-        /* ===== SIDEBAR ===== */
         .sidebar {
-            background: linear-gradient(180deg, #0b5ed7 0%, #0044cc 100%) !important;
+            width: 260px;
+            min-height: 100vh;
+            background: var(--sidebar-bg);
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            transition: background 0.3s ease;
         }
-        [data-theme="dark"] .sidebar {
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+
+        .sidebar .logo-area {
+            text-align: center;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+        .sidebar .logo-area img {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px;
+            margin-bottom: 8px;
+        }
+        .sidebar .logo-area h5 {
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 18px;
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+        .sidebar .logo-area small {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+            font-weight: 400;
+        }
+
+        .sidebar nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
         .sidebar nav a.menu {
-            color: rgba(255, 255, 255, 0.85) !important;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
         }
         .sidebar nav a.menu:hover {
-            background: rgba(255, 255, 255, 0.12) !important;
-            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--sidebar-text-hover);
         }
         .sidebar nav a.menu.active {
-            background: rgba(255, 255, 255, 0.18) !important;
-            color: #ffffff !important;
+            background: var(--sidebar-active-bg);
+            color: #ffffff;
+        }
+        .sidebar nav a.menu i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .sidebar nav a.menu .badge-menu {
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        .sidebar nav a.menu.text-danger {
+            color: #f87171 !important;
+        }
+        .sidebar nav a.menu.text-danger:hover {
+            background: rgba(239, 68, 68, 0.2) !important;
+            color: #fca5a5 !important;
         }
 
-        /* ===== KOMPONEN ===== */
-        .avatar-sm {
-            width: 40px;
-            height: 40px;
+        /* ======================================================
+           MAIN CONTENT
+           ====================================================== */
+        .content {
+            flex: 1;
+            padding: 24px 32px 40px;
+            min-width: 0;
+            background: var(--bg-body);
+            transition: background 0.3s ease;
+        }
+
+        /* Topbar */
+        .topbar {
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .topbar h3 {
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        .topbar small {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .topbar .brand-location {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .topbar .user-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .topbar .avatar-sm {
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
-            background: #4b7bec;
+            background: var(--accent-color);
             color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
             font-size: 18px;
+            flex-shrink: 0;
+        }
+        .topbar .user-info .name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+        .topbar .user-info .role {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
         }
 
         .dark-toggle {
@@ -123,226 +279,212 @@
             cursor: pointer;
             transition: all 0.3s ease;
             color: var(--text-primary);
+            font-size: 18px;
         }
         .dark-toggle:hover {
             background: var(--bg-card-hover);
             transform: rotate(20deg);
         }
 
-        .status-badge {
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 10px;
-            border-radius: 6px;
-            display: inline-block;
-            letter-spacing: 0.3px;
+        /* ======================================================
+           SUMMARY CARDS
+           ====================================================== */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
         }
-        .status-done {
-            background: #dcfce7;
-            color: #16a34a;
-        }
-        .status-progress {
-            background: #fef3c7;
-            color: #d97706;
-        }
-        .status-open {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-        [data-theme="dark"] .status-open {
-            background: #3d2e00;
-            color: #ffd700;
-        }
-        [data-theme="dark"] .status-progress {
-            background: #00264d;
-            color: #66b0ff;
-        }
-        [data-theme="dark"] .status-done {
-            background: #003d1a;
-            color: #00e676;
-        }
-
         .summary-card {
-            transition: all 0.3s ease;
-            border: none;
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: var(--shadow);
             background: var(--bg-card);
             border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px 22px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
         }
         .summary-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
         }
-        .summary-card .summary-top {
+        .summary-card .top {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
         }
-        .summary-card .summary-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
+        .summary-card .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 24px;
+            color: #fff;
+            font-size: 20px;
             flex-shrink: 0;
-            transition: transform 0.3s ease;
         }
-        .summary-card:hover .summary-icon {
-            transform: scale(1.05) rotate(-4deg);
-        }
-        .summary-card .summary-icon.bg-primary {
+        .summary-card .icon.primary {
             background: linear-gradient(145deg, #4b7bec, #3b6bd6);
         }
-        .summary-card .summary-icon.bg-danger-soft {
+        .summary-card .icon.danger {
             background: linear-gradient(145deg, #fca5a5, #ef4444);
         }
-        .summary-card .summary-icon.bg-warning-soft {
+        .summary-card .icon.warning {
             background: linear-gradient(145deg, #fcd34d, #f59e0b);
         }
-        .summary-card .summary-icon.bg-success-soft {
+        .summary-card .icon.success {
             background: linear-gradient(145deg, #6ee7b7, #22c55e);
         }
-        .summary-card .summary-trend {
-            margin-top: 12px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .summary-card .summary-trend.success {
-            color: #22c55e;
-        }
-        .summary-card .summary-trend.danger {
-            color: #ef4444;
-        }
-        .summary-card h6 {
-            font-size: 13px;
-            color: var(--text-secondary);
+        .summary-card .label {
+            font-size: 12px;
             font-weight: 500;
-            margin-bottom: 4px;
+            color: var(--text-secondary);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
+            margin-bottom: 2px;
         }
-        .summary-card h2 {
-            font-size: 32px;
+        .summary-card .value {
+            font-size: 30px;
             font-weight: 700;
             color: var(--text-primary);
-            margin: 0;
+            line-height: 1.1;
         }
-
-        .export-btn-group .btn {
-            font-size: 12px;
-            padding: 4px 12px;
-            border-radius: 6px;
-        }
-        .export-btn-group .btn i {
-            margin-right: 4px;
-        }
-
-        .info-item {
-            display: grid;
-            grid-template-columns: 130px 1fr;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
-            align-items: baseline;
-        }
-        .info-item:last-child {
-            border-bottom: none;
-        }
-        .info-label {
+        .summary-card .trend {
             font-size: 12px;
             font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .info-value {
-            font-size: 14px;
-            color: var(--text-primary);
-            word-break: break-word;
-        }
-
-        .date-filter-group {
+            margin-top: 8px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
+            gap: 4px;
         }
-        .date-filter-group .date-input {
-            padding: 4px 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 12px;
+        .summary-card .trend.up {
+            color: #22c55e;
+        }
+        .summary-card .trend.down {
+            color: #ef4444;
+        }
+
+        /* ======================================================
+           FILTER & TABLE CARD
+           ====================================================== */
+        .enterprise-card {
             background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        .enterprise-card .card-header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 18px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+        .enterprise-card .card-body {
+            padding: 20px 24px 24px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+        .filter-group .search-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 160px;
+            max-width: 280px;
+        }
+        .filter-group .search-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .filter-group .search-wrap input {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-input);
             color: var(--text-primary);
+            font-size: 13px;
+            transition: border 0.2s;
+        }
+        .filter-group .search-wrap input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .filter-group select,
+        .filter-group .date-input,
+        .filter-group .month-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 13px;
+            min-width: 120px;
+            transition: border 0.2s;
+        }
+        .filter-group select:focus,
+        .filter-group .date-input:focus,
+        .filter-group .month-select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+        .filter-group .date-input {
             min-width: 130px;
         }
-        .date-filter-group .date-input:focus {
-            border-color: #4b7bec;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(75, 123, 236, 0.15);
+        .filter-group .month-select {
+            min-width: 140px;
         }
-        .date-filter-group .filter-label {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-        .btn-filter-date {
-            padding: 4px 14px;
+
+        .filter-group .btn-filter {
+            padding: 8px 16px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 12px;
             font-weight: 600;
-            background: #4b7bec;
-            color: white;
             cursor: pointer;
             transition: all 0.2s;
+            background: var(--accent-color);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
-        .btn-filter-date:hover {
-            background: #3b6bd6;
+        .filter-group .btn-filter:hover {
+            opacity: 0.85;
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(75, 123, 236, 0.3);
         }
-        .btn-filter-date.btn-danger-outline {
+        .filter-group .btn-filter.outline-danger {
             background: transparent;
             color: #ef4444;
             border: 1px solid #ef4444;
         }
-        .btn-filter-date.btn-danger-outline:hover {
+        .filter-group .btn-filter.outline-danger:hover {
             background: #ef4444;
-            color: white;
-        }
-        .date-filter-group .filter-divider {
-            color: var(--border-color);
-            font-size: 14px;
-            font-weight: 300;
-        }
-        .date-filter-group .month-select {
-            padding: 4px 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 12px;
-            background: var(--bg-card);
-            color: var(--text-primary);
-            min-width: 140px;
-        }
-        .date-filter-group .month-select:focus {
-            border-color: #4b7bec;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(75, 123, 236, 0.15);
+            color: #fff;
         }
 
-        .quick-filter-pills {
+        .quick-pills {
             display: flex;
-            gap: 6px;
             flex-wrap: wrap;
-            margin-top: 6px;
+            gap: 4px;
         }
-        .quick-filter-pills .pill {
-            padding: 3px 12px;
+        .quick-pills .pill {
+            padding: 4px 14px;
             border-radius: 20px;
             font-size: 11px;
             font-weight: 500;
@@ -351,61 +493,400 @@
             cursor: pointer;
             border: 1px solid transparent;
             transition: all 0.2s;
+            user-select: none;
         }
-        .quick-filter-pills .pill:hover {
+        .quick-pills .pill:hover {
             background: var(--border-color);
         }
-        .quick-filter-pills .pill.active {
-            background: #4b7bec;
-            color: white;
-            border-color: #4b7bec;
+        .quick-pills .pill.active {
+            background: var(--accent-color);
+            color: #fff;
+            border-color: var(--accent-color);
         }
 
-        .sidebar nav a.menu {
+        .toolbar-right {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 16px;
-            border-radius: 10px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-size: 14px;
-            font-weight: 500;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-left: auto;
         }
-        .sidebar nav a.menu:hover {
+        .toolbar-right .total-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .toolbar-right .total-label strong {
+            color: var(--text-primary);
+        }
+        .toolbar-right .btn-icon {
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .toolbar-right .btn-icon:hover {
             background: var(--bg-card-hover);
             color: var(--text-primary);
         }
-        .sidebar nav a.menu.active {
-            background: var(--accent-soft);
+        .toolbar-right .btn-export {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .toolbar-right .btn-export.excel {
+            background: #22c55e;
+            color: #fff;
+        }
+        .toolbar-right .btn-export.excel:hover {
+            background: #16a34a;
+            transform: translateY(-1px);
+        }
+        .toolbar-right .btn-export.pdf {
+            background: #ef4444;
+            color: #fff;
+        }
+        .toolbar-right .btn-export.pdf:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        /* ======================================================
+           TABLE
+           ====================================================== */
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 4px;
+        }
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 800px;
+        }
+        .table-wrap thead th {
+            padding: 12px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--border-color);
+            background: var(--bg-card-hover);
+            white-space: nowrap;
+        }
+        .table-wrap tbody td {
+            padding: 12px 12px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            vertical-align: middle;
+        }
+        .table-wrap tbody tr:hover {
+            background: var(--bg-card-hover);
+        }
+        .table-wrap tbody .report-id {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+        .table-wrap .badge-status {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            display: inline-block;
+            letter-spacing: 0.3px;
+        }
+        .badge-status.open {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .badge-status.progress {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .badge-status.done {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        [data-theme="dark"] .badge-status.open {
+            background: #3d2e00;
+            color: #ffd700;
+        }
+        [data-theme="dark"] .badge-status.progress {
+            background: #00264d;
+            color: #66b0ff;
+        }
+        [data-theme="dark"] .badge-status.done {
+            background: #003d1a;
+            color: #00e676;
+        }
+
+        .table-wrap .btn-action {
+            padding: 4px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .table-wrap .btn-action:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+        .table-wrap .btn-action.primary:hover {
             color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        .table-wrap .btn-action.warning:hover {
+            color: #f59e0b;
+            border-color: #f59e0b;
+        }
+
+        /* ======================================================
+           PAGINATION
+           ====================================================== */
+        .pagination-wrap {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination-wrap .pagination {
+            display: flex;
+            gap: 4px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-wrap: wrap;
+        }
+        .pagination-wrap .pagination .page-item .page-link {
+            display: block;
+            padding: 6px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .pagination-wrap .pagination .page-item .page-link:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+        .pagination-wrap .pagination .page-item.active .page-link {
+            background: var(--accent-color);
+            color: #fff;
+            border-color: var(--accent-color);
+        }
+        .pagination-wrap .pagination .page-item.disabled .page-link {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* ======================================================
+           MODALS
+           ====================================================== */
+        .modal-content {
+            background: var(--bg-card);
+            border-color: var(--border-color);
+            border-radius: var(--radius);
+        }
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-card);
+        }
+        .modal-header .modal-title {
+            color: var(--text-primary);
             font-weight: 600;
         }
-        .sidebar nav a.menu i {
-            font-size: 18px;
-            width: 24px;
+        .modal-body {
+            color: var(--text-secondary);
+        }
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+        }
+
+        .modal .info-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 4px 16px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal .info-grid:last-child {
+            border-bottom: none;
+        }
+        .modal .info-grid .label {
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .modal .info-grid .value {
+            color: var(--text-primary);
+            font-size: 14px;
+            word-break: break-word;
+        }
+        .modal .info-grid .value .deskripsi-box {
+            background: var(--bg-card-hover);
+            padding: 12px 16px;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent-color);
+            white-space: pre-wrap;
+            font-size: 13px;
+        }
+
+        .modal .form-control,
+        .modal .form-select {
+            background: var(--bg-input);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        .modal .form-control:focus,
+        .modal .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        /* ======================================================
+           EMPTY STATE
+           ====================================================== */
+        .empty-state {
             text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
         }
-        .sidebar nav a.menu.text-danger {
-            color: #ef4444 !important;
+        .empty-state i {
+            font-size: 56px;
+            margin-bottom: 16px;
+            opacity: 0.4;
         }
-        .sidebar nav a.menu.text-danger:hover {
-            background: #fef2f2 !important;
-            color: #dc2626 !important;
+        .empty-state h5 {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* ======================================================
+           RESPONSIVE
+           ====================================================== */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 72px;
+                padding: 16px 8px;
+            }
+            .sidebar .logo-area h5,
+            .sidebar .logo-area small,
+            .sidebar nav a.menu span:not(.badge-menu) {
+                display: none;
+            }
+            .sidebar nav a.menu {
+                justify-content: center;
+                padding: 12px;
+            }
+            .sidebar nav a.menu i {
+                font-size: 22px;
+                width: auto;
+            }
+            .sidebar nav a.menu .badge-menu {
+                display: none;
+            }
+            .content {
+                padding: 16px;
+            }
+            .filter-group .search-wrap {
+                max-width: 100%;
+                min-width: 120px;
+            }
+            .filter-group select,
+            .filter-group .date-input,
+            .filter-group .month-select {
+                min-width: 80px;
+                font-size: 12px;
+                padding: 6px 8px;
+            }
+            .toolbar-right .btn-export span {
+                display: none;
+            }
+            .topbar h3 {
+                font-size: 20px;
+            }
         }
 
         @media (max-width: 576px) {
-            .info-item {
-                grid-template-columns: 1fr;
-                gap: 2px;
-                padding: 6px 0;
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
             }
-            .info-label {
+            .summary-card {
+                padding: 14px 16px;
+            }
+            .summary-card .value {
+                font-size: 22px;
+            }
+            .summary-card .icon {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-group .search-wrap {
+                max-width: 100%;
+            }
+            .filter-group .date-input,
+            .filter-group .month-select {
+                min-width: 100%;
+            }
+            .toolbar-right {
+                margin-left: 0;
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .enterprise-card .card-header {
+                padding: 14px 16px;
+            }
+            .enterprise-card .card-body {
+                padding: 14px 16px;
+            }
+            .table-wrap table {
                 font-size: 11px;
+                min-width: 600px;
             }
-            .info-value {
-                font-size: 13px;
+            .table-wrap thead th,
+            .table-wrap tbody td {
+                padding: 8px 8px;
+            }
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .topbar .user-area {
+                width: 100%;
+                justify-content: flex-start;
             }
         }
     </style>
@@ -413,8 +894,10 @@
 
 <body>
 
-    <!-- LOADING OVERLAY -->
-    <div id="loading" class="loading-overlay" style="display:none;">
+    <!-- ======================================================
+    LOADING OVERLAY
+    ======================================================= -->
+    <div id="loading" class="loading-overlay">
         <div class="text-center">
             <div class="spinner-border text-light" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -422,267 +905,222 @@
         </div>
     </div>
 
-    <!-- APP WRAPPER -->
+    <!-- ======================================================
+    APP WRAPPER
+    ======================================================= -->
     <div class="wrapper">
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar" id="sidebar">
             <div class="logo-area">
-                <img src="assets/img/logo.png" class="logo" alt="Logo">
+                <img src="assets/img/logo.png" alt="Logo" onerror="this.style.display='none'">
                 <h5>Building Care</h5>
                 <small>Enterprise v4.3</small>
             </div>
-            <nav></nav>
+            <nav id="sidebarNav">
+                <!-- Dinamis dari sidebar.js -->
+            </nav>
         </aside>
 
-        <!-- MAIN CONTENT -->
+        <!-- ===== MAIN CONTENT ===== -->
         <main class="content">
-            <div class="container-fluid">
 
-                <!-- TOPBAR -->
-                <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
-                    <div>
-                        <h3 style="color:var(--text-primary);">Riwayat Laporan</h3>
-                        <small style="color:var(--text-secondary);">
-                            Building Care System Enterprise
-                            <br>
-                            <span class="brand-location">Radiant Group Duri</span>
-                        </small>
+            <!-- ===== TOPBAR ===== -->
+            <header class="topbar">
+                <div>
+                    <h3>Riwayat Laporan</h3>
+                    <small>
+                        Building Care System Enterprise &bull;
+                        <span class="brand-location">Radiant Group Duri</span>
+                    </small>
+                </div>
+                <div class="user-area">
+                    <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
+                        <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+                    </button>
+                    <div class="avatar-sm" id="userAvatar">U</div>
+                    <div class="user-info">
+                        <div class="name" id="userName">Loading...</div>
+                        <div class="role" id="userRole">User</div>
                     </div>
+                </div>
+            </header>
 
-                    <div class="d-flex align-items-center gap-3">
-                        <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
-                            <i class="bi bi-moon-fill" id="darkModeIcon"></i>
-                        </button>
-                        <div class="avatar-sm" id="userAvatar">U</div>
+            <!-- ===== SUMMARY CARDS ===== -->
+            <section class="summary-grid" id="summaryGrid">
+                <div class="summary-card">
+                    <div class="top">
+                        <div class="icon primary"><i class="bi bi-file-earmark-text-fill"></i></div>
                         <div>
-                            <div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary);">Loading...</div>
-                            <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
+                            <div class="label">Total Report</div>
+                            <div class="value" id="cardTotal">0</div>
                         </div>
                     </div>
-                </header>
+                    <div class="trend up"><i class="bi bi-arrow-up"></i> <span id="totalTrend">0</span> minggu lalu</div>
+                </div>
+                <div class="summary-card">
+                    <div class="top">
+                        <div class="icon danger"><i class="bi bi-folder2-open"></i></div>
+                        <div>
+                            <div class="label">Open</div>
+                            <div class="value" id="cardOpen">0</div>
+                        </div>
+                    </div>
+                    <div class="trend down"><i class="bi bi-arrow-down"></i> <span id="openTrend">0</span> minggu lalu</div>
+                </div>
+                <div class="summary-card">
+                    <div class="top">
+                        <div class="icon warning"><i class="bi bi-hourglass-split"></i></div>
+                        <div>
+                            <div class="label">Progress</div>
+                            <div class="value" id="cardProgress">0</div>
+                        </div>
+                    </div>
+                    <div class="trend up"><i class="bi bi-arrow-up"></i> <span id="progressTrend">0</span> minggu lalu</div>
+                </div>
+                <div class="summary-card">
+                    <div class="top">
+                        <div class="icon success"><i class="bi bi-check-circle-fill"></i></div>
+                        <div>
+                            <div class="label">Done</div>
+                            <div class="value" id="cardDone">0</div>
+                        </div>
+                    </div>
+                    <div class="trend up"><i class="bi bi-arrow-up"></i> <span id="doneTrend">0</span> minggu lalu</div>
+                </div>
+            </section>
 
-                <!-- SUMMARY CARDS -->
-                <section class="row g-4 mt-2">
-                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                        <div class="summary-card">
-                            <div class="summary-top">
-                                <div class="summary-icon bg-primary"><i class="bi bi-file-earmark-text-fill"></i></div>
-                                <div>
-                                    <h6>Total Report</h6>
-                                    <h2 id="cardTotal">0</h2>
-                                </div>
+            <!-- ===== FILTER & TABLE ===== -->
+            <section>
+                <div class="enterprise-card">
+                    <div class="card-header">
+                        <div class="filter-group">
+                            <div class="search-wrap">
+                                <i class="bi bi-search"></i>
+                                <input type="text" id="searchInput" placeholder="Cari ID, pelapor, kategori..." autocomplete="off">
                             </div>
-                            <div class="summary-trend success">
-                                <i class="bi bi-arrow-up"></i> <span id="totalTrend">0</span> <small>dari minggu lalu</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                        <div class="summary-card">
-                            <div class="summary-top">
-                                <div class="summary-icon bg-danger-soft"><i class="bi bi-folder2-open"></i></div>
-                                <div>
-                                    <h6>Open</h6>
-                                    <h2 id="cardOpen">0</h2>
-                                </div>
-                            </div>
-                            <div class="summary-trend danger">
-                                <i class="bi bi-arrow-down"></i> <span id="openTrend">0</span> <small>dari minggu lalu</small>
+                            <select id="filterStatus">
+                                <option value="">Semua Status</option>
+                                <option value="OPEN">OPEN</option>
+                                <option value="PROGRESS">PROGRESS</option>
+                                <option value="DONE">DONE</option>
+                            </select>
+                            <select id="sortOrder">
+                                <option value="desc">Terbaru</option>
+                                <option value="asc">Terlama</option>
+                            </select>
+                            <div class="quick-pills">
+                                <span class="pill active" data-range="today">Hari Ini</span>
+                                <span class="pill" data-range="week">Minggu Ini</span>
+                                <span class="pill" data-range="month">Bulan Ini</span>
+                                <span class="pill" data-range="last3months">3 Bulan</span>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                        <div class="summary-card">
-                            <div class="summary-top">
-                                <div class="summary-icon bg-warning-soft"><i class="bi bi-hourglass-split"></i></div>
-                                <div>
-                                    <h6>Progress</h6>
-                                    <h2 id="cardProgress">0</h2>
-                                </div>
-                            </div>
-                            <div class="summary-trend success">
-                                <i class="bi bi-arrow-up"></i> <span id="progressTrend">0</span> <small>dari minggu lalu</small>
-                            </div>
+                        <div class="toolbar-right">
+                            <span class="total-label">Total: <strong id="totalReports">0</strong></span>
+                            <button class="btn-icon" id="refreshBtn" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+                            <button class="btn-export excel" id="exportExcelBtn"><i class="bi bi-file-earmark-excel"></i> <span>Excel</span></button>
+                            <button class="btn-export pdf" id="exportPdfBtn"><i class="bi bi-file-earmark-pdf"></i> <span>PDF</span></button>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                        <div class="summary-card">
-                            <div class="summary-top">
-                                <div class="summary-icon bg-success-soft"><i class="bi bi-check-circle-fill"></i></div>
-                                <div>
-                                    <h6>Done</h6>
-                                    <h2 id="cardDone">0</h2>
-                                </div>
-                            </div>
-                            <div class="summary-trend success">
-                                <i class="bi bi-arrow-up"></i> <span id="doneTrend">0</span> <small>dari minggu lalu</small>
-                            </div>
-                        </div>
-                    </div>
-                </section>
 
-                <!-- FILTER & TABLE -->
-                <section class="row g-4 mt-3">
-                    <div class="col-12">
-                        <div class="card enterprise-card">
-                            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2">
-                                <div class="row g-2 align-items-center">
-                                    <div class="col-md-12">
-                                        <div class="row g-2 align-items-center">
-                                            <div class="col-md-3">
-                                                <div class="input-group input-group-sm border rounded" style="background:var(--bg-card);border-color:var(--border-color);">
-                                                    <span class="input-group-text bg-transparent border-0 text-muted"><i class="bi bi-search"></i></span>
-                                                    <input type="text" class="form-control bg-transparent border-0" id="searchInput" placeholder="Cari ID, pelapor, kategori..." style="font-size:13px;color:var(--text-primary);">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <select class="form-select form-select-sm" id="filterStatus" style="font-size:13px;background:var(--bg-card);border-color:var(--border-color);color:var(--text-primary);">
-                                                    <option value="">Semua Status</option>
-                                                    <option value="OPEN">OPEN</option>
-                                                    <option value="PROGRESS">PROGRESS</option>
-                                                    <option value="DONE">DONE</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <select class="form-select form-select-sm" id="sortOrder" style="font-size:13px;background:var(--bg-card);border-color:var(--border-color);color:var(--text-primary);">
-                                                    <option value="desc">Terbaru</option>
-                                                    <option value="asc">Terlama</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-5">
-                                                <div class="date-filter-group">
-                                                    <span class="filter-label"><i class="bi bi-calendar3 me-1"></i>Tanggal:</span>
-                                                    <input type="date" class="date-input" id="filterDateStart" title="Tanggal Mulai">
-                                                    <span class="filter-divider">-</span>
-                                                    <input type="date" class="date-input" id="filterDateEnd" title="Tanggal Akhir">
-                                                    <button class="btn-filter-date" id="applyDateFilter"><i class="bi bi-funnel"></i> Terapkan</button>
-                                                    <button class="btn-filter-date btn-danger-outline" id="clearDateFilter"><i class="bi bi-x-circle"></i></button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12 mt-2">
-                                        <div class="row g-2 align-items-center">
-                                            <div class="col-md-4">
-                                                <div class="date-filter-group">
-                                                    <span class="filter-label"><i class="bi bi-calendar-month me-1"></i>Bulan:</span>
-                                                    <select class="month-select" id="filterMonth">
-                                                        <option value="">Semua Bulan</option>
-                                                        <option value="1">Januari</option>
-                                                        <option value="2">Februari</option>
-                                                        <option value="3">Maret</option>
-                                                        <option value="4">April</option>
-                                                        <option value="5">Mei</option>
-                                                        <option value="6">Juni</option>
-                                                        <option value="7">Juli</option>
-                                                        <option value="8">Agustus</option>
-                                                        <option value="9">September</option>
-                                                        <option value="10">Oktober</option>
-                                                        <option value="11">November</option>
-                                                        <option value="12">Desember</option>
-                                                    </select>
-                                                    <input type="number" class="date-input" id="filterYear" placeholder="Tahun" min="2020" max="2030" style="width:70px;min-width:60px;">
-                                                    <button class="btn-filter-date" id="applyMonthFilter"><i class="bi bi-funnel"></i></button>
-                                                    <button class="btn-filter-date btn-danger-outline" id="clearMonthFilter"><i class="bi bi-x-circle"></i></button>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="quick-filter-pills">
-                                                    <span class="pill active" data-range="today">Hari Ini</span>
-                                                    <span class="pill" data-range="week">Minggu Ini</span>
-                                                    <span class="pill" data-range="month">Bulan Ini</span>
-                                                    <span class="pill" data-range="last3months">3 Bulan</span>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4 text-end d-flex align-items-center justify-content-end gap-2 flex-wrap">
-                                                <small class="text-muted" style="font-size:12px;">Total : <strong id="totalReports" class="text-dark" style="color:var(--text-primary);">0</strong></small>
-                                                <button class="btn btn-sm btn-light border text-muted" id="refreshBtn" style="padding:4px 8px;" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
-                                                <div class="export-btn-group d-flex gap-1">
-                                                    <button class="btn btn-sm btn-success" id="exportExcelBtn" title="Export ke Excel"><i class="bi bi-file-earmark-excel"></i> Excel</button>
-                                                    <button class="btn btn-sm btn-danger" id="exportPdfBtn" title="Export ke PDF"><i class="bi bi-file-earmark-pdf"></i> PDF</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="card-body">
+                        <!-- Table -->
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width:60px;">#</th>
+                                        <th style="width:100px;">Status</th>
+                                        <th style="min-width:140px;">Lokasi</th>
+                                        <th style="min-width:120px;">Kategori</th>
+                                        <th style="min-width:100px;">Prioritas</th>
+                                        <th style="min-width:130px;">Tanggal</th>
+                                        <th style="width:140px;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center py-5 text-muted">
+                                            <div class="spinner-border spinner-border-sm mb-2"></div><br>
+                                            Memuat data...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
-                            <!-- TABLE -->
-                            <div class="card-body px-4 pb-4">
-                                <div class="table-responsive">
-                                    <table class="table table-sm align-middle" style="font-size:12px;min-width:1000px;">
-                                        <thead>
-                                            <tr class="text-secondary" style="background:var(--bg-card-hover);border-bottom:1px solid var(--border-color);">
-                                                <th class="py-3 px-2 fw-semibold" style="color:var(--text-secondary);width:15%;">ID</th>
-                                                <th class="py-3 fw-semibold" style="color:var(--text-secondary);width:12%;">Tanggal</th>
-                                                <th class="py-3 fw-semibold" style="color:var(--text-secondary);width:15%;">Pelapor</th>
-                                                <th class="py-3 fw-semibold" style="color:var(--text-secondary);width:15%;">Kategori</th>
-                                                <th class="py-3 fw-semibold" style="color:var(--text-secondary);width:15%;">Lokasi</th>
-                                                <th class="py-3 fw-semibold" style="color:var(--text-secondary);width:15%;">Deskripsi</th>
-                                                <th class="py-3 fw-semibold" style="color:var(--text-secondary);width:8%;">Status</th>
-                                                <th class="py-3 fw-semibold text-center" style="color:var(--text-secondary);width:5%;">Foto</th>
-                                                <th class="py-3 fw-semibold text-center" style="color:var(--text-secondary);width:8%;">Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="historyTable">
-                                            <tr>
-                                                <td colspan="9" class="text-center py-5 text-muted" style="color:var(--text-muted);">
-                                                    <div class="spinner-border spinner-border-sm mb-2"></div><br>
-                                                    Memuat data...
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <nav class="mt-4">
-                                    <ul class="pagination pagination-sm justify-content-center gap-1" id="pagination"></ul>
-                                </nav>
-                            </div>
+                        <!-- Empty State -->
+                        <div id="emptyState" class="empty-state d-none">
+                            <i class="bi bi-inbox"></i>
+                            <h5>Tidak ada data</h5>
+                            <p class="text-muted">Belum ada laporan yang tersedia atau filter terlalu ketat.</p>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="pagination-wrap">
+                            <ul class="pagination" id="pagination"></ul>
                         </div>
                     </div>
-                </section>
+                </div>
+            </section>
 
-            </div>
         </main>
     </div>
 
     <!-- ======================================================
-         MODALS
+    MODALS
     ======================================================= -->
+
+    <!-- Detail Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-text-fill me-2"></i>Detail Laporan</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="detailContent"></div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" id="exportDetailPdfBtn"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Update Modal -->
     <div class="modal fade" id="updateModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content" style="background:var(--bg-card);border-color:var(--border-color);">
-                <div class="modal-header" style="border-bottom:1px solid var(--border-color);">
-                    <h5 class="modal-title" style="color:var(--text-primary);"><i class="bi bi-pencil-square"></i> Update Status</h5>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Update Status</h5>
                     <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" style="color:var(--text-secondary);">ID Laporan</label>
-                        <input type="text" class="form-control fw-bold bg-light" id="updateId" readonly style="background:var(--bg-card-hover);color:var(--text-primary);border-color:var(--border-color);">
+                        <label class="form-label fw-semibold">ID Laporan</label>
+                        <input type="text" class="form-control" id="updateId" readonly>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" style="color:var(--text-secondary);">Status</label>
-                        <select class="form-select" id="updateStatus" style="background:var(--bg-card);border-color:var(--border-color);color:var(--text-primary);">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select class="form-select" id="updateStatus">
                             <option value="OPEN">OPEN</option>
                             <option value="PROGRESS">PROGRESS</option>
                             <option value="DONE">DONE</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" style="color:var(--text-secondary);">Teknisi</label>
-                        <input type="text" class="form-control" id="updateTeknisi" placeholder="Nama Teknisi" style="background:var(--bg-card);border-color:var(--border-color);color:var(--text-primary);">
+                        <label class="form-label fw-semibold">Teknisi</label>
+                        <input type="text" class="form-control" id="updateTeknisi" placeholder="Nama Teknisi">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" style="color:var(--text-secondary);">Catatan Teknisi</label>
-                        <textarea class="form-control" id="updateCatatan" rows="5" placeholder="Masukkan catatan pekerjaan" style="background:var(--bg-card);border-color:var(--border-color);color:var(--text-primary);"></textarea>
+                        <label class="form-label fw-semibold">Catatan Teknisi</label>
+                        <textarea class="form-control" id="updateCatatan" rows="4" placeholder="Masukkan catatan pekerjaan..."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer" style="border-top:1px solid var(--border-color);">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal" style="background:var(--bg-card-hover);color:var(--text-primary);border-color:var(--border-color);">Batal</button>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     <button class="btn btn-primary" id="saveUpdateBtn"><i class="bi bi-check-circle"></i> Simpan</button>
                 </div>
             </div>
@@ -692,55 +1130,50 @@
     <!-- Photo Modal -->
     <div class="modal fade" id="photoModal" tabindex="-1">
         <div class="modal-dialog modal-xl modal-dialog-centered">
-            <div class="modal-content" style="background:var(--bg-card);border-color:var(--border-color);">
-                <div class="modal-header" style="border-bottom:1px solid var(--border-color);">
-                    <h5 class="modal-title" style="color:var(--text-primary);"><i class="bi bi-image"></i> Preview Foto</h5>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-image me-2"></i>Preview Foto</h5>
                     <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body text-center bg-light" style="background:var(--bg-card-hover);">
+                <div class="modal-body text-center" style="background:var(--bg-card-hover);padding:24px;">
                     <img id="modalPhoto" class="img-fluid rounded shadow" style="max-width:100%;max-height:80vh;object-fit:contain;">
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Detail Modal -->
-    <div class="modal fade" id="detailModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content" style="background:var(--bg-card);border-color:var(--border-color);border-radius:16px;">
-                <div class="modal-header" style="background:linear-gradient(135deg,#1e5eff,#0d47a1);border-radius:16px 16px 0 0;padding:18px 28px;">
-                    <h5 class="modal-title text-white"><i class="bi bi-file-earmark-text-fill me-2"></i>Detail Laporan</h5>
-                    <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4" id="detailContent" style="color:var(--text-primary);"></div>
-                <div class="modal-footer" style="border-top:1px solid var(--border-color);padding:14px 28px;">
-                    <button class="btn btn-success" id="exportDetailPdfBtn"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
-                    <button class="btn btn-secondary" data-bs-dismiss="modal" style="background:var(--bg-card-hover);color:var(--text-primary);border-color:var(--border-color);">Tutup</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- ======================================================
-         JAVASCRIPT
+    SCRIPTS
     ======================================================= -->
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+    </script>
 
-    <script src="config/config.js"></script>
-    <script src="assets/js/core/app.js"></script>
-    <script src="assets/js/core/api.js"></script>
-    <script src="assets/js/core/storage.js"></script>
-    <script src="assets/js/core/session.js"></script>
-    <script src="assets/js/core/ui.js"></script>
-    <script src="assets/js/core/utils.js"></script>
-    <script src="assets/js/modules/auth.js"></script>
+    <!-- ===== Core BCS ===== -->
+    <script src="assets/js/core/app.js">
+    </script>
+    <script src="assets/js/core/api.js">
+    </script>
+    <script src="assets/js/core/storage.js">
+    </script>
+    <script src="assets/js/core/session.js">
+    </script>
+    <script src="assets/js/core/ui.js">
+    </script>
+    <script src="assets/js/core/utils.js">
+    </script>
+    <script src="assets/js/modules/auth.js">
+    </script>
 
-    <!-- 🔥 SIDEBAR DINAMIS -->
-    <script src="assets/js/core/components/sidebar.js"></script>
+    <!-- ===== SIDEBAR COMPONENT ===== -->
+    <script src="assets/js/core/components/sidebar.js">
+    </script>
 
+    <!-- ======================================================
+    MAIN APPLICATION SCRIPT
+    ======================================================= -->
     <script>
         (function() {
             'use strict';
@@ -776,7 +1209,7 @@
             }
 
             // =============================================
-            // LOAD USER INFO
+            // USER INFO
             // =============================================
             function loadUserInfo() {
                 try {
@@ -804,22 +1237,21 @@
             var currentPage = 1;
             var perPage = 10;
             var currentDetailReport = null;
+            var isLoading = false;
 
-            var tableBody = document.getElementById('historyTable');
+            // DOM refs
+            var tableBody = document.getElementById('historyTableBody');
             var paginationEl = document.getElementById('pagination');
+            var emptyState = document.getElementById('emptyState');
             var searchInput = document.getElementById('searchInput');
             var filterStatus = document.getElementById('filterStatus');
             var sortOrder = document.getElementById('sortOrder');
+
             var cardTotal = document.getElementById('cardTotal');
             var cardOpen = document.getElementById('cardOpen');
             var cardProgress = document.getElementById('cardProgress');
             var cardDone = document.getElementById('cardDone');
             var totalReportsSpan = document.getElementById('totalReports');
-
-            var filterDateStart = document.getElementById('filterDateStart');
-            var filterDateEnd = document.getElementById('filterDateEnd');
-            var filterMonth = document.getElementById('filterMonth');
-            var filterYear = document.getElementById('filterYear');
 
             // =============================================
             // TOAST
@@ -842,120 +1274,22 @@
             }
 
             // =============================================
-            // LOAD USER
+            // LOADING
             // =============================================
-            function loadUser() {
-                try {
-                    var session = BCS.Storage.getSession();
-                    if (session && session.user) {
-                        currentUser = session.user;
-                        currentUser.nik = session.nik || currentUser.nik || '';
-                        currentUser.nama = currentUser.nama || currentUser.name || '';
-                    }
-                } catch (e) {
-                    console.warn('Load user error:', e);
-                }
+            function showLoading() {
+                var el = document.getElementById('loading');
+                if (el) el.classList.add('show');
+                isLoading = true;
+            }
+
+            function hideLoading() {
+                var el = document.getElementById('loading');
+                if (el) el.classList.remove('show');
+                isLoading = false;
             }
 
             // =============================================
-            // 🔥 DUMMY DATA (fallback jika API gagal)
-            // =============================================
-            function generateDummyData() {
-                var dummy = [];
-                var now = new Date();
-                var categories = ['AC', 'LISTRIK', 'KONDISI GEDUNG'];
-                var statuses = ['OPEN', 'PROGRESS', 'DONE'];
-                var names = ['Syarif Hidayatullah', 'Tukang Lapor', 'Bowo Indratno', 'Yuriko Fittria', 'Diva Amanda'];
-                var locations = ['Ruang Server', 'LT2 Procurement', 'Yard Warehouse', 'Pos Security', 'Ruang Meeting'];
-
-                for (var i = 0; i < 15; i++) {
-                    var d = new Date(now);
-                    d.setDate(d.getDate() - i * 2);
-                    dummy.push({
-                        id: 'BCS-20260704-' + String(i + 1).padStart(3, '0'),
-                        tanggal: d.toISOString(),
-                        createdAt: d.toISOString(),
-                        nama: names[i % names.length],
-                        nik: 'NIK' + (1000 + i),
-                        departemen: 'IT',
-                        kategori: categories[i % categories.length],
-                        lokasi: locations[i % locations.length],
-                        deskripsi: 'Deskripsi laporan ' + (i + 1),
-                        status: statuses[i % statuses.length],
-                        foto: i % 2 === 0 ? 'https://via.placeholder.com/50' : '',
-                        teknisi: i % 3 === 0 ? 'Kasno' : '',
-                        catatanTeknisi: i % 3 === 0 ? 'Catatan teknisi' : '',
-                        tglSelesai: i % 2 === 0 ? d.toISOString() : '',
-                        durasi: '2 Jam',
-                        sla: i % 3 === 0 ? 'FAST' : i % 3 === 1 ? 'NORMAL' : 'LATE',
-                        prioritas: i % 3 === 0 ? 'HIGH' : 'NORMAL'
-                    });
-                }
-                return dummy;
-            }
-
-            // =============================================
-            // 🔥 FETCH DATA - MENGGUNAKAN getReports (PLURAL)
-            // =============================================
-            async function fetchReports() {
-                try {
-                    tableBody.innerHTML =
-                        '<tr><td colspan="9" class="text-center py-5 text-muted" style="color:var(--text-muted);"><div class="spinner-border spinner-border-sm mb-2"></div><br>Memuat data...</td></tr>';
-                    BCS.App.Loading.show();
-
-                    // 🔥 PERBAIKAN: Gunakan getReports (bukan getReport)
-                    var response = await BCS.Api.post('getReports', {});
-                    console.log('📥 History response:', response);
-
-                    var reports = [];
-                    if (response && response.success) {
-                        reports = response.data?.reports || [];
-                    } else {
-                        // Fallback dummy jika API gagal
-                        console.warn('API getReports gagal, menggunakan data dummy');
-                        reports = generateDummyData();
-                    }
-
-                    console.log('📊 Total reports:', reports.length);
-
-                    // Filter berdasarkan role
-                    var role = (currentUser.role || '').toUpperCase();
-                    var filtered = reports;
-
-                    if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
-                        var userNik = (currentUser.nik || '').trim();
-                        var userNama = (currentUser.nama || '').toLowerCase().trim();
-
-                        if (userNik || userNama) {
-                            filtered = reports.filter(function(r) {
-                                var rNik = String(r.nik || '').trim();
-                                var rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
-                                var match = false;
-                                if (userNik && rNik) match = rNik === userNik;
-                                if (!match && userNama && rNama) match = rNama === userNama;
-                                return match;
-                            });
-                            console.log('🔍 Filtered for user:', filtered.length);
-                        }
-                    }
-
-                    allReports = filtered;
-                    applyFilters();
-
-                } catch (err) {
-                    console.error('Fetch error:', err);
-                    // Fallback dummy
-                    var dummy = generateDummyData();
-                    allReports = dummy;
-                    applyFilters();
-                    showToast('Menggunakan data contoh (koneksi API bermasalah)', 'warning');
-                } finally {
-                    BCS.App.Loading.hide();
-                }
-            }
-
-            // =============================================
-            // DATE FILTER HELPERS
+            // DATE HELPERS
             // =============================================
             function parseDate(dateStr) {
                 if (!dateStr) return null;
@@ -977,15 +1311,6 @@
                 if (!dateOnly) return false;
                 if (startDate && dateOnly < formatDateForCompare(startDate)) return false;
                 if (endDate && dateOnly > formatDateForCompare(endDate)) return false;
-                return true;
-            }
-
-            function isDateInMonth(dateStr, month, year) {
-                if (!dateStr) return false;
-                var d = parseDate(dateStr);
-                if (!d) return false;
-                if (month && d.getMonth() + 1 !== parseInt(month)) return false;
-                if (year && d.getFullYear() !== parseInt(year)) return false;
                 return true;
             }
 
@@ -1025,6 +1350,98 @@
             }
 
             // =============================================
+            // FETCH DATA
+            // =============================================
+            async function fetchReports() {
+                if (isLoading) return;
+                showLoading();
+                tableBody.innerHTML =
+                    '<tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Memuat data...</td></tr>';
+
+                try {
+                    var api = window.BCS.Api || window.Api;
+                    if (!api) throw new Error('API tidak tersedia');
+
+                    var response = await api.post('getReports', {});
+                    console.log('[History] getReports response:', response);
+
+                    var reports = [];
+                    if (response && response.success) {
+                        reports = response.data?.reports || [];
+                    } else {
+                        // fallback dummy
+                        reports = generateDummyData();
+                    }
+
+                    // Filter by role
+                    var role = (currentUser.role || '').toUpperCase();
+                    var filtered = reports;
+
+                    if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
+                        var userNik = (currentUser.nik || '').trim();
+                        var userNama = (currentUser.nama || '').toLowerCase().trim();
+
+                        if (userNik || userNama) {
+                            filtered = reports.filter(function(r) {
+                                var rNik = String(r.nik || '').trim();
+                                var rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
+                                var match = false;
+                                if (userNik && rNik) match = rNik === userNik;
+                                if (!match && userNama && rNama) match = rNama === userNama;
+                                return match;
+                            });
+                        }
+                    }
+
+                    allReports = filtered;
+                    applyFilters();
+
+                } catch (err) {
+                    console.error('[History] Fetch error:', err);
+                    showToast('Gagal memuat data: ' + err.message, 'error');
+                    allReports = generateDummyData();
+                    applyFilters();
+                } finally {
+                    hideLoading();
+                }
+            }
+
+            // Dummy data fallback
+            function generateDummyData() {
+                var dummy = [];
+                var now = new Date();
+                var categories = ['AC', 'LISTRIK', 'KONDISI GEDUNG'];
+                var statuses = ['OPEN', 'PROGRESS', 'DONE'];
+                var names = ['Syarif Hidayatullah', 'Tukang Lapor', 'Bowo Indratno', 'Yuriko Fittria', 'Diva Amanda'];
+                var locations = ['Ruang Server', 'LT2 Procurement', 'Yard Warehouse', 'Pos Security', 'Ruang Meeting'];
+
+                for (var i = 0; i < 15; i++) {
+                    var d = new Date(now);
+                    d.setDate(d.getDate() - i * 2);
+                    dummy.push({
+                        id: 'BCS-20260704-' + String(i + 1).padStart(3, '0'),
+                        tanggal: d.toISOString(),
+                        createdAt: d.toISOString(),
+                        nama: names[i % names.length],
+                        nik: 'NIK' + (1000 + i),
+                        departemen: 'IT',
+                        kategori: categories[i % categories.length],
+                        lokasi: locations[i % locations.length],
+                        deskripsi: 'Deskripsi laporan ' + (i + 1),
+                        status: statuses[i % statuses.length],
+                        foto: i % 2 === 0 ? 'https://via.placeholder.com/50' : '',
+                        teknisi: i % 3 === 0 ? 'Kasno' : '',
+                        catatanTeknisi: i % 3 === 0 ? 'Catatan teknisi' : '',
+                        tglSelesai: i % 2 === 0 ? d.toISOString() : '',
+                        durasi: '2 Jam',
+                        sla: i % 3 === 0 ? 'FAST' : i % 3 === 1 ? 'NORMAL' : 'LATE',
+                        prioritas: i % 3 === 0 ? 'TINGGI' : 'NORMAL'
+                    });
+                }
+                return dummy;
+            }
+
+            // =============================================
             // APPLY FILTERS
             // =============================================
             function applyFilters() {
@@ -1048,22 +1465,38 @@
                     result = result.filter(function(r) { return (r.status || '').toUpperCase() === status; });
                 }
 
-                var startDate = filterDateStart.value ? parseDate(filterDateStart.value) : null;
-                var endDate = filterDateEnd.value ? parseDate(filterDateEnd.value) : null;
-                if (startDate || endDate) {
-                    result = result.filter(function(r) {
-                        var reportDate = r.tanggal || r.createdAt;
-                        return isDateInRange(reportDate, startDate, endDate);
-                    });
-                }
-
-                var month = filterMonth.value;
-                var year = filterYear.value;
-                if (month || year) {
-                    result = result.filter(function(r) {
-                        var reportDate = r.tanggal || r.createdAt;
-                        return isDateInMonth(reportDate, month, year);
-                    });
+                // Quick filter pills
+                var activePill = document.querySelector('.quick-pills .pill.active');
+                if (activePill) {
+                    var range = activePill.dataset.range;
+                    var start, end;
+                    switch (range) {
+                        case 'today':
+                            var tr = getTodayRange();
+                            start = tr.start;
+                            end = tr.end;
+                            break;
+                        case 'week':
+                            var wr = getWeekRange();
+                            start = wr.start;
+                            end = wr.end;
+                            break;
+                        case 'month':
+                            var mr = getMonthRange();
+                            start = mr.start;
+                            end = mr.end;
+                            break;
+                        case 'last3months':
+                            var lr = getLast3MonthsRange();
+                            start = lr.start;
+                            end = lr.end;
+                            break;
+                    }
+                    if (start || end) {
+                        result = result.filter(function(r) {
+                            return isDateInRange(r.tanggal || r.createdAt, start, end);
+                        });
+                    }
                 }
 
                 result.sort(function(a, b) {
@@ -1077,52 +1510,6 @@
                 currentPage = 1;
                 renderTable();
                 renderPagination();
-            }
-
-            // =============================================
-            // QUICK FILTER
-            // =============================================
-            function applyQuickFilter(range) {
-                filterDateStart.value = '';
-                filterDateEnd.value = '';
-                filterMonth.value = '';
-                filterYear.value = '';
-
-                document.querySelectorAll('.quick-filter-pills .pill').forEach(function(p) {
-                    p.classList.remove('active');
-                });
-                var activePill = document.querySelector('.quick-filter-pills .pill[data-range="' + range + '"]');
-                if (activePill) activePill.classList.add('active');
-
-                var start, end;
-                switch (range) {
-                    case 'today':
-                        var todayRange = getTodayRange();
-                        start = todayRange.start;
-                        end = todayRange.end;
-                        break;
-                    case 'week':
-                        var weekRange = getWeekRange();
-                        start = weekRange.start;
-                        end = weekRange.end;
-                        break;
-                    case 'month':
-                        var monthRange = getMonthRange();
-                        start = monthRange.start;
-                        end = monthRange.end;
-                        break;
-                    case 'last3months':
-                        var last3Range = getLast3MonthsRange();
-                        start = last3Range.start;
-                        end = last3Range.end;
-                        break;
-                    default:
-                        return;
-                }
-
-                filterDateStart.value = formatDateForCompare(start);
-                filterDateEnd.value = formatDateForCompare(end);
-                applyFilters();
             }
 
             // =============================================
@@ -1142,6 +1529,28 @@
                 cardProgress.textContent = progress;
                 cardDone.textContent = done;
                 totalReportsSpan.textContent = total;
+
+                // Trends
+                var lastWeek = allReports.filter(function(r) {
+                    var d = parseDate(r.tanggal || r.createdAt);
+                    if (!d) return false;
+                    var now = new Date();
+                    var weekAgo = new Date(now);
+                    weekAgo.setDate(now.getDate() - 7);
+                    return d >= weekAgo;
+                });
+                var lwTotal = lastWeek.length;
+                var lwOpen = lastWeek.filter(function(r) { return (r.status || '').toUpperCase() === 'OPEN'; })
+                .length;
+                var lwProgress = lastWeek.filter(function(r) { return (r.status || '').toUpperCase() === 'PROGRESS'; })
+                    .length;
+                var lwDone = lastWeek.filter(function(r) { return (r.status || '').toUpperCase() === 'DONE'; })
+                .length;
+
+                document.getElementById('totalTrend').textContent = total - lwTotal;
+                document.getElementById('openTrend').textContent = open - lwOpen;
+                document.getElementById('progressTrend').textContent = progress - lwProgress;
+                document.getElementById('doneTrend').textContent = done - lwDone;
             }
 
             // =============================================
@@ -1153,29 +1562,18 @@
 
                 if (pageData.length === 0) {
                     tableBody.innerHTML =
-                        '<tr><td colspan="9" class="text-center text-muted py-4" style="color:var(--text-muted);"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Tidak ada data</td></tr>';
+                        '<tr><td colspan="7" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Tidak ada data</td></tr>';
+                    emptyState.classList.remove('d-none');
                     return;
                 }
+                emptyState.classList.add('d-none');
 
                 var html = '';
-                pageData.forEach(function(r) {
-                    var statusClass = (r.status || '').toUpperCase();
-                    var badgeStyle = 'background: #fee2e2; color: #ef4444; border: none;';
-                    if (statusClass === 'PROGRESS') {
-                        badgeStyle = 'background: #e0f2fe; color: #0284c7; border: none;';
-                    } else if (statusClass === 'DONE') {
-                        badgeStyle = 'background: #dcfce7; color: #22c55e; border: none;';
-                    }
+                pageData.forEach(function(r, idx) {
+                    var globalIdx = start + idx + 1;
+                    var status = (r.status || 'OPEN').toUpperCase();
+                    var statusClass = status === 'OPEN' ? 'open' : status === 'PROGRESS' ? 'progress' : 'done';
 
-                    var kategoriNama = (r.kategori || '').toUpperCase();
-                    var kategoriIcon = '<i class="bi bi-lightning-charge-fill text-warning me-2"></i>';
-                    if (kategoriNama.includes('GEDUNG') || kategoriNama.includes('KONDISI GEDUNG')) {
-                        kategoriIcon = '<i class="bi bi-building text-purple me-2" style="color: #a855f7;"></i>';
-                    } else if (kategoriNama.includes('AC')) {
-                        kategoriIcon = '<i class="bi bi-snow text-info me-2"></i>';
-                    }
-
-                    var hasPhoto = r.foto && r.foto.trim() !== '';
                     var tanggal = r.tanggal || r.createdAt || '';
                     var formattedDate = tanggal ? new Date(tanggal).toLocaleString('id-ID', {
                         day: '2-digit',
@@ -1185,23 +1583,29 @@
                         minute: '2-digit'
                     }).replace('.', ':') : '-';
 
+                    var prioritas = r.prioritas || r.priority || 'NORMAL';
+                    var prioritasBadge = prioritas === 'HIGH' || prioritas === 'TINGGI' ?
+                        '<span class="badge bg-danger">TINGGI</span>' :
+                        prioritas === 'MEDIUM' || prioritas === 'SEDANG' ?
+                        '<span class="badge bg-warning text-dark">SEDANG</span>' :
+                        '<span class="badge bg-secondary">RENDAH</span>';
+
+                    var hasPhoto = r.foto && r.foto.trim() !== '';
+
                     html +=
                         `
-                    <tr style="border-bottom:1px solid var(--border-color);">
-                        <td class="py-3 px-2 fw-bold" style="color:var(--text-primary);">${r.id || '-'}</td>
-                        <td style="color:var(--text-secondary);">${formattedDate}</td>
-                        <td style="color:var(--text-primary);font-weight:500;">${r.nama || r.pelapor || '-'}</td>
-                        <td><div class="d-flex align-items-center" style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">${kategoriIcon} ${r.kategori || '-'}</div></td>
-                        <td style="color:var(--text-secondary);">${r.lokasi || '-'}</td>
-                        <td class="text-truncate" style="max-width:220px;color:var(--text-secondary);">${r.deskripsi || '-'}</td>
-                        <td><span class="badge" style="font-size:9px;padding:4px 8px;border-radius:4px;font-weight:700;${badgeStyle}">${r.status || 'OPEN'}</span></td>
-                        <td class="text-center">
-                            ${hasPhoto ? `<button class="btn btn-sm btn-outline-secondary view-photo" data-src="${r.foto}" style="padding:2px 6px;font-size:11px;border-color:var(--border-color);color:var(--text-secondary);"><i class="bi bi-image"></i></button>` : `<button class="btn btn-sm btn-outline-secondary p-1" style="padding:2px 6px;font-size:11px;border-color:var(--border-color);" disabled><i class="bi bi-image" style="opacity:0.4;"></i></button>`}
-                        </td>
-                        <td class="text-center">
-                            <div class="d-flex justify-content-center gap-1">
-                                <button class="btn btn-sm btn-outline-primary view-detail" data-id="${r.id}" style="padding:2px 6px;font-size:11px;border-color:var(--border-color);color:var(--text-primary);"><i class="bi bi-eye"></i></button>
-                                <button class="btn btn-sm btn-outline-warning edit-report" data-id="${r.id}" style="padding:2px 6px;font-size:11px;border-color:var(--border-color);color:var(--text-primary);"><i class="bi bi-pencil-square"></i></button>
+                    <tr>
+                        <td class="report-id">${globalIdx}</td>
+                        <td><span class="badge-status ${statusClass}">${status}</span></td>
+                        <td><strong>${escapeHtml(r.lokasi || '-')}</strong></td>
+                        <td>${escapeHtml(r.kategori || '-')}</td>
+                        <td>${prioritasBadge}</td>
+                        <td>${formattedDate}</td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <button class="btn-action primary view-detail" data-id="${escapeHtml(r.id)}" title="Detail"><i class="bi bi-eye"></i></button>
+                                ${hasPhoto ? `<button class="btn-action view-photo" data-src="${escapeHtml(r.foto)}" title="Foto"><i class="bi bi-image"></i></button>` : ''}
+                                <button class="btn-action warning edit-report" data-id="${escapeHtml(r.id)}" title="Update"><i class="bi bi-pencil-square"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -1242,24 +1646,19 @@
 
                 var html = '';
                 html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') +
-                    '"><a class="page-link" href="#" data-page="' + (currentPage - 1) +
-                    '" style="color:var(--text-primary);border-color:var(--border-color);background:var(--bg-card);">&laquo;</a></li>';
+                    '"><a class="page-link" href="#" data-page="' + (currentPage - 1) + '">&laquo;</a></li>';
 
                 for (var i = 1; i <= totalPages; i++) {
                     if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
                         html += '<li class="page-item ' + (i === currentPage ? 'active' : '') +
-                            '"><a class="page-link" href="#" data-page="' + i +
-                            '" style="color:var(--text-primary);border-color:var(--border-color);background:var(--bg-card);">' +
-                            i + '</a></li>';
+                            '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
                     } else if (i === currentPage - 2 || i === currentPage + 2) {
-                        html +=
-                            '<li class="page-item disabled"><span class="page-link" style="color:var(--text-muted);border-color:var(--border-color);background:var(--bg-card);">…</span></li>';
+                        html += '<li class="page-item disabled"><span class="page-link">…</span></li>';
                     }
                 }
 
                 html += '<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') +
-                    '"><a class="page-link" href="#" data-page="' + (currentPage + 1) +
-                    '" style="color:var(--text-primary);border-color:var(--border-color);background:var(--bg-card);">&raquo;</a></li>';
+                    '"><a class="page-link" href="#" data-page="' + (currentPage + 1) + '">&raquo;</a></li>';
                 paginationEl.innerHTML = html;
 
                 paginationEl.querySelectorAll('.page-link').forEach(function(link) {
@@ -1286,46 +1685,33 @@
                 }
                 currentDetailReport = report;
 
-                var tglSelesai = report.tglSelesai || '-';
-                var durasi = report.durasi || '-';
-                var sla = report.sla || '-';
-
-                var slaBadge = '';
-                if (sla === 'FAST') {
-                    slaBadge = '<span class="badge bg-success" style="font-size:12px;padding:5px 14px;border-radius:20px;">FAST</span>';
-                } else if (sla === 'NORMAL') {
-                    slaBadge =
-                        '<span class="badge bg-warning text-dark" style="font-size:12px;padding:5px 14px;border-radius:20px;">NORMAL</span>';
-                } else if (sla === 'LATE') {
-                    slaBadge = '<span class="badge bg-danger" style="font-size:12px;padding:5px 14px;border-radius:20px;">LATE</span>';
-                } else {
-                    slaBadge = '<span class="badge bg-secondary" style="font-size:12px;padding:5px 14px;border-radius:20px;">' +
-                        sla + '</span>';
-                }
-
-                var statusBadge = '';
                 var status = report.status || 'OPEN';
-                if (status === 'DONE') {
-                    statusBadge =
-                    '<span class="badge bg-success" style="font-size:12px;padding:5px 14px;border-radius:20px;">DONE</span>';
-                } else if (status === 'PROGRESS') {
-                    statusBadge =
-                        '<span class="badge bg-warning text-dark" style="font-size:12px;padding:5px 14px;border-radius:20px;">PROGRESS</span>';
-                } else {
-                    statusBadge = '<span class="badge bg-danger" style="font-size:12px;padding:5px 14px;border-radius:20px;">OPEN</span>';
-                }
+                var statusBadge = status === 'DONE' ?
+                    '<span class="badge bg-success" style="font-size:13px;padding:5px 14px;">DONE</span>' :
+                    status === 'PROGRESS' ?
+                    '<span class="badge bg-warning text-dark" style="font-size:13px;padding:5px 14px;">PROGRESS</span>' :
+                    '<span class="badge bg-danger" style="font-size:13px;padding:5px 14px;">OPEN</span>';
+
+                var sla = report.sla || '-';
+                var slaBadge = sla === 'FAST' ?
+                    '<span class="badge bg-success" style="font-size:12px;padding:4px 12px;">FAST</span>' :
+                    sla === 'NORMAL' ?
+                    '<span class="badge bg-warning text-dark" style="font-size:12px;padding:4px 12px;">NORMAL</span>' :
+                    sla === 'LATE' ?
+                    '<span class="badge bg-danger" style="font-size:12px;padding:4px 12px;">LATE</span>' :
+                    '<span class="badge bg-secondary" style="font-size:12px;padding:4px 12px;">' + sla + '</span>';
 
                 var fotoHtml = report.foto ?
                     '<a href="' + report.foto +
                     '" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-image"></i> Lihat Foto</a>' :
-                    '<span class="text-muted" style="color:var(--text-muted);">-</span>';
+                    '<span class="text-muted">-</span>';
 
                 var html =
                     `
-                <div class="d-flex justify-content-between align-items-start mb-4 pb-2" style="border-bottom:2px solid var(--border-color);">
+                <div class="d-flex justify-content-between align-items-start mb-3 pb-2" style="border-bottom:2px solid var(--border-color);">
                     <div>
-                        <h4 class="fw-bold" style="color:var(--text-primary);">${report.id || '-'}</h4>
-                        <span class="text-muted" style="font-size:13px;color:var(--text-muted);">${report.tanggal || report.createdAt || '-'}</span>
+                        <h5 class="fw-bold" style="color:var(--text-primary);">${escapeHtml(report.id || '-')}</h5>
+                        <span class="text-muted" style="font-size:13px;">${report.tanggal || report.createdAt || '-'}</span>
                     </div>
                     <div class="d-flex gap-2">
                         ${statusBadge}
@@ -1335,64 +1721,33 @@
 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <div class="info-item">
-                            <span class="info-label"><i class="bi bi-calendar-event me-1"></i> Tanggal Lapor</span>
-                            <span class="info-value">${report.tanggal || report.createdAt || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label"><i class="bi bi-calendar-check me-1"></i> Tanggal Selesai</span>
-                            <span class="info-value">${tglSelesai}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label"><i class="bi bi-clock me-1"></i> Durasi</span>
-                            <span class="info-value fw-semibold">${durasi}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label"><i class="bi bi-person me-1"></i> Pelapor</span>
-                            <span class="info-value">${report.nama || report.pelapor || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label"><i class="bi bi-building me-1"></i> Departemen</span>
-                            <span class="info-value">${report.departemen || '-'}</span>
-                        </div>
+                        <div class="info-grid"><span class="label">Tanggal Lapor</span><span class="value">${report.tanggal || report.createdAt || '-'}</span></div>
+                        <div class="info-grid"><span class="label">Tanggal Selesai</span><span class="value">${report.tglSelesai || '-'}</span></div>
+                        <div class="info-grid"><span class="label">Durasi</span><span class="value fw-semibold">${report.durasi || '-'}</span></div>
+                        <div class="info-grid"><span class="label">Pelapor</span><span class="value">${escapeHtml(report.nama || report.pelapor || '-')}</span></div>
+                        <div class="info-grid"><span class="label">Departemen</span><span class="value">${escapeHtml(report.departemen || '-')}</span></div>
                     </div>
-
                     <div class="col-md-6">
-                        <div class="info-item">
-                            <span class="info-label"><i class="bi bi-tag me-1"></i> Kategori</span>
-                            <span class="info-value">${report.kategori || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label"><i class="bi bi-geo-alt me-1"></i> Lokasi</span>
-                            <span class="info-value">${report.lokasi || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label"><i class="bi bi-flag me-1"></i> Prioritas</span>
-                            <span class="info-value">${report.prioritas || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label"><i class="bi bi-person-gear me-1"></i> Teknisi</span>
-                            <span class="info-value">${report.teknisi || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label"><i class="bi bi-image me-1"></i> Foto</span>
-                            <span class="info-value">${fotoHtml}</span>
-                        </div>
+                        <div class="info-grid"><span class="label">Kategori</span><span class="value">${escapeHtml(report.kategori || '-')}</span></div>
+                        <div class="info-grid"><span class="label">Lokasi</span><span class="value">${escapeHtml(report.lokasi || '-')}</span></div>
+                        <div class="info-grid"><span class="label">Prioritas</span><span class="value">${escapeHtml(report.prioritas || '-')}</span></div>
+                        <div class="info-grid"><span class="label">Teknisi</span><span class="value">${escapeHtml(report.teknisi || '-')}</span></div>
+                        <div class="info-grid"><span class="label">Foto</span><span class="value">${fotoHtml}</span></div>
                     </div>
                 </div>
 
-                <div class="mt-4 pt-3" style="border-top:1px solid var(--border-color);">
-                    <div class="info-item" style="grid-column:1 / -1;">
-                        <span class="info-label"><i class="bi bi-file-text me-1"></i> Deskripsi</span>
-                        <div class="info-value" style="background:var(--bg-card-hover);padding:12px 16px;border-radius:8px;margin-top:4px;border-left:3px solid #1e5eff;white-space:pre-wrap;">${report.deskripsi || '-'}</div>
+                <div class="mt-3 pt-2" style="border-top:1px solid var(--border-color);">
+                    <div class="info-grid" style="grid-template-columns:1fr;">
+                        <span class="label">Deskripsi</span>
+                        <div class="value deskripsi-box">${escapeHtml(report.deskripsi || '-')}</div>
                     </div>
                 </div>
 
                 ${report.catatanTeknisi ? `
                 <div class="mt-3">
-                    <div class="info-item" style="grid-column:1 / -1;">
-                        <span class="info-label"><i class="bi bi-sticky me-1"></i> Catatan Teknisi</span>
-                        <div class="info-value" style="background:var(--bg-card-hover);padding:12px 16px;border-radius:8px;margin-top:4px;border-left:3px solid #f59e0b;white-space:pre-wrap;">${report.catatanTeknisi}</div>
+                    <div class="info-grid" style="grid-template-columns:1fr;">
+                        <span class="label">Catatan Teknisi</span>
+                        <div class="value deskripsi-box" style="border-left-color:#f59e0b;">${escapeHtml(report.catatanTeknisi)}</div>
                     </div>
                 </div>
                 ` : ''}
@@ -1401,6 +1756,63 @@
                 document.getElementById('detailContent').innerHTML = html;
                 new bootstrap.Modal(document.getElementById('detailModal')).show();
             }
+
+            // =============================================
+            // OPEN UPDATE
+            // =============================================
+            function openUpdate(id) {
+                var report = allReports.find(function(r) { return r.id == id; });
+                if (!report) {
+                    showToast('Data tidak ditemukan', 'error');
+                    return;
+                }
+
+                document.getElementById('updateId').value = report.id || '';
+                document.getElementById('updateStatus').value = report.status || 'OPEN';
+                document.getElementById('updateTeknisi').value = report.teknisi || '';
+                document.getElementById('updateCatatan').value = report.catatanTeknisi || '';
+
+                new bootstrap.Modal(document.getElementById('updateModal')).show();
+            }
+
+            // =============================================
+            // SAVE UPDATE
+            // =============================================
+            document.getElementById('saveUpdateBtn').addEventListener('click', async function() {
+                var id = document.getElementById('updateId').value;
+                var status = document.getElementById('updateStatus').value;
+                var teknisi = document.getElementById('updateTeknisi').value.trim();
+                var catatan = document.getElementById('updateCatatan').value.trim();
+
+                if (!id) {
+                    showToast('ID laporan tidak valid', 'error');
+                    return;
+                }
+
+                try {
+                    this.disabled = true;
+                    this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...';
+
+                    var api = window.BCS.Api || window.Api;
+                    var payload = { id: id, status: status, teknisi: teknisi, catatan: catatan };
+                    var response = await api.post('updateReport', payload);
+
+                    if (response && response.success) {
+                        showToast('✅ Status berhasil diperbarui!', 'success');
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
+                        if (modal) modal.hide();
+                        await fetchReports();
+                    } else {
+                        showToast('❌ Gagal update: ' + (response?.message || 'Unknown error'), 'error');
+                    }
+                } catch (err) {
+                    console.error('Update error:', err);
+                    showToast('❌ Terjadi kesalahan: ' + err.message, 'error');
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = '<i class="bi bi-check-circle"></i> Simpan';
+                }
+            });
 
             // =============================================
             // EXPORT DETAIL PDF
@@ -1467,14 +1879,14 @@
                 doc.setFontSize(8);
                 doc.setTextColor(150, 150, 150);
                 doc.text('Generated: ' + new Date().toLocaleString('id-ID'), 14, 280);
-                doc.text('System developed by assyaref.dev', 14, 285);
+                doc.text('System by Radiant Group', 14, 285);
 
                 doc.save('Detail_Laporan_' + (report.id || 'export') + '.pdf');
                 showToast('Export PDF berhasil', 'success');
             });
 
             // =============================================
-            // EXPORT TABLE EXCEL
+            // EXPORT EXCEL
             // =============================================
             document.getElementById('exportExcelBtn').addEventListener('click', function() {
                 if (filteredReports.length === 0) {
@@ -1505,7 +1917,7 @@
             });
 
             // =============================================
-            // EXPORT TABLE PDF
+            // EXPORT PDF
             // =============================================
             document.getElementById('exportPdfBtn').addEventListener('click', function() {
                 if (filteredReports.length === 0) {
@@ -1582,128 +1994,39 @@
 
                 doc.setFontSize(8);
                 doc.setTextColor(150, 150, 150);
-                doc.text('System developed by assyaref.dev', 14, 290);
+                doc.text('System by Radiant Group', 14, 290);
 
                 doc.save('Riwayat_Laporan_' + new Date().toISOString().slice(0, 10) + '.pdf');
                 showToast('Berhasil export ' + rowsToExport.length + ' data ke PDF!', 'success');
             });
 
             // =============================================
-            // OPEN UPDATE
+            // QUICK FILTER PILLS
             // =============================================
-            function openUpdate(id) {
-                var report = allReports.find(function(r) { return r.id == id; });
-                if (!report) {
-                    showToast('Data tidak ditemukan', 'error');
-                    return;
-                }
-
-                document.getElementById('updateId').value = report.id || '';
-                document.getElementById('updateStatus').value = report.status || 'OPEN';
-                document.getElementById('updateTeknisi').value = report.teknisi || '';
-                document.getElementById('updateCatatan').value = report.catatanTeknisi || '';
-
-                new bootstrap.Modal(document.getElementById('updateModal')).show();
-            }
-
-            // =============================================
-            // SAVE UPDATE
-            // =============================================
-            document.getElementById('saveUpdateBtn').addEventListener('click', async function() {
-                var id = document.getElementById('updateId').value;
-                var status = document.getElementById('updateStatus').value;
-                var teknisi = document.getElementById('updateTeknisi').value.trim();
-                var catatan = document.getElementById('updateCatatan').value.trim();
-
-                if (!id) {
-                    showToast('ID laporan tidak valid', 'error');
-                    return;
-                }
-
-                try {
-                    this.disabled = true;
-                    this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
-
-                    var payload = { id: id, status: status, teknisi: teknisi, catatan: catatan };
-                    var response = await BCS.Api.post('updateReport', payload);
-                    console.log('Update response:', response);
-
-                    if (response && response.success) {
-                        showToast('✅ Status berhasil diperbarui!', 'success');
-                        var modal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
-                        if (modal) modal.hide();
-                        await fetchReports();
-                    } else {
-                        showToast('❌ Gagal update: ' + (response?.message || 'Unknown error'), 'error');
-                    }
-                } catch (err) {
-                    console.error('Update error:', err);
-                    showToast('❌ Terjadi kesalahan: ' + err.message, 'error');
-                } finally {
-                    this.disabled = false;
-                    this.innerHTML = '<i class="bi bi-check-circle"></i> Simpan';
-                }
+            document.querySelectorAll('.quick-pills .pill').forEach(function(pill) {
+                pill.addEventListener('click', function() {
+                    document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
+                        p.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    applyFilters();
+                });
             });
 
             // =============================================
             // EVENT BINDING
             // =============================================
-            document.getElementById('applyDateFilter').addEventListener('click', function() {
-                document.querySelectorAll('.quick-filter-pills .pill').forEach(function(p) {
-                    p.classList.remove('active');
-                });
-                applyFilters();
-            });
-
-            document.getElementById('clearDateFilter').addEventListener('click', function() {
-                filterDateStart.value = '';
-                filterDateEnd.value = '';
-                document.querySelectorAll('.quick-filter-pills .pill').forEach(function(p) {
-                    p.classList.remove('active');
-                });
-                applyFilters();
-            });
-
-            document.getElementById('applyMonthFilter').addEventListener('click', function() {
-                filterDateStart.value = '';
-                filterDateEnd.value = '';
-                document.querySelectorAll('.quick-filter-pills .pill').forEach(function(p) {
-                    p.classList.remove('active');
-                });
-                applyFilters();
-            });
-
-            document.getElementById('clearMonthFilter').addEventListener('click', function() {
-                filterMonth.value = '';
-                filterYear.value = '';
-                applyFilters();
-            });
-
-            document.querySelectorAll('.quick-filter-pills .pill').forEach(function(pill) {
-                pill.addEventListener('click', function() {
-                    applyQuickFilter(this.dataset.range);
-                });
-            });
-
-            var dateFilterTimeout;
-            [filterDateStart, filterDateEnd, filterMonth, filterYear].forEach(function(el) {
-                el.addEventListener('change', function() {
-                    clearTimeout(dateFilterTimeout);
-                    dateFilterTimeout = setTimeout(function() {
-                        document.querySelectorAll('.quick-filter-pills .pill').forEach(function(p) {
-                            p.classList.remove('active');
-                        });
-                        applyFilters();
-                    }, 300);
-                });
-            });
-
             searchInput.addEventListener('input', function() {
+                document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
+                    p.classList.remove('active');
+                });
                 applyFilters();
             });
+
             filterStatus.addEventListener('change', function() {
                 applyFilters();
             });
+
             sortOrder.addEventListener('change', function() {
                 applyFilters();
             });
@@ -1713,20 +2036,51 @@
             });
 
             // =============================================
-            // LOGOUT
+            // UTILITY
             // =============================================
-            document.getElementById('logoutBtn').addEventListener('click', function(e) {
-                e.preventDefault();
-                if (window.auth && typeof window.auth.logout === 'function') {
-                    window.auth.logout();
+            function escapeHtml(str) {
+                if (!str) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            // =============================================
+            // SIDEBAR - Gunakan komponen yang sudah ada
+            // =============================================
+            function initSidebar() {
+                // Jika ada fungsi global dari sidebar.js, panggil
+                if (typeof BCS.Sidebar !== 'undefined' && typeof BCS.Sidebar.render === 'function') {
+                    BCS.Sidebar.render('history');
+                } else if (typeof window.renderSidebar === 'function') {
+                    window.renderSidebar('history');
                 } else {
-                    if (confirm('Apakah Anda yakin ingin keluar?')) {
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        window.location.href = 'login.html';
+                    // Fallback sederhana
+                    var nav = document.getElementById('sidebarNav');
+                    if (nav) {
+                        nav.innerHTML = `
+                            <a class="menu" href="dashboard.html"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a>
+                            <a class="menu" href="report.html"><i class="bi bi-plus-circle-fill"></i><span>Buat Laporan</span></a>
+                            <a class="menu active" href="history.html"><i class="bi bi-clock-history"></i><span>Riwayat</span></a>
+                            <a class="menu" href="monitoring.html"><i class="bi bi-gear-fill"></i><span>Monitoring</span></a>
+                            <a class="menu text-danger" href="#" id="logoutBtnSidebar"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
+                        `;
+                        var logoutBtn = document.getElementById('logoutBtnSidebar');
+                        if (logoutBtn) {
+                            logoutBtn.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                if (confirm('Apakah Anda yakin ingin keluar?')) {
+                                    BCS.Storage.removeSession();
+                                    window.location.href = 'login.html';
+                                }
+                            });
+                        }
                     }
                 }
-            });
+            }
 
             // =============================================
             // INIT
@@ -1734,9 +2088,20 @@
             async function init() {
                 initDarkMode();
                 loadUserInfo();
-                loadUser();
+                initSidebar();
+
+                // Load user data
+                try {
+                    var session = BCS.Storage.getSession();
+                    if (session && session.user) {
+                        currentUser = session.user;
+                        currentUser.nik = session.nik || currentUser.nik || '';
+                        currentUser.nama = currentUser.nama || currentUser.name || '';
+                    }
+                } catch (e) {}
+
                 await fetchReports();
-                console.log('✅ History page initialized successfully');
+                console.log('✅ History page initialized');
             }
 
             if (document.readyState === 'loading') {

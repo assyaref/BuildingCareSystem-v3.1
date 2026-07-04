@@ -1266,9 +1266,9 @@
                         b.woNumber || b.reportId || '-',
                         b.description || '-',
                         'Rp ' + Number(b.total || 0).toLocaleString('id-ID'),
-                        getStatusLabel(b.status),
-                        getPriorityLabel(b.priority),
-                        formatDate(b.createdAt)
+                        String(b.status || '-').toUpperCase(),
+                        String(b.priority || '-').toUpperCase(),
+                        (b.createdAt ? new Date(b.createdAt).toLocaleDateString('id-ID') : '-')
                     ]);
 
                     doc.setFontSize(18);

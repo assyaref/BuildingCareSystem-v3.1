@@ -17,20 +17,31 @@
     .bottom-nav { background:#fff; border-top:1px solid rgba(0,0,0,0.05); padding:10px 0 12px; display:grid; grid-template-columns:1fr 1fr; text-align:center; flex-shrink:0; }
     .bottom-nav a { text-decoration:none; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:11px; font-weight:700; transition:color 0.2s; }
     .bottom-nav a i { font-size:20px; }
+    
+    /* Status Badges */
     .status-badge { font-size:10px; font-weight:700; padding:2px 10px; border-radius:6px; display:inline-block; letter-spacing:0.3px; }
     .status-done { background:#dcfce7; color:#16a34a; }
     .status-progress { background:#fef3c7; color:#d97706; }
     .status-open { background:#fee2e2; color:#dc2626; }
+    
+    /* Filter Chips Styles */
+    .filter-chip { font-size:12px; font-weight:600; padding:6px 14px; border-radius:20px; background:#f3f4f6; color:#6b7280; transition:all 0.2s; border:1px solid transparent; cursor:pointer; }
+    .filter-chip:active { transform:scale(0.95); }
+    .filter-chip.active[data-status="ALL"] { background:#1e5eff; color:#fff; }
+    .filter-chip.active[data-status="OPEN"] { background:#fee2e2; color:#dc2626; border-color:#fca5a5; }
+    .filter-chip.active[data-status="PROGRESS"] { background:#fef3c7; color:#d97706; border-color:#fde047; }
+    .filter-chip.active[data-status="DONE"] { background:#dcfce7; color:#16a34a; border-color:#86efac; }
+
     .history-item { transition:all 0.2s; cursor:default; -webkit-tap-highlight-color:transparent; }
     .history-item:active { transform:scale(0.99); }
     .img-thumb { width:60px; height:60px; background:#f3f4f6; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#d1d5db; font-size:22px; flex-shrink:0; overflow:hidden; cursor:pointer; }
     .img-thumb img { width:100%; height:100%; object-fit:cover; }
+    
     .search-wrap { background:#f3f4f6; border-radius:14px; display:flex; align-items:center; padding:0 16px; gap:12px; flex:1; }
     .search-wrap input { background:transparent; border:none; width:100%; padding:12px 0; font-size:14px; color:#1f2937; }
     .search-wrap input::placeholder { color:#9ca3af; font-weight:400; }
     .search-wrap input:focus { outline:none; }
-    .filter-btn { background:#eff3ff; color:#1e5eff; width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:18px; border:none; cursor:pointer; transition:background 0.2s; flex-shrink:0; }
-    .filter-btn:active { background:#dbe3ff; transform:scale(0.95); }
+    
     .header-btn { background:transparent; border:none; color:#fff; cursor:pointer; padding:4px; font-size:18px; transition:opacity 0.2s; }
     .header-btn:hover { opacity:0.8; }
     .header-btn:active { transform:scale(0.95); }
@@ -64,13 +75,24 @@
 
   <!-- Content -->
   <div class="scroll-content bg-white rounded-t-2xl px-5 pt-5 pb-4">
-    <div class="flex gap-3 mb-5">
+    <!-- Search Bar -->
+    <div class="flex gap-3 mb-4">
       <div class="search-wrap">
         <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
         <input type="text" id="searchHistory" placeholder="Cari lokasi atau kategori..." />
       </div>
-      <button class="filter-btn" id="filterBtn"><i class="fa-solid fa-sliders"></i></button>
     </div>
+
+    <!-- Modern Filter Chips Container -->
+    <div class="flex items-center gap-2 mb-5 overflow-x-auto pb-1" style="scrollbar-width: none; -ms-overflow-style: none;">
+      <style>.scroll-content::-webkit-scrollbar { display:none; }</style>
+      <button class="filter-chip active" data-status="ALL">Semua</button>
+      <button class="filter-chip" data-status="OPEN">Open</button>
+      <button class="filter-chip" data-status="PROGRESS">Progress</button>
+      <button class="filter-chip" data-status="DONE">Done</button>
+    </div>
+
+    <!-- List Items -->
     <div id="historyList">
       <div class="text-center text-gray-400 py-8">
         <i class="fa-regular fa-clock text-3xl block mb-2"></i>
@@ -98,9 +120,7 @@
   </div>
 </div>
 
-<!-- ============================================ -->
-<!-- SCRIPT ENTERPRISE + jQuery (untuk modal)     -->
-<!-- ============================================ -->
+<!-- SCRIPT ENTERPRISE + jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="config/config.js"></script>
@@ -113,6 +133,9 @@
 <script>
   (function() {
     'use strict';
+
+    let allReports = [];
+    let currentStatusFilter = 'ALL';
 
     // =============================================
     // 1. LOAD USER DATA
@@ -130,7 +153,6 @@
         const avatar = document.getElementById('userAvatar');
         avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
 
-        // 🔥 Simpan NIK dan NAMA untuk filter
         window._user = { nama: nama.toLowerCase().trim(), nik: nik.trim(), dept };
       } catch (e) {
         console.warn('Gagal load user:', e);
@@ -141,23 +163,17 @@
     // =============================================
     // 2. LOAD HISTORY
     // =============================================
-    let allReports = [];
-    let filteredReports = [];
-
     async function loadHistory() {
       const list = document.getElementById('historyList');
       list.innerHTML = '<div class="text-center text-gray-400 py-8"><i class="fa-regular fa-clock text-3xl block mb-2"></i><span>Memuat data...</span></div>';
 
       try {
         const response = await BCS.Api.post('getReport', {});
-        console.log('📥 History response:', response);
-
         if (!response || !response.success) {
           list.innerHTML = `<div class="text-center text-red-400 py-8">Gagal memuat data: ${response?.message || 'Unknown error'}</div>`;
           return;
         }
 
-        // Ambil array reports dari response.data.reports
         const reports = response.data?.reports || [];
         if (!reports.length) {
           list.innerHTML = `<div class="text-center text-gray-400 py-8"><i class="fa-regular fa-file-lines text-3xl block mb-2"></i><span>Belum ada laporan</span></div>`;
@@ -167,26 +183,16 @@
         const userNik = window._user?.nik || '';
         const userNama = window._user?.nama || '';
 
-        // 🔥 FILTER BY NIK (jika ada) atau NAMA
-        const filtered = reports.filter(r => {
+        allReports = reports.filter(r => {
           const reportNik = String(r.nik || '').trim();
           const reportNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
-
-          // Prioritas: filter pakai NIK jika ada
-          if (userNik && reportNik) {
-            return reportNik === userNik;
-          }
-          // Fallback: filter pakai NAMA
-          if (userNama && reportNama) {
-            return reportNama === userNama;
-          }
-          // Jika tidak ada data identitas, tampilkan semua (fallback)
+          if (userNik && reportNik) return reportNik === userNik;
+          if (userNama && reportNama) return reportNama === userNama;
           return false;
         });
 
-        allReports = filtered;
-        filteredReports = [...allReports];
-        renderReports(filteredReports);
+        // Terapkan gabungan filter pencarian + status pertama kali
+        applyFilter();
 
       } catch (err) {
         console.error('Load history error:', err);
@@ -212,10 +218,7 @@
         else if (status === 'PROGRESS') statusClass = 'status-progress';
 
         const foto = r.foto || '';
-        const fotoHtml = foto
-          ? `<img src="${foto}" alt="foto" />`
-          : `<i class="fa-regular fa-image"></i>`;
-
+        const fotoHtml = foto ? `<img src="${foto}" alt="foto" />` : `<i class="fa-regular fa-image"></i>`;
         const tanggal = r.tanggal || r.createdAt || '';
         const formattedDate = tanggal ? new Date(tanggal).toLocaleString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
 
@@ -244,35 +247,42 @@
     }
 
     // =============================================
-    // 4. SEARCH / FILTER
+    // 4. COMBINED SEARCH & STATUS FILTER SYSTEM
     // =============================================
-    document.getElementById('searchHistory').addEventListener('input', function() {
-      const keyword = this.value.toLowerCase().trim();
-      if (!keyword) {
-        filteredReports = [...allReports];
-      } else {
-        filteredReports = allReports.filter(r =>
+    function applyFilter() {
+      const keyword = document.getElementById('searchHistory').value.toLowerCase().trim();
+      
+      let filtered = allReports;
+
+      // 1. Saring berdasarkan status chip yang aktif
+      if (currentStatusFilter !== 'ALL') {
+        filtered = filtered.filter(r => (r.status || '').toUpperCase() === currentStatusFilter);
+      }
+
+      // 2. Saring berdasarkan kata kunci pencarian
+      if (keyword) {
+        filtered = filtered.filter(r =>
           (r.lokasi || '').toLowerCase().includes(keyword) ||
           (r.kategori || '').toLowerCase().includes(keyword) ||
           (r.deskripsi || '').toLowerCase().includes(keyword)
         );
       }
-      renderReports(filteredReports);
-    });
 
-    document.getElementById('filterBtn').addEventListener('click', function() {
-      const status = prompt('Filter berdasarkan status (ketik: DONE, PROGRESS, OPEN, atau kosongkan untuk reset)');
-      if (status === null) return;
-      const val = status.trim().toUpperCase();
-      if (!val) {
-        document.getElementById('searchHistory').value = '';
-        filteredReports = [...allReports];
-        renderReports(filteredReports);
-        return;
-      }
-      const filtered = allReports.filter(r => (r.status || '').toUpperCase() === val);
-      filteredReports = filtered;
       renderReports(filtered);
+    }
+
+    // Listener Input Pencarian
+    document.getElementById('searchHistory').addEventListener('input', applyFilter);
+
+    // Listener Klik Filter Chips Status
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      chip.addEventListener('click', function() {
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        
+        currentStatusFilter = this.getAttribute('data-status');
+        applyFilter();
+      });
     });
 
     // =============================================
@@ -303,50 +313,25 @@
     });
 
     // =============================================
-    // 6. NAVIGASI
+    // 6. NAVIGASI, NOTIF & LOGOUT
     // =============================================
-    document.getElementById('navReport').addEventListener('click', function(e) {
-      e.preventDefault();
-      window.location.href = 'user-report.html';
-    });
+    document.getElementById('navReport').addEventListener('click', function(e) { e.preventDefault(); window.location.href = 'user-report.html'; });
+    document.getElementById('navHistory').addEventListener('click', function(e) { e.preventDefault(); window.location.href = 'user-history.html'; });
+    document.getElementById('notifBtn').addEventListener('click', function() { alert('Anda memiliki 3 notifikasi'); });
 
-    document.getElementById('navHistory').addEventListener('click', function(e) {
-      e.preventDefault();
-      window.location.href = 'user-history.html';
-    });
-
-    document.getElementById('notifBtn').addEventListener('click', function() {
-      alert('Anda memiliki 3 notifikasi');
-    });
-
-    // =============================================
-    // 7. LOGOUT
-    // =============================================
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
       e.preventDefault();
       if (!confirm('Apakah Anda yakin ingin keluar?')) return;
-
-      if (window.auth && typeof window.auth.logout === 'function') {
-        window.auth.logout();
-        return;
-      }
-
+      if (window.auth && typeof window.auth.logout === 'function') { window.auth.logout(); return; }
       try {
-        if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
-          BCS.Storage.removeSession();
-        } else if (window.Session && typeof Session.clear === 'function') {
-          Session.clear();
-        }
+        if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') { BCS.Storage.removeSession(); }
       } catch(e) {}
-
       const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
       keys.forEach(key => { localStorage.removeItem(key); sessionStorage.removeItem(key); });
       window.location.href = 'login.html';
     });
 
-    // =============================================
-    // 8. INIT
-    // =============================================
+    // INIT
     loadUser();
     loadHistory();
 

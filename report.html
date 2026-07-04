@@ -2,195 +2,182 @@
 <html lang="id">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="Building Care System Enterprise - Radiant Group Duri">
-    <meta name="author" content="Radiant Group Duri">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="description" content="Building Care System Enterprise - Radiant Group Duri" />
+    <meta name="author" content="Radiant Group Duri" />
 
     <title>Report — Building Care System Enterprise</title>
 
-    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico" />
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
 
     <style>
-        .upload-card {
-            background: #f8fafc;
-            border: 2px dashed #d1d5db;
-            border-radius: 16px;
-            padding: 24px;
-            transition: all 0.3s;
+        /* ============================================================
+                   CSS CUSTOM PROPERTIES — LIGHT & DARK THEME
+                   ============================================================ */
+
+        /* ---------- LIGHT (default) ---------- */
+        :root {
+            /* Backgrounds */
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f1f5f9;
+            --bg-header: #ffffff;
+            --bg-sidebar: #ffffff;
+            --bg-input: #ffffff;
+            --bg-table-head: #f1f5f9;
+            --bg-toast: #ffffff;
+            --bg-modal: #ffffff;
+
+            /* Text */
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --text-inverse: #ffffff;
+
+            /* Borders */
+            --border-color: #e2e8f0;
+            --border-dashed: #d1d5db;
+
+            /* Accent */
+            --accent-color: #2563eb;
+            --accent-soft: #dbeafe;
+            --accent-hover: #1d4ed8;
+
+            /* Status badges */
+            --status-open-bg: #fee2e2;
+            --status-open-text: #dc2626;
+            --status-progress-bg: #fef3c7;
+            --status-progress-text: #d97706;
+            --status-done-bg: #dcfce7;
+            --status-done-text: #16a34a;
+
+            /* Misc */
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.06);
+            --radius: 16px;
+            --transition: 0.25s ease;
         }
-        .upload-card:hover {
-            border-color: #4b7bec;
-            background: #f0f4ff;
+
+        /* ---------- DARK ---------- */
+        [data-theme="dark"] {
+            --bg-body: #0f1724;
+            --bg-card: #1e293b;
+            --bg-card-hover: #2d3a4f;
+            --bg-header: #1e293b;
+            --bg-sidebar: #1e293b;
+            --bg-input: #2d3a4f;
+            --bg-table-head: #2d3a4f;
+            --bg-toast: #1e293b;
+            --bg-modal: #1e293b;
+
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-inverse: #0f172a;
+
+            --border-color: #334155;
+            --border-dashed: #475569;
+
+            --accent-color: #3b82f6;
+            --accent-soft: #1e3a5f;
+            --accent-hover: #60a5fa;
+
+            --status-open-bg: #3d2e00;
+            --status-open-text: #fbbf24;
+            --status-progress-bg: #00264d;
+            --status-progress-text: #60a5fa;
+            --status-done-bg: #003d1a;
+            --status-done-text: #34d399;
+
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.5);
         }
-        .preview-wrapper {
-            background: #f8fafc;
-            border: 2px dashed #d1d5db;
-            border-radius: 16px;
-            padding: 24px;
-            min-height: 180px;
+
+        /* ============================================================
+                   BASE STYLES
+                   ============================================================ */
+        * {
+            transition: background-color var(--transition),
+                color var(--transition),
+                border-color var(--transition),
+                box-shadow var(--transition);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ============================================================
+                   WRAPPER & SIDEBAR
+                   ============================================================ */
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            padding: 24px 16px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-        .preview-wrapper.has-image {
-            border-color: #4b7bec;
-            background: #f0f4ff;
-        }
-        .preview-wrapper .preview-image {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 12px;
-            object-fit: contain;
-        }
-        .btn-upload {
-            padding: 10px 20px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 13px;
-            border: none;
-            transition: all 0.2s;
-        }
-        .btn-upload:active { transform: scale(0.96); }
-        .btn-upload.primary { background: #4b7bec; color: white; }
-        .btn-upload.primary:hover { background: #3a6bd6; }
-        .btn-upload.secondary { background: #eef2f8; color: #4a5568; }
-        .btn-upload.secondary:hover { background: #e2e8f0; }
-        .btn-upload i { font-size: 18px; display: block; margin-bottom: 4px; }
-        .info-box {
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 24px;
-            text-align: center;
-            transition: all 0.3s;
-            height: 100%;
-        }
-        .info-box:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
-        }
-        .info-box i {
-            font-size: 32px;
-            color: #4b7bec;
-            margin-bottom: 12px;
-            display: block;
-        }
-        .info-box h6 { font-weight: 700; margin-bottom: 8px; }
-        .info-box p { font-size: 13px; color: #718096; margin: 0; }
-        .form-label { font-weight: 600; font-size: 13px; color: #2d3748; }
-        .form-control, .form-select {
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            padding: 10px 16px;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #4b7bec;
-            box-shadow: 0 0 0 3px rgba(75, 123, 236, 0.1);
-        }
-        .enterprise-action .btn {
-            border-radius: 12px;
-            font-weight: 600;
-            padding: 12px 28px;
-        }
-        .avatar-sm {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #4b7bec;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 18px;
-        }
-        .dark-toggle {
-            background: transparent;
-            border: 1px solid #e2e8f0;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .dark-toggle:hover {
-            background: #f0f2f5;
-            transform: rotate(20deg);
-        }
-        [data-theme="dark"] .dark-toggle {
-            border-color: #3a3a52;
-            color: #ffd700;
-        }
-        [data-theme="dark"] .dark-toggle:hover {
-            background: #2a2a42;
-        }
-
-        .history-table td, .history-table th {
-            vertical-align: middle;
-        }
-        .history-table .btn-sm {
-            padding: 2px 8px;
-            font-size: 12px;
-        }
-        .history-table .badge {
-            font-size: 11px;
-        }
-        #historyContainer .card-body {
-            max-height: 400px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
             overflow-y: auto;
         }
-
-        .status-badge {
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 10px;
-            border-radius: 6px;
-            display: inline-block;
-            letter-spacing: 0.3px;
+        .sidebar .logo-area {
+            text-align: center;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
         }
-        .status-done { background: #dcfce7; color: #16a34a; }
-        .status-progress { background: #fef3c7; color: #d97706; }
-        .status-open { background: #fee2e2; color: #dc2626; }
-        [data-theme="dark"] .status-open { background: #3d2e00; color: #ffd700; }
-        [data-theme="dark"] .status-progress { background: #00264d; color: #66b0ff; }
-        [data-theme="dark"] .status-done { background: #003d1a; color: #00e676; }
-
-        /* Sidebar Styles */
+        .sidebar .logo-area .logo {
+            max-width: 56px;
+            height: auto;
+            margin-bottom: 8px;
+        }
+        .sidebar .logo-area h5 {
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-primary);
+        }
+        .sidebar .logo-area small {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
         .sidebar nav a.menu {
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 10px 16px;
             border-radius: 10px;
-            color: var(--text-secondary, #64748b);
+            color: var(--text-secondary);
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: all var(--transition);
             font-size: 14px;
             font-weight: 500;
         }
         .sidebar nav a.menu:hover {
-            background: var(--bg-card-hover, #f1f5f9);
-            color: var(--text-primary, #0f172a);
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
         }
         .sidebar nav a.menu.active {
-            background: var(--accent-soft, #dbeafe);
-            color: var(--accent-color, #2563eb);
+            background: var(--accent-soft);
+            color: var(--accent-color);
             font-weight: 600;
         }
         .sidebar nav a.menu i {
@@ -205,714 +192,1170 @@
             background: #fef2f2 !important;
             color: #dc2626 !important;
         }
+        [data-theme="dark"] .sidebar nav a.menu.text-danger:hover {
+            background: #3d1a1a !important;
+            color: #f87171 !important;
+        }
+
+        /* ============================================================
+                   MAIN CONTENT
+                   ============================================================ */
+        .content {
+            flex: 1;
+            padding: 24px 32px 40px;
+            min-width: 0;
+        }
+
+        /* ============================================================
+                   TOPBAR
+                   ============================================================ */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+        .topbar h3 {
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-primary);
+        }
+        .topbar small {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .topbar .brand-location {
+            font-weight: 500;
+            color: var(--accent-color);
+        }
+        .dark-toggle {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            color: var(--text-secondary);
+        }
+        .dark-toggle:hover {
+            background: var(--bg-card-hover);
+            transform: rotate(20deg);
+        }
+        .avatar-sm {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        /* ============================================================
+                   CARDS
+                   ============================================================ */
+        .enterprise-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition);
+        }
+        .enterprise-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        .enterprise-card .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border-color);
+            padding: 18px 24px;
+        }
+        .enterprise-card .card-header h5 {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .enterprise-card .card-header small {
+            color: var(--text-muted);
+        }
+        .enterprise-card .card-body {
+            padding: 24px;
+        }
+
+        /* ============================================================
+                   FORM ELEMENTS
+                   ============================================================ */
+        .form-label {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .form-control,
+        .form-select {
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 10px 16px;
+            font-size: 14px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            transition: all var(--transition);
+        }
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            background: var(--bg-input);
+            color: var(--text-primary);
+        }
+        .form-control::placeholder {
+            color: var(--text-muted);
+        }
+        .form-control:disabled,
+        .form-select:disabled {
+            opacity: 0.6;
+        }
+
+        /* ============================================================
+                   UPLOAD CARD
+                   ============================================================ */
+        .upload-card {
+            background: var(--bg-body);
+            border: 2px dashed var(--border-dashed);
+            border-radius: var(--radius);
+            padding: 24px;
+            transition: all var(--transition);
+        }
+        .upload-card:hover {
+            border-color: var(--accent-color);
+            background: var(--accent-soft);
+        }
+        .btn-upload {
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 13px;
+            border: none;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .btn-upload:active {
+            transform: scale(0.96);
+        }
+        .btn-upload.primary {
+            background: var(--accent-color);
+            color: #fff;
+        }
+        .btn-upload.primary:hover {
+            background: var(--accent-hover);
+        }
+        .btn-upload.secondary {
+            background: var(--bg-card-hover);
+            color: var(--text-secondary);
+        }
+        .btn-upload.secondary:hover {
+            background: var(--border-color);
+        }
+        .btn-upload i {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .upload-info i {
+            color: var(--accent-color);
+        }
+        .upload-info p,
+        .upload-info small {
+            color: var(--text-muted);
+        }
+
+        /* ============================================================
+                   PREVIEW WRAPPER
+                   ============================================================ */
+        .preview-wrapper {
+            background: var(--bg-body);
+            border: 2px dashed var(--border-dashed);
+            border-radius: var(--radius);
+            padding: 24px;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+        }
+        .preview-wrapper.has-image {
+            border-color: var(--accent-color);
+            background: var(--accent-soft);
+        }
+        .preview-wrapper .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 12px;
+            object-fit: contain;
+        }
+        .preview-wrapper .preview-placeholder i {
+            color: var(--text-muted);
+        }
+        .preview-wrapper .preview-placeholder h6 {
+            color: var(--text-muted);
+        }
+        .preview-wrapper .preview-placeholder small {
+            color: var(--text-muted);
+        }
+
+        /* ============================================================
+                   INFO BOXES
+                   ============================================================ */
+        .info-box {
+            background: var(--bg-body);
+            border-radius: var(--radius);
+            padding: 24px;
+            text-align: center;
+            transition: all var(--transition);
+            height: 100%;
+        }
+        .info-box:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+        .info-box i {
+            font-size: 32px;
+            color: var(--accent-color);
+            margin-bottom: 12px;
+            display: block;
+        }
+        .info-box h6 {
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .info-box p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* ============================================================
+                   HISTORY TABLE
+                   ============================================================ */
+        .history-table td,
+        .history-table th {
+            vertical-align: middle;
+            color: var(--text-primary);
+        }
+        .history-table .table-light {
+            background: var(--bg-table-head);
+        }
+        .history-table .table-light th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .history-table .btn-sm {
+            padding: 2px 8px;
+            font-size: 12px;
+        }
+        .history-table .badge {
+            font-size: 11px;
+        }
+        #historyContainer .card-body {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* ============================================================
+                   STATUS BADGES
+                   ============================================================ */
+        .status-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 6px;
+            display: inline-block;
+            letter-spacing: 0.3px;
+        }
+        .status-done {
+            background: var(--status-done-bg);
+            color: var(--status-done-text);
+        }
+        .status-progress {
+            background: var(--status-progress-bg);
+            color: var(--status-progress-text);
+        }
+        .status-open {
+            background: var(--status-open-bg);
+            color: var(--status-open-text);
+        }
+
+        /* ============================================================
+                   BUTTONS
+                   ============================================================ */
+        .btn-primary {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+            color: #fff;
+        }
+        .btn-outline-primary {
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        .btn-outline-primary:hover {
+            background: var(--accent-color);
+            color: #fff;
+        }
+        .btn-light {
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        .btn-light:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+        .btn-danger {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+        }
+        .btn-outline-primary {
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        .btn-outline-primary:hover {
+            background: var(--accent-color);
+            color: #fff;
+        }
+
+        /* ============================================================
+                   MODAL
+                   ============================================================ */
+        .modal-content {
+            background: var(--bg-modal);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-header .btn-close {
+            filter: var(--bs-btn-close-filter, none);
+        }
+        [data-theme="dark"] .modal-header .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* ============================================================
+                   TOAST
+                   ============================================================ */
+        .toast {
+            background: var(--bg-toast);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .toast .btn-close {
+            filter: var(--bs-btn-close-filter, none);
+        }
+        [data-theme="dark"] .toast .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        /* ============================================================
+                   RESPONSIVE
+                   ============================================================ */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 72px;
+                padding: 16px 8px;
+            }
+            .sidebar .logo-area h5,
+            .sidebar .logo-area small,
+            .sidebar nav a.menu span {
+                display: none;
+            }
+            .sidebar .logo-area .logo {
+                max-width: 36px;
+            }
+            .sidebar nav a.menu {
+                justify-content: center;
+                padding: 10px 0;
+            }
+            .sidebar nav a.menu i {
+                font-size: 22px;
+                width: auto;
+            }
+            .content {
+                padding: 16px;
+            }
+            .topbar h3 {
+                font-size: 1.25rem;
+            }
+        }
+        @media (max-width: 576px) {
+            .sidebar {
+                display: none;
+            }
+            .content {
+                padding: 12px;
+            }
+            .topbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .topbar>div:last-child {
+                justify-content: flex-start;
+            }
+            .enterprise-action {
+                flex-direction: column;
+            }
+            .enterprise-action .btn {
+                width: 100%;
+            }
+        }
+
+        /* ============================================================
+                   SCROLLBAR (dark-friendly)
+                   ============================================================ */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-body);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
     </style>
 </head>
 
 <body>
 
-<!-- APP WRAPPER -->
-<div class="wrapper">
+    <!-- ============================================================
+    APP WRAPPER
+    ============================================================ -->
+    <div class="wrapper">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="logo-area">
-            <img src="assets/img/logo.png" class="logo" alt="Logo">
-            <h5>Building Care</h5>
-            <small>Enterprise v3.2</small>
-        </div>
-        <nav></nav> <!-- 🔥 SIDEBAR DINAMIS DIISI OLEH sidebar.js -->
-    </aside>
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <img src="assets/img/logo.png" class="logo" alt="Logo" />
+                <h5>Building Care</h5>
+                <small>Enterprise v3.2</small>
+            </div>
+            <nav>
+                <!-- Dinamis oleh sidebar.js -->
+            </nav>
+        </aside>
 
-    <!-- MAIN CONTENT -->
-    <main class="content">
-        <div class="container-fluid">
+        <!-- MAIN CONTENT -->
+        <main class="content">
+            <div class="container-fluid">
 
-            <!-- TOPBAR -->
-            <header class="topbar">
-                <div>
-                    <h3>Report Kerusakan</h3>
-                    <small>
-                        Building Care System Enterprise
-                        <br>
-                        <span class="brand-location">Radiant Group Duri</span>
-                    </small>
-                </div>
-
-                <div class="d-flex align-items-center gap-3">
-                    <!-- Dark Mode Toggle -->
-                    <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
-                        <i class="bi bi-moon-fill" id="darkModeIcon"></i>
-                    </button>
-
-                    <div class="avatar-sm" id="userAvatar">U</div>
+                <!-- TOPBAR -->
+                <header class="topbar">
                     <div>
-                        <div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary);">Loading...</div>
-                        <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
+                        <h3>Report Kerusakan</h3>
+                        <small>
+                            Building Care System Enterprise
+                            <br />
+                            <span class="brand-location">Radiant Group Duri</span>
+                        </small>
                     </div>
-                </div>
-            </header>
+                    <div class="d-flex align-items-center gap-3">
+                        <!-- Dark Mode Toggle -->
+                        <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
+                            <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+                        </button>
 
-            <!-- FORM REPORT -->
-            <section class="row g-4 mt-3">
-                <div class="col-12">
-                    <div class="card enterprise-card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="mb-0"><i class="bi bi-clipboard-plus-fill me-2"></i>Create New Report</h5>
-                                <small class="text-muted">Laporkan kerusakan fasilitas secara realtime</small>
-                            </div>
-                            <span class="badge bg-primary">Enterprise Mode</span>
+                        <div class="avatar-sm" id="userAvatar">U</div>
+                        <div>
+                            <div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary);">Loading...</div>
+                            <div class="text-muted" id="userRole" style="font-size:11px;font-weight:500;">User</div>
                         </div>
+                    </div>
+                </header>
 
-                        <div class="card-body">
-                            <form id="reportForm">
-                                <div class="row g-4">
-                                    <div class="col-lg-6">
-                                        <label class="form-label">Nama Pelapor</label>
-                                        <input id="nama" type="text" class="form-control" placeholder="Masukkan nama pelapor">
-                                    </div>
-
-                                    <div class="col-lg-6">
-                                        <label class="form-label">Departemen</label>
-                                        <input id="departemen" type="text" class="form-control" placeholder="Departemen">
-                                    </div>
-
-                                    <div class="col-lg-12">
-                                        <label class="form-label">Lokasi Kerusakan</label>
-                                        <input id="lokasi" type="text" class="form-control" placeholder="Contoh : Ruang Server Lt.2">
-                                    </div>
-
-                                    <div class="col-lg-6">
-                                        <label class="form-label">Kategori</label>
-                                        <select id="kategori" class="form-select">
-                                            <option value="">Pilih Kategori</option>
-                                            <option value="AC">AC</option>
-                                            <option value="LISTRIK">LISTRIK</option>
-                                            <option value="KONDISI GEDUNG">KONDISI GEDUNG</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="col-lg-6">
-                                        <label class="form-label">Prioritas</label>
-                                        <select id="prioritas" class="form-select">
-                                            <option value="NORMAL">🟢 NORMAL</option>
-                                            <option value="HIGH">🟠 HIGH</option>
-                                            <option value="URGENT">🔴 URGENT</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="col-lg-12">
-                                        <label class="form-label">Deskripsi Kerusakan</label>
-                                        <textarea id="deskripsi" rows="4" class="form-control" placeholder="Jelaskan kerusakan secara detail..."></textarea>
-                                    </div>
-
-                                    <div class="col-lg-6">
-                                        <label class="form-label">Dokumentasi Kerusakan</label>
-                                        <div class="upload-card">
-                                            <input id="photo" type="file" accept="image/*" capture="environment" class="d-none">
-
-                                            <div class="row g-3">
-                                                <div class="col-6">
-                                                    <button type="button" id="takePhotoBtn" class="btn-upload primary w-100">
-                                                        <i class="bi bi-camera-fill"></i> Ambil Foto
-                                                    </button>
-                                                </div>
-                                                <div class="col-6">
-                                                    <button type="button" id="galleryBtn" class="btn-upload secondary w-100">
-                                                        <i class="bi bi-images"></i> Galeri
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div class="upload-info mt-4 text-center">
-                                                <i class="bi bi-cloud-arrow-up-fill" style="font-size:24px;color:#4b7bec;"></i>
-                                                <p class="mb-0 small mt-2 text-muted">Foto kerusakan akan membantu identifikasi lebih cepat</p>
-                                                <small class="text-muted">JPG / PNG Maksimal 5 MB</small>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-lg-6">
-                                        <label class="form-label">Preview Foto</label>
-                                        <div id="previewWrapper" class="preview-wrapper">
-                                            <img id="previewImage" class="preview-image d-none" alt="Preview">
-                                            <div id="previewPlaceholder" class="text-center">
-                                                <i class="bi bi-camera" style="font-size:40px;color:#cbd5e1;"></i>
-                                                <h6 class="mt-3 text-muted">Belum Ada Foto</h6>
-                                                <small class="text-muted">Ambil foto atau pilih dari galeri</small>
-                                            </div>
-                                            <button id="removePhotoBtn" type="button" class="btn btn-danger btn-sm mt-2 d-none">Hapus Foto</button>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12 mt-4">
-                                        <div class="enterprise-action d-flex gap-2">
-                                            <button id="resetReport" type="button" class="btn btn-light btn-lg">
-                                                <i class="bi bi-arrow-clockwise"></i> Reset
-                                            </button>
-                                            <button type="submit" class="btn btn-primary btn-lg px-5">
-                                                <i class="bi bi-send-fill"></i> Kirim Report
-                                            </button>
-                                        </div>
-                                    </div>
+                <!-- FORM REPORT -->
+                <section class="row g-4 mt-3">
+                    <div class="col-12">
+                        <div class="card enterprise-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0"><i class="bi bi-clipboard-plus-fill me-2"></i>Create New Report</h5>
+                                    <small class="text-muted">Laporkan kerusakan fasilitas secara realtime</small>
                                 </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- HISTORY SECTION -->
-            <section class="row g-4 mt-4">
-                <div class="col-12">
-                    <div class="card enterprise-card" id="historyContainer">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Riwayat Laporan Saya</h5>
-                                <small class="text-muted">5 laporan terakhir yang Anda kirim</small>
+                                <span class="badge bg-primary">Enterprise Mode</span>
                             </div>
-                            <a href="history.html" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle history-table mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Tanggal</th>
-                                            <th>Kategori</th>
-                                            <th>Lokasi</th>
-                                            <th>Status</th>
-                                            <th class="text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="historyTableBody">
-                                        <tr>
-                                            <td colspan="6" class="text-center py-4 text-muted">
-                                                <div class="spinner-border spinner-border-sm mb-2"></div><br>
-                                                Memuat riwayat...
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div class="card-body">
+                                <form id="reportForm">
+                                    <div class="row g-4">
+                                        <div class="col-lg-6">
+                                            <label class="form-label">Nama Pelapor</label>
+                                            <input id="nama" type="text" class="form-control" placeholder="Masukkan nama pelapor" />
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label class="form-label">Departemen</label>
+                                            <input id="departemen" type="text" class="form-control" placeholder="Departemen" />
+                                        </div>
+                                        <div class="col-lg-12">
+                                            <label class="form-label">Lokasi Kerusakan</label>
+                                            <input id="lokasi" type="text" class="form-control" placeholder="Contoh : Ruang Server Lt.2" />
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label class="form-label">Kategori</label>
+                                            <select id="kategori" class="form-select">
+                                                <option value="">Pilih Kategori</option>
+                                                <option value="AC">AC</option>
+                                                <option value="LISTRIK">LISTRIK</option>
+                                                <option value="KONDISI GEDUNG">KONDISI GEDUNG</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <label class="form-label">Prioritas</label>
+                                            <select id="prioritas" class="form-select">
+                                                <option value="NORMAL">🟢 NORMAL</option>
+                                                <option value="HIGH">🟠 HIGH</option>
+                                                <option value="URGENT">🔴 URGENT</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            <label class="form-label">Deskripsi Kerusakan</label>
+                                            <textarea id="deskripsi" rows="4" class="form-control" placeholder="Jelaskan kerusakan secara detail..."></textarea>
+                                        </div>
+
+                                        <!-- PHOTO UPLOAD -->
+                                        <div class="col-lg-6">
+                                            <label class="form-label">Dokumentasi Kerusakan</label>
+                                            <div class="upload-card">
+                                                <input id="photo" type="file" accept="image/*" capture="environment" class="d-none" />
+                                                <div class="row g-3">
+                                                    <div class="col-6">
+                                                        <button type="button" id="takePhotoBtn" class="btn-upload primary w-100">
+                                                            <i class="bi bi-camera-fill"></i> Ambil Foto
+                                                        </button>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <button type="button" id="galleryBtn" class="btn-upload secondary w-100">
+                                                            <i class="bi bi-images"></i> Galeri
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="upload-info mt-4 text-center">
+                                                    <i class="bi bi-cloud-arrow-up-fill" style="font-size:24px;"></i>
+                                                    <p class="mb-0 small mt-2 text-muted">Foto kerusakan akan membantu identifikasi lebih cepat</p>
+                                                    <small class="text-muted">JPG / PNG Maksimal 5 MB</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- PREVIEW -->
+                                        <div class="col-lg-6">
+                                            <label class="form-label">Preview Foto</label>
+                                            <div id="previewWrapper" class="preview-wrapper">
+                                                <img id="previewImage" class="preview-image d-none" alt="Preview" />
+                                                <div id="previewPlaceholder" class="preview-placeholder text-center">
+                                                    <i class="bi bi-camera" style="font-size:40px;"></i>
+                                                    <h6 class="mt-3 text-muted">Belum Ada Foto</h6>
+                                                    <small class="text-muted">Ambil foto atau pilih dari galeri</small>
+                                                </div>
+                                                <button id="removePhotoBtn" type="button" class="btn btn-danger btn-sm mt-2 d-none">Hapus Foto</button>
+                                            </div>
+                                        </div>
+
+                                        <!-- ACTION BUTTONS -->
+                                        <div class="col-12 mt-4">
+                                            <div class="enterprise-action d-flex gap-2">
+                                                <button id="resetReport" type="button" class="btn btn-light btn-lg">
+                                                    <i class="bi bi-arrow-clockwise"></i> Reset
+                                                </button>
+                                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                                    <i class="bi bi-send-fill"></i> Kirim Report
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- INFO BOXES -->
-            <section class="row g-4 mt-3">
-                <div class="col-lg-4">
-                    <div class="card enterprise-card h-100">
-                        <div class="card-body info-box">
-                            <i class="bi bi-lightning-charge-fill"></i>
-                            <h6>Fast Response</h6>
-                            <p>Report langsung masuk Dashboard Monitoring secara realtime.</p>
+                <!-- HISTORY -->
+                <section class="row g-4 mt-4">
+                    <div class="col-12">
+                        <div class="card enterprise-card" id="historyContainer">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Riwayat Laporan Saya</h5>
+                                    <small class="text-muted">5 laporan terakhir yang Anda kirim</small>
+                                </div>
+                                <a href="history.html" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle history-table mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Tanggal</th>
+                                                <th>Kategori</th>
+                                                <th>Lokasi</th>
+                                                <th>Status</th>
+                                                <th class="text-center">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="historyTableBody">
+                                            <tr>
+                                                <td colspan="6" class="text-center py-4 text-muted">
+                                                    <div class="spinner-border spinner-border-sm mb-2"></div><br />
+                                                    Memuat riwayat...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="card enterprise-card h-100">
-                        <div class="card-body info-box">
-                            <i class="bi bi-camera-fill"></i>
-                            <h6>Visual Evidence</h6>
-                            <p>Lampirkan foto agar identifikasi kerusakan lebih cepat.</p>
+                </section>
+
+                <!-- INFO BOXES -->
+                <section class="row g-4 mt-3">
+                    <div class="col-lg-4">
+                        <div class="card enterprise-card h-100">
+                            <div class="card-body info-box">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                                <h6>Fast Response</h6>
+                                <p>Report langsung masuk Dashboard Monitoring secara realtime.</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="card enterprise-card h-100">
-                        <div class="card-body info-box">
-                            <i class="bi bi-shield-check"></i>
-                            <h6>Enterprise Security</h6>
-                            <p>Seluruh data tersimpan aman di Building Care System Enterprise.</p>
+                    <div class="col-lg-4">
+                        <div class="card enterprise-card h-100">
+                            <div class="card-body info-box">
+                                <i class="bi bi-camera-fill"></i>
+                                <h6>Visual Evidence</h6>
+                                <p>Lampirkan foto agar identifikasi kerusakan lebih cepat.</p>
+                            </div>
                         </div>
                     </div>
+                    <div class="col-lg-4">
+                        <div class="card enterprise-card h-100">
+                            <div class="card-body info-box">
+                                <i class="bi bi-shield-check"></i>
+                                <h6>Enterprise Security</h6>
+                                <p>Seluruh data tersimpan aman di Building Care System Enterprise.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ============================================================
+    MODALS
+    ============================================================ -->
+
+    <!-- Loading Modal -->
+    <div class="modal fade" id="loadingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-body text-center py-5">
+                    <div class="spinner-border text-primary mb-4" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h4>Mengirim Report...</h4>
+                    <p class="text-muted mb-0">Mohon tunggu beberapa saat</p>
                 </div>
-            </section>
-
+            </div>
         </div>
-    </main>
-</div>
+    </div>
 
-<!-- ======================================================
-     MODALS
-======================================================= -->
-
-<!-- Loading Modal -->
-<div class="modal fade" id="loadingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-body text-center py-5">
-                <div class="spinner-border text-primary mb-4" role="status">
-                    <span class="visually-hidden">Loading...</span>
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success display-1"></i>
+                    </div>
+                    <h3>Report Berhasil Dikirim</h3>
+                    <p class="text-muted">Terima kasih. Laporan Anda telah berhasil masuk ke Building Care System Enterprise.</p>
+                    <button class="btn btn-primary px-5" data-bs-dismiss="modal">Tutup</button>
                 </div>
-                <h4>Mengirim Report...</h4>
-                <p class="text-muted mb-0">Mohon tunggu beberapa saat</p>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Success Modal -->
-<div class="modal fade" id="successModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-body text-center py-5">
-                <div class="mb-4">
-                    <i class="bi bi-check-circle-fill text-success display-1"></i>
+    <!-- Detail Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-text"></i> Detail Laporan</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <h3>Report Berhasil Dikirim</h3>
-                <p class="text-muted">Terima kasih. Laporan Anda telah berhasil masuk ke Building Care System Enterprise.</p>
-                <button class="btn btn-primary px-5" data-bs-dismiss="modal">Tutup</button>
+                <div class="modal-body">
+                    <div id="detailContent"></div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Detail Modal -->
-<div class="modal fade" id="detailModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-file-earmark-text"></i> Detail Laporan</h5>
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div id="detailContent"></div>
+    <!-- Toast -->
+    <div class="toast-container position-fixed top-0 end-0 p-4">
+        <div id="reportToast" class="toast border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex align-items-center">
+                <div class="toast-body fw-semibold" id="toastMessage">Report berhasil dikirim.</div>
+                <button type="button" class="btn-close me-3" data-bs-dismiss="toast"></button>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Toast -->
-<div class="toast-container position-fixed top-0 end-0 p-4">
-    <div id="reportToast" class="toast border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex align-items-center">
-            <div class="toast-body fw-semibold" id="toastMessage">Report berhasil dikirim.</div>
-            <button type="button" class="btn-close me-3" data-bs-dismiss="toast"></button>
-        </div>
-    </div>
-</div>
+    <!-- ============================================================
+    SCRIPTS
+    ============================================================ -->
 
-<!-- ======================================================
-     JAVASCRIPT
-======================================================= -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+    </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="config/config.js">
+    </script>
+    <script src="assets/js/core/app.js">
+    </script>
+    <script src="assets/js/core/api.js">
+    </script>
+    <script src="assets/js/core/storage.js">
+    </script>
+    <script src="assets/js/core/session.js">
+    </script>
+    <script src="assets/js/core/ui.js">
+    </script>
+    <script src="assets/js/core/utils.js">
+    </script>
+    <script src="assets/js/modules/auth.js">
+    </script>
+    <script src="assets/js/core/components/sidebar.js">
+    </script>
 
-<script src="config/config.js"></script>
-<script src="assets/js/core/app.js"></script>
-<script src="assets/js/core/api.js"></script>
-<script src="assets/js/core/storage.js"></script>
-<script src="assets/js/core/session.js"></script>
-<script src="assets/js/core/ui.js"></script>
-<script src="assets/js/core/utils.js"></script>
-<script src="assets/js/modules/auth.js"></script>
+    <script>
+        (function() {
+            'use strict';
 
-<!-- 🔥 SIDEBAR DINAMIS - PATH YANG BENAR -->
-<script src="assets/js/core/components/sidebar.js"></script>
+            // =============================================
+            // DOM REFS
+            // =============================================
+            const DOM = {
+                userName: document.getElementById('userName'),
+                userRole: document.getElementById('userRole'),
+                userAvatar: document.getElementById('userAvatar'),
+                nama: document.getElementById('nama'),
+                departemen: document.getElementById('departemen'),
+                lokasi: document.getElementById('lokasi'),
+                kategori: document.getElementById('kategori'),
+                prioritas: document.getElementById('prioritas'),
+                deskripsi: document.getElementById('deskripsi'),
+                photo: document.getElementById('photo'),
+                previewImage: document.getElementById('previewImage'),
+                previewPlaceholder: document.getElementById('previewPlaceholder'),
+                previewWrapper: document.getElementById('previewWrapper'),
+                removePhotoBtn: document.getElementById('removePhotoBtn'),
+                takePhotoBtn: document.getElementById('takePhotoBtn'),
+                galleryBtn: document.getElementById('galleryBtn'),
+                resetBtn: document.getElementById('resetReport'),
+                form: document.getElementById('reportForm'),
+                loadingModal: new bootstrap.Modal(document.getElementById('loadingModal')),
+                successModal: new bootstrap.Modal(document.getElementById('successModal')),
+                toast: new bootstrap.Toast(document.getElementById('reportToast')),
+                toastMessage: document.getElementById('toastMessage'),
+                historyTableBody: document.getElementById('historyTableBody'),
+                darkToggle: document.getElementById('darkModeToggle'),
+                darkIcon: document.getElementById('darkModeIcon'),
+            };
 
-<script>
-(function() {
-    'use strict';
+            let currentFile = null;
+            let userInfo = { nama: '', nik: '' };
 
-    // =============================================
-    // DOM REFS
-    // =============================================
-    const DOM = {
-        userName: document.getElementById('userName'),
-        userRole: document.getElementById('userRole'),
-        userAvatar: document.getElementById('userAvatar'),
-
-        nama: document.getElementById('nama'),
-        departemen: document.getElementById('departemen'),
-        lokasi: document.getElementById('lokasi'),
-        kategori: document.getElementById('kategori'),
-        prioritas: document.getElementById('prioritas'),
-        deskripsi: document.getElementById('deskripsi'),
-        photo: document.getElementById('photo'),
-        previewImage: document.getElementById('previewImage'),
-        previewPlaceholder: document.getElementById('previewPlaceholder'),
-        previewWrapper: document.getElementById('previewWrapper'),
-        removePhotoBtn: document.getElementById('removePhotoBtn'),
-        takePhotoBtn: document.getElementById('takePhotoBtn'),
-        galleryBtn: document.getElementById('galleryBtn'),
-        resetBtn: document.getElementById('resetReport'),
-        form: document.getElementById('reportForm'),
-        loadingModal: new bootstrap.Modal(document.getElementById('loadingModal')),
-        successModal: new bootstrap.Modal(document.getElementById('successModal')),
-        toast: new bootstrap.Toast(document.getElementById('reportToast')),
-        toastMessage: document.getElementById('toastMessage'),
-        historyTableBody: document.getElementById('historyTableBody')
-    };
-
-    let currentFile = null;
-    let userInfo = { nama: '', nik: '' };
-
-    // =============================================
-    // DARK MODE
-    // =============================================
-    function initDarkMode() {
-        const toggle = document.getElementById('darkModeToggle');
-        const icon = document.getElementById('darkModeIcon');
-        if (!toggle) return;
-
-        const savedTheme = localStorage.getItem('bcs_theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        
-        if (icon) {
-            if (savedTheme === 'dark') {
-                icon.className = 'bi bi-sun-fill';
-                icon.style.color = '#ffd700';
-            } else {
-                icon.className = 'bi bi-moon-fill';
-                icon.style.color = '';
-            }
-        }
-
-        toggle.addEventListener('click', function() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('bcs_theme', newTheme);
-            if (icon) {
-                if (newTheme === 'dark') {
-                    icon.className = 'bi bi-sun-fill';
-                    icon.style.color = '#ffd700';
-                } else {
-                    icon.className = 'bi bi-moon-fill';
-                    icon.style.color = '';
+            // =============================================
+            // DARK MODE — FULLY WORKING
+            // =============================================
+            function setTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('bcs_theme', theme);
+                if (DOM.darkIcon) {
+                    if (theme === 'dark') {
+                        DOM.darkIcon.className = 'bi bi-sun-fill';
+                        DOM.darkIcon.style.color = '#ffd700';
+                    } else {
+                        DOM.darkIcon.className = 'bi bi-moon-fill';
+                        DOM.darkIcon.style.color = '';
+                    }
                 }
             }
-        });
-    }
 
-    // =============================================
-    // LOAD USER INFO
-    // =============================================
-    function loadUserInfo() {
-        try {
-            const session = BCS.Storage.getSession();
-            if (session && session.user) {
-                const user = session.user;
-                const nama = user.nama || user.name || 'User';
-                const role = user.role || 'User';
+            function initDarkMode() {
+                const saved = localStorage.getItem('bcs_theme') || 'light';
+                setTheme(saved);
 
-                DOM.userName.textContent = nama;
-                DOM.userRole.textContent = role;
-                DOM.userAvatar.textContent = nama.charAt(0).toUpperCase();
-
-                if (DOM.nama) DOM.nama.value = nama;
-                if (DOM.departemen) DOM.departemen.value = user.departemen || user.department || '';
-
-                userInfo.nama = nama;
-                userInfo.nik = session.nik || user.nik || '';
-            }
-        } catch (e) {
-            console.warn('Load user info error:', e);
-        }
-    }
-
-    // =============================================
-    // LOAD USER HISTORY
-    // =============================================
-    async function loadUserHistory() {
-        try {
-            DOM.historyTableBody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="text-center py-4 text-muted">
-                        <div class="spinner-border spinner-border-sm mb-2"></div><br>
-                        Memuat riwayat...
-                    </td>
-                </tr>
-            `;
-
-            const response = await BCS.Api.post('getReport', {});
-            if (!response || !response.success) {
-                DOM.historyTableBody.innerHTML = `
-                    <tr><td colspan="6" class="text-center text-danger py-4">Gagal memuat riwayat</td></tr>
-                `;
-                return;
-            }
-
-            const allReports = response.data?.reports || [];
-            const userNik = userInfo.nik.trim();
-            const userNama = userInfo.nama.toLowerCase().trim();
-
-            let myReports = allReports.filter(r => {
-                const rNik = String(r.nik || '').trim();
-                const rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
-                if (userNik && rNik) return rNik === userNik;
-                if (userNama && rNama) return rNama === userNama;
-                return false;
-            });
-
-            myReports.sort((a, b) => {
-                const dateA = new Date(a.tanggal || a.createdAt || 0);
-                const dateB = new Date(b.tanggal || b.createdAt || 0);
-                return dateB - dateA;
-            });
-            myReports = myReports.slice(0, 5);
-
-            if (myReports.length === 0) {
-                DOM.historyTableBody.innerHTML = `
-                    <tr><td colspan="6" class="text-center text-muted py-4">Belum ada laporan yang Anda kirim</td></tr>
-                `;
-                return;
-            }
-
-            let html = '';
-            myReports.forEach(r => {
-                const status = r.status || 'OPEN';
-                let badgeClass = 'status-open';
-                if (status === 'DONE') badgeClass = 'status-done';
-                else if (status === 'PROGRESS') badgeClass = 'status-progress';
-
-                const tanggal = r.tanggal || r.createdAt || '';
-                const formattedDate = tanggal ? new Date(tanggal).toLocaleString('id-ID', {
-                    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                }) : '-';
-
-                html += `
-                    <tr>
-                        <td><strong>${r.id || '-'}</strong></td>
-                        <td>${formattedDate}</td>
-                        <td>${r.kategori || '-'}</td>
-                        <td>${r.lokasi || '-'}</td>
-                        <td><span class="status-badge ${badgeClass}">${status}</span></td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary view-detail" data-id="${r.id}" title="Detail">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-            DOM.historyTableBody.innerHTML = html;
-
-            document.querySelectorAll('.view-detail').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.dataset.id;
-                    const report = allReports.find(r => r.id == id);
-                    if (report) openDetail(report);
+                DOM.darkToggle.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    setTheme(next);
                 });
-            });
+            }
 
-        } catch (err) {
-            console.error('Load history error:', err);
-            DOM.historyTableBody.innerHTML = `
-                <tr><td colspan="6" class="text-center text-danger py-4">Terjadi kesalahan: ${err.message}</td></tr>
-            `;
-        }
-    }
+            // =============================================
+            // LOAD USER INFO
+            // =============================================
+            function loadUserInfo() {
+                try {
+                    const session = BCS.Storage.getSession();
+                    if (session && session.user) {
+                        const user = session.user;
+                        const nama = user.nama || user.name || 'User';
+                        const role = user.role || 'User';
+                        DOM.userName.textContent = nama;
+                        DOM.userRole.textContent = role;
+                        DOM.userAvatar.textContent = nama.charAt(0).toUpperCase();
+                        if (DOM.nama) DOM.nama.value = nama;
+                        if (DOM.departemen) DOM.departemen.value = user.departemen || user.department || '';
+                        userInfo.nama = nama;
+                        userInfo.nik = session.nik || user.nik || '';
+                    }
+                } catch (e) {
+                    console.warn('Load user info error:', e);
+                }
+            }
 
-    // =============================================
-    // OPEN DETAIL MODAL
-    // =============================================
-    function openDetail(report) {
-        let html = `
-            <table class="table table-sm table-striped">
-                <tr><th>ID</th><td>${report.id || '-'}</td></tr>
-                <tr><th>Tanggal</th><td>${report.tanggal || report.createdAt || '-'}</td></tr>
-                <tr><th>Pelapor</th><td>${report.nama || report.pelapor || '-'}</td></tr>
-                <tr><th>Departemen</th><td>${report.departemen || '-'}</td></tr>
-                <tr><th>Kategori</th><td>${report.kategori || '-'}</td></tr>
-                <tr><th>Lokasi</th><td>${report.lokasi || '-'}</td></tr>
-                <tr><th>Prioritas</th><td>${report.prioritas || '-'}</td></tr>
-                <tr><th>Status</th><td>${report.status || '-'}</td></tr>
-                <tr><th>Deskripsi</th><td>${report.deskripsi || '-'}</td></tr>
-                <tr><th>Teknisi</th><td>${report.teknisi || '-'}</td></tr>
-                <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || '-'}</td></tr>
-                <tr><th>Foto</th><td>${report.foto ? `<a href="${report.foto}" target="_blank">Lihat Foto</a>` : '-'}</td></tr>
-            </table>
-        `;
-        document.getElementById('detailContent').innerHTML = html;
-        const modal = new bootstrap.Modal(document.getElementById('detailModal'));
-        modal.show();
-    }
+            // =============================================
+            // LOAD USER HISTORY
+            // =============================================
+            async function loadUserHistory() {
+                try {
+                    DOM.historyTableBody.innerHTML = `
+                        <tr><td colspan="6" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm mb-2"></div><br />
+                            Memuat riwayat...
+                        </td></tr>
+                    `;
+                    const response = await BCS.Api.post('getReport', {});
+                    if (!response || !response.success) {
+                        DOM.historyTableBody.innerHTML =
+                            `<tr><td colspan="6" class="text-center text-danger py-4">Gagal memuat riwayat</td></tr>`;
+                        return;
+                    }
+                    const allReports = response.data?.reports || [];
+                    const userNik = userInfo.nik.trim();
+                    const userNama = userInfo.nama.toLowerCase().trim();
 
-    // =============================================
-    // PHOTO HANDLING
-    // =============================================
-    function showPreview(file) {
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            DOM.previewImage.src = e.target.result;
-            DOM.previewImage.classList.remove('d-none');
-            DOM.previewPlaceholder.classList.add('d-none');
-            DOM.previewWrapper.classList.add('has-image');
-            DOM.removePhotoBtn.classList.remove('d-none');
-        };
-        reader.readAsDataURL(file);
-    }
+                    let myReports = allReports.filter(r => {
+                        const rNik = String(r.nik || '').trim();
+                        const rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
+                        if (userNik && rNik) return rNik === userNik;
+                        if (userNama && rNama) return rNama === userNama;
+                        return false;
+                    });
 
-    function clearPreview() {
-        DOM.previewImage.src = '';
-        DOM.previewImage.classList.add('d-none');
-        DOM.previewPlaceholder.classList.remove('d-none');
-        DOM.previewWrapper.classList.remove('has-image');
-        DOM.removePhotoBtn.classList.add('d-none');
-        DOM.photo.value = '';
-        currentFile = null;
-    }
+                    myReports.sort((a, b) => {
+                        const da = new Date(a.tanggal || a.createdAt || 0);
+                        const db = new Date(b.tanggal || b.createdAt || 0);
+                        return db - da;
+                    });
+                    myReports = myReports.slice(0, 5);
 
-    // =============================================
-    // SUBMIT REPORT
-    // =============================================
-    async function submitReport(e) {
-        e.preventDefault();
+                    if (myReports.length === 0) {
+                        DOM.historyTableBody.innerHTML =
+                            `<tr><td colspan="6" class="text-center text-muted py-4">Belum ada laporan yang Anda kirim</td></tr>`;
+                        return;
+                    }
 
-        const nama = DOM.nama.value.trim();
-        const departemen = DOM.departemen.value.trim();
-        const lokasi = DOM.lokasi.value.trim();
-        const kategori = DOM.kategori.value;
-        const prioritas = DOM.prioritas.value;
-        const deskripsi = DOM.deskripsi.value.trim();
+                    let html = '';
+                    myReports.forEach(r => {
+                        const status = r.status || 'OPEN';
+                        let badgeClass = 'status-open';
+                        if (status === 'DONE') badgeClass = 'status-done';
+                        else if (status === 'PROGRESS') badgeClass = 'status-progress';
 
-        if (!nama) { alert('Nama pelapor wajib diisi'); DOM.nama.focus(); return; }
-        if (!departemen) { alert('Departemen wajib diisi'); DOM.departemen.focus(); return; }
-        if (!lokasi) { alert('Lokasi kerusakan wajib diisi'); DOM.lokasi.focus(); return; }
-        if (!kategori) { alert('Pilih kategori'); DOM.kategori.focus(); return; }
-        if (!deskripsi || deskripsi.length < 5) { alert('Deskripsi minimal 5 karakter'); DOM.deskripsi.focus(); return; }
+                        const tanggal = r.tanggal || r.createdAt || '';
+                        const formattedDate = tanggal ? new Date(tanggal).toLocaleString('id-ID', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : '-';
 
-        let photoBase64 = '';
-        let filename = '';
-        if (currentFile) {
-            try {
+                        html += `
+                            <tr>
+                                <td><strong>${r.id || '-'}</strong></td>
+                                <td>${formattedDate}</td>
+                                <td>${r.kategori || '-'}</td>
+                                <td>${r.lokasi || '-'}</td>
+                                <td><span class="status-badge ${badgeClass}">${status}</span></td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary view-detail" data-id="${r.id}" title="Detail">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    DOM.historyTableBody.innerHTML = html;
+
+                    document.querySelectorAll('.view-detail').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const id = this.dataset.id;
+                            const report = allReports.find(r => r.id == id);
+                            if (report) openDetail(report);
+                        });
+                    });
+
+                } catch (err) {
+                    console.error('Load history error:', err);
+                    DOM.historyTableBody.innerHTML =
+                        `<tr><td colspan="6" class="text-center text-danger py-4">Terjadi kesalahan: ${err.message}</td></tr>`;
+                }
+            }
+
+            // =============================================
+            // OPEN DETAIL MODAL
+            // =============================================
+            function openDetail(report) {
+                let html = `
+                    <table class="table table-sm table-striped">
+                        <tr><th>ID</th><td>${report.id || '-'}</td></tr>
+                        <tr><th>Tanggal</th><td>${report.tanggal || report.createdAt || '-'}</td></tr>
+                        <tr><th>Pelapor</th><td>${report.nama || report.pelapor || '-'}</td></tr>
+                        <tr><th>Departemen</th><td>${report.departemen || '-'}</td></tr>
+                        <tr><th>Kategori</th><td>${report.kategori || '-'}</td></tr>
+                        <tr><th>Lokasi</th><td>${report.lokasi || '-'}</td></tr>
+                        <tr><th>Prioritas</th><td>${report.prioritas || '-'}</td></tr>
+                        <tr><th>Status</th><td>${report.status || '-'}</td></tr>
+                        <tr><th>Deskripsi</th><td>${report.deskripsi || '-'}</td></tr>
+                        <tr><th>Teknisi</th><td>${report.teknisi || '-'}</td></tr>
+                        <tr><th>Catatan Teknisi</th><td>${report.catatanTeknisi || '-'}</td></tr>
+                        <tr><th>Foto</th><td>${report.foto ? `<a href="${report.foto}" target="_blank">Lihat Foto</a>` : '-'}</td></tr>
+                    </table>
+                `;
+                document.getElementById('detailContent').innerHTML = html;
+                const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+                modal.show();
+            }
+
+            // =============================================
+            // PHOTO HANDLING
+            // =============================================
+            function showPreview(file) {
+                if (!file) return;
                 const reader = new FileReader();
-                const result = await new Promise((resolve, reject) => {
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(currentFile);
+                reader.onload = function(e) {
+                    DOM.previewImage.src = e.target.result;
+                    DOM.previewImage.classList.remove('d-none');
+                    DOM.previewPlaceholder.classList.add('d-none');
+                    DOM.previewWrapper.classList.add('has-image');
+                    DOM.removePhotoBtn.classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function clearPreview() {
+                DOM.previewImage.src = '';
+                DOM.previewImage.classList.add('d-none');
+                DOM.previewPlaceholder.classList.remove('d-none');
+                DOM.previewWrapper.classList.remove('has-image');
+                DOM.removePhotoBtn.classList.add('d-none');
+                DOM.photo.value = '';
+                currentFile = null;
+            }
+
+            // =============================================
+            // SUBMIT REPORT
+            // =============================================
+            async function submitReport(e) {
+                e.preventDefault();
+
+                const nama = DOM.nama.value.trim();
+                const departemen = DOM.departemen.value.trim();
+                const lokasi = DOM.lokasi.value.trim();
+                const kategori = DOM.kategori.value;
+                const prioritas = DOM.prioritas.value;
+                const deskripsi = DOM.deskripsi.value.trim();
+
+                if (!nama) { alert('Nama pelapor wajib diisi');
+                    DOM.nama.focus(); return; }
+                if (!departemen) { alert('Departemen wajib diisi');
+                    DOM.departemen.focus(); return; }
+                if (!lokasi) { alert('Lokasi kerusakan wajib diisi');
+                    DOM.lokasi.focus(); return; }
+                if (!kategori) { alert('Pilih kategori');
+                    DOM.kategori.focus(); return; }
+                if (!deskripsi || deskripsi.length < 5) { alert('Deskripsi minimal 5 karakter');
+                    DOM.deskripsi.focus(); return; }
+
+                let photoBase64 = '';
+                let filename = '';
+                if (currentFile) {
+                    try {
+                        const reader = new FileReader();
+                        const result = await new Promise((resolve, reject) => {
+                            reader.onload = () => resolve(reader.result);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(currentFile);
+                        });
+                        photoBase64 = result;
+                        filename = currentFile.name;
+                    } catch (err) {
+                        alert('Gagal membaca foto: ' + err.message);
+                        return;
+                    }
+                }
+
+                const session = BCS.Storage.getSession();
+                const nik = session?.nik || session?.user?.nik || '';
+
+                const payload = {
+                    nama,
+                    nik,
+                    departemen,
+                    lokasi,
+                    kategori,
+                    prioritas,
+                    deskripsi,
+                    photo: photoBase64,
+                    filename
+                };
+
+                DOM.loadingModal.show();
+
+                try {
+                    const response = await BCS.Api.post('saveReport', payload);
+                    DOM.loadingModal.hide();
+                    if (response && response.success) {
+                        DOM.successModal.show();
+                        resetForm();
+                        await loadUserHistory();
+                    } else {
+                        alert('❌ Gagal mengirim report: ' + (response?.message || 'Unknown error'));
+                    }
+                } catch (err) {
+                    DOM.loadingModal.hide();
+                    console.error('Submit error:', err);
+                    alert('❌ Terjadi kesalahan: ' + err.message);
+                }
+            }
+
+            // =============================================
+            // RESET FORM
+            // =============================================
+            function resetForm() {
+                DOM.lokasi.value = '';
+                DOM.kategori.value = '';
+                DOM.prioritas.value = 'NORMAL';
+                DOM.deskripsi.value = '';
+                clearPreview();
+                loadUserInfo();
+            }
+
+            // =============================================
+            // EVENT BINDING
+            // =============================================
+            DOM.takePhotoBtn.addEventListener('click', function() {
+                DOM.photo.setAttribute('capture', 'environment');
+                DOM.photo.click();
+                setTimeout(() => DOM.photo.removeAttribute('capture'), 100);
+            });
+
+            DOM.galleryBtn.addEventListener('click', function() {
+                DOM.photo.removeAttribute('capture');
+                DOM.photo.click();
+            });
+
+            DOM.photo.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Ukuran foto maksimal 5 MB');
+                        this.value = '';
+                        return;
+                    }
+                    currentFile = file;
+                    showPreview(file);
+                }
+            });
+
+            DOM.removePhotoBtn.addEventListener('click', clearPreview);
+            DOM.resetBtn.addEventListener('click', resetForm);
+            DOM.form.addEventListener('submit', submitReport);
+
+            // Logout handler
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.auth && typeof window.auth.logout === 'function') {
+                        window.auth.logout();
+                    } else {
+                        if (confirm('Apakah Anda yakin ingin keluar?')) {
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            window.location.href = 'login.html';
+                        }
+                    }
                 });
-                photoBase64 = result;
-                filename = currentFile.name;
-            } catch (err) {
-                alert('Gagal membaca foto: ' + err.message);
-                return;
             }
-        }
 
-        const session = BCS.Storage.getSession();
-        const nik = session?.nik || session?.user?.nik || '';
-
-        const payload = {
-            nama: nama,
-            nik: nik,
-            departemen: departemen,
-            lokasi: lokasi,
-            kategori: kategori,
-            prioritas: prioritas,
-            deskripsi: deskripsi,
-            photo: photoBase64,
-            filename: filename
-        };
-
-        console.log('📤 Payload:', payload);
-
-        DOM.loadingModal.show();
-
-        try {
-            const response = await BCS.Api.post('saveReport', payload);
-            console.log('📥 Response:', response);
-
-            DOM.loadingModal.hide();
-
-            if (response && response.success) {
-                DOM.successModal.show();
-                resetForm();
+            // =============================================
+            // INIT
+            // =============================================
+            async function init() {
+                initDarkMode();
+                loadUserInfo();
                 await loadUserHistory();
+                console.log('✅ Report page initialized with working light/dark mode');
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
             } else {
-                alert('❌ Gagal mengirim report: ' + (response?.message || 'Unknown error'));
+                init();
             }
-        } catch (err) {
-            DOM.loadingModal.hide();
-            console.error('Submit error:', err);
-            alert('❌ Terjadi kesalahan: ' + err.message);
-        }
-    }
 
-    // =============================================
-    // RESET FORM
-    // =============================================
-    function resetForm() {
-        DOM.lokasi.value = '';
-        DOM.kategori.value = '';
-        DOM.prioritas.value = 'NORMAL';
-        DOM.deskripsi.value = '';
-        clearPreview();
-        loadUserInfo();
-    }
-
-    // =============================================
-    // LOGOUT
-    // =============================================
-    document.getElementById('logoutBtn').addEventListener('click', function(e) {
-        e.preventDefault();
-        if (window.auth && typeof window.auth.logout === 'function') {
-            window.auth.logout();
-        } else {
-            if (confirm('Apakah Anda yakin ingin keluar?')) {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.href = 'login.html';
-            }
-        }
-    });
-
-    // =============================================
-    // EVENT BINDING
-    // =============================================
-    DOM.takePhotoBtn.addEventListener('click', function() {
-        DOM.photo.setAttribute('capture', 'environment');
-        DOM.photo.click();
-        setTimeout(() => DOM.photo.removeAttribute('capture'), 100);
-    });
-
-    DOM.galleryBtn.addEventListener('click', function() {
-        DOM.photo.removeAttribute('capture');
-        DOM.photo.click();
-    });
-
-    DOM.photo.addEventListener('change', function() {
-        const file = this.files[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                alert('Ukuran foto maksimal 5 MB');
-                this.value = '';
-                return;
-            }
-            currentFile = file;
-            showPreview(file);
-        }
-    });
-
-    DOM.removePhotoBtn.addEventListener('click', clearPreview);
-    DOM.resetBtn.addEventListener('click', resetForm);
-    DOM.form.addEventListener('submit', submitReport);
-
-    // =============================================
-    // INIT
-    // =============================================
-    async function init() {
-        initDarkMode();
-        loadUserInfo();
-        await loadUserHistory();
-        console.log('✅ Report page initialized with dynamic sidebar');
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
-})();
-</script>
+        })();
+    </script>
 
 </body>
+
 </html>

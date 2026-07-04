@@ -1,688 +1,970 @@
 // =====================================================
-// Building Care System Enterprise v7.1 (Enterprise Edition)
-// history.js - Vanilla JS Version (No jQuery Dependency)
-// ROLE USER/ADMIN - RESPONSIVE TRANSACTION HISTORY
+// Building Care System Enterprise v7.2
+// history.js - Fully integrated with getReports backend
 // Radiant Group Duri
 // =====================================================
 
 "use strict";
 
-/**
- * ======================================================
- * DOM HELPER FUNCTIONS (Vanilla JS - No jQuery)
- * ======================================================
- */
-const $ = (selector, context = document) => {
-    if (typeof selector === 'string') {
-        return context.querySelector(selector);
-    }
-    return selector;
-};
+(function() {
+    'use strict';
 
-const $$ = (selector, context = document) => {
-    return Array.from(context.querySelectorAll(selector));
-};
+    // ============================================================
+    //  DOM HELPERS
+    // ============================================================
+    const $ = (sel, ctx = document) => ctx.querySelector(sel);
+    const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
 
-// jQuery-like wrapper untuk memudahkan transisi
-function q(selector) {
-    const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
-    if (!el) return null;
-    
-    return {
-        el: el,
-        // DOM Manipulation
-        html: (content) => { if (content !== undefined) { el.innerHTML = content; return q(el); } return el.innerHTML; },
-        text: (content) => { if (content !== undefined) { el.textContent = content; return q(el); } return el.textContent; },
-        val: (value) => { if (value !== undefined) { el.value = value; return q(el); } return el.value; },
-        attr: (name, value) => { if (value !== undefined) { el.setAttribute(name, value); return q(el); } return el.getAttribute(name); },
-        data: (name) => el.dataset[name],
-        
-        // CSS Classes
-        addClass: (...classes) => { classes.forEach(c => el.classList.add(c)); return q(el); },
-        removeClass: (...classes) => { classes.forEach(c => el.classList.remove(c)); return q(el); },
-        toggleClass: (...classes) => { classes.forEach(c => el.classList.toggle(c)); return q(el); },
-        hasClass: (className) => el.classList.contains(className),
-        
-        // Events
-        on: (event, selector, handler) => {
-            if (typeof selector === 'function') {
-                // Direct event binding
-                el.addEventListener(event, selector);
-                return q(el);
-            }
-            // Event delegation
-            el.addEventListener(event, function(e) {
-                const target = e.target.closest(selector);
-                if (target) {
-                    handler.call(target, e);
-                }
-            });
-            return q(el);
-        },
-        off: (event, handler) => {
-            el.removeEventListener(event, handler);
-            return q(el);
-        },
-        
-        // Show/Hide
-        show: () => { el.style.display = ''; return q(el); },
-        hide: () => { el.style.display = 'none'; return q(el); },
-        
-        // Parent/Children
-        parent: () => q(el.parentElement),
-        find: (selector) => q(el.querySelector(selector)),
-        findAll: (selector) => $$(selector, el),
-        
-        // Data
-        get: () => el,
-        length: el ? 1 : 0
-    };
-}
-
-// Global $ function untuk kompatibilitas
-window.$ = (selector) => q(selector);
-
-// Register module ke BCS
-BCS.Modules.register("history", (() => {
-
-    // 4. CENTRALIZED CONSTANTS ENGINE (Anti-Magic String & Object Freeze)
-    const TAG = "HistoryModule";
-    const SELECTOR_ACTIVE_CLASS = "active";
-    
-    const STATUS = Object.freeze({
-        OPEN: "OPEN",
-        PROGRESS: "PROGRESS",
-        DONE: "DONE"
-    });
-
-    const PRIORITY = Object.freeze({
-        TINGGI: "TINGGI",
-        NORMAL: "NORMAL",
-        RENDAH: "RENDAH"
-    });
-
-    // STATE ENGINE ENTERPRISE
+    // ============================================================
+    //  STATE
+    // ============================================================
     const state = {
         reports: [],
         filtered: [],
-        summary: {
-            total: 0,
-            open: 0,
-            progress: 0,
-            done: 0
-        },
-        search: "",
-        status: "",
-        sort: "desc",
-        pagination: {
-            page: 1,
-            perPage: 10
-        },
-        ui: {
-            loading: false
-        }
+        currentPage: 1,
+        perPage: 10,
+        search: '',
+        status: '',
+        sort: 'desc',
+        loading: false,
+        currentDetail: null
     };
 
-    // DOM CACHE CONTAINER
-    let DOM = {};
-    function initDOMCache() {
-        DOM = {
-            // Container & Wrappers
-            tableBody: q("#historyTableBody"),
-            mobileContainer: q("#historyMobileContainer"),
-            emptyState: q("#historyEmptyState"),
-            paginationContainer: q("#historyPagination"),
-            
-            // Filtering & Inputs
-            searchField: q("#historySearch"),
-            statusFilter: q("#historyStatusFilter"),
-            sortTrigger: q("#historySortTrigger"),
-            
-            // Summary Widgets
-            cardTotal: q("#cardTotal"),
-            cardOpen: q("#cardOpen"),
-            cardProgress: q("#cardProgress"),
-            cardDone: q("#cardDone"),
-            
-            // Modals Form Cache
-            photoModal: q("#photoModal"),
-            detailModal: q("#detailModal"),
-            updateModal: q("#updateModal"),
-            
-            // Modal Inputs & Fields
-            photoImg: q("#photoImg"),
-            detailContent: q("#detailContent"),
-            updateId: q("#updateId"),
-            updateStatus: q("#updateStatus"),
-            updateTeknisi: q("#updateTeknisi"),
-            updateCatatan: q("#updateCatatan"),
-            btnSaveUpdate: q("#btnSaveUpdate")
-        };
+    // DOM cache
+    const DOM = {};
+
+    function cacheDom() {
+        DOM.tableBody = $('#historyTableBody');
+        DOM.pagination = $('#pagination');
+        DOM.emptyState = $('#emptyState');
+        DOM.searchInput = $('#searchInput');
+        DOM.filterStatus = $('#filterStatus');
+        DOM.sortOrder = $('#sortOrder');
+        DOM.cardTotal = $('#cardTotal');
+        DOM.cardOpen = $('#cardOpen');
+        DOM.cardProgress = $('#cardProgress');
+        DOM.cardDone = $('#cardDone');
+        DOM.totalReports = $('#totalReports');
+        DOM.detailContent = $('#detailContent');
+        DOM.updateId = $('#updateId');
+        DOM.updateStatus = $('#updateStatus');
+        DOM.updateTeknisi = $('#updateTeknisi');
+        DOM.updateCatatan = $('#updateCatatan');
+        DOM.modalPhoto = $('#modalPhoto');
+        DOM.loading = $('#loading');
+        DOM.refreshBtn = $('#refreshBtn');
+        DOM.exportExcelBtn = $('#exportExcelBtn');
+        DOM.exportPdfBtn = $('#exportPdfBtn');
+        DOM.exportDetailPdfBtn = $('#exportDetailPdfBtn');
+        DOM.saveUpdateBtn = $('#saveUpdateBtn');
+        DOM.darkModeToggle = $('#darkModeToggle');
+        DOM.darkModeIcon = $('#darkModeIcon');
+        DOM.userName = $('#userName');
+        DOM.userRole = $('#userRole');
+        DOM.userAvatar = $('#userAvatar');
+        DOM.sidebarNav = $('#sidebarNav');
+        DOM.totalTrend = $('#totalTrend');
+        DOM.openTrend = $('#openTrend');
+        DOM.progressTrend = $('#progressTrend');
+        DOM.doneTrend = $('#doneTrend');
     }
 
-    // ==========================================
-    // INITIALIZATION LIFECYCLE
-    // ==========================================
-    async function init() {
-        BCS.Logger.debug(TAG, "Memulai inisialisasi modul history.");
-        initDOMCache();
-        
-        // Event Bus Listener Subscriber
-        BCS.Events.on("report:created", handleReportCreated);
-        
-        bindEvents();
-        await loadReports();
-        BCS.Logger.info(TAG, "Lifecycle Init history selesai.");
+    // ============================================================
+    //  TOAST
+    // ============================================================
+    function showToast(msg, type = 'success') {
+        if (typeof Swal !== 'undefined') {
+            Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            }).fire({
+                icon: type === 'success' ? 'success' : type === 'error' ? 'error' : 'warning',
+                title: type === 'success' ? 'Berhasil!' : type === 'error' ? 'Gagal!' : 'Peringatan!',
+                text: msg
+            });
+        } else {
+            console.log(`[Toast] ${type}: ${msg}`);
+        }
     }
 
-    // ==========================================
-    // EVENTS BINDING ENGINE
-    // ==========================================
-    function bindEvents() {
-        BCS.Logger.trace(TAG, "Melakukan binding event listener filters.");
+    // ============================================================
+    //  LOADING
+    // ============================================================
+    function showLoading() {
+        if (DOM.loading) DOM.loading.classList.add('show');
+        state.loading = true;
+    }
 
-        // Search Trigger
-        if (DOM.searchField && DOM.searchField.el) {
-            DOM.searchField.el.addEventListener("input", function() {
-                state.search = this.value.toLowerCase();
-                state.pagination.page = 1;
-                executeProcessingPipeline();
-            });
+    function hideLoading() {
+        if (DOM.loading) DOM.loading.classList.remove('show');
+        state.loading = false;
+    }
+
+    // ============================================================
+    //  DATE HELPERS
+    // ============================================================
+    function parseDate(str) {
+        if (!str) return null;
+        const d = new Date(str);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    function formatDate(str) {
+        const d = parseDate(str);
+        if (!d) return '-';
+        return d.toLocaleDateString('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).replace('.', ':');
+    }
+
+    function isDateInRange(dateStr, start, end) {
+        const d = parseDate(dateStr);
+        if (!d) return false;
+        const dateOnly = d.toISOString().split('T')[0];
+        if (start && dateOnly < start.toISOString().split('T')[0]) return false;
+        if (end && dateOnly > end.toISOString().split('T')[0]) return false;
+        return true;
+    }
+
+    function getTodayRange() {
+        const now = new Date();
+        return { start: now, end: now };
+    }
+
+    function getWeekRange() {
+        const now = new Date();
+        const start = new Date(now);
+        start.setDate(now.getDate() - now.getDay());
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        end.setHours(23, 59, 59, 999);
+        return { start, end };
+    }
+
+    function getMonthRange() {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        end.setHours(23, 59, 59, 999);
+        return { start, end };
+    }
+
+    function getLast3MonthsRange() {
+        const now = new Date();
+        const start = new Date(now);
+        start.setMonth(now.getMonth() - 3);
+        start.setDate(1);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        end.setHours(23, 59, 59, 999);
+        return { start, end };
+    }
+
+    // ============================================================
+    //  ESCAPE HTML
+    // ============================================================
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // ============================================================
+    //  TRUNCATE TEXT
+    // ============================================================
+    function truncate(str, len = 30) {
+        if (!str) return '-';
+        if (str.length <= len) return str;
+        return str.substring(0, len) + '...';
+    }
+
+    // ============================================================
+    //  DARK MODE
+    // ============================================================
+    function initDarkMode() {
+        if (!DOM.darkModeToggle) return;
+        const saved = localStorage.getItem('bcs_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', saved);
+        updateDarkIcon(saved);
+
+        DOM.darkModeToggle.addEventListener('click', function() {
+            const cur = document.documentElement.getAttribute('data-theme');
+            const next = cur === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('bcs_theme', next);
+            updateDarkIcon(next);
+        });
+    }
+
+    function updateDarkIcon(theme) {
+        if (!DOM.darkModeIcon) return;
+        if (theme === 'dark') {
+            DOM.darkModeIcon.className = 'bi bi-sun-fill';
+            DOM.darkModeIcon.style.color = '#ffd700';
+        } else {
+            DOM.darkModeIcon.className = 'bi bi-moon-fill';
+            DOM.darkModeIcon.style.color = '';
         }
+    }
 
-        // Filter Status Trigger
-        if (DOM.statusFilter && DOM.statusFilter.el) {
-            DOM.statusFilter.el.addEventListener("change", function() {
-                state.status = this.value;
-                state.pagination.page = 1;
-                executeProcessingPipeline();
-            });
+    // ============================================================
+    //  USER INFO
+    // ============================================================
+    function loadUserInfo() {
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const user = session.user;
+                const nama = user.nama || user.name || 'User';
+                const role = user.role || 'User';
+                if (DOM.userName) DOM.userName.textContent = nama;
+                if (DOM.userRole) DOM.userRole.textContent = role;
+                if (DOM.userAvatar) DOM.userAvatar.textContent = nama.charAt(0).toUpperCase() || 'U';
+            }
+        } catch (e) {
+            console.warn('Load user info error:', e);
         }
+    }
 
-        // Sort Sorting Order Trigger
-        if (DOM.sortTrigger && DOM.sortTrigger.el) {
-            DOM.sortTrigger.el.addEventListener("click", function() {
-                state.sort = state.sort === "desc" ? "asc" : "desc";
-                executeProcessingPipeline();
-            });
-        }
-
-        // 1. HIGH-PERFORMANCE EVENT DELEGATION (CSP-Ready Security compliance)
-        if (DOM.paginationContainer && DOM.paginationContainer.el) {
-            DOM.paginationContainer.el.addEventListener("click", function(e) {
-                const target = e.target.closest(".page-link-nav");
-                if (!target) return;
-                
-                e.preventDefault();
-                const action = target.dataset.action;
-                const pageNum = target.dataset.page;
-
-                if (pageNum !== undefined) {
-                    Pagination.goPage(parseInt(pageNum, 10));
-                } else if (action && typeof Pagination[action] === "function") {
-                    Pagination[action]();
+    // ============================================================
+    //  SIDEBAR
+    // ============================================================
+    function initSidebar() {
+        // Sidebar.js sudah menangani render, hanya pastikan menu history aktif
+        setTimeout(() => {
+            const menus = $$('.sidebar nav a.menu');
+            menus.forEach(m => {
+                if (m.getAttribute('href') && m.getAttribute('href').includes('history')) {
+                    m.classList.add('active');
+                } else {
+                    m.classList.remove('active');
                 }
             });
-        }
-
-        // Modal Action Trigger via Document Delegation
-        document.addEventListener("click", function(e) {
-            const target = e.target.closest(".btn-show-photo");
-            if (target) {
-                openPhotoModal(target.dataset.src);
-                return;
-            }
-            
-            const detailTarget = e.target.closest(".btn-show-detail");
-            if (detailTarget) {
-                openDetailModal(detailTarget.dataset.id);
-                return;
-            }
-            
-            const updateTarget = e.target.closest(".btn-show-update");
-            if (updateTarget) {
-                openUpdateModal(updateTarget.dataset.id);
-                return;
-            }
-        });
-
-        if (DOM.btnSaveUpdate && DOM.btnSaveUpdate.el) {
-            DOM.btnSaveUpdate.el.addEventListener("click", saveUpdate);
-        }
+        }, 100);
     }
 
-    // Realtime Event Bus Callback Handler
-    async function handleReportCreated(eventData) {
-        BCS.Logger.info(TAG, "Event 'report:created' terdeteksi, merefresh data saji.", eventData);
-        await loadReports();
-    }
+    // ============================================================
+    //  FETCH REPORTS (Menggunakan getReports dari backend)
+    // ============================================================
+    async function fetchReports() {
+        if (state.loading) return;
+        showLoading();
 
-    // ==========================================
-    // API CONNECTOR LAYER
-    // ==========================================
-    async function loadReports() {
-        if (state.ui.loading) return;
-        
-        state.ui.loading = true;
-        BCS.App.Loading.show();
-        
-        // 5. PERFORMANCE BENCHMARK LOGGER START
-        const startTime = performance.now();
+        if (DOM.tableBody) {
+            DOM.tableBody.innerHTML =
+                '<tr><td colspan="11" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Sedang memuat data...</td></tr>';
+        }
 
         try {
-            // Pastikan BCS.Api tersedia
             const api = window.BCS.Api || window.Api;
-            if (!api) {
-                throw new Error("API tidak tersedia");
+            if (!api) throw new Error('API tidak tersedia');
+
+            const response = await api.post('getReports', {});
+            console.log('[History] getReports response:', response);
+
+            let reports = [];
+            if (response && response.success) {
+                reports = response.data?.reports || [];
+            } else {
+                throw new Error(response?.message || 'Gagal memuat data');
             }
 
-            const response = await api.post("getHistory", {});
+            // Filter berdasarkan role user (bukan admin hanya melihat laporannya sendiri)
+            const session = BCS.Storage.getSession();
+            const user = session?.user || {};
+            const role = (user.role || '').toUpperCase();
 
-            if (!response || !response.success) {
-                BCS.App.Toast.error(response?.message || "Gagal memuat riwayat");
-                return;
+            if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
+                const userNik = (user.nik || '').trim();
+                const userNama = (user.nama || '').toLowerCase().trim();
+
+                if (userNik || userNama) {
+                    reports = reports.filter(function(r) {
+                        const rNik = String(r.nik || '').trim();
+                        const rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
+                        if (userNik && rNik) return rNik === userNik;
+                        if (userNama && rNama) return rNama === userNama;
+                        return false;
+                    });
+                }
             }
 
-            state.reports = response.data?.reports || [];
-            
-            // 5. PERFORMANCE BENCHMARK LOGGER END
-            const elapsedTime = (performance.now() - startTime).toFixed(2);
-            BCS.Logger.info(TAG, `Data riwayat berhasil dimuat dari API. ${elapsedTime}ms`);
-
-            executeProcessingPipeline();
+            state.reports = reports;
+            applyFilters();
 
         } catch (err) {
-            BCS.Logger.error(TAG, "Error loading reports:", err);
-            BCS.App.Toast.error("Gagal memuat data riwayat");
+            console.error('[History] Fetch error:', err);
+            showToast('Gagal memuat data: ' + err.message, 'error');
+            state.reports = [];
+            applyFilters();
         } finally {
-            state.ui.loading = false;
-            BCS.App.Loading.hide();
+            hideLoading();
         }
     }
 
-    // ==========================================
-    // FILTER & SORT ENGINE
-    // ==========================================
-    function applyFilter() {
-        state.filtered = state.reports.filter(report => {
-            const matchSearch = !state.search || 
-                (report.lokasi && report.lokasi.toLowerCase().includes(state.search)) ||
-                (report.deskripsi && report.deskripsi.toLowerCase().includes(state.search)) ||
-                (report.kategori && report.kategori.toLowerCase().includes(state.search));
-                
-            const matchStatus = !state.status || report.status === state.status;
+    // ============================================================
+    //  APPLY FILTERS
+    // ============================================================
+    function applyFilters() {
+        const keyword = DOM.searchInput ? DOM.searchInput.value.toLowerCase().trim() : '';
+        const status = DOM.filterStatus ? DOM.filterStatus.value : '';
+        const sort = DOM.sortOrder ? DOM.sortOrder.value : 'desc';
 
-            return matchSearch && matchStatus;
+        let result = state.reports.slice();
+
+        // Search filter
+        if (keyword) {
+            result = result.filter(function(r) {
+                return (r.id || '').toLowerCase().includes(keyword) ||
+                    (r.nama || r.pelapor || '').toLowerCase().includes(keyword) ||
+                    (r.departemen || '').toLowerCase().includes(keyword) ||
+                    (r.kategori || '').toLowerCase().includes(keyword) ||
+                    (r.lokasi || '').toLowerCase().includes(keyword) ||
+                    (r.deskripsi || '').toLowerCase().includes(keyword);
+            });
+        }
+
+        // Status filter
+        if (status) {
+            result = result.filter(function(r) { return (r.status || '').toUpperCase() === status; });
+        }
+
+        // Quick date filter
+        const activePill = document.querySelector('.quick-pills .pill.active');
+        if (activePill) {
+            const range = activePill.dataset.range;
+            let start, end;
+            switch (range) {
+                case 'today':
+                    const tr = getTodayRange();
+                    start = tr.start;
+                    end = tr.end;
+                    break;
+                case 'week':
+                    const wr = getWeekRange();
+                    start = wr.start;
+                    end = wr.end;
+                    break;
+                case 'month':
+                    const mr = getMonthRange();
+                    start = mr.start;
+                    end = mr.end;
+                    break;
+                case 'last3months':
+                    const lr = getLast3MonthsRange();
+                    start = lr.start;
+                    end = lr.end;
+                    break;
+            }
+            if (start || end) {
+                result = result.filter(function(r) {
+                    return isDateInRange(r.tanggal || r.createdAt, start, end);
+                });
+            }
+        }
+
+        // Sort
+        result.sort(function(a, b) {
+            const dateA = new Date(a.tanggal || a.createdAt || 0);
+            const dateB = new Date(b.tanggal || b.createdAt || 0);
+            return sort === 'desc' ? dateB - dateA : dateA - dateB;
         });
+
+        state.filtered = result;
+        state.currentPage = 1;
+        renderAll();
     }
 
-    function applySort() {
-        state.filtered.sort((a, b) => {
-            const dateA = new Date(a.tanggal || a.timestamp);
-            const dateB = new Date(b.tanggal || b.timestamp);
-            return state.sort === "desc" ? dateB - dateA : dateA - dateB;
-        });
-    }
-
-    function executeProcessingPipeline() {
-        applyFilter();
-        applySort();
-        buildSummary(); 
-        render();
-    }
-
-    // ==========================================
-    // PAGINATION CONTROLLER ENGINE
-    // ==========================================
-    const Pagination = {
-        getPaginatedData() {
-            const start = (state.pagination.page - 1) * state.pagination.perPage;
-            const end = start + state.pagination.perPage;
-            return state.filtered.slice(start, end);
-        },
-        getTotalPages() {
-            return Math.ceil(state.filtered.length / state.pagination.perPage) || 1;
-        },
-        next() {
-            if (state.pagination.page < this.getTotalPages()) {
-                state.pagination.page++;
-                render();
-            }
-        },
-        prev() {
-            if (state.pagination.page > 1) {
-                state.pagination.page--;
-                render();
-            }
-        },
-        first() {
-            if (state.pagination.page !== 1) {
-                state.pagination.page = 1;
-                render();
-            }
-        },
-        last() {
-            const lastPage = this.getTotalPages();
-            if (state.pagination.page !== lastPage) {
-                state.pagination.page = lastPage;
-                render();
-            }
-        },
-        goPage(pageNum) {
-            const target = parseInt(pageNum, 10);
-            if (target >= 1 && target <= this.getTotalPages()) {
-                state.pagination.page = target;
-                render();
-            }
-        }
-    };
-
-    // ==========================================
-    // 3. OPTIMIZED SUMMARY BUILDER (Single-Loop Algorithm O(N))
-    // ==========================================
-    function buildSummary() {
-        let total = state.reports.length;
-        let open = 0;
-        let progress = 0;
-        let done = 0;
-
-        for (let i = 0; i < total; i++) {
-            const currentStatus = state.reports[i].status;
-            if (currentStatus === STATUS.OPEN) open++;
-            else if (currentStatus === STATUS.PROGRESS) progress++;
-            else if (currentStatus === STATUS.DONE) done++;
-        }
-
-        state.summary.total = total;
-        state.summary.open = open;
-        state.summary.progress = progress;
-        state.summary.done = done;
-    }
-
-    // ==========================================
-    // PIPELINE UNIFIED RENDER LAYER
-    // ==========================================
-    function render() {
+    // ============================================================
+    //  RENDER ALL
+    // ============================================================
+    function renderAll() {
         renderSummary();
-        
-        if (state.filtered.length === 0) {
-            renderEmpty();
-            return;
-        }
-
-        if (DOM.emptyState && DOM.emptyState.el) {
-            DOM.emptyState.el.classList.remove("d-none");
-        }
-        renderTable();       
-        renderMobileCards(); 
+        renderTable();
         renderPagination();
     }
 
+    // ============================================================
+    //  RENDER SUMMARY
+    // ============================================================
     function renderSummary() {
-        if (DOM.cardTotal && DOM.cardTotal.el) DOM.cardTotal.el.textContent = state.summary.total;
-        if (DOM.cardOpen && DOM.cardOpen.el) DOM.cardOpen.el.textContent = state.summary.open;
-        if (DOM.cardProgress && DOM.cardProgress.el) DOM.cardProgress.el.textContent = state.summary.progress;
-        if (DOM.cardDone && DOM.cardDone.el) DOM.cardDone.el.textContent = state.summary.done;
+        const total = state.filtered.length;
+        const open = state.filtered.filter(function(r) { return (r.status || '').toUpperCase() === 'OPEN'; }).length;
+        const progress = state.filtered.filter(function(r) { return (r.status || '').toUpperCase() === 'PROGRESS'; })
+        .length;
+        const done = state.filtered.filter(function(r) { return (r.status || '').toUpperCase() === 'DONE'; }).length;
+
+        if (DOM.cardTotal) DOM.cardTotal.textContent = total;
+        if (DOM.cardOpen) DOM.cardOpen.textContent = open;
+        if (DOM.cardProgress) DOM.cardProgress.textContent = progress;
+        if (DOM.cardDone) DOM.cardDone.textContent = done;
+        if (DOM.totalReports) DOM.totalReports.textContent = total;
+
+        // Trends (minggu lalu)
+        const now = new Date();
+        const weekAgo = new Date(now);
+        weekAgo.setDate(now.getDate() - 7);
+
+        const lastWeek = state.reports.filter(function(r) {
+            const d = parseDate(r.tanggal || r.createdAt);
+            if (!d) return false;
+            return d >= weekAgo;
+        });
+
+        const lwTotal = lastWeek.length;
+        const lwOpen = lastWeek.filter(function(r) { return (r.status || '').toUpperCase() === 'OPEN'; }).length;
+        const lwProgress = lastWeek.filter(function(r) { return (r.status || '').toUpperCase() === 'PROGRESS'; }).length;
+        const lwDone = lastWeek.filter(function(r) { return (r.status || '').toUpperCase() === 'DONE'; }).length;
+
+        if (DOM.totalTrend) DOM.totalTrend.textContent = total - lwTotal;
+        if (DOM.openTrend) DOM.openTrend.textContent = open - lwOpen;
+        if (DOM.progressTrend) DOM.progressTrend.textContent = progress - lwProgress;
+        if (DOM.doneTrend) DOM.doneTrend.textContent = done - lwDone;
     }
 
+    // ============================================================
+    //  RENDER TABLE
+    // ============================================================
     function renderTable() {
-        if (!DOM.tableBody || !DOM.tableBody.el) return;
-        
-        const paginatedData = Pagination.getPaginatedData();
-        let html = "";
+        if (!DOM.tableBody) return;
 
-        paginatedData.forEach((report, index) => {
-            const globalIndex = (state.pagination.page - 1) * state.pagination.perPage + index + 1;
-            html += `
-                <tr>
-                    <td>${globalIndex}</td>
-                    <td>${formatBadge(report.status)}</td>
-                    <td><strong>${escapeHtml(report.lokasi)}</strong></td>
-                    <td>${escapeHtml(report.kategori)}</td>
-                    <td>${formatPriority(report.prioritas)}</td>
-                    <td>${formatDate(report.tanggal || report.timestamp)}</td>
-                    <td>
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-primary btn-show-detail" data-id="${escapeHtml(report.id)}"><i class="bi bi-eye"></i></button>
-                            ${report.photo ? `<button class="btn btn-outline-secondary btn-show-photo" data-src="${escapeHtml(report.photo)}"><i class="bi bi-image"></i></button>` : ""}
-                            <button class="btn btn-outline-warning btn-show-update" data-id="${escapeHtml(report.id)}"><i class="bi bi-pencil-square"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        });
+        const start = (state.currentPage - 1) * state.perPage;
+        const pageData = state.filtered.slice(start, start + state.perPage);
 
-        DOM.tableBody.el.innerHTML = html;
-    }
+        if (pageData.length === 0) {
+            DOM.tableBody.innerHTML =
+                '<tr><td colspan="11" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Tidak ada data</td></tr>';
+            if (DOM.emptyState) DOM.emptyState.classList.remove('d-none');
+            return;
+        }
+        if (DOM.emptyState) DOM.emptyState.classList.add('d-none');
 
-    function renderMobileCards() {
-        if (!DOM.mobileContainer || !DOM.mobileContainer.el) return;
-        
-        const paginatedData = Pagination.getPaginatedData();
-        let html = "";
+        let html = '';
+        pageData.forEach(function(r, idx) {
+            const globalIdx = start + idx + 1;
+            const status = (r.status || 'OPEN').toUpperCase();
+            const statusClass = status === 'OPEN' ? 'open' : status === 'PROGRESS' ? 'progress' : 'done';
 
-        paginatedData.forEach(report => {
-            html += `
-                <div class="card mb-2 shadow-sm border-start-0 border-top-0 border-bottom-0">
-                    <div class="card-body p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            ${formatBadge(report.status)}
-                            <small class="text-muted"><i class="bi bi-clock-history"></i> ${formatRelativeTime(report.tanggal || report.timestamp)}</small>
-                        </div>
-                        <h6 class="card-title fw-bold mb-1">${escapeHtml(report.kategori || "General Report")}</h6>
-                        <p class="card-text text-secondary small mb-2"><i class="bi bi-geo-alt-fill"></i> ${escapeHtml(report.lokasi)}</p>
-                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                            <div>${formatPriority(report.prioritas)}</div>
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-light text-primary btn-show-detail" data-id="${escapeHtml(report.id)}"><i class="bi bi-info-circle"></i> Detail</button>
-                                <button class="btn btn-light text-warning btn-show-update" data-id="${escapeHtml(report.id)}"><i class="bi bi-gear"></i> Status</button>
-                            </div>
-                        </div>
+            const prioritas = r.prioritas || r.priority || 'NORMAL';
+            const prioritasBadge = prioritas === 'HIGH' || prioritas === 'TINGGI' ?
+                '<span class="badge bg-danger" style="font-size:9px;">TINGGI</span>' :
+                prioritas === 'MEDIUM' || prioritas === 'SEDANG' ?
+                '<span class="badge bg-warning text-dark" style="font-size:9px;">SEDANG</span>' :
+                '<span class="badge bg-secondary" style="font-size:9px;">RENDAH</span>';
+
+            const hasPhoto = r.foto && r.foto.trim() !== '';
+
+            html +=
+                `
+            <tr>
+                <td class="report-id">${globalIdx}</td>
+                <td><span class="badge-status ${statusClass}">${status}</span></td>
+                <td class="report-id">${escapeHtml(r.id || '-')}</td>
+                <td>${escapeHtml(r.nama || r.pelapor || '-')}</td>
+                <td>${escapeHtml(r.departemen || '-')}</td>
+                <td>${escapeHtml(r.kategori || '-')}</td>
+                <td>${escapeHtml(r.lokasi || '-')}</td>
+                <td><span class="text-truncate-2" title="${escapeHtml(r.deskripsi || '-')}">${escapeHtml(truncate(r.deskripsi || '-', 35))}</span></td>
+                <td>${prioritasBadge}</td>
+                <td>${formatDate(r.tanggal || r.createdAt)}</td>
+                <td>
+                    <div class="d-flex gap-1">
+                        <button class="btn-action primary view-detail" data-id="${escapeHtml(r.id)}" title="Detail"><i class="bi bi-eye"></i></button>
+                        ${hasPhoto ? `<button class="btn-action view-photo" data-src="${escapeHtml(r.foto)}" title="Foto"><i class="bi bi-image"></i></button>` : ''}
+                        <button class="btn-action warning edit-report" data-id="${escapeHtml(r.id)}" title="Update"><i class="bi bi-pencil-square"></i></button>
                     </div>
-                </div>
-            `;
+                </td>
+            </tr>
+        `;
         });
 
-        DOM.mobileContainer.el.innerHTML = html;
+        DOM.tableBody.innerHTML = html;
     }
 
+    // ============================================================
+    //  RENDER PAGINATION
+    // ============================================================
     function renderPagination() {
-        if (!DOM.paginationContainer || !DOM.paginationContainer.el) return;
-        
-        const totalPages = Pagination.getTotalPages();
-        let html = "";
+        if (!DOM.pagination) return;
+        const totalPages = Math.ceil(state.filtered.length / state.perPage);
+        if (totalPages <= 1) {
+            DOM.pagination.innerHTML = '';
+            return;
+        }
 
-        html += `<li class="page-item ${state.pagination.page === 1 ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-action="first"><i class="bi bi-chevron-double-left"></i></a></li>`;
-        html += `<li class="page-item ${state.pagination.page === 1 ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-action="prev"><i class="bi bi-chevron-left"></i></a></li>`;
+        let html = '';
+        html += '<li class="page-item ' + (state.currentPage === 1 ? 'disabled' : '') +
+            '"><a class="page-link" href="#" data-page="' + (state.currentPage - 1) + '">&laquo;</a></li>';
 
         for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= state.pagination.page - 1 && i <= state.pagination.page + 1)) {
-                html += `<li class="page-item ${state.pagination.page === i ? 'active' : ''}"><a class="page-link page-link-nav" href="#" data-page="${i}">${i}</a></li>`;
-            } else if (i === state.pagination.page - 2 || i === state.pagination.page + 2) {
-                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            if (i === 1 || i === totalPages || (i >= state.currentPage - 1 && i <= state.currentPage + 1)) {
+                html += '<li class="page-item ' + (i === state.currentPage ? 'active' : '') +
+                    '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
+            } else if (i === state.currentPage - 2 || i === state.currentPage + 2) {
+                html += '<li class="page-item disabled"><span class="page-link">…</span></li>';
             }
         }
 
-        html += `<li class="page-item ${state.pagination.page === totalPages ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-page="${state.pagination.page + 1}"><i class="bi bi-chevron-right"></i></a></li>`;
-        html += `<li class="page-item ${state.pagination.page === totalPages ? 'disabled' : ''}"><a class="page-link page-link-nav" href="#" data-action="last"><i class="bi bi-chevron-double-right"></i></a></li>`;
+        html += '<li class="page-item ' + (state.currentPage === totalPages ? 'disabled' : '') +
+            '"><a class="page-link" href="#" data-page="' + (state.currentPage + 1) + '">&raquo;</a></li>';
+        DOM.pagination.innerHTML = html;
 
-        DOM.paginationContainer.el.innerHTML = html;
+        DOM.pagination.querySelectorAll('.page-link').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = parseInt(this.dataset.page);
+                if (page && page >= 1 && page <= totalPages) {
+                    state.currentPage = page;
+                    renderTable();
+                    renderPagination();
+                }
+            });
+        });
     }
 
-    function renderEmpty() {
-        if (DOM.tableBody && DOM.tableBody.el) DOM.tableBody.el.innerHTML = "";
-        if (DOM.mobileContainer && DOM.mobileContainer.el) DOM.mobileContainer.el.innerHTML = "";
-        if (DOM.emptyState && DOM.emptyState.el) DOM.emptyState.el.classList.remove("d-none");
-        if (DOM.paginationContainer && DOM.paginationContainer.el) DOM.paginationContainer.el.innerHTML = "";
+    // ============================================================
+    //  OPEN DETAIL
+    // ============================================================
+    function openDetail(id) {
+        const report = state.reports.find(function(r) { return r.id == id; });
+        if (!report) {
+            showToast('Data tidak ditemukan', 'error');
+            return;
+        }
+        state.currentDetail = report;
+
+        const status = report.status || 'OPEN';
+        const statusBadge = status === 'DONE' ?
+            '<span class="badge bg-success" style="font-size:13px;padding:5px 14px;">DONE</span>' :
+            status === 'PROGRESS' ?
+            '<span class="badge bg-warning text-dark" style="font-size:13px;padding:5px 14px;">PROGRESS</span>' :
+            '<span class="badge bg-danger" style="font-size:13px;padding:5px 14px;">OPEN</span>';
+
+        const sla = report.sla || '-';
+        const slaBadge = sla === 'FAST' ?
+            '<span class="badge bg-success" style="font-size:12px;padding:4px 12px;">FAST</span>' :
+            sla === 'NORMAL' ?
+            '<span class="badge bg-warning text-dark" style="font-size:12px;padding:4px 12px;">NORMAL</span>' :
+            sla === 'LATE' ?
+            '<span class="badge bg-danger" style="font-size:12px;padding:4px 12px;">LATE</span>' :
+            '<span class="badge bg-secondary" style="font-size:12px;padding:4px 12px;">' + sla + '</span>';
+
+        const fotoHtml = report.foto ?
+            '<a href="' + report.foto +
+            '" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-image"></i> Lihat Foto</a>' :
+            '<span class="text-muted">-</span>';
+
+        const html =
+            `
+        <div class="d-flex justify-content-between align-items-start mb-3 pb-2" style="border-bottom:2px solid var(--border-color);">
+            <div>
+                <h5 class="fw-bold" style="color:var(--text-primary);">${escapeHtml(report.id || '-')}</h5>
+                <span class="text-muted" style="font-size:13px;">${formatDate(report.tanggal || report.createdAt)}</span>
+            </div>
+            <div class="d-flex gap-2">
+                ${statusBadge}
+                ${slaBadge}
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="info-grid"><span class="label">Tanggal Lapor</span><span class="value">${formatDate(report.tanggal || report.createdAt)}</span></div>
+                <div class="info-grid"><span class="label">Tanggal Selesai</span><span class="value">${formatDate(report.tglSelesai)}</span></div>
+                <div class="info-grid"><span class="label">Durasi</span><span class="value fw-semibold">${escapeHtml(report.durasi || '-')}</span></div>
+                <div class="info-grid"><span class="label">Pelapor</span><span class="value">${escapeHtml(report.nama || report.pelapor || '-')}</span></div>
+                <div class="info-grid"><span class="label">Departemen</span><span class="value">${escapeHtml(report.departemen || '-')}</span></div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-grid"><span class="label">Kategori</span><span class="value">${escapeHtml(report.kategori || '-')}</span></div>
+                <div class="info-grid"><span class="label">Lokasi</span><span class="value">${escapeHtml(report.lokasi || '-')}</span></div>
+                <div class="info-grid"><span class="label">Prioritas</span><span class="value">${escapeHtml(report.prioritas || '-')}</span></div>
+                <div class="info-grid"><span class="label">Teknisi</span><span class="value">${escapeHtml(report.teknisi || '-')}</span></div>
+                <div class="info-grid"><span class="label">SLA</span><span class="value">${escapeHtml(report.sla || '-')}</span></div>
+                <div class="info-grid"><span class="label">Foto</span><span class="value">${fotoHtml}</span></div>
+            </div>
+        </div>
+
+        <div class="mt-3 pt-2" style="border-top:1px solid var(--border-color);">
+            <div class="info-grid" style="grid-template-columns:1fr;">
+                <span class="label">Deskripsi</span>
+                <div class="value deskripsi-box">${escapeHtml(report.deskripsi || '-')}</div>
+            </div>
+        </div>
+
+        ${report.catatanTeknisi ? `
+        <div class="mt-3">
+            <div class="info-grid" style="grid-template-columns:1fr;">
+                <span class="label">Catatan Teknisi</span>
+                <div class="value deskripsi-box" style="border-left-color:#f59e0b;">${escapeHtml(report.catatanTeknisi)}</div>
+            </div>
+        </div>
+        ` : ''}
+    `;
+
+        if (DOM.detailContent) DOM.detailContent.innerHTML = html;
+        const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+        modal.show();
     }
 
-    // ==========================================
-    // MODAL WINDOW HANDLING
-    // ==========================================
-    function openPhotoModal(src) {
-        if (DOM.photoImg && DOM.photoImg.el) DOM.photoImg.el.src = src;
-        BCS.App.Modal.open("photoModal");
+    // ============================================================
+    //  OPEN UPDATE
+    // ============================================================
+    function openUpdate(id) {
+        const report = state.reports.find(function(r) { return r.id == id; });
+        if (!report) {
+            showToast('Data tidak ditemukan', 'error');
+            return;
+        }
+
+        if (DOM.updateId) DOM.updateId.value = report.id || '';
+        if (DOM.updateStatus) DOM.updateStatus.value = report.status || 'OPEN';
+        if (DOM.updateTeknisi) DOM.updateTeknisi.value = report.teknisi || '';
+        if (DOM.updateCatatan) DOM.updateCatatan.value = report.catatanTeknisi || '';
+
+        const modal = new bootstrap.Modal(document.getElementById('updateModal'));
+        modal.show();
     }
 
-    function openDetailModal(id) {
-        const report = state.reports.find(r => r.id == id);
-        if (!report) return;
-
-        let detailHtml = `
-            <table class="table table-sm table-striped small">
-                <tr><th>ID Report</th><td>#${escapeHtml(report.id)}</td></tr>
-                <tr><th>Status</th><td>${formatBadge(report.status)}</td></tr>
-                <tr><th>Lokasi</th><td><strong>${escapeHtml(report.lokasi)}</strong></td></tr>
-                <tr><th>Kategori</th><td>${escapeHtml(report.kategori)}</td></tr>
-                <tr><th>Prioritas</th><td>${formatPriority(report.prioritas)}</td></tr>
-                <tr><th>Deskripsi</th><td>${escapeHtml(report.deskripsi || "-")}</td></tr>
-                <tr><th>Teknisi</th><td>${escapeHtml(report.teknisi || "-")}</td></tr>
-                <tr><th>Catatan Teknisi</th><td>${escapeHtml(report.catatanTeknisi || "-")}</td></tr>
-            </table>
-        `;
-        if (DOM.detailContent && DOM.detailContent.el) DOM.detailContent.el.innerHTML = detailHtml;
-        BCS.App.Modal.open("detailModal");
-    }
-
-    function openUpdateModal(id) {
-        const report = state.reports.find(r => r.id == id);
-        if (!report) return;
-
-        if (DOM.updateId && DOM.updateId.el) DOM.updateId.el.value = report.id || "";
-        if (DOM.updateStatus && DOM.updateStatus.el) DOM.updateStatus.el.value = report.status || STATUS.OPEN;
-        if (DOM.updateTeknisi && DOM.updateTeknisi.el) DOM.updateTeknisi.el.value = report.teknisi || "";
-        if (DOM.updateCatatan && DOM.updateCatatan.el) DOM.updateCatatan.el.value = report.catatanTeknisi || "";
-
-        BCS.App.Modal.open("updateModal");
-    }
-
+    // ============================================================
+    //  SAVE UPDATE
+    // ============================================================
     async function saveUpdate() {
-        BCS.Logger.info(TAG, "Mengeksekusi penyimpanan update status report.");
+        const id = DOM.updateId ? DOM.updateId.value : '';
+        const status = DOM.updateStatus ? DOM.updateStatus.value : '';
+        const teknisi = DOM.updateTeknisi ? DOM.updateTeknisi.value.trim() : '';
+        const catatan = DOM.updateCatatan ? DOM.updateCatatan.value.trim() : '';
+
+        if (!id) {
+            showToast('ID laporan tidak valid', 'error');
+            return;
+        }
+
+        const btn = DOM.saveUpdateBtn;
         try {
-            const payload = {
-                id: DOM.updateId ? DOM.updateId.el.value : "",
-                status: DOM.updateStatus ? DOM.updateStatus.el.value : "",
-                teknisi: DOM.updateTeknisi ? DOM.updateTeknisi.el.value : "",
-                catatan: DOM.updateCatatan ? DOM.updateCatatan.el.value : ""
-            };
+            if (btn) { btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...'; }
 
             const api = window.BCS.Api || window.Api;
-            if (!api) {
-                throw new Error("API tidak tersedia");
-            }
+            const payload = { id: id, status: status, teknisi: teknisi, catatan: catatan };
+            const response = await api.post('updateReport', payload);
 
-            const response = await api.post("updateReport", payload);
-
-            if (!response || !response.success) {
-                BCS.App.Toast.error(response?.message || "Gagal update status");
-                return;
-            }
-
-            BCS.App.Toast.success("Status berhasil diperbarui");
-            
-            if (typeof BCS.App.Modal.close === "function") {
-                BCS.App.Modal.close("updateModal");
+            if (response && response.success) {
+                showToast('✅ Status berhasil diperbarui!', 'success');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
+                if (modal) modal.hide();
+                await fetchReports();
             } else {
-                const updateModalEl = document.getElementById("updateModal");
-                if (updateModalEl) {
-                    const modal = bootstrap.Modal.getInstance(updateModalEl);
-                    if (modal) modal.hide();
-                }
+                showToast('❌ Gagal update: ' + (response?.message || 'Unknown error'), 'error');
+            }
+        } catch (err) {
+            console.error('Update error:', err);
+            showToast('❌ Terjadi kesalahan: ' + err.message, 'error');
+        } finally {
+            if (btn) { btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Simpan'; }
+        }
+    }
+
+    // ============================================================
+    //  EXPORT FUNCTIONS
+    // ============================================================
+    function exportDetailPDF() {
+        const report = state.currentDetail;
+        if (!report) {
+            showToast('Tidak ada data untuk diexport', 'error');
+            return;
+        }
+
+        const jsPDF = window.jspdf.jsPDF;
+        const doc = new jsPDF('p', 'mm', 'a4');
+
+        doc.setFontSize(18);
+        doc.setTextColor(30, 94, 255);
+        doc.text('Building Care System Enterprise', 14, 20);
+
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Detail Laporan', 14, 30);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text('Radiant Group Duri', 14, 36);
+
+        doc.setDrawColor(30, 94, 255);
+        doc.line(14, 40, 196, 40);
+
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+
+        const fields = [
+            ['ID', report.id || '-'],
+            ['Tanggal Lapor', formatDate(report.tanggal || report.createdAt)],
+            ['Tanggal Selesai', formatDate(report.tglSelesai)],
+            ['Durasi', report.durasi || '-'],
+            ['SLA', report.sla || '-'],
+            ['Pelapor', report.nama || report.pelapor || '-'],
+            ['Departemen', report.departemen || '-'],
+            ['Kategori', report.kategori || '-'],
+            ['Lokasi', report.lokasi || '-'],
+            ['Prioritas', report.prioritas || '-'],
+            ['Status', report.status || '-'],
+            ['Deskripsi', report.deskripsi || '-'],
+            ['Teknisi', report.teknisi || '-'],
+            ['Catatan Teknisi', report.catatanTeknisi || '-']
+        ];
+
+        let y = 48;
+        fields.forEach(function(field) {
+            if (y > 270) {
+                doc.addPage();
+                y = 20;
+            }
+            doc.setFont('helvetica', 'bold');
+            doc.text(field[0] + ':', 14, y);
+            doc.setFont('helvetica', 'normal');
+            const wrappedText = doc.splitTextToSize(field[1] || '-', 160);
+            doc.text(wrappedText, 60, y);
+            y += (wrappedText.length * 5) + 4;
+        });
+
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text('Generated: ' + new Date().toLocaleString('id-ID'), 14, 280);
+        doc.text('System by Radiant Group', 14, 285);
+
+        doc.save('Detail_Laporan_' + (report.id || 'export') + '.pdf');
+        showToast('Export PDF berhasil', 'success');
+    }
+
+    function exportExcel() {
+        if (state.filtered.length === 0) {
+            showToast('Tidak ada data untuk diexport', 'warning');
+            return;
+        }
+
+        const data = state.filtered.map(function(r) {
+            return {
+                'ID': r.id || '-',
+                'Tanggal': formatDate(r.tanggal || r.createdAt),
+                'Pelapor': r.nama || r.pelapor || '-',
+                'Departemen': r.departemen || '-',
+                'Kategori': r.kategori || '-',
+                'Lokasi': r.lokasi || '-',
+                'Deskripsi': r.deskripsi || '-',
+                'Status': r.status || '-',
+                'Prioritas': r.prioritas || '-',
+                'Teknisi': r.teknisi || '-',
+                'SLA': r.sla || '-'
+            };
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(data);
+        XLSX.utils.book_append_sheet(wb, ws, 'History');
+        XLSX.writeFile(wb, 'Riwayat_Laporan_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        showToast('Berhasil export ' + data.length + ' data ke Excel!', 'success');
+    }
+
+    function exportPDF() {
+        if (state.filtered.length === 0) {
+            showToast('Tidak ada data untuk diexport', 'warning');
+            return;
+        }
+
+        const jsPDF = window.jspdf.jsPDF;
+        const doc = new jsPDF('l', 'mm', 'a4');
+
+        doc.setFontSize(16);
+        doc.setTextColor(30, 94, 255);
+        doc.text('Building Care System Enterprise', 14, 20);
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Riwayat Laporan', 14, 30);
+        doc.setFontSize(9);
+        doc.setTextColor(100, 100, 100);
+        doc.text('Generated: ' + new Date().toLocaleString('id-ID') + ' | Total: ' + state.filtered.length +
+            ' data', 14, 36);
+
+        const headers = ['ID', 'Tanggal', 'Pelapor', 'Departemen', 'Kategori', 'Lokasi', 'Status', 'Prioritas', 'SLA'];
+        const colWidths = [30, 30, 30, 30, 28, 30, 22, 22, 20];
+        let y = 44;
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        headers.forEach(function(h, i) {
+            let x = 14;
+            for (let j = 0; j < i; j++) x += colWidths[j];
+            doc.text(h, x, y);
+        });
+        y += 4;
+        doc.setDrawColor(200, 200, 200);
+        doc.line(14, y, 14 + colWidths.reduce(function(a, b) { return a + b; }, 0), y);
+        y += 4;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        const rowsToExport = state.filtered.slice(0, 100);
+        rowsToExport.forEach(function(r) {
+            if (y > 270) {
+                doc.addPage();
+                y = 20;
+                doc.setFont('helvetica', 'bold');
+                headers.forEach(function(h, i) {
+                    let x = 14;
+                    for (let j = 0; j < i; j++) x += colWidths[j];
+                    doc.text(h, x, y);
+                });
+                y += 4;
+                doc.line(14, y, 14 + colWidths.reduce(function(a, b) { return a + b; }, 0), y);
+                y += 4;
+                doc.setFont('helvetica', 'normal');
             }
 
-            await loadReports();
+            const rowData = [
+                r.id || '-',
+                formatDate(r.tanggal || r.createdAt),
+                (r.nama || r.pelapor || '-').slice(0, 15),
+                (r.departemen || '-').slice(0, 15),
+                (r.kategori || '-').slice(0, 15),
+                (r.lokasi || '-').slice(0, 15),
+                r.status || '-',
+                r.prioritas || '-',
+                r.sla || '-'
+            ];
 
-        } catch (err) {
-            BCS.Logger.error(TAG, "Error saving update:", err);
-            BCS.App.Toast.error("Terjadi kesalahan saat update");
-        }
+            let x = 14;
+            rowData.forEach(function(val, i) {
+                doc.text(String(val), x, y);
+                x += colWidths[i];
+            });
+            y += 5;
+        });
+
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text('System by Radiant Group', 14, 290);
+
+        doc.save('Riwayat_Laporan_' + new Date().toISOString().slice(0, 10) + '.pdf');
+        showToast('Berhasil export ' + rowsToExport.length + ' data ke PDF!', 'success');
     }
 
-    // ==========================================
-    // UTILITIES LOCAL HELPERS
-    // ==========================================
-    function formatBadge(status) {
-        const config = {
-            [STATUS.OPEN]: { bg: "bg-light-primary text-primary", label: "🔵 OPEN" },
-            [STATUS.PROGRESS]: { bg: "bg-light-warning text-warning", label: "🟡 PROGRESS" },
-            [STATUS.DONE]: { bg: "bg-light-success text-success", label: "🟢 DONE" }
-        };
-        const current = config[status] || { bg: "bg-secondary text-white", label: status };
-        return `<span class="badge ${current.bg} border-0 px-2.5 py-1">${current.label}</span>`;
-    }
-
-    function formatPriority(priority) {
-        const badges = {
-            [PRIORITY.TINGGI]: '<span class="badge bg-danger">TINGGI</span>',
-            [PRIORITY.NORMAL]: '<span class="badge bg-info">NORMAL</span>',
-            [PRIORITY.RENDAH]: '<span class="badge bg-secondary">RENDAH</span>'
-        };
-        return badges[priority] || `<span class="badge bg-light">${escapeHtml(priority)}</span>`;
-    }
-
-    function formatDate(dateStr) {
-        if (!dateStr) return "-";
-        const d = new Date(dateStr);
-        return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
-    }
-
-    function formatRelativeTime(dateStr) {
-        if (!dateStr) return "-";
-        const now = new Date();
-        const past = new Date(dateStr);
-        const diffMs = now - past;
-        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 0) return "Hari ini";
-        if (diffDays === 1) return "Kemarin";
-        return `${diffDays} hari lalu`;
-    }
-
-    function escapeHtml(str) {
-        if (!str) return "";
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    // ==========================================
-    // CLEANUP GARBAGE COLLECTOR
-    // ==========================================
-    function destroy() {
-        BCS.Logger.debug(TAG, "Membongkar modul history, membersihkan event listeners.");
-        
-        // Unsubscribe Event Bus
-        BCS.Events.off("report:created", handleReportCreated);
-
-        if (typeof BCS.App.Modal.closeAll === "function") {
-            BCS.App.Modal.closeAll();
-        }
-
-        DOM = {};
-        state.reports = [];
-        state.filtered = [];
-    }
-
-    return {
-        init,
-        destroy
-    };
-
-})());
-
-// ==========================================
-// AUTOMATIC TRIGGER VIA BCS CORE SYSTEM
-// ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-    // Tunggu BCS siap
-    setTimeout(() => {
-        if (BCS.Modules && typeof BCS.Modules.init === "function") {
-            BCS.Modules.init("history").catch(err => {
-                BCS.Logger.error("History", "Failed to initialize:", err);
+    // ============================================================
+    //  BIND EVENTS
+    // ============================================================
+    function bindEvents() {
+        // Search
+        if (DOM.searchInput) {
+            DOM.searchInput.addEventListener('input', function() {
+                document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
+                    p.classList.remove('active');
+                });
+                applyFilters();
             });
         }
-    }, 100);
-});
+
+        // Status filter
+        if (DOM.filterStatus) {
+            DOM.filterStatus.addEventListener('change', applyFilters);
+        }
+
+        // Sort order
+        if (DOM.sortOrder) {
+            DOM.sortOrder.addEventListener('change', applyFilters);
+        }
+
+        // Quick pills
+        document.querySelectorAll('.quick-pills .pill').forEach(function(pill) {
+            pill.addEventListener('click', function() {
+                document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
+                    p.classList.remove('active');
+                });
+                this.classList.add('active');
+                applyFilters();
+            });
+        });
+
+        // Refresh
+        if (DOM.refreshBtn) {
+            DOM.refreshBtn.addEventListener('click', fetchReports);
+        }
+
+        // Export
+        if (DOM.exportExcelBtn) {
+            DOM.exportExcelBtn.addEventListener('click', exportExcel);
+        }
+        if (DOM.exportPdfBtn) {
+            DOM.exportPdfBtn.addEventListener('click', exportPDF);
+        }
+        if (DOM.exportDetailPdfBtn) {
+            DOM.exportDetailPdfBtn.addEventListener('click', exportDetailPDF);
+        }
+
+        // Save update
+        if (DOM.saveUpdateBtn) {
+            DOM.saveUpdateBtn.addEventListener('click', saveUpdate);
+        }
+
+        // Event delegation untuk tombol aksi di tabel
+        if (DOM.tableBody) {
+            DOM.tableBody.addEventListener('click', function(e) {
+                const target = e.target.closest('.view-detail');
+                if (target) {
+                    e.preventDefault();
+                    openDetail(target.dataset.id);
+                    return;
+                }
+                const photoBtn = e.target.closest('.view-photo');
+                if (photoBtn) {
+                    e.preventDefault();
+                    const src = photoBtn.dataset.src;
+                    if (src && DOM.modalPhoto) {
+                        DOM.modalPhoto.src = src;
+                        const modal = new bootstrap.Modal(document.getElementById('photoModal'));
+                        modal.show();
+                    }
+                    return;
+                }
+                const editBtn = e.target.closest('.edit-report');
+                if (editBtn) {
+                    e.preventDefault();
+                    openUpdate(editBtn.dataset.id);
+                    return;
+                }
+            });
+        }
+    }
+
+    // ============================================================
+    //  INIT
+    // ============================================================
+    async function init() {
+        cacheDom();
+        initDarkMode();
+        loadUserInfo();
+        initSidebar();
+        bindEvents();
+        await fetchReports();
+        console.log('✅ History page initialized');
+    }
+
+    // Run on DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();

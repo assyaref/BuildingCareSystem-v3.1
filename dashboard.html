@@ -34,12 +34,36 @@
             animation: pulse-dot 1.5s ease-in-out infinite;
             margin-left: 4px;
         }
-        /* Admin menu hidden by default, shown only for ADMINISTRATOR */
-        .menu-admin {
-            display: none;
-        }
-        .menu-admin.visible {
+
+        .sidebar nav a.menu {
             display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .sidebar nav a.menu:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+        .sidebar nav a.menu.active {
+            background: var(--accent-soft);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+        .sidebar nav a.menu i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        .sidebar nav a.menu.text-danger:hover {
+            background: #fee2e2;
+            color: #dc2626;
         }
     </style>
 </head>
@@ -56,37 +80,8 @@
             <small>Enterprise v3.2</small>
         </div>
 
-        <nav>
-            <a href="dashboard.html" class="menu active">
-                <i class="bi bi-grid-fill"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="report.html" class="menu">
-                <i class="bi bi-file-earmark-plus"></i>
-                <span>Report</span>
-            </a>
-            <a href="monitoring.html" class="menu">
-                <i class="bi bi-display"></i>
-                <span>Monitoring</span>
-            </a>
-            <a href="history.html" class="menu">
-                <i class="bi bi-clock-history"></i>
-                <span>History</span>
-            </a>
-            <a href="approval.html" class="menu">
-                <i class="bi bi-check-circle"></i>
-                <span>Approval</span>
-            </a>
-            <!-- 🔥 MENU ADMIN - hanya muncul untuk ADMINISTRATOR -->
-            <a href="admin.html" class="menu menu-admin" id="adminMenu">
-                <i class="bi bi-shield-lock-fill"></i>
-                <span>Admin</span>
-            </a>
-            <a href="#" id="logoutBtn" class="menu text-danger">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Logout</span>
-            </a>
-        </nav>
+        <!-- SIDEBAR NAV - DINAMIS oleh sidebar.js -->
+        <nav></nav>
     </aside>
 
     <main class="content">
@@ -104,7 +99,6 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <!-- Auto-Refresh Timer -->
                     <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background: var(--bg-card-hover); border: 1px solid var(--border-color);">
                         <span class="text-muted" style="font-size: 12px;">Auto-refresh:</span>
                         <span id="refreshTimer" class="fw-bold" style="font-size: 13px; color: var(--text-primary); min-width: 20px; text-align: center;">7</span>
@@ -343,7 +337,7 @@
                     <div class="card enterprise-card h-100">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span class="fw-semibold">Aktivitas Terbaru</span>
-                            <a href="#" class="text-decoration-none fw-medium" style="color: var(--accent-color); font-size: 14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size: 10px;"></i></a>
+                            <a href="history.html" class="text-decoration-none fw-medium" style="color: var(--accent-color); font-size: 14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size: 10px;"></i></a>
                         </div>
                         <div class="card-body p-4" style="max-height: 310px; overflow-y: auto;">
                             <div id="recentActivity" class="d-flex flex-column gap-1"></div>
@@ -384,6 +378,7 @@
 <script src="assets/js/core/ui.js"></script>
 <script src="assets/js/core/utils.js"></script>
 
+<script src="assets/js/components/sidebar.js"></script>
 <script src="assets/js/modules/auth.js"></script>
 <script src="assets/js/modules/dashboard.js"></script>
 
@@ -391,78 +386,27 @@
 (function() {
     'use strict';
 
-    // =============================================
-    // 🔥 GUARD: Hanya ADMINISTRATOR yang boleh akses dashboard
-    // =============================================
     function checkAccess() {
         try {
             const session = BCS.Storage.getSession();
             if (!session || !session.user) {
-                // Tidak ada session, redirect ke login
                 window.location.href = 'login.html';
                 return false;
             }
-
-            const role = (session.user.role || '').toUpperCase();
-            if (role !== 'ADMINISTRATOR') {
-                // Jika bukan ADMINISTRATOR, redirect ke report.html
-                console.warn('⛔ Akses ditolak: role', role, 'redirect ke report.html');
-                window.location.href = 'report.html';
-                return false;
-            }
-
             return true;
         } catch (e) {
-            console.warn('Guard error:', e);
             window.location.href = 'login.html';
             return false;
         }
     }
+    if (!checkAccess()) return;
 
-    // Jalankan guard sebelum apapun
-    if (!checkAccess()) {
-        // Stop execution jika redirect
-        return;
-    }
-
-    // =============================================
-    // SHOW/HIDE ADMIN MENU BASED ON ROLE
-    // =============================================
-    function checkAdminMenu() {
-        const adminMenu = document.getElementById('adminMenu');
-        if (!adminMenu) return;
-        
-        try {
-            const session = BCS.Storage.getSession();
-            if (session && session.user) {
-                const role = (session.user.role || '').toUpperCase();
-                if (role === 'ADMINISTRATOR') {
-                    adminMenu.classList.add('visible');
-                    adminMenu.style.display = 'flex';
-                } else {
-                    adminMenu.classList.remove('visible');
-                    adminMenu.style.display = 'none';
-                }
-            } else {
-                adminMenu.style.display = 'none';
-            }
-        } catch (e) {
-            console.warn('Check admin menu error:', e);
-            adminMenu.style.display = 'none';
-        }
-    }
-
-    // =============================================
-    // DARK MODE
-    // =============================================
     function initDarkMode() {
         const toggle = document.getElementById('darkModeToggle');
         const icon = document.getElementById('darkModeIcon');
         if (!toggle) return;
-
         const savedTheme = localStorage.getItem('bcs_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
-        
         if (icon) {
             if (savedTheme === 'dark') {
                 icon.className = 'bi bi-sun-fill';
@@ -472,13 +416,11 @@
                 icon.style.color = '';
             }
         }
-
         toggle.addEventListener('click', function() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('bcs_theme', newTheme);
-            
             if (icon) {
                 if (newTheme === 'dark') {
                     icon.className = 'bi bi-sun-fill';
@@ -491,98 +433,21 @@
         });
     }
 
-    // =============================================
-    // LOGOUT
-    // =============================================
-    function initLogout() {
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (!logoutBtn) return;
-
-        logoutBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-
-            let attempts = 0;
-            const maxAttempts = 30;
-
-            function tryLogout() {
-                if (window.auth && typeof window.auth.logout === 'function') {
-                    Swal.fire({
-                        title: 'Konfirmasi Logout',
-                        text: 'Apakah Anda yakin ingin keluar dari sistem?',
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Ya, Logout!',
-                        cancelButtonText: 'Batal',
-                        reverseButtons: true,
-                        customClass: {
-                            popup: 'rounded-4',
-                            confirmButton: 'btn btn-danger px-4 py-2 fw-bold',
-                            cancelButton: 'btn btn-secondary px-4 py-2 fw-bold'
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.auth.logout();
-                        }
-                    });
-                } else {
-                    attempts++;
-                    if (attempts < maxAttempts) {
-                        setTimeout(tryLogout, 100);
-                    } else {
-                        Swal.fire({
-                            title: 'Konfirmasi Logout',
-                            text: 'Apakah Anda yakin ingin keluar?',
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonColor: '#d33',
-                            cancelButtonColor: '#6c757d',
-                            confirmButtonText: 'Ya, Logout!',
-                            cancelButtonText: 'Batal'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                localStorage.clear();
-                                sessionStorage.clear();
-                                if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
-                                    BCS.Storage.removeSession();
-                                }
-                                window.location.href = 'login.html';
-                            }
-                        });
-                    }
-                }
-            }
-
-            tryLogout();
-        });
-    }
-
-    // =============================================
-    // AUTO-REFRESH 7 DETIK
-    // =============================================
     let refreshTimer = 7;
     let refreshInterval = null;
     let timerInterval = null;
     let isRefreshing = false;
 
     function showRefreshToast() {
-        const toast = Swal.mixin({
+        Swal.mixin({
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
             timer: 2000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer);
-                toast.addEventListener('mouseleave', Swal.resumeTimer);
-            }
-        });
-
-        toast.fire({
+            timerProgressBar: true
+        }).fire({
             icon: 'info',
             title: '🔄 Data diperbarui...',
-            text: 'Dashboard sedang di-refresh',
             timer: 2000
         });
     }
@@ -590,95 +455,61 @@
     function performRefresh() {
         if (isRefreshing) return;
         isRefreshing = true;
-
         showRefreshToast();
-
         if (window.DashboardController && typeof window.DashboardController.refresh === 'function') {
             window.DashboardController.refresh();
         } else {
             window.location.reload();
         }
-
         refreshTimer = 7;
         updateTimerDisplay();
-
-        setTimeout(() => {
-            isRefreshing = false;
-        }, 1000);
+        setTimeout(function() { isRefreshing = false; }, 1000);
     }
 
     function updateTimerDisplay() {
         const timerEl = document.getElementById('refreshTimer');
-        if (timerEl) {
-            timerEl.textContent = refreshTimer;
-        }
+        if (timerEl) timerEl.textContent = refreshTimer;
     }
 
     function startAutoRefresh() {
         if (refreshInterval) clearInterval(refreshInterval);
         if (timerInterval) clearInterval(timerInterval);
-
         timerInterval = setInterval(function() {
             refreshTimer--;
-            if (refreshTimer <= 0) {
-                refreshTimer = 7;
-            }
+            if (refreshTimer <= 0) refreshTimer = 7;
             updateTimerDisplay();
         }, 1000);
-
         refreshInterval = setInterval(function() {
             performRefresh();
         }, 7000);
-
         updateTimerDisplay();
         console.log('✅ Auto-refresh started (every 7 seconds)');
     }
 
     function stopAutoRefresh() {
-        if (refreshInterval) {
-            clearInterval(refreshInterval);
-            refreshInterval = null;
-        }
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-        console.log('⏹ Auto-refresh stopped');
+        if (refreshInterval) clearInterval(refreshInterval);
+        if (timerInterval) clearInterval(timerInterval);
     }
 
-    // =============================================
-    // LOAD USER INFO
-    // =============================================
     function loadUserInfo() {
         try {
             const session = BCS.Storage.getSession();
             if (session && session.user) {
                 const user = session.user;
-                const nama = user.nama || user.name || 'User';
-                const role = user.role || 'User';
-                document.getElementById('userName').textContent = nama;
-                document.getElementById('userRole').textContent = role;
+                document.getElementById('userName').textContent = user.nama || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
             }
-        } catch (e) {
-            console.warn('Load user info error:', e);
-        }
+        } catch (e) {}
     }
 
-    // =============================================
-    // INIT
-    // =============================================
     function init() {
         loadUserInfo();
         initDarkMode();
-        initLogout();
-        checkAdminMenu();
         startAutoRefresh();
-        console.log('✅ Dashboard System Initialized with Role Guard');
+        console.log('✅ Dashboard System Initialized');
     }
 
-    window.addEventListener('beforeunload', function() {
-        stopAutoRefresh();
-    });
+    window.addEventListener('beforeunload', function() { stopAutoRefresh(); });
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);

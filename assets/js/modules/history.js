@@ -1,7 +1,8 @@
 // =====================================================
-// Building Care System Enterprise v7.5
+// Building Care System Enterprise v7.6
 // history.js - Auto-Refresh 7 detik + Countdown
 // Error handling + Auto-stop after failures
+// Only ADMIN can access this page
 // Radiant Group Duri
 // =====================================================
 
@@ -237,10 +238,13 @@
                 if (DOM.userName) DOM.userName.textContent = nama;
                 if (DOM.userRole) DOM.userRole.textContent = role;
                 if (DOM.userAvatar) DOM.userAvatar.textContent = nama.charAt(0).toUpperCase() || 'U';
+                // Return user info for authorization check
+                return { user, role, nama };
             }
         } catch (e) {
             console.warn('Load user info error:', e);
         }
+        return null;
     }
 
     // ============================================================
@@ -257,6 +261,38 @@
                 }
             });
         }, 100);
+    }
+
+    // ============================================================
+    //  AUTHORIZATION CHECK - HANYA ADMIN YANG BOLEH AKSES
+    // ============================================================
+    function checkAuthorization() {
+        try {
+            const session = BCS.Storage.getSession();
+            if (!session || !session.user) {
+                console.warn('[History] No session found, redirecting to login');
+                window.location.href = 'login.html';
+                return false;
+            }
+
+            const role = (session.user.role || '').toUpperCase();
+            // Hanya ADMIN atau ADMINISTRATOR yang diizinkan
+            if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
+                console.warn('[History] Unauthorized role:', role, 'redirecting to dashboard');
+                // Tampilkan pesan toast sebelum redirect
+                showToast('Akses ditolak. Hanya ADMIN yang dapat melihat riwayat.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+                return false;
+            }
+
+            return true;
+        } catch (e) {
+            console.error('[History] Auth check error:', e);
+            window.location.href = 'login.html';
+            return false;
+        }
     }
 
     // ============================================================
@@ -391,7 +427,7 @@
 
             let reports = response.data?.reports || [];
 
-            // Filter berdasarkan role user
+            // Filter berdasarkan role user (sudah admin, tapi tetap aman)
             const session = BCS.Storage.getSession();
             const user = session?.user || {};
             const role = (user.role || '').toUpperCase();
@@ -1117,6 +1153,12 @@
         initDarkMode();
         loadUserInfo();
         initSidebar();
+
+        // 🔐 CEK OTORISASI: HANYA ADMIN YANG BOLEH
+        if (!checkAuthorization()) {
+            return; // redirect sudah terjadi di dalam checkAuthorization
+        }
+
         bindEvents();
         initCountdown();
         await fetchReports();

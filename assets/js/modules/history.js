@@ -45,6 +45,7 @@
         DOM.emptyState = $('#emptyState');
         DOM.searchInput = $('#searchInput');
         DOM.filterStatus = $('#filterStatus');
+        DOM.filterPriority = $('#filterPriority');   // ✅ TAMBAHAN
         DOM.sortOrder = $('#sortOrder');
         DOM.cardTotal = $('#cardTotal');
         DOM.cardOpen = $('#cardOpen');
@@ -554,71 +555,135 @@
     }
 
     // ============================================================
-    //  APPLY FILTERS
+    //  APPLY FILTERS (DIPERBAIKI DENGAN FILTER PRIORITAS)
     // ============================================================
     function applyFilters() {
-        const keyword = DOM.searchInput ? DOM.searchInput.value.toLowerCase().trim() : '';
-        const status = DOM.filterStatus ? DOM.filterStatus.value : '';
-        const sort = DOM.sortOrder ? DOM.sortOrder.value : 'desc';
+        const keyword = DOM.searchInput
+            ? DOM.searchInput.value.toLowerCase().trim()
+            : '';
+
+        const status = DOM.filterStatus
+            ? DOM.filterStatus.value.toUpperCase().trim()
+            : '';
+
+        const priority = DOM.filterPriority
+            ? DOM.filterPriority.value.toUpperCase().trim()
+            : '';
+
+        const sort = DOM.sortOrder
+            ? DOM.sortOrder.value
+            : 'desc';
 
         let result = state.reports.slice();
 
+        // ================================
+        // SEARCH
+        // ================================
         if (keyword) {
             result = result.filter(function(r) {
-                return (r.id || '').toLowerCase().includes(keyword) ||
-                    (r.nama || r.pelapor || '').toLowerCase().includes(keyword) ||
-                    (r.departemen || '').toLowerCase().includes(keyword) ||
-                    (r.kategori || '').toLowerCase().includes(keyword) ||
-                    (r.lokasi || '').toLowerCase().includes(keyword) ||
-                    (r.deskripsi || '').toLowerCase().includes(keyword);
+                return String(r.id || '').toLowerCase().includes(keyword) ||
+                    String(r.nama || r.pelapor || '').toLowerCase().includes(keyword) ||
+                    String(r.departemen || '').toLowerCase().includes(keyword) ||
+                    String(r.kategori || '').toLowerCase().includes(keyword) ||
+                    String(r.lokasi || '').toLowerCase().includes(keyword) ||
+                    String(r.deskripsi || '').toLowerCase().includes(keyword);
             });
         }
 
+        // ================================
+        // FILTER STATUS
+        // ================================
         if (status) {
-            result = result.filter(function(r) { return (r.status || '').toUpperCase() === status; });
+            result = result.filter(function(r) {
+                return String(r.status || '')
+                    .toUpperCase()
+                    .trim() === status;
+            });
         }
 
+        // ================================
+        // FILTER PRIORITAS
+        // ================================
+        if (priority) {
+            result = result.filter(function(r) {
+                const reportPriority = String(
+                    r.prioritas ||
+                    r.priority ||
+                    'NORMAL'
+                )
+                .toUpperCase()
+                .trim();
+
+                return reportPriority === priority;
+            });
+        }
+
+        // ================================
+        // FILTER TANGGAL
+        // ================================
         const activePill = document.querySelector('.quick-pills .pill.active');
+
         if (activePill) {
             const range = activePill.dataset.range;
-            let start, end;
+            let start;
+            let end;
+
             switch (range) {
-                case 'today':
+                case 'today': {
                     const tr = getTodayRange();
                     start = tr.start;
                     end = tr.end;
                     break;
-                case 'week':
+                }
+
+                case 'week': {
                     const wr = getWeekRange();
                     start = wr.start;
                     end = wr.end;
                     break;
-                case 'month':
+                }
+
+                case 'month': {
                     const mr = getMonthRange();
                     start = mr.start;
                     end = mr.end;
                     break;
-                case 'last3months':
+                }
+
+                case 'last3months': {
                     const lr = getLast3MonthsRange();
                     start = lr.start;
                     end = lr.end;
                     break;
+                }
             }
+
             if (start || end) {
                 result = result.filter(function(r) {
-                    return isDateInRange(r.tanggal || r.createdAt, start, end);
+                    return isDateInRange(
+                        r.tanggal || r.createdAt,
+                        start,
+                        end
+                    );
                 });
             }
         }
 
+        // ================================
+        // SORTING
+        // ================================
         result.sort(function(a, b) {
             const dateA = new Date(a.tanggal || a.createdAt || 0);
             const dateB = new Date(b.tanggal || b.createdAt || 0);
-            return sort === 'desc' ? dateB - dateA : dateA - dateB;
+
+            return sort === 'desc'
+                ? dateB - dateA
+                : dateA - dateB;
         });
 
         state.filtered = result;
         state.currentPage = 1;
+
         renderAll();
     }
 
@@ -1108,20 +1173,19 @@
     }
 
     // ============================================================
-    //  BIND EVENTS
+    //  BIND EVENTS (DIPERBAIKI DENGAN EVENT FILTER PRIORITAS)
     // ============================================================
     function bindEvents() {
         if (DOM.searchInput) {
-            DOM.searchInput.addEventListener('input', function() {
-                document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
-                    p.classList.remove('active');
-                });
-                applyFilters();
-            });
+            DOM.searchInput.addEventListener('input', applyFilters);
         }
 
         if (DOM.filterStatus) {
             DOM.filterStatus.addEventListener('change', applyFilters);
+        }
+
+        if (DOM.filterPriority) {
+            DOM.filterPriority.addEventListener('change', applyFilters);
         }
 
         if (DOM.sortOrder) {

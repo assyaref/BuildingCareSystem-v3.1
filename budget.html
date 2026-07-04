@@ -428,7 +428,7 @@
                                         <thead>
                                             <tr style="background:var(--bg-card-hover);">
                                                 <th class="ps-4 fw-semibold text-secondary">ID BUDGET</th>
-                                                <th class="fw-semibold text-secondary">ID LAPORAN (WO)</th>
+                                                <th class="fw-semibold text-secondary">WORK ORDER (WO)</th>
                                                 <th class="fw-semibold text-secondary">DESKRIPSI KERJA</th>
                                                 <th class="fw-semibold text-secondary text-end">TOTAL ALOKASI</th>
                                                 <th class="fw-semibold text-secondary">STATUS</th>
@@ -472,8 +472,11 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="form-label fw-semibold text-secondary" style="font-size:12px;">ID Laporan / WO <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="budgetReportId" required placeholder="Contoh: BCS-20260621-068">
+                                    <label class="form-label fw-semibold text-secondary" style="font-size:12px;">Pilih Work Order <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="budgetReportId" required>
+                                        <option value="">Memuat Work Order...</option>
+                                    </select>
+                                    <div class="form-text" id="selectedWoInfo">Budget akan terhubung langsung ke Work Order.</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -692,6 +695,7 @@
             // FAKE DATA BUDGET
             // =============================================
             let budgetData = [];
+            let workOrderData = [];
             let editingId = null;
 
             function generateSampleData() {
@@ -900,7 +904,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="p-3 rounded-3" style="background:var(--bg-card-hover);">
-                                <span class="text-muted" style="font-size:11px;">ID LAPORAN</span>
+                                <span class="text-muted" style="font-size:11px;">WORK ORDER</span>
                                 <div class="fw-semibold">${item.reportId}</div>
                             </div>
                         </div>
@@ -973,10 +977,10 @@
             // =============================================
             // OPEN EDIT MODAL
             // =============================================
-            function openEditModal(item) {
+            async function openEditModal(item) {
                 editingId = item.id;
                 DOM.modalTitle.textContent = 'Edit Budget';
-                DOM.budgetReportId.value = item.reportId || '';
+                await loadWorkOrdersForBudget(item.woId || item.reportId || '');
                 DOM.budgetStatus.value = item.status || 'estimated';
                 DOM.budgetDescription.value = item.description || '';
                 DOM.budgetPriority.value = item.priority || 'medium';
@@ -1041,78 +1045,181 @@
                 DOM.budgetGrandTotal.value = 'Rp ' + total.toLocaleString('id-ID');
             }
 
+
+            // =============================================
+            // ACTUAL API INTEGRATION v4.3
+            // =============================================
+            async function loadWorkOrdersForBudget(selectedId = '') {
+                const select = DOM.budgetReportId;
+                select.innerHTML = '<option value="">Memuat Work Order...</option>';
+
+                try {
+                    const res = await BCS.Api.post('getWorkOrders', {});
+                    if (!res || !res.success) throw new Error(res?.message || 'Gagal mengambil Work Order');
+
+                    workOrderData = Array.isArray(res.data) ? res.data : [];
+
+                    const activeWO = workOrderData.filter(wo => {
+                        const status = String(wo.status || '').toLowerCase();
+                        return status !== 'completed' && status !== 'cancelled';
+                    });
+
+                    select.innerHTML = '<option value="">Pilih Work Order...</option>';
+
+                    activeWO.forEach(wo => {
+                        const option = document.createElement('option');
+                        option.value = wo.id;
+                        option.textContent = `${wo.wo_number || wo.id} | ${wo.title || '-'} | ${wo.category || wo.category_id || '-'} | ${wo.priority || '-'}`;
+                        option.dataset.reportId = wo.report_id || '';
+                        option.dataset.woNumber = wo.wo_number || wo.id || '';
+                        option.dataset.title = wo.title || '';
+                        option.dataset.category = wo.category || wo.category_id || '';
+                        option.dataset.priority = wo.priority || 'medium';
+                        select.appendChild(option);
+                    });
+
+                    if (selectedId) select.value = selectedId;
+                    updateSelectedWoInfo();
+
+                    if (!activeWO.length) {
+                        select.innerHTML = '<option value="">Belum ada Work Order aktif</option>';
+                    }
+                } catch (err) {
+                    console.error('loadWorkOrdersForBudget:', err);
+                    select.innerHTML = '<option value="">Gagal memuat Work Order</option>';
+                    document.getElementById('selectedWoInfo').textContent = err.message;
+                }
+            }
+
+            function updateSelectedWoInfo() {
+                const option = DOM.budgetReportId.options[DOM.budgetReportId.selectedIndex];
+                const info = document.getElementById('selectedWoInfo');
+
+                if (!option || !option.value) {
+                    info.textContent = 'Budget akan terhubung langsung ke Work Order.';
+                    return;
+                }
+
+                info.textContent = `${option.dataset.woNumber || option.value} • ${option.dataset.title || '-'} • ${option.dataset.category || '-'}`;
+
+                if (!editingId && option.dataset.priority) {
+                    DOM.budgetPriority.value = option.dataset.priority;
+                }
+            }
+
+            async function loadBudgetsActual() {
+                try {
+                    DOM.budgetTableBody.innerHTML =
+                        '<tr><td colspan="8" class="text-center py-5 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Memuat budget...</td></tr>';
+
+                    const res = await BCS.Api.post('getBudgets', {});
+                    if (!res || !res.success) throw new Error(res?.message || 'Gagal mengambil Budget');
+
+                    budgetData = (Array.isArray(res.data) ? res.data : []).map(b => ({
+                        id: b.id || '',
+                        woId: b.wo_id || '',
+                        reportId: b.wo_id || b.report_id || '',
+                        description: b.description || '',
+                        status: String(b.status || 'pending').toLowerCase(),
+                        priority: String(b.priority || 'medium').toLowerCase(),
+                        paymentMethod: b.payment_method || 'cash',
+                        items: Array.isArray(b.items) ? b.items : [],
+                        total: Number(b.total || 0),
+                        notes: b.notes || '',
+                        createdAt: b.created_at || ''
+                    }));
+
+                    updateSummary();
+                    applyFilters();
+                } catch (err) {
+                    console.error('loadBudgetsActual:', err);
+                    budgetData = [];
+                    updateSummary();
+                    renderTable([]);
+                    Swal.fire('Gagal Memuat Budget', err.message, 'error');
+                }
+            }
+
             // =============================================
             // SAVE BUDGET
             // =============================================
-            function saveBudget(e) {
+            async function saveBudget(e) {
                 e.preventDefault();
 
-                const reportId = DOM.budgetReportId.value.trim();
-                const status = DOM.budgetStatus.value;
+                const woId = DOM.budgetReportId.value;
+                const selectedOption = DOM.budgetReportId.options[DOM.budgetReportId.selectedIndex];
+                const reportId = selectedOption?.dataset?.reportId || '';
                 const description = DOM.budgetDescription.value.trim();
                 const priority = DOM.budgetPriority.value;
                 const paymentMethod = DOM.budgetPaymentMethod.value;
                 const notes = DOM.budgetNotes.value.trim();
 
-                if (!reportId) { Swal.fire('Error', 'ID Laporan wajib diisi', 'error');
-                    return; }
-                if (!description) { Swal.fire('Error', 'Deskripsi wajib diisi', 'error');
-                    return; }
+                if (!woId) {
+                    Swal.fire('Error', 'Pilih Work Order terlebih dahulu', 'error');
+                    return;
+                }
+                if (!description) {
+                    Swal.fire('Error', 'Deskripsi wajib diisi', 'error');
+                    return;
+                }
 
                 const items = [];
                 document.querySelectorAll('.item-row').forEach(row => {
                     const name = row.querySelector('.item-name').value.trim() || 'Item';
-                    const qty = parseInt(row.querySelector('.item-qty').value) || 1;
+                    const qty = parseInt(row.querySelector('.item-qty').value) || 0;
                     const price = parseInt(row.querySelector('.item-price').value) || 0;
                     if (qty > 0 && price > 0) {
                         items.push({ name, qty, price, subtotal: qty * price });
                     }
                 });
 
-                if (items.length === 0) {
+                if (!items.length) {
                     Swal.fire('Error', 'Tambahkan minimal 1 item dengan qty dan harga > 0', 'error');
                     return;
                 }
 
-                const total = items.reduce((s, it) => s + it.subtotal, 0);
+                const payload = {
+                    wo_id: woId,
+                    report_id: reportId,
+                    description,
+                    status: 'pending',
+                    priority,
+                    payment_method: paymentMethod,
+                    notes,
+                    items
+                };
 
-                if (editingId) {
-                    const idx = budgetData.findIndex(b => b.id === editingId);
-                    if (idx !== -1) {
-                        budgetData[idx] = {
-                            ...budgetData[idx],
-                            reportId,
-                            status,
-                            description,
-                            priority,
-                            paymentMethod,
-                            items,
-                            total,
-                            notes,
-                        };
+                if (editingId) payload.id = editingId;
+
+                const submitBtn = DOM.budgetForm.querySelector('button[type="submit"]');
+                const originalHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
+
+                try {
+                    const action = editingId ? 'updateBudget' : 'createBudget';
+                    const res = await BCS.Api.post(action, payload);
+
+                    if (!res || !res.success) {
+                        throw new Error(res?.message || 'Gagal menyimpan Budget');
                     }
-                    Swal.fire('Berhasil!', 'Budget berhasil diperbarui.', 'success');
-                } else {
-                    const newId = 'BUD-' + String(budgetData.length + 1).padStart(4, '0');
-                    budgetData.push({
-                        id: newId,
-                        reportId,
-                        status,
-                        description,
-                        priority,
-                        paymentMethod,
-                        items,
-                        total,
-                        notes,
-                        createdAt: new Date().toISOString(),
-                    });
-                    Swal.fire('Berhasil!', 'Budget baru berhasil ditambahkan.', 'success');
-                }
 
-                editingId = null;
-                DOM.budgetModal.hide();
-                updateSummary();
-                applyFilters();
+                    editingId = null;
+                    DOM.budgetModal.hide();
+                    await loadBudgetsActual();
+
+                    Swal.fire(
+                        'Berhasil!',
+                        res.message || 'Budget tersimpan dan masuk antrean Approval.',
+                        'success'
+                    );
+                } catch (err) {
+                    console.error('saveBudget:', err);
+                    Swal.fire('Gagal Menyimpan', err.message, 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHtml;
+                }
             }
 
             // =============================================
@@ -1121,7 +1228,7 @@
             function exportExcel() {
                 const data = budgetData.map(b => ({
                     'ID Budget': b.id,
-                    'ID Laporan': b.reportId,
+                    'Work Order': b.reportId,
                     'Deskripsi': b.description,
                     'Status': b.status,
                     'Prioritas': b.priority,
@@ -1151,7 +1258,7 @@
                     'Rp ' + Number(b.total).toLocaleString('id-ID'),
                 ]);
                 doc.autoTable({
-                    head: [['ID Budget', 'ID Laporan', 'Deskripsi', 'Status', 'Prioritas', 'Total']],
+                    head: [['ID Budget', 'Work Order', 'Deskripsi', 'Status', 'Prioritas', 'Total']],
                     body: rows,
                     startY: 30,
                     styles: { fontSize: 8 },
@@ -1164,31 +1271,30 @@
             // =============================================
             // INIT
             // =============================================
-            function init() {
+            async function init() {
                 initDarkMode();
                 loadUserInfo();
 
-                if (budgetData.length === 0) {
-                    generateSampleData();
-                }
-
                 updateSummary();
-                applyFilters();
+                renderTable([]);
 
                 DOM.searchInput.addEventListener('input', applyFilters);
                 DOM.filterStatus.addEventListener('change', applyFilters);
                 DOM.filterPriority.addEventListener('change', applyFilters);
+                DOM.budgetReportId.addEventListener('change', updateSelectedWoInfo);
 
-                DOM.btnAddBudget.addEventListener('click', function() {
+                DOM.btnAddBudget.addEventListener('click', async function() {
                     editingId = null;
                     DOM.modalTitle.textContent = 'Tambah Form Budget';
                     DOM.budgetForm.reset();
-                    DOM.budgetStatus.value = 'estimated';
+                    DOM.budgetStatus.value = 'pending';
                     DOM.budgetPriority.value = 'medium';
                     DOM.budgetPaymentMethod.value = 'cash';
                     DOM.itemsContainer.innerHTML = '';
                     addItemRow('', 1, 0);
                     updateGrandTotal();
+
+                    await loadWorkOrdersForBudget();
                     DOM.budgetModal.show();
                 });
 
@@ -1204,12 +1310,15 @@
 
                 document.getElementById('sidebarToggle')?.addEventListener('click', function() {
                     const sidebar = document.querySelector('.sidebar');
-                    if (sidebar) {
-                        sidebar.classList.toggle('show');
-                    }
+                    if (sidebar) sidebar.classList.toggle('show');
                 });
 
-                console.log('✅ Budget page initialized with administrator access only');
+                await Promise.all([
+                    loadBudgetsActual(),
+                    loadWorkOrdersForBudget()
+                ]);
+
+                console.log('✅ Budget v4.3 actual: WO dropdown + Spreadsheet API');
             }
 
             if (document.readyState === 'loading') {
@@ -1220,7 +1329,7 @@
 
         })();
     </script>
-<script src="assets/js/pages/budget-actual.js"></script>
+
 </body>
 
 </html>

@@ -1,67 +1,86 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const sidebar = document.getElementById("sidebar");
+// assets/js/components/sidebar.js
+// Dynamic Sidebar Component - Building Care System Enterprise
 
-    if (!sidebar) return;
+(function() {
+    'use strict';
 
-    sidebar.innerHTML = `
-        <ul class="nav flex-column">
+    /**
+     * Render sidebar dinamis
+     */
+    function renderSidebar() {
+        const sidebarNav = document.querySelector('.sidebar nav');
+        if (!sidebarNav) return;
 
-            <li class="nav-item">
-                <a class="nav-link" href="dashboard.html">
-                    <i class="bi bi-speedometer2"></i>
-                    <span>Dashboard</span>
+        // Cek role user untuk admin menu
+        let isAdmin = false;
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.user) {
+                const role = (session.user.role || '').toUpperCase();
+                isAdmin = (role === 'ADMINISTRATOR' || role === 'SUPER ADMIN');
+            }
+        } catch (e) {
+            console.warn('Gagal cek session:', e);
+        }
+
+        const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+
+        const menus = [
+            { href: 'dashboard.html', icon: 'bi-grid-fill', label: 'Dashboard' },
+            { href: 'report.html', icon: 'bi-file-earmark-plus', label: 'Report' },
+            { href: 'monitoring.html', icon: 'bi-display', label: 'Monitoring' },
+            { href: 'history.html', icon: 'bi-clock-history', label: 'History' },
+            { href: 'wo.html', icon: 'bi-clipboard-check', label: 'Work Order' },
+            { href: 'budget.html', icon: 'bi-cash-stack', label: 'Budget' },
+            { href: 'approval.html', icon: 'bi-check-circle', label: 'Approval' },
+            { href: 'admin.html', icon: 'bi-shield-lock-fill', label: 'Admin', adminOnly: true },
+            { href: '#', icon: 'bi-box-arrow-right', label: 'Logout', logout: true, class: 'text-danger' }
+        ];
+
+        let html = '';
+        menus.forEach(menu => {
+            // Skip admin menu if not admin
+            if (menu.adminOnly && !isAdmin) return;
+
+            const active = (currentPage === menu.href) ? 'active' : '';
+            const logoutAttr = menu.logout ? 'id="logoutBtn"' : '';
+            const extraClass = menu.class || '';
+
+            html += `
+                <a href="${menu.href}" class="menu ${active} ${extraClass}" ${logoutAttr}>
+                    <i class="bi ${menu.icon}"></i>
+                    <span>${menu.label}</span>
                 </a>
-            </li>
+            `;
+        });
 
-            <li class="nav-item">
-                <a class="nav-link" href="report.html">
-                    <i class="bi bi-file-earmark-text"></i>
-                    <span>Report</span>
-                </a>
-            </li>
+        sidebarNav.innerHTML = html;
 
-            <li class="nav-item">
-                <a class="nav-link" href="wo.html">
-                    <i class="bi bi-tools"></i>
-                    <span>Work Order</span>
-                </a>
-            </li>
+        // Bind logout event
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (window.auth && typeof window.auth.logout === 'function') {
+                    window.auth.logout();
+                } else {
+                    if (confirm('Apakah Anda yakin ingin keluar?')) {
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.href = 'login.html';
+                    }
+                }
+            });
+        }
 
-            <li class="nav-item">
-                <a class="nav-link" href="budget.html">
-                    <i class="bi bi-cash-stack"></i>
-                    <span>Budget</span>
-                </a>
-            </li>
+        console.log('✅ Sidebar rendered dynamically');
+    }
 
-            <li class="nav-item">
-                <a class="nav-link" href="monitoring.html">
-                    <i class="bi bi-display"></i>
-                    <span>Monitoring</span>
-                </a>
-            </li>
+    // Inisialisasi saat DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderSidebar);
+    } else {
+        renderSidebar();
+    }
 
-            <li class="nav-item">
-                <a class="nav-link" href="history.html">
-                    <i class="bi bi-clock-history"></i>
-                    <span>History</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="approval.html">
-                    <i class="bi bi-check2-square"></i>
-                    <span>Approval</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="admin.html">
-                    <i class="bi bi-people"></i>
-                    <span>Admin</span>
-                </a>
-            </li>
-
-        </ul>
-    `;
-});
+})();

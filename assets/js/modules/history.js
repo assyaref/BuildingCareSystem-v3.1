@@ -1,8 +1,8 @@
-// =====================================================
+// ============================================================
 // Building Care System Enterprise v7.6 FINAL - FIXED
 // history.js - Auto Refresh 5 Menit (Background)
 // Radiant Group Duri
-// =====================================================
+// ============================================================
 
 "use strict";
 
@@ -695,12 +695,23 @@
             const status = (r.status || 'OPEN').toUpperCase();
             const statusClass = status === 'OPEN' ? 'open' : status === 'PROGRESS' ? 'progress' : 'done';
 
+            // ============================================================
+            // 🔥 PERBAIKAN PRIORITAS — Sinkron dengan user-report.html
+            // ============================================================
             const prioritas = r.prioritas || r.priority || 'NORMAL';
-            const prioritasBadge = prioritas === 'HIGH' || prioritas === 'TINGGI' ?
-                '<span class="badge bg-danger" style="font-size:9px;">TINGGI</span>' :
-                prioritas === 'MEDIUM' || prioritas === 'SEDANG' ?
-                '<span class="badge bg-warning text-dark" style="font-size:9px;">SEDANG</span>' :
-                '<span class="badge bg-secondary" style="font-size:9px;">RENDAH</span>';
+            let prioritasBadge = '';
+            switch (prioritas.toUpperCase()) {
+                case 'URGENT':
+                    prioritasBadge = '<span class="badge bg-danger" style="font-size:9px;padding:4px 8px;">🔴 URGENT</span>';
+                    break;
+                case 'HIGH':
+                    prioritasBadge = '<span class="badge bg-warning text-dark" style="font-size:9px;padding:4px 8px;">🟡 HIGH</span>';
+                    break;
+                case 'NORMAL':
+                default:
+                    prioritasBadge = '<span class="badge bg-success" style="font-size:9px;padding:4px 8px;">🟢 NORMAL</span>';
+                    break;
+            }
 
             const hasPhoto = r.foto && r.foto.trim() !== '';
 

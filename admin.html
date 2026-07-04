@@ -322,6 +322,16 @@
             background: var(--border-color);
         }
 
+        /* ===== ANIMASI TOMBOL REFRESH ===== */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spin-animation {
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
         @media (max-width: 768px) {
             .stat-card .stat-number { font-size: 22px; }
             .online-stats-card .number { font-size: 28px; }
@@ -377,8 +387,13 @@
 
             <!-- 👥 USER ONLINE STATISTICS -->
             <section class="row g-4 mt-1">
-                <div class="col-12">
-                    <h6 class="fw-semibold mb-3" style="color:var(--text-secondary);"><i class="bi bi-people-fill me-2" style="color:var(--accent-color);"></i>User Online Statistics</h6>
+                <div class="col-12 d-flex justify-content-between align-items-center mb-1">
+                    <h6 class="fw-semibold mb-0" style="color:var(--text-secondary);">
+                        <i class="bi bi-people-fill me-2" style="color:var(--accent-color);"></i>User Online Statistics
+                    </h6>
+                    <button class="btn btn-sm btn-outline-primary" id="refreshOnlineStats" title="Refresh Statistik Online">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh Online
+                    </button>
                 </div>
                 <div class="col-xl-4 col-md-6">
                     <div class="online-stats-card">
@@ -489,7 +504,7 @@
                                             </td>
                                         </tr>
                                     </tbody>
-                                </table>
+                                table>
                             </div>
                         </div>
                     </div>
@@ -656,7 +671,7 @@
 <script src="assets/js/core/components/sidebar.js"></script>
 
 <script>
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
     'use strict';
 
     // =============================================
@@ -763,7 +778,6 @@
                 document.getElementById('activeSessions').textContent = d.activeSessions || 0;
                 document.getElementById('lastUpdate').textContent = d.lastUpdate || d.timestamp || new Date().toLocaleString();
             } else {
-                // Alternatif jika endpoint getSystemStats custom belum tersedia
                 var resUsers = await BCS.Api.post('getUsers', {});
                 var userCount = (resUsers && resUsers.success && resUsers.data) ? (Array.isArray(resUsers.data) ? resUsers.data.length : (resUsers.data.users || []).length) : getDummyUsers().length;
                 
@@ -823,7 +837,6 @@
             document.getElementById('onlineWeek').textContent = weekCount;
             document.getElementById('onlineMonth').textContent = monthCount;
 
-            // Trend Rendering
             document.getElementById('trendToday').innerHTML = '<i class="bi bi-arrow-up"></i> <span>' + Math.floor(Math.random() * 2) + '</span> dari kemarin';
             document.getElementById('trendWeek').innerHTML = '<i class="bi bi-arrow-up"></i> <span>' + Math.floor(Math.random() * 5) + '</span> dari minggu lalu';
             document.getElementById('trendMonth').innerHTML = '<i class="bi bi-arrow-up"></i> <span>' + Math.floor(Math.random() * 12) + '</span> dari bulan lalu';
@@ -910,7 +923,6 @@
         });
         tbody.innerHTML = html;
 
-        // Bind Action Events
         document.querySelectorAll('.edit-user').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 openEditUser(this.dataset.email, this.dataset.nik);
@@ -980,7 +992,7 @@
     // =============================================
     function openEditUser(email, nik) {
         var saveBtn = document.getElementById('saveUserBtn');
-        saveBtn.disabled = true;
+        if (saveBtn) saveBtn.disabled = true;
 
         BCS.Api.post('getUser', { email: email, nik: nik }).then(function(response) {
             var user = null;
@@ -1009,7 +1021,7 @@
                 Swal.fire('Error', 'Gagal memuat data spesifik user', 'error');
             }
         }).finally(function() {
-            saveBtn.disabled = false;
+            if (saveBtn) saveBtn.disabled = false;
         });
     }
 
@@ -1061,7 +1073,7 @@
     // =============================================
     // CLEAR ACTIVITIES
     // =============================================
-    document.getElementById('clearActivitiesBtn').addEventListener('click', function() {
+    document.getElementById('clearActivitiesBtn')?.addEventListener('click', function() {
         Swal.fire({
             title: 'Hapus Semua Aktivitas?',
             text: 'Seluruh rekam jejak aktivitas admin akan dibersihkan permanen.',
@@ -1072,10 +1084,12 @@
             cancelButtonText: 'Batal'
         }).then(async function(result) {
             if (result.isConfirmed) {
+                var btn = document.getElementById('clearActivitiesBtn');
                 try {
-                    var btn = document.getElementById('clearActivitiesBtn');
-                    btn.disabled = true;
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+                    }
 
                     var response = await BCS.Api.post('clearActivities', {});
                     if (response && response.success) {
@@ -1087,8 +1101,10 @@
                 } catch (e) {
                     Swal.fire('Error!', 'Gagal menghubungi server.', 'error');
                 } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-trash3"></i> Clear All';
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-trash3"></i> Clear All';
+                    }
                 }
             }
         });
@@ -1097,7 +1113,7 @@
     // =============================================
     // SAVE USER (Add / Edit)
     // =============================================
-    document.getElementById('saveUserBtn').addEventListener('click', async function() {
+    document.getElementById('saveUserBtn')?.addEventListener('click', async function() {
         var editEmailVal = document.getElementById('editEmail').value;
         var isEdit = !!editEmailVal;
 
@@ -1121,7 +1137,7 @@
         }
 
         if (isEdit && !data.password) {
-            delete data.password; // Jangan kirim property password jika kosong waktu edit
+            delete data.password;
         }
 
         var btn = this;
@@ -1154,9 +1170,9 @@
     // =============================================
     // PROCESS EXCEL UPLOAD
     // =============================================
-    document.getElementById('processExcelBtn').addEventListener('click', async function() {
+    document.getElementById('processExcelBtn')?.addEventListener('click', async function() {
         var fileInput = document.getElementById('excelFileInput');
-        var file = fileInput.files[0];
+        var file = fileInput ? fileInput.files[0] : null;
 
         if (!file) {
             Swal.fire('Perhatian', 'Silakan pilih berkas Excel terlebih dahulu.', 'warning');
@@ -1222,7 +1238,7 @@
                 var modalEl = document.getElementById('excelModal');
                 var modalInstance = bootstrap.Modal.getInstance(modalEl);
                 if (modalInstance) modalInstance.hide();
-                fileInput.value = '';
+                if (fileInput) fileInput.value = '';
 
                 refreshAllData();
 
@@ -1251,7 +1267,7 @@
     // =============================================
     // DOWNLOAD TEMPLATE EXCEL
     // =============================================
-    document.getElementById('downloadTemplateBtn').addEventListener('click', function() {
+    document.getElementById('downloadTemplateBtn')?.addEventListener('click', function() {
         try {
             var templateData = [
                 { "nama": "Ahmad Fauzi", "nik": "01123", "email": "ahmad.fauzi@radiant.com", "password": "password123", "role": "USER", "status": "ACTIVE" },
@@ -1283,8 +1299,7 @@
         document.getElementById('passwordRequired').style.display = 'inline';
     }
 
-    // Reset Form saat modal di-close manual
-    document.getElementById('userModal').addEventListener('hidden.bs.modal', function() {
+    document.getElementById('userModal')?.addEventListener('hidden.bs.modal', function() {
         resetUserForm();
     });
 
@@ -1297,28 +1312,41 @@
         loadOnlineStats();
         loadActivities();
     }
-    document.getElementById('refreshUsers').addEventListener('click', refreshAllData);
+    document.getElementById('refreshUsers')?.addEventListener('click', refreshAllData);
 
     // =============================================
-    // INIT
+    // EVENT LISTENER: REFRESH ONLINE STATS ONLY
+    // =============================================
+    document.getElementById('refreshOnlineStats')?.addEventListener('click', function() {
+        var btn = this;
+        var icon = btn.querySelector('i');
+        
+        if (icon) icon.classList.add('spin-animation');
+        btn.disabled = true;
+
+        loadOnlineStats().finally(function() {
+            setTimeout(function() {
+                if (icon) icon.classList.remove('spin-animation');
+                btn.disabled = false;
+            }, 600); // Animasi minimal berjalan 0.6 detik agar terlihat smooth
+        });
+    });
+
+    // =============================================
+    // INIT RUNTIME
     // =============================================
     async function init() {
         initDarkMode();
         loadUserInfo();
-        await loadOnlineStats(); // load ini terlebih dahulu untuk alokasi hitungan active session
+        await loadOnlineStats();
         await loadStats();
         await loadUsers();
         await loadActivities();
-        console.log('✅ Admin Panel fully configured and operational.');
+        console.log('¼ Admin Panel fully configured and operational.');
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
-})();
+    init();
+});
 </script>
 
 </body>

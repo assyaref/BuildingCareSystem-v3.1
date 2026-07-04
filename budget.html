@@ -1263,7 +1263,7 @@
                         b.id || '-',
                         b.woNumber || b.reportId || '-',
                         b.description || '-',
-                        formatRupiah(b.total),
+                        formatCurrency(b.total),
                         getStatusLabel(b.status),
                         getPriorityLabel(b.priority),
                         formatDate(b.createdAt)

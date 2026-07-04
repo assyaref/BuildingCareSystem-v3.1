@@ -1,11 +1,12 @@
 // assets/js/core/components/sidebar.js
 // Sidebar Dinamis Premium UI - Match UI Design v4.3
 // 🔥 Added Custom Premium Toast Confirmation for Logout
+// 📱 Added Mobile Responsive Toggle (Hamburger) & Click-Outside-to-Close
 
 (function() {
     'use strict';
 
-    console.log('🔄 Premium sidebar.js updated with stunning custom logout toast');
+    console.log('🔄 Premium sidebar.js loaded with mobile responsive toggle');
 
     const styleId = 'premium-sidebar-css';
     if (!document.getElementById(styleId)) {
@@ -148,7 +149,7 @@
                 opacity: 0.7;
             }
 
-            /* 🎯 STATE ACTIVE (image_7531de.png style) */
+            /* 🎯 STATE ACTIVE */
             .sb-menu-item.active {
                 background: var(--sb-active-gradient) !important;
                 color: #ffffff !important;
@@ -232,7 +233,7 @@
             .sb-badge-role { background: #3b82f6; color: #ffffff; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 4px; display: inline-block; text-transform: uppercase; }
             .sb-chevron-down { color: var(--sb-text-muted); font-size: 14px; }
 
-            /* 🌟 ✨ ANIMATED TOAST OVERLAY & BOX CSS ✨ 🌟 */
+            /* 🌟 TOAST OVERLAY & BOX CSS */
             .sb-toast-overlay {
                 position: fixed;
                 top: 0; left: 0; width: 100vw; height: 100vh;
@@ -312,11 +313,35 @@
                 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
             }
 
+            /* ===================================================== */
+            /* 📱 RESPONSIVE MOBILE - SIDEBAR SLIDE IN/OUT          */
+            /* ===================================================== */
             .content { margin-left: 280px !important; width: calc(100% - 280px) !important; }
+            
             @media (max-width: 991.98px) {
-                .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
-                .sidebar.open { transform: translateX(0); }
-                .content { margin-left: 0 !important; width: 100% !important; }
+                .sidebar {
+                    transform: translateX(-100%);
+                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    width: 280px !important;
+                }
+                .sidebar.open {
+                    transform: translateX(0);
+                }
+                .content {
+                    margin-left: 0 !important;
+                    width: 100% !important;
+                }
+                /* Tambahan overlay gelap opsional (bisa ditambahkan nanti) */
+                .sidebar-overlay {
+                    display: none;
+                    position: fixed;
+                    top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0,0,0,0.3);
+                    z-index: 1039;
+                }
+                .sidebar-overlay.active {
+                    display: block;
+                }
             }
         `;
         const styleSheet = document.createElement("style");
@@ -325,6 +350,9 @@
         document.head.appendChild(styleSheet);
     }
 
+    // ================================================================
+    // 1. FUNGSI GET SESSION
+    // ================================================================
     function getSession() {
         try {
             if (typeof BCS !== 'undefined' && BCS.Storage && typeof BCS.Storage.getSession === 'function') {
@@ -338,7 +366,9 @@
         return null;
     }
 
-    // Fungsi utilitas pembuat Modal Toast Konfirmasi Kustom
+    // ================================================================
+    // 2. FUNGSI TOAST KONFIRMASI LOGOUT
+    // ================================================================
     function createToastDOM() {
         if (document.getElementById('sb-logout-toast-overlay')) return;
 
@@ -360,14 +390,12 @@
         `;
         document.body.appendChild(overlay);
 
-        // Event listener internal toast
         document.getElementById('toast-cancel-btn').addEventListener('click', hideLogoutToast);
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay) hideLogoutToast();
         });
         
         document.getElementById('toast-confirm-btn').addEventListener('click', function() {
-            // Animasi transisi sukses sebelum redirect
             document.querySelector('.sb-toast-box').innerHTML = `
                 <div class="sb-toast-icon" style="background: #e6fbf4; color: #10b981; animation: none;">
                     <i class="bi bi-check-circle-fill"></i>
@@ -394,6 +422,9 @@
         if (overlay) overlay.classList.remove('show');
     }
 
+    // ================================================================
+    // 3. FUNGSI RENDER SIDEBAR
+    // ================================================================
     function renderSidebar() {
         const sidebarElement = document.querySelector('.sidebar');
         if (!sidebarElement) return;
@@ -497,7 +528,7 @@
 
         sidebarElement.innerHTML = sidebarHTML;
 
-        // Pemicu Toast Kustom saat tombol logout diklik
+        // Event Logout
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', function(e) {
@@ -507,9 +538,82 @@
         }
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => setTimeout(renderSidebar, 50));
-    } else {
-        setTimeout(renderSidebar, 50);
+    // ================================================================
+    // 4. 📱 FUNGSI TOGGLE MOBILE (RESPONSIVE)
+    // ================================================================
+    function initMobileToggle() {
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+
+        // Jika tombol toggle tidak ada, beri peringatan tapi tetap jalan
+        if (!toggleBtn) {
+            console.warn('⚠️ Sidebar toggle button (#sidebarToggle) tidak ditemukan. Tambahkan ke header Anda.');
+            return;
+        }
+        if (!sidebar) return;
+
+        // --- Event: Buka / Tutup Sidebar ---
+        toggleBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            sidebar.classList.toggle('open');
+            
+            // Ubah icon hamburger (opsional, jika pakai bi-list / bi-x)
+            const icon = toggleBtn.querySelector('i');
+            if (icon) {
+                if (sidebar.classList.contains('open')) {
+                    icon.className = 'bi bi-x-lg';
+                } else {
+                    icon.className = 'bi bi-list';
+                }
+            }
+        });
+
+        // --- Event: Tutup saat klik di LUAR sidebar (hanya di mobile) ---
+        document.addEventListener('click', function(e) {
+            // Cek apakah lebar layar <= 991.98px (mobile)
+            if (window.innerWidth <= 991.98 && 
+                sidebar.classList.contains('open') &&
+                !sidebar.contains(e.target) && 
+                !toggleBtn.contains(e.target)) {
+                sidebar.classList.remove('open');
+                // Reset icon
+                const icon = toggleBtn.querySelector('i');
+                if (icon) icon.className = 'bi bi-list';
+            }
+        });
+
+        // --- Event: Tutup otomatis saat window di-resize ke desktop ---
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 991.98 && sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                const icon = toggleBtn.querySelector('i');
+                if (icon) icon.className = 'bi bi-list';
+            }
+        });
+
+        // --- Event: Tutup saat tombol ESC ditekan ---
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                const icon = toggleBtn.querySelector('i');
+                if (icon) icon.className = 'bi bi-list';
+            }
+        });
     }
+
+    // ================================================================
+    // 5. INITIALIZATION
+    // ================================================================
+    function startApp() {
+        renderSidebar();
+        // Beri jeda kecil agar DOM benar-benar siap sebelum pasang event listener
+        setTimeout(initMobileToggle, 100);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', startApp);
+    } else {
+        startApp();
+    }
+
 })();

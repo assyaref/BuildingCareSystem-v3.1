@@ -763,18 +763,46 @@
             'use strict';
 
             // =============================================
+            // ADMIN ACCESS CHECK — HARUS ADMIN!
+            // =============================================
+            function checkAdminAccess() {
+                try {
+                    // Ambil session dari storage
+                    var session = BCS.Storage.getSession();
+                    if (!session || !session.user) {
+                        // Tidak ada session → redirect ke login
+                        window.location.href = 'login.html';
+                        return false;
+                    }
+
+                    var role = (session.user.role || '').toLowerCase();
+                    // Hanya role 'administrator' atau 'admin' yang diizinkan
+                    if (role !== 'administrator' && role !== 'admin') {
+                        window.location.href = 'login.html';
+                        return false;
+                    }
+
+                    return true;
+                } catch (e) {
+                    console.warn('Admin access check error:', e);
+                    window.location.href = 'login.html';
+                    return false;
+                }
+            }
+
+            // =============================================
             // DARK MODE
             // =============================================
             function initDarkMode() {
-                const toggle = document.getElementById('darkModeToggle');
-                const icon = document.getElementById('darkModeIcon');
+                var toggle = document.getElementById('darkModeToggle');
+                var icon = document.getElementById('darkModeIcon');
                 if (!toggle) return;
-                const saved = localStorage.getItem('bcs_theme') || 'light';
+                var saved = localStorage.getItem('bcs_theme') || 'light';
                 document.documentElement.setAttribute('data-theme', saved);
                 updateIcon(icon, saved);
                 toggle.addEventListener('click', function() {
-                    const cur = document.documentElement.getAttribute('data-theme');
-                    const next = cur === 'dark' ? 'light' : 'dark';
+                    var cur = document.documentElement.getAttribute('data-theme');
+                    var next = cur === 'dark' ? 'light' : 'dark';
                     document.documentElement.setAttribute('data-theme', next);
                     localStorage.setItem('bcs_theme', next);
                     updateIcon(icon, next);
@@ -795,7 +823,7 @@
             // =============================================
             // DOM REFS
             // =============================================
-            const DOM = {
+            var DOM = {
                 monitorTotal: document.getElementById('monitorTotal'),
                 monitorOpen: document.getElementById('monitorOpen'),
                 monitorProgress: document.getElementById('monitorProgress'),
@@ -828,17 +856,17 @@
                 onlineUserList: document.getElementById('onlineUserList')
             };
 
-            let categoryChart = null,
+            var categoryChart = null,
                 reportChart = null,
                 monthlyChart = null;
 
             // =============================================
             // AUTO-REFRESH (Tanpa Toast)
             // =============================================
-            let refreshTimer = 7;
-            let refreshInterval = null,
+            var refreshTimer = 7;
+            var refreshInterval = null,
                 timerInterval = null;
-            let isRefreshing = false;
+            var isRefreshing = false;
 
             function performRefresh() {
                 if (isRefreshing) return;
@@ -846,18 +874,18 @@
                 loadMonitoring();
                 refreshTimer = 7;
                 updateTimerDisplay();
-                setTimeout(() => { isRefreshing = false; }, 1000);
+                setTimeout(function() { isRefreshing = false; }, 1000);
             }
 
             function updateTimerDisplay() {
-                const el = document.getElementById('refreshTimer');
+                var el = document.getElementById('refreshTimer');
                 if (el) el.textContent = refreshTimer;
             }
 
             function startAutoRefresh() {
                 if (refreshInterval) clearInterval(refreshInterval);
                 if (timerInterval) clearInterval(timerInterval);
-                timerInterval = setInterval(() => {
+                timerInterval = setInterval(function() {
                     refreshTimer--;
                     if (refreshTimer <= 0) refreshTimer = 7;
                     updateTimerDisplay();
@@ -877,11 +905,11 @@
             // =============================================
             function loadUserInfo() {
                 try {
-                    const session = BCS.Storage.getSession();
+                    var session = BCS.Storage.getSession();
                     if (session && session.user) {
-                        const user = session.user;
-                        const nama = user.nama || user.name || 'User';
-                        const role = user.role || 'User';
+                        var user = session.user;
+                        var nama = user.nama || user.name || 'User';
+                        var role = user.role || 'User';
                         if (DOM.userName) DOM.userName.textContent = nama;
                         if (DOM.userRole) DOM.userRole.textContent = role;
                         if (DOM.userAvatar) DOM.userAvatar.textContent = nama.charAt(0).toUpperCase();
@@ -895,16 +923,16 @@
             // RENDER FUNCTIONS
             // =============================================
             function renderCategoryChart(data) {
-                const ctx = document.getElementById('renderCategoryChart');
+                var ctx = document.getElementById('renderCategoryChart');
                 if (!ctx) return;
-                const labels = ['AC', 'LISTRIK', 'KONDISI GEDUNG'];
-                const values = [data.ac || 0, data.listrik || 0, data.bangunan || data.gedung || 0];
-                const colors = ['#06B6D4', '#FBBF24', '#7C3AED'];
+                var labels = ['AC', 'LISTRIK', 'KONDISI GEDUNG'];
+                var values = [data.ac || 0, data.listrik || 0, data.bangunan || data.gedung || 0];
+                var colors = ['#06B6D4', '#FBBF24', '#7C3AED'];
                 if (categoryChart) { categoryChart.destroy();
                     categoryChart = null; }
                 categoryChart = new Chart(ctx, {
                     type: 'doughnut',
-                    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#ffffff',
+                    data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#ffffff',
                             borderWidth: 3, hoverOffset: 10 }] },
                     options: {
                         responsive: true,
@@ -912,10 +940,10 @@
                         plugins: {
                             legend: { position: 'bottom', labels: { font: { size: 12, family: 'Poppins' },
                                     padding: 16, usePointStyle: true, pointStyle: 'circle' } },
-                            tooltip: { callbacks: { label: function(ctx) { const total = ctx.dataset.data.reduce((
-                                        a, b) => a + b, 0); const pct = total > 0 ? Math.round((ctx.parsed /
-                                    total) * 100) : 0; return ctx.label + ': ' + ctx.parsed + ' (' + pct +
-                                        '%)'; } } }
+                            tooltip: { callbacks: { label: function(ctx) { var total = ctx.dataset.data.reduce(
+                                        function(a, b) { return a + b; }, 0); var pct = total > 0 ? Math.round((
+                                        ctx.parsed / total) * 100) : 0; return ctx.label + ': ' + ctx.parsed +
+                                        ' (' + pct + '%)'; } } }
                         },
                         cutout: '70%'
                     }
@@ -923,16 +951,16 @@
             }
 
             function renderReportChart(data) {
-                const ctx = document.getElementById('reportChart');
+                var ctx = document.getElementById('reportChart');
                 if (!ctx) return;
-                const labels = ['OPEN', 'PROGRESS', 'DONE'];
-                const values = [data.open || 0, data.progress || 0, data.done || 0];
-                const colors = ['#f59e0b', '#3b82f6', '#22c55e'];
+                var labels = ['OPEN', 'PROGRESS', 'DONE'];
+                var values = [data.open || 0, data.progress || 0, data.done || 0];
+                var colors = ['#f59e0b', '#3b82f6', '#22c55e'];
                 if (reportChart) { reportChart.destroy();
                     reportChart = null; }
                 reportChart = new Chart(ctx, {
                     type: 'bar',
-                    data: { labels, datasets: [{ label: 'Jumlah Laporan', data: values, backgroundColor: colors,
+                    data: { labels: labels, datasets: [{ label: 'Jumlah Laporan', data: values, backgroundColor: colors,
                             borderRadius: 6, borderSkipped: false }] },
                     options: {
                         responsive: true,
@@ -945,10 +973,10 @@
             }
 
             function renderMonthlyChart(monthlyData) {
-                const ctx = document.getElementById('monthlyChart');
+                var ctx = document.getElementById('monthlyChart');
                 if (!ctx) return;
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-                const data = monthlyData || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                var months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                var data = monthlyData || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
                 if (monthlyChart) { monthlyChart.destroy();
                     monthlyChart = null; }
                 monthlyChart = new Chart(ctx, {
@@ -979,10 +1007,10 @@
                         '<div class="text-center text-muted py-4" style="color:var(--text-muted);">Belum ada aktivitas</div>';
                     return;
                 }
-                let html = '';
-                activity.forEach(item => {
-                    const status = item.status || 'OPEN';
-                    let badge = 'secondary',
+                var html = '';
+                activity.forEach(function(item) {
+                    var status = item.status || 'OPEN';
+                    var badge = 'secondary',
                         icon = 'bi-folder2-open',
                         color = '#6c757d';
                     if (status === 'DONE') { badge = 'success';
@@ -992,7 +1020,7 @@
                         color = '#f59e0b'; } else if (status === 'OPEN') { badge = 'danger';
                         icon = 'bi-folder2-open';
                         color = '#ef4444'; }
-                    const waktu = item.waktu || item.tanggal || '';
+                    var waktu = item.waktu || item.tanggal || '';
                     html += `
                         <div class="activity-item">
                             <div class="d-flex align-items-center gap-3">
@@ -1014,12 +1042,12 @@
 
             function renderOnlineUsers(users) {
                 if (!DOM.onlineUserList) return;
-                let onlineUsers = [];
+                var onlineUsers = [];
 
                 try {
-                    const session = BCS.Storage.getSession();
+                    var session = BCS.Storage.getSession();
                     if (session && session.user) {
-                        const u = session.user;
+                        var u = session.user;
                         onlineUsers.push({
                             nama: u.nama || u.name || 'User',
                             role: u.role || 'User',
@@ -1031,11 +1059,11 @@
                 } catch (e) {}
 
                 if (users && users.length > 0) {
-                    users.forEach(user => {
-                        const exists = onlineUsers.some(x =>
-                            (user.email && x.email && x.email === user.email) ||
-                            (x.nama.toLowerCase() === (user.nama || '').toLowerCase())
-                        );
+                    users.forEach(function(user) {
+                        var exists = onlineUsers.some(function(x) {
+                            return (user.email && x.email && x.email === user.email) ||
+                                (x.nama.toLowerCase() === (user.nama || '').toLowerCase());
+                        });
                         if (!exists) {
                             onlineUsers.push({
                                 nama: user.nama || 'User',
@@ -1057,10 +1085,10 @@
                     return;
                 }
 
-                let html = '';
-                onlineUsers.slice(0, 6).forEach(user => {
-                    const initial = (user.nama || 'U').charAt(0).toUpperCase();
-                    const cls = user.isCurrent ? 'current' : 'other';
+                var html = '';
+                onlineUsers.slice(0, 6).forEach(function(user) {
+                    var initial = (user.nama || 'U').charAt(0).toUpperCase();
+                    var cls = user.isCurrent ? 'current' : 'other';
                     html += `
                         <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
                             <div class="d-flex align-items-center p-3 rounded-3 online-user-item" style="background:var(--bg-card-hover);border-color:var(--border-color);">
@@ -1085,17 +1113,19 @@
             }
 
             function updateStatusPercentages(data) {
-                const open = data.open || 0,
+                var open = data.open || 0,
                     progress = data.progress || 0,
                     done = data.done || 0;
-                const total = open + progress + done;
-                const els = {
+                var total = open + progress + done;
+                var els = {
                     open: document.querySelector('.status-card.open .status-percent'),
                     progress: document.querySelector('.status-card.progress-card .status-percent'),
                     done: document.querySelector('.status-card.done-card .status-percent')
                 };
                 if (total === 0) {
-                    Object.values(els).forEach(el => { if (el) el.textContent = '0% dari total report'; });
+                    for (var key in els) {
+                        if (els[key]) els[key].textContent = '0% dari total report';
+                    }
                     return;
                 }
                 if (els.open) els.open.textContent = Math.round((open / total) * 100) + '% dari total report';
@@ -1104,10 +1134,10 @@
             }
 
             function updateSLAPercentages(data) {
-                const fast = data.fast || 0,
+                var fast = data.fast || 0,
                     normal = data.normal || 0,
                     late = data.late || 0;
-                const total = fast + normal + late;
+                var total = fast + normal + late;
                 if (total === 0) {
                     if (DOM.fastPercent) DOM.fastPercent.textContent = '0%';
                     if (DOM.normalPercent) DOM.normalPercent.textContent = '0%';
@@ -1126,12 +1156,12 @@
                 try {
                     BCS.App.Loading.show();
 
-                    const response = await BCS.Api.post('getSummary', {});
+                    var response = await BCS.Api.post('getSummary', {});
                     console.log('📊 Monitoring response:', response);
 
                     if (!response || !response.success) {
                         console.error('Gagal load monitoring:', response?.message);
-                        const dummy = {
+                        var dummy = {
                             total: 0,
                             open: 0,
                             progress: 0,
@@ -1152,7 +1182,7 @@
                         return;
                     }
 
-                    const data = response.data || {};
+                    var data = response.data || {};
                     updateUI(data);
 
                 } catch (error) {
@@ -1215,8 +1245,8 @@
                     DOM.driveStatusText.className = 'stat-trend up'; }
 
                 // Server Time
-                const serverTime = data.serverTime || new Date().toISOString();
-                const time = new Date(serverTime);
+                var serverTime = data.serverTime || new Date().toISOString();
+                var time = new Date(serverTime);
                 if (DOM.serverTimeDisplay) {
                     DOM.serverTimeDisplay.textContent = time.toLocaleTimeString('id-ID', {
                         hour: '2-digit',
@@ -1226,7 +1256,7 @@
                 }
                 if (DOM.timezoneLabel) DOM.timezoneLabel.textContent = 'WIB';
 
-                // 🔥 Online Users from server (already included in response)
+                // Online Users from server
                 if (data.activeUsers) {
                     renderOnlineUsers(data.activeUsers);
                 } else {
@@ -1240,7 +1270,7 @@
             function startLiveServerTime() {
                 function update() {
                     if (!DOM.serverTimeDisplay) return;
-                    const now = new Date();
+                    var now = new Date();
                     DOM.serverTimeDisplay.textContent = now.toLocaleTimeString('id-ID', {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -1275,15 +1305,21 @@
             }
 
             // =============================================
-            // INIT
+            // INIT — dengan pengecekan akses ADMIN
             // =============================================
             async function init() {
+                // 🔐 Cek akses: hanya ADMIN yang boleh masuk
+                if (!checkAdminAccess()) {
+                    // Redirect sudah dilakukan di dalam checkAdminAccess()
+                    return;
+                }
+
                 initDarkMode();
                 loadUserInfo();
                 startLiveServerTime();
                 await loadMonitoring();
                 startAutoRefresh();
-                console.log('✅ Monitoring page initialized');
+                console.log('✅ Monitoring page initialized — ADMIN ONLY');
             }
 
             window.addEventListener('beforeunload', stopAutoRefresh);

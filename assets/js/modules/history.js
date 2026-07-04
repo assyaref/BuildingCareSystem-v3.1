@@ -1,6 +1,6 @@
 // =====================================================
-// Building Care System Enterprise v7.2
-// history.js - Fully integrated with getReports backend
+// Building Care System Enterprise v7.3
+// history.js - Auto-Refresh 7 detik + Countdown
 // Radiant Group Duri
 // =====================================================
 
@@ -27,7 +27,11 @@
         status: '',
         sort: 'desc',
         loading: false,
-        currentDetail: null
+        currentDetail: null,
+        // Auto-refresh
+        countdown: 7,
+        autoRefresh: true,
+        countdownInterval: null
     };
 
     // DOM cache
@@ -67,6 +71,12 @@
         DOM.openTrend = $('#openTrend');
         DOM.progressTrend = $('#progressTrend');
         DOM.doneTrend = $('#doneTrend');
+        // Countdown elements
+        DOM.countdownNumber = $('#countdownNumber');
+        DOM.countdownArea = $('#countdownArea');
+        DOM.countdownReset = $('#countdownReset');
+        DOM.countdownToggle = $('#countdownToggle');
+        DOM.countdownToggleIcon = $('#countdownToggleIcon');
     }
 
     // ============================================================
@@ -242,7 +252,6 @@
     //  SIDEBAR
     // ============================================================
     function initSidebar() {
-        // Sidebar.js sudah menangani render, hanya pastikan menu history aktif
         setTimeout(() => {
             const menus = $$('.sidebar nav a.menu');
             menus.forEach(m => {
@@ -256,10 +265,109 @@
     }
 
     // ============================================================
+    //  AUTO-REFRESH COUNTDOWN
+    // ============================================================
+    function startCountdown() {
+        if (state.countdownInterval) {
+            clearInterval(state.countdownInterval);
+            state.countdownInterval = null;
+        }
+
+        if (!state.autoRefresh) return;
+
+        state.countdown = 7;
+        updateCountdownDisplay();
+
+        state.countdownInterval = setInterval(function() {
+            state.countdown--;
+            updateCountdownDisplay();
+
+            if (state.countdown <= 0) {
+                // Reset countdown dan refresh
+                state.countdown = 7;
+                updateCountdownDisplay();
+                fetchReports();
+            }
+        }, 1000);
+    }
+
+    function updateCountdownDisplay() {
+        if (DOM.countdownNumber) {
+            DOM.countdownNumber.textContent = state.countdown;
+        }
+        if (DOM.countdownArea) {
+            if (!state.autoRefresh) {
+                DOM.countdownArea.classList.add('paused');
+            } else {
+                DOM.countdownArea.classList.remove('paused');
+            }
+        }
+        if (DOM.countdownToggleIcon) {
+            if (state.autoRefresh) {
+                DOM.countdownToggleIcon.className = 'bi bi-pause-fill';
+            } else {
+                DOM.countdownToggleIcon.className = 'bi bi-play-fill';
+            }
+        }
+    }
+
+    function resetCountdown() {
+        // Reset countdown dan refresh
+        if (state.countdownInterval) {
+            clearInterval(state.countdownInterval);
+            state.countdownInterval = null;
+        }
+        state.countdown = 7;
+        updateCountdownDisplay();
+        fetchReports();
+        if (state.autoRefresh) {
+            startCountdown();
+        }
+    }
+
+    function toggleAutoRefresh() {
+        state.autoRefresh = !state.autoRefresh;
+        if (state.autoRefresh) {
+            // Resume
+            state.countdown = 7;
+            updateCountdownDisplay();
+            startCountdown();
+        } else {
+            // Pause
+            if (state.countdownInterval) {
+                clearInterval(state.countdownInterval);
+                state.countdownInterval = null;
+            }
+            updateCountdownDisplay();
+        }
+    }
+
+    function initCountdown() {
+        if (DOM.countdownReset) {
+            DOM.countdownReset.addEventListener('click', resetCountdown);
+        }
+        if (DOM.countdownToggle) {
+            DOM.countdownToggle.addEventListener('click', toggleAutoRefresh);
+        }
+        // Mulai countdown
+        state.autoRefresh = true;
+        state.countdown = 7;
+        updateCountdownDisplay();
+        startCountdown();
+    }
+
+    // ============================================================
     //  FETCH REPORTS (Menggunakan getReports dari backend)
     // ============================================================
     async function fetchReports() {
         if (state.loading) return;
+
+        // Hentikan countdown sementara saat loading
+        if (state.countdownInterval) {
+            clearInterval(state.countdownInterval);
+            state.countdownInterval = null;
+        }
+
         showLoading();
 
         if (DOM.tableBody) {
@@ -271,17 +379,28 @@
             const api = window.BCS.Api || window.Api;
             if (!api) throw new Error('API tidak tersedia');
 
-            const response = await api.post('getReports', {});
+            // Gunakan request langsung dengan fallback JSONP
+            let response;
+            try {
+                response = await api.post('getReports', {});
+            } catch (apiErr) {
+                console.warn('[History] POST failed, trying GET with JSONP...', apiErr);
+                // Fallback: coba GET via JSONP
+                response = await api.request('GET', 'getReports', {});
+            }
+
             console.log('[History] getReports response:', response);
 
             let reports = [];
             if (response && response.success) {
                 reports = response.data?.reports || [];
             } else {
-                throw new Error(response?.message || 'Gagal memuat data');
+                // Jika masih gagal, tampilkan error tapi tetap lanjut dengan data kosong
+                console.warn('[History] No reports data, using empty array');
+                reports = [];
             }
 
-            // Filter berdasarkan role user (bukan admin hanya melihat laporannya sendiri)
+            // Filter berdasarkan role user
             const session = BCS.Storage.getSession();
             const user = session?.user || {};
             const role = (user.role || '').toUpperCase();
@@ -311,6 +430,13 @@
             applyFilters();
         } finally {
             hideLoading();
+            // Restart countdown
+            if (state.autoRefresh) {
+                // Reset countdown setelah fetch
+                state.countdown = 7;
+                updateCountdownDisplay();
+                startCountdown();
+            }
         }
     }
 
@@ -324,7 +450,6 @@
 
         let result = state.reports.slice();
 
-        // Search filter
         if (keyword) {
             result = result.filter(function(r) {
                 return (r.id || '').toLowerCase().includes(keyword) ||
@@ -336,12 +461,10 @@
             });
         }
 
-        // Status filter
         if (status) {
             result = result.filter(function(r) { return (r.status || '').toUpperCase() === status; });
         }
 
-        // Quick date filter
         const activePill = document.querySelector('.quick-pills .pill.active');
         if (activePill) {
             const range = activePill.dataset.range;
@@ -375,7 +498,6 @@
             }
         }
 
-        // Sort
         result.sort(function(a, b) {
             const dateA = new Date(a.tanggal || a.createdAt || 0);
             const dateB = new Date(b.tanggal || b.createdAt || 0);
@@ -412,7 +534,6 @@
         if (DOM.cardDone) DOM.cardDone.textContent = done;
         if (DOM.totalReports) DOM.totalReports.textContent = total;
 
-        // Trends (minggu lalu)
         const now = new Date();
         const weekAgo = new Date(now);
         weekAgo.setDate(now.getDate() - 7);
@@ -865,7 +986,6 @@
     //  BIND EVENTS
     // ============================================================
     function bindEvents() {
-        // Search
         if (DOM.searchInput) {
             DOM.searchInput.addEventListener('input', function() {
                 document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
@@ -875,17 +995,14 @@
             });
         }
 
-        // Status filter
         if (DOM.filterStatus) {
             DOM.filterStatus.addEventListener('change', applyFilters);
         }
 
-        // Sort order
         if (DOM.sortOrder) {
             DOM.sortOrder.addEventListener('change', applyFilters);
         }
 
-        // Quick pills
         document.querySelectorAll('.quick-pills .pill').forEach(function(pill) {
             pill.addEventListener('click', function() {
                 document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
@@ -896,12 +1013,10 @@
             });
         });
 
-        // Refresh
         if (DOM.refreshBtn) {
-            DOM.refreshBtn.addEventListener('click', fetchReports);
+            DOM.refreshBtn.addEventListener('click', resetCountdown);
         }
 
-        // Export
         if (DOM.exportExcelBtn) {
             DOM.exportExcelBtn.addEventListener('click', exportExcel);
         }
@@ -912,12 +1027,10 @@
             DOM.exportDetailPdfBtn.addEventListener('click', exportDetailPDF);
         }
 
-        // Save update
         if (DOM.saveUpdateBtn) {
             DOM.saveUpdateBtn.addEventListener('click', saveUpdate);
         }
 
-        // Event delegation untuk tombol aksi di tabel
         if (DOM.tableBody) {
             DOM.tableBody.addEventListener('click', function(e) {
                 const target = e.target.closest('.view-detail');
@@ -956,11 +1069,11 @@
         loadUserInfo();
         initSidebar();
         bindEvents();
+        initCountdown();
         await fetchReports();
-        console.log('✅ History page initialized');
+        console.log('✅ History page initialized with auto-refresh (7s)');
     }
 
-    // Run on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

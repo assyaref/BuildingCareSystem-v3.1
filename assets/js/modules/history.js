@@ -1,6 +1,7 @@
 // =====================================================
-// Building Care System Enterprise v7.3
+// Building Care System Enterprise v7.4
 // history.js - Auto-Refresh 7 detik + Countdown
+// Loading hitam dihilangkan (no-op)
 // Radiant Group Duri
 // =====================================================
 
@@ -28,7 +29,6 @@
         sort: 'desc',
         loading: false,
         currentDetail: null,
-        // Auto-refresh
         countdown: 7,
         autoRefresh: true,
         countdownInterval: null
@@ -55,7 +55,6 @@
         DOM.updateTeknisi = $('#updateTeknisi');
         DOM.updateCatatan = $('#updateCatatan');
         DOM.modalPhoto = $('#modalPhoto');
-        DOM.loading = $('#loading');
         DOM.refreshBtn = $('#refreshBtn');
         DOM.exportExcelBtn = $('#exportExcelBtn');
         DOM.exportPdfBtn = $('#exportPdfBtn');
@@ -71,7 +70,6 @@
         DOM.openTrend = $('#openTrend');
         DOM.progressTrend = $('#progressTrend');
         DOM.doneTrend = $('#doneTrend');
-        // Countdown elements
         DOM.countdownNumber = $('#countdownNumber');
         DOM.countdownArea = $('#countdownArea');
         DOM.countdownReset = $('#countdownReset');
@@ -101,16 +99,14 @@
     }
 
     // ============================================================
-    //  LOADING
+    //  LOADING - NO-OP (loading hitam dihilangkan)
     // ============================================================
     function showLoading() {
-        if (DOM.loading) DOM.loading.classList.add('show');
-        state.loading = true;
+        // Tidak ada overlay hitam
     }
 
     function hideLoading() {
-        if (DOM.loading) DOM.loading.classList.remove('show');
-        state.loading = false;
+        // Tidak ada overlay hitam
     }
 
     // ============================================================
@@ -283,7 +279,6 @@
             updateCountdownDisplay();
 
             if (state.countdown <= 0) {
-                // Reset countdown dan refresh
                 state.countdown = 7;
                 updateCountdownDisplay();
                 fetchReports();
@@ -312,7 +307,6 @@
     }
 
     function resetCountdown() {
-        // Reset countdown dan refresh
         if (state.countdownInterval) {
             clearInterval(state.countdownInterval);
             state.countdownInterval = null;
@@ -328,12 +322,10 @@
     function toggleAutoRefresh() {
         state.autoRefresh = !state.autoRefresh;
         if (state.autoRefresh) {
-            // Resume
             state.countdown = 7;
             updateCountdownDisplay();
             startCountdown();
         } else {
-            // Pause
             if (state.countdownInterval) {
                 clearInterval(state.countdownInterval);
                 state.countdownInterval = null;
@@ -349,7 +341,6 @@
         if (DOM.countdownToggle) {
             DOM.countdownToggle.addEventListener('click', toggleAutoRefresh);
         }
-        // Mulai countdown
         state.autoRefresh = true;
         state.countdown = 7;
         updateCountdownDisplay();
@@ -362,14 +353,12 @@
     async function fetchReports() {
         if (state.loading) return;
 
-        // Hentikan countdown sementara saat loading
         if (state.countdownInterval) {
             clearInterval(state.countdownInterval);
             state.countdownInterval = null;
         }
 
-        showLoading();
-
+        // Tampilkan spinner di tabel sebagai indikator loading
         if (DOM.tableBody) {
             DOM.tableBody.innerHTML =
                 '<tr><td colspan="11" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Sedang memuat data...</td></tr>';
@@ -379,13 +368,11 @@
             const api = window.BCS.Api || window.Api;
             if (!api) throw new Error('API tidak tersedia');
 
-            // Gunakan request langsung dengan fallback JSONP
             let response;
             try {
                 response = await api.post('getReports', {});
             } catch (apiErr) {
                 console.warn('[History] POST failed, trying GET with JSONP...', apiErr);
-                // Fallback: coba GET via JSONP
                 response = await api.request('GET', 'getReports', {});
             }
 
@@ -395,7 +382,6 @@
             if (response && response.success) {
                 reports = response.data?.reports || [];
             } else {
-                // Jika masih gagal, tampilkan error tapi tetap lanjut dengan data kosong
                 console.warn('[History] No reports data, using empty array');
                 reports = [];
             }
@@ -429,10 +415,7 @@
             state.reports = [];
             applyFilters();
         } finally {
-            hideLoading();
-            // Restart countdown
             if (state.autoRefresh) {
-                // Reset countdown setelah fetch
                 state.countdown = 7;
                 updateCountdownDisplay();
                 startCountdown();
@@ -1071,7 +1054,7 @@
         bindEvents();
         initCountdown();
         await fetchReports();
-        console.log('✅ History page initialized with auto-refresh (7s)');
+        console.log('✅ History page initialized with auto-refresh (7s) - Loading overlay removed');
     }
 
     if (document.readyState === 'loading') {

@@ -12,13 +12,15 @@
     if (!document.getElementById(styleId)) {
         const css = `
             :root {
-                --sb-bg-gradient: linear-gradient(185deg, #0b5ed7 0%, #0044cc 25%, #f8fafc 25.1%, #f8fafc 100%);
+                --sb-sidebar-bg: #f8fafc;
+                --sb-header-bg: linear-gradient(180deg, #0b5ed7 0%, #0044cc 100%);
                 --sb-text-dark: #334155;
                 --sb-text-muted: #64748b;
                 --sb-active-bg: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             }
             [data-theme="dark"] {
-                --sb-bg-gradient: linear-gradient(185deg, #1e293b 0%, #0f172a 25%, #1e293b 25.1%, #1e293b 100%);
+                --sb-sidebar-bg: #1e293b;
+                --sb-header-bg: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
                 --sb-text-dark: #f1f5f9;
                 --sb-text-muted: #94a3b8;
                 --sb-active-bg: linear-gradient(135deg, #475569 0%, #1e293b 100%);
@@ -26,7 +28,7 @@
             
             .sidebar {
                 width: 280px !important;
-                background: var(--sb-bg-gradient) !important;
+                background: var(--sb-sidebar-bg) !important;
                 display: flex;
                 flex-direction: column;
                 height: 100vh;
@@ -44,6 +46,7 @@
                 padding: 30px 24px 40px 24px;
                 text-align: center;
                 position: relative;
+                background: var(--sb-header-bg) !important;
             }
             .sb-logo-container {
                 width: 75px;
@@ -80,7 +83,7 @@
             .sb-body {
                 flex: 1;
                 overflow-y: auto;
-                padding: 10px 20px;
+                padding: 20px 20px 10px 20px;
                 display: flex;
                 flex-direction: column;
                 gap: 6px;

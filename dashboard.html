@@ -1,122 +1,60 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="Building Care System Enterprise - Radiant Group Duri">
-    <meta name="author" content="Radiant Group Duri">
-
     <title>Dashboard — Building Care System Enterprise</title>
-
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
-
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-
     <link rel="stylesheet" href="assets/css/dashboard.css">
-
     <style>
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(0.8); }
-        }
-        .live-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #22c55e;
-            animation: pulse-dot 1.5s ease-in-out infinite;
-            margin-left: 4px;
-        }
-
-        .sidebar nav a.menu {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 16px;
-            border-radius: 10px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .sidebar nav a.menu:hover {
-            background: var(--bg-card-hover);
-            color: var(--text-primary);
-        }
-        .sidebar nav a.menu.active {
-            background: var(--accent-soft);
-            color: var(--accent-color);
-            font-weight: 600;
-        }
-        .sidebar nav a.menu i {
-            font-size: 18px;
-            width: 24px;
-            text-align: center;
-        }
-        .sidebar nav a.menu.text-danger:hover {
-            background: #fee2e2;
-            color: #dc2626;
-        }
+        .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulse-dot 1.5s infinite; margin-left: 4px; }
+        @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.8)} }
+        .sidebar nav a.menu { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 10px; color: var(--text-secondary); text-decoration: none; transition: all .3s; font-size: 14px; font-weight: 500; }
+        .sidebar nav a.menu:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+        .sidebar nav a.menu.active { background: var(--accent-soft); color: var(--accent-color); font-weight: 600; }
+        .sidebar nav a.menu i { font-size: 18px; width: 24px; text-align: center; }
+        .menu-admin { display: none; }
+        .menu-admin.visible { display: flex; }
     </style>
 </head>
-
 <body>
-
-<!-- APP WRAPPER -->
 <div class="wrapper">
-
     <aside class="sidebar">
         <div class="logo-area">
             <img src="assets/img/logo.png" class="logo" alt="Logo">
             <h5>Building Care</h5>
             <small>Enterprise v3.2</small>
         </div>
-
-        <!-- SIDEBAR NAV - DINAMIS oleh sidebar.js -->
-        <nav></nav>
+        <nav></nav> <!-- Sidebar dinamis -->
     </aside>
 
     <main class="content">
         <div class="container-fluid">
-
-            <!-- TOPBAR -->
             <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
                     <h3>Dashboard</h3>
-                    <small>
-                        Building Care System Enterprise
-                        <br>
-                        <span class="brand-location">Radiant Group Duri</span>
-                    </small>
+                    <small>Building Care System Enterprise<br><span class="brand-location">Radiant Group Duri</span></small>
                 </div>
-
                 <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background: var(--bg-card-hover); border: 1px solid var(--border-color);">
-                        <span class="text-muted" style="font-size: 12px;">Auto-refresh:</span>
-                        <span id="refreshTimer" class="fw-bold" style="font-size: 13px; color: var(--text-primary); min-width: 20px; text-align: center;">7</span>
-                        <span class="text-muted" style="font-size: 11px;">detik</span>
+                    <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background:var(--bg-card-hover);border:1px solid var(--border-color);">
+                        <span class="text-muted" style="font-size:12px;">Auto-refresh:</span>
+                        <span id="refreshTimer" class="fw-bold" style="font-size:13px;min-width:20px;text-align:center;">7</span>
+                        <span class="text-muted" style="font-size:11px;">detik</span>
                         <span class="live-dot"></span>
                     </div>
-
-                    <button class="btn theme-switcher-btn d-flex align-items-center justify-content-center p-0" id="darkModeToggle" title="Toggle Theme" style="width: 42px; height: 42px; border-radius: 50% !important; background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); transition: var(--transition);">
-                        <i class="bi bi-moon-fill" id="darkModeIcon" style="font-size: 1.15rem;"></i>
+                    <button class="btn theme-switcher-btn" id="darkModeToggle" style="width:42px;height:42px;border-radius:50%;background:var(--bg-surface);border:1px solid var(--border-color);color:var(--text-primary);">
+                        <i class="bi bi-moon-fill" id="darkModeIcon"></i>
                     </button>
-
                     <div class="user-profile-card p-3 d-flex align-items-center gap-3">
-                        <div class="avatar d-flex justify-content-center align-items-center" style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0D47A1, #2563EB); color: #fff;">
-                            <i class="bi bi-person-fill" style="font-size: 1.3rem;"></i>
+                        <div class="avatar" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#0D47A1,#2563EB);color:#fff;display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-person-fill" style="font-size:1.3rem;"></i>
                         </div>
                         <div>
-                            <div class="profile-name fw-semibold text-truncate" id="userName" style="max-width: 150px; color: var(--text-primary);">Loading...</div>
-                            <div class="role-badge" id="userRole" style="font-size: 11px; background: var(--accent-soft); color: var(--accent-color); padding: 2px 10px; border-radius: 999px; font-weight: 600; display: inline-block; margin-top: 2px;">Administrator</div>
+                            <div class="profile-name fw-semibold text-truncate" id="userName" style="max-width:150px;color:var(--text-primary);">Loading...</div>
+                            <div class="role-badge" id="userRole" style="font-size:11px;background:var(--accent-soft);color:var(--accent-color);padding:2px 10px;border-radius:999px;font-weight:600;display:inline-block;margin-top:2px;">User</div>
                         </div>
                     </div>
                 </div>
@@ -128,74 +66,71 @@
                     <div class="summary-card">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size: 12px; font-weight: 600;">Total Report</h6>
-                                <h2 id="totalReport" class="fw-bold mb-2" style="color: var(--text-primary);">0</h2>
+                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size:12px;font-weight:600;">Total Report</h6>
+                                <h2 id="totalReport" class="fw-bold mb-2" style="color:var(--text-primary);">0</h2>
                             </div>
-                            <div class="summary-icon bg-primary" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                            <div class="summary-icon bg-primary" style="width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.25rem;">
                                 <i class="bi bi-file-earmark-text-fill"></i>
                             </div>
                         </div>
-                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
+                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size:13px;font-weight:500;">
                             <i id="totalTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
                             <span id="totalTrend">0</span>
-                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                            <span class="text-muted" style="font-size:12px;">dari minggu lalu</span>
                         </div>
                     </div>
                 </div>
-
                 <div class="col-xl-3 col-md-6">
                     <div class="summary-card">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size: 12px; font-weight: 600;">AC</h6>
-                                <h2 id="acTotal" class="fw-bold mb-2" style="color: var(--text-primary);">0</h2>
+                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size:12px;font-weight:600;">AC</h6>
+                                <h2 id="acTotal" class="fw-bold mb-2" style="color:var(--text-primary);">0</h2>
                             </div>
-                            <div class="summary-icon bg-info" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                            <div class="summary-icon bg-info" style="width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.25rem;">
                                 <i class="bi bi-snow"></i>
                             </div>
                         </div>
-                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
+                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size:13px;font-weight:500;">
                             <i id="acTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
                             <span id="acTrend">0</span>
-                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                            <span class="text-muted" style="font-size:12px;">dari minggu lalu</span>
                         </div>
                     </div>
                 </div>
-
                 <div class="col-xl-3 col-md-6">
                     <div class="summary-card">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size: 12px; font-weight: 600;">Listrik</h6>
-                                <h2 id="listrikTotal" class="fw-bold mb-2" style="color: var(--text-primary);">0</h2>
+                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size:12px;font-weight:600;">Listrik</h6>
+                                <h2 id="listrikTotal" class="fw-bold mb-2" style="color:var(--text-primary);">0</h2>
                             </div>
-                            <div class="summary-icon bg-warning" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                            <div class="summary-icon bg-warning" style="width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.25rem;">
                                 <i class="bi bi-lightning-charge-fill"></i>
                             </div>
                         </div>
-                        <div class="summary-trend text-danger d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
+                        <div class="summary-trend text-danger d-flex align-items-center gap-1" style="font-size:13px;font-weight:500;">
                             <i id="listrikTrendIcon" class="bi bi-arrow-down-short fs-5"></i>
                             <span id="listrikTrend">0</span>
-                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                            <span class="text-muted" style="font-size:12px;">dari minggu lalu</span>
                         </div>
                     </div>
                 </div>
-
                 <div class="col-xl-3 col-md-6">
                     <div class="summary-card">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size: 12px; font-weight: 600;">Kondisi Gedung</h6>
-                                <h2 id="gedungTotal" class="fw-bold mb-2" style="color: var(--text-primary);">0</h2>
+                                <h6 class="text-uppercase tracking-wider text-muted mb-1" style="font-size:12px;font-weight:600;">Kondisi Gedung</h6>
+                                <h2 id="gedungTotal" class="fw-bold mb-2" style="color:var(--text-primary);">0</h2>
                             </div>
-                            <div class="summary-icon bg-purple" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                            <div class="summary-icon bg-purple" style="width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.25rem;">
                                 <i class="bi bi-building-fill"></i>
                             </div>
                         </div>
-                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
+                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size:13px;font-weight:500;">
                             <i id="gedungTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
                             <span id="gedungTrend">0</span>
-                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                            <span class="text-muted" style="font-size:12px;">dari minggu lalu</span>
                         </div>
                     </div>
                 </div>
@@ -206,47 +141,39 @@
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card open p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-warning-soft">
-                                <i class="bi bi-folder2-open"></i>
-                            </div>
+                            <div class="status-icon bg-warning-soft"><i class="bi bi-folder2-open"></i></div>
                             <div>
-                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">Open</h6>
-                                <h2 id="totalOpen" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
+                                <h6 class="text-muted mb-0" style="font-size:13px;font-weight:500;">Open</h6>
+                                <h2 id="totalOpen" class="fw-bold mb-0" style="color:var(--text-primary);">0</h2>
                             </div>
                         </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);">0% dari total report</div>
+                        <div class="status-percent mb-2" style="font-size:13px;color:var(--text-secondary);">0% dari total report</div>
                         <div class="sparkline spark-orange"></div>
                     </div>
                 </div>
-
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card progress-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-info-soft">
-                                <i class="bi bi-arrow-repeat"></i>
-                            </div>
+                            <div class="status-icon bg-info-soft"><i class="bi bi-arrow-repeat"></i></div>
                             <div>
-                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">In Progress</h6>
-                                <h2 id="totalProgress" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
+                                <h6 class="text-muted mb-0" style="font-size:13px;font-weight:500;">In Progress</h6>
+                                <h2 id="totalProgress" class="fw-bold mb-0" style="color:var(--text-primary);">0</h2>
                             </div>
                         </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);">0% dari total report</div>
+                        <div class="status-percent mb-2" style="font-size:13px;color:var(--text-secondary);">0% dari total report</div>
                         <div class="sparkline spark-blue"></div>
                     </div>
                 </div>
-
                 <div class="col-xl-4 col-md-12">
                     <div class="status-card done-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-success-soft">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
+                            <div class="status-icon bg-success-soft"><i class="bi bi-check-circle-fill"></i></div>
                             <div>
-                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">Done</h6>
-                                <h2 id="totalDone" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
+                                <h6 class="text-muted mb-0" style="font-size:13px;font-weight:500;">Done</h6>
+                                <h2 id="totalDone" class="fw-bold mb-0" style="color:var(--text-primary);">0</h2>
                             </div>
                         </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);">0% dari total report</div>
+                        <div class="status-percent mb-2" style="font-size:13px;color:var(--text-secondary);">0% dari total report</div>
                         <div class="sparkline spark-green"></div>
                     </div>
                 </div>
@@ -257,48 +184,40 @@
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-success-soft">
-                                <i class="bi bi-lightning-charge-fill"></i>
-                            </div>
+                            <div class="status-icon bg-success-soft"><i class="bi bi-lightning-charge-fill"></i></div>
                             <div>
-                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">FAST SLA</h6>
-                                <h2 id="fastCount" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
+                                <h6 class="text-muted mb-0" style="font-size:13px;font-weight:500;">FAST SLA</h6>
+                                <h2 id="fastCount" class="fw-bold mb-0" style="color:var(--text-primary);">0</h2>
                             </div>
                         </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);"><span id="fastPercent" class="fw-bold text-success">0%</span> selesai &le; 4 jam</div>
+                        <div class="status-percent mb-2" style="font-size:13px;color:var(--text-secondary);"><span id="fastPercent" class="fw-bold text-success">0%</span> selesai &le; 4 jam</div>
                         <div class="sparkline spark-green"></div>
                     </div>
                 </div>
-
                 <div class="col-xl-4 col-md-6">
                     <div class="status-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-warning-soft">
-                                <i class="bi bi-clock-history"></i>
-                            </div>
+                            <div class="status-icon bg-warning-soft"><i class="bi bi-clock-history"></i></div>
                             <div>
-                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">NORMAL SLA</h6>
-                                <h2 id="normalCount" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
+                                <h6 class="text-muted mb-0" style="font-size:13px;font-weight:500;">NORMAL SLA</h6>
+                                <h2 id="normalCount" class="fw-bold mb-0" style="color:var(--text-primary);">0</h2>
                             </div>
                         </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);"><span id="normalPercent" class="fw-bold text-warning">0%</span> selesai &le; 24 jam</div>
+                        <div class="status-percent mb-2" style="font-size:13px;color:var(--text-secondary);"><span id="normalPercent" class="fw-bold text-warning">0%</span> selesai &le; 24 jam</div>
                         <div class="sparkline spark-orange"></div>
                     </div>
                 </div>
-
                 <div class="col-xl-4 col-md-12">
                     <div class="status-card p-4">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">
-                                <i class="bi bi-exclamation-triangle-fill"></i>
-                            </div>
+                            <div class="status-icon" style="background:rgba(239,68,68,0.12);color:#ef4444;"><i class="bi bi-exclamation-triangle-fill"></i></div>
                             <div>
-                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">LATE SLA</h6>
-                                <h2 id="lateCount" class="fw-bold mb-0" style="color: var(--text-primary);">0</h2>
+                                <h6 class="text-muted mb-0" style="font-size:13px;font-weight:500;">LATE SLA</h6>
+                                <h2 id="lateCount" class="fw-bold mb-0" style="color:var(--text-primary);">0</h2>
                             </div>
                         </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary);"><span id="latePercent" class="fw-bold text-danger">0%</span> melebihi target</div>
-                        <div class="sparkline" style="background: radial-gradient(circle at 10% 70%,#ef4444 2px,transparent 3px), radial-gradient(circle at 40% 40%,#ef4444 2px,transparent 3px), radial-gradient(circle at 70% 75%,#ef4444 2px,transparent 3px);"></div>
+                        <div class="status-percent mb-2" style="font-size:13px;color:var(--text-secondary);"><span id="latePercent" class="fw-bold text-danger">0%</span> melebihi target</div>
+                        <div class="sparkline" style="background:radial-gradient(circle at 10% 70%,#ef4444 2px,transparent 3px),radial-gradient(circle at 40% 40%,#ef4444 2px,transparent 3px),radial-gradient(circle at 70% 75%,#ef4444 2px,transparent 3px);"></div>
                     </div>
                 </div>
             </section>
@@ -310,21 +229,21 @@
                         <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <div class="d-flex align-items-center gap-3">
                                 <span class="fw-semibold"><i class="bi bi-bar-chart-line-fill me-2 text-primary"></i>Statistik Laporan</span>
-                                <small class="text-secondary" style="font-size: 12px;">Last Update : <span id="lastUpdate">-</span></small>
+                                <small class="text-secondary" style="font-size:12px;">Last Update : <span id="lastUpdate">-</span></small>
                             </div>
-                            <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" id="refreshDashboard" style="border-color: var(--border-color); color: var(--text-primary); font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 8px;">
+                            <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" id="refreshDashboard" style="border-color:var(--border-color);color:var(--text-primary);font-size:12px;font-weight:500;padding:5px 12px;border-radius:8px;">
                                 <i class="bi bi-arrow-clockwise"></i> Refresh
                             </button>
                         </div>
                         <div class="card-body p-4">
                             <div class="row g-4">
                                 <div class="col-lg-5">
-                                    <div class="chart-container d-flex justify-content-center align-items-center" style="position: relative; height:280px; width:100%;">
+                                    <div class="chart-container d-flex justify-content-center align-items-center" style="position:relative;height:280px;width:100%;">
                                         <canvas id="renderCategoryChart"></canvas>
                                     </div>
                                 </div>
                                 <div class="col-lg-7">
-                                    <div class="chart-container" style="position: relative; height:280px; width:100%;">
+                                    <div class="chart-container" style="position:relative;height:280px;width:100%;">
                                         <canvas id="reportChart"></canvas>
                                     </div>
                                 </div>
@@ -332,14 +251,13 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="col-xl-4">
                     <div class="card enterprise-card h-100">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span class="fw-semibold">Aktivitas Terbaru</span>
-                            <a href="history.html" class="text-decoration-none fw-medium" style="color: var(--accent-color); font-size: 14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size: 10px;"></i></a>
+                            <a href="history.html" class="text-decoration-none fw-medium" style="color:var(--accent-color);font-size:14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size:10px;"></i></a>
                         </div>
-                        <div class="card-body p-4" style="max-height: 310px; overflow-y: auto;">
+                        <div class="card-body p-4" style="max-height:310px;overflow-y:auto;">
                             <div id="recentActivity" class="d-flex flex-column gap-1"></div>
                         </div>
                     </div>
@@ -354,7 +272,7 @@
                             <span class="fw-semibold"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Monthly Report Trend</span>
                         </div>
                         <div class="card-body p-4">
-                            <div class="monthly-chart" style="position: relative; height: 260px; width: 100%;">
+                            <div class="monthly-chart" style="position:relative;height:260px;width:100%;">
                                 <canvas id="monthlyChart"></canvas>
                             </div>
                         </div>
@@ -369,7 +287,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script src="config/config.js"></script>
 <script src="assets/js/core/app.js"></script>
 <script src="assets/js/core/api.js"></script>
@@ -377,85 +294,70 @@
 <script src="assets/js/core/session.js"></script>
 <script src="assets/js/core/ui.js"></script>
 <script src="assets/js/core/utils.js"></script>
-
-<script src="assets/js/components/sidebar.js"></script>
 <script src="assets/js/modules/auth.js"></script>
 <script src="assets/js/modules/dashboard.js"></script>
+<script src="assets/js/components/sidebar.js"></script> <!-- 🔥 SIDEBAR DINAMIS -->
 
 <script>
 (function() {
     'use strict';
 
-    function checkAccess() {
-        try {
-            const session = BCS.Storage.getSession();
-            if (!session || !session.user) {
-                window.location.href = 'login.html';
-                return false;
-            }
-            return true;
-        } catch (e) {
+    // Guard login
+    try {
+        var session = BCS.Storage.getSession();
+        if (!session || !session.user) {
             window.location.href = 'login.html';
-            return false;
+            return;
         }
+    } catch (e) {
+        window.location.href = 'login.html';
+        return;
     }
-    if (!checkAccess()) return;
 
+    // Dark mode
     function initDarkMode() {
-        const toggle = document.getElementById('darkModeToggle');
-        const icon = document.getElementById('darkModeIcon');
+        var toggle = document.getElementById('darkModeToggle');
+        var icon = document.getElementById('darkModeIcon');
         if (!toggle) return;
-        const savedTheme = localStorage.getItem('bcs_theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
+        var saved = localStorage.getItem('bcs_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', saved);
         if (icon) {
-            if (savedTheme === 'dark') {
-                icon.className = 'bi bi-sun-fill';
-                icon.style.color = '#ffd700';
-            } else {
-                icon.className = 'bi bi-moon-fill';
-                icon.style.color = '';
-            }
+            if (saved === 'dark') { icon.className = 'bi bi-sun-fill'; icon.style.color = '#ffd700'; }
+            else { icon.className = 'bi bi-moon-fill'; icon.style.color = ''; }
         }
         toggle.addEventListener('click', function() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('bcs_theme', newTheme);
+            var cur = document.documentElement.getAttribute('data-theme');
+            var next = cur === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('bcs_theme', next);
             if (icon) {
-                if (newTheme === 'dark') {
-                    icon.className = 'bi bi-sun-fill';
-                    icon.style.color = '#ffd700';
-                } else {
-                    icon.className = 'bi bi-moon-fill';
-                    icon.style.color = '';
-                }
+                if (next === 'dark') { icon.className = 'bi bi-sun-fill'; icon.style.color = '#ffd700'; }
+                else { icon.className = 'bi bi-moon-fill'; icon.style.color = ''; }
             }
         });
     }
+    initDarkMode();
 
-    let refreshTimer = 7;
-    let refreshInterval = null;
-    let timerInterval = null;
-    let isRefreshing = false;
+    // Load user info
+    try {
+        var sess = BCS.Storage.getSession();
+        if (sess && sess.user) {
+            document.getElementById('userName').textContent = sess.user.nama || sess.user.name || 'User';
+            document.getElementById('userRole').textContent = sess.user.role || 'User';
+        }
+    } catch (e) {}
 
-    function showRefreshToast() {
-        Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true
-        }).fire({
-            icon: 'info',
-            title: '🔄 Data diperbarui...',
-            timer: 2000
-        });
+    // Auto-refresh
+    var refreshTimer = 7;
+    var refreshInterval = null;
+    var timerInterval = null;
+
+    function updateTimerDisplay() {
+        var el = document.getElementById('refreshTimer');
+        if (el) el.textContent = refreshTimer;
     }
 
     function performRefresh() {
-        if (isRefreshing) return;
-        isRefreshing = true;
-        showRefreshToast();
         if (window.DashboardController && typeof window.DashboardController.refresh === 'function') {
             window.DashboardController.refresh();
         } else {
@@ -463,12 +365,6 @@
         }
         refreshTimer = 7;
         updateTimerDisplay();
-        setTimeout(function() { isRefreshing = false; }, 1000);
-    }
-
-    function updateTimerDisplay() {
-        const timerEl = document.getElementById('refreshTimer');
-        if (timerEl) timerEl.textContent = refreshTimer;
     }
 
     function startAutoRefresh() {
@@ -479,46 +375,27 @@
             if (refreshTimer <= 0) refreshTimer = 7;
             updateTimerDisplay();
         }, 1000);
-        refreshInterval = setInterval(function() {
-            performRefresh();
-        }, 7000);
+        refreshInterval = setInterval(performRefresh, 7000);
         updateTimerDisplay();
-        console.log('✅ Auto-refresh started (every 7 seconds)');
     }
+    startAutoRefresh();
 
-    function stopAutoRefresh() {
-        if (refreshInterval) clearInterval(refreshInterval);
-        if (timerInterval) clearInterval(timerInterval);
-    }
-
-    function loadUserInfo() {
-        try {
-            const session = BCS.Storage.getSession();
-            if (session && session.user) {
-                const user = session.user;
-                document.getElementById('userName').textContent = user.nama || user.name || 'User';
-                document.getElementById('userRole').textContent = user.role || 'User';
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (window.auth && typeof window.auth.logout === 'function') {
+            window.auth.logout();
+        } else {
+            if (confirm('Keluar?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
             }
-        } catch (e) {}
-    }
+        }
+    });
 
-    function init() {
-        loadUserInfo();
-        initDarkMode();
-        startAutoRefresh();
-        console.log('✅ Dashboard System Initialized');
-    }
-
-    window.addEventListener('beforeunload', function() { stopAutoRefresh(); });
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
+    console.log('✅ Dashboard initialized with dynamic sidebar');
 })();
 </script>
-
 </body>
 </html>

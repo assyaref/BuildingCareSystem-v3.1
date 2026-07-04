@@ -1,12 +1,12 @@
 // assets/js/core/components/sidebar.js
 // Sidebar Dinamis Premium UI - Match UI Design v4.3
-// 🔥 Added Custom Premium Toast Confirmation for Logout
-// 📱 Mobile Responsive: Transforms into a Sleek Topbar on Mobile View
+// 🔥 Custom Premium Toast Confirmation for Logout
+// 📱 Mobile Responsive: Topbar dengan menu horizontal langsung terlihat
 
 (function() {
     'use strict';
 
-    console.log('🔄 Premium sidebar.js loaded with Mobile Topbar transformation');
+    console.log('🔄 Premium sidebar.js loaded with Mobile Topbar (all menus on top)');
 
     const styleId = 'premium-sidebar-css';
     if (!document.getElementById(styleId)) {
@@ -99,6 +99,16 @@
                 margin-top: 4px;
             }
 
+            /* USER MOBILE (hanya muncul di HP) */
+            .sb-user-mobile {
+                display: none;
+                color: rgba(255,255,255,0.9);
+                font-size: 12px;
+                font-weight: 600;
+                margin-left: 8px;
+                white-space: nowrap;
+            }
+
             /* BODY MENU */
             .sb-body {
                 flex: 1;
@@ -175,22 +185,22 @@
                 border-radius: 0 4px 4px 0;
             }
 
+            /* LOGOUT ITEM */
+            .logout-item {
+                color: #ff3b30 !important;
+            }
+            .logout-item .sb-icon-box {
+                background: #ffe5e5 !important;
+                color: #ff3b30 !important;
+            }
+            .logout-item:hover {
+                background: #fff5f5 !important;
+            }
+
             .sb-divider {
                 height: 1px;
                 background: rgba(0,0,0,0.05);
                 margin: 12px 16px;
-            }
-
-            /* LOGOUT BOX */
-            .sb-logout-box { padding: 5px 18px; }
-            .sb-btn-logout {
-                background: #fff5f5 !important;
-                color: #ff3b30 !important;
-                border-radius: 12px;
-            }
-            .sb-btn-logout .sb-icon-box {
-                background: #ffe5e5 !important;
-                color: #ff3b30 !important;
             }
 
             /* USER CARD FOOTER */
@@ -290,7 +300,7 @@
             }
 
             /* ===================================================== */
-            /* 📱 RESPONSIVE MOBILE - TRANSFORMS INTO TOPBAR         */
+            /* 📱 RESPONSIVE MOBILE – SEMUA MENU DI ATAS (TOPBAR)    */
             /* ===================================================== */
             .content { 
                 margin-left: 280px !important; 
@@ -301,83 +311,122 @@
             @media (max-width: 991.98px) {
                 .sidebar {
                     width: 100% !important;
-                    height: 70px; /* Tinggi saat Topbar ciut */
+                    height: auto !important;            /* biarkan tinggi menyesuaikan isi */
                     position: fixed;
                     top: 0; left: 0; right: 0;
                     border-right: none;
                     border-bottom: 1px solid rgba(0,0,0,0.05);
                     box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-                    transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                     z-index: 1050;
-                }
-                
-                /* Saat Topbar dibuka / diklik hamburger menu-nya */
-                .sidebar.open {
-                    height: 100vh; /* Memenuhi layar ke bawah */
-                    overflow-y: auto;
+                    flex-direction: column;
+                    overflow: visible;                 /* biarkan menu horizontal terlihat */
                 }
 
-                /* Modifikasi Header Wave menjadi Bar Tipis Kompak di Tengah Atas */
+                /* Header ringkas */
                 .sb-header {
                     padding: 0 20px;
-                    height: 70px;
+                    height: 60px;
                     margin-bottom: 0;
                     display: flex;
                     align-items: center;
-                    justify-content: center; /* Konten logo dan teks berada tepat di tengah-atas */
+                    justify-content: flex-start;      /* konten di kiri */
                     background: linear-gradient(135deg, #0d6efd 0%, #0044cc 100%) !important;
                     background-image: none !important;
                 }
                 .sb-header::before { display: none; }
-                
+
                 .sb-header-content {
                     display: flex;
                     align-items: center;
-                    gap: 10px;
+                    gap: 8px;
                 }
                 .sb-logo-container {
-                    width: 38px; height: 38px;
+                    width: 34px; height: 34px;
                     margin: 0;
-                    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-                    padding: 3px;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+                    padding: 2px;
                 }
-                .sb-brand-title { font-size: 18px; }
-                .sb-brand-subtitle { display: none; } /* Sembunyikan subtitle agar minimalis */
+                .sb-brand-title { font-size: 16px; }
+                .sb-brand-subtitle { display: none; }
+                .sb-user-mobile {
+                    display: inline-block !important;   /* tampilkan nama user di header */
+                }
 
-                /* Menu Body (Disembunyikan bawaan, muncul mulus saat .open) */
+                /* Menu body menjadi horizontal scroll */
                 .sb-body {
-                    opacity: 0;
-                    visibility: hidden;
-                    transform: translateY(-10px);
-                    transition: all 0.3s ease;
-                    padding: 20px 24px 10px 24px;
+                    display: flex;
+                    flex-direction: row !important;
+                    overflow-x: auto;
+                    overflow-y: hidden;
+                    white-space: nowrap;
+                    padding: 10px 16px;
+                    gap: 8px;
+                    background: var(--sb-sidebar-bg);
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                    transform: none !important;
+                    transition: none !important;
+                    -webkit-overflow-scrolling: touch;
+                    scrollbar-width: none;
+                    flex: 0 0 auto;                   /* jangan memenuhi sisa tinggi */
                 }
-                .sidebar.open .sb-body {
-                    opacity: 1;
-                    visibility: visible;
-                    transform: translateY(0);
+                .sb-body::-webkit-scrollbar { display: none; }
+
+                .sb-menu-item {
+                    flex: 0 0 auto;
+                    padding: 8px 14px;
+                    border-radius: 20px;
+                    font-size: 13px;
+                    font-weight: 600;
+                    white-space: nowrap;
+                    text-decoration: none !important;
+                    color: var(--sb-text-muted) !important;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    background: rgba(0,0,0,0.02);
+                }
+                .sb-menu-item.active {
+                    background: var(--sb-active-gradient) !important;
+                    color: #ffffff !important;
+                }
+                .sb-menu-item.active .sb-icon-box {
+                    background: #ffffff !important;
+                    color: #2563eb !important;
+                }
+                .sb-icon-box {
+                    width: 26px; height: 26px;
+                    border-radius: 8px;
+                    margin-right: 0;
+                    font-size: 14px;
+                }
+                .sb-arrow { display: none; }
+                .sb-divider { display: none; }
+
+                /* Logout item tetap terlihat dalam scroll */
+                .logout-item {
+                    color: #ff3b30 !important;
+                    background: #fff5f5 !important;
+                }
+                .logout-item .sb-icon-box {
+                    background: #ffe5e5 !important;
+                    color: #ff3b30 !important;
                 }
 
-                .sb-logout-box, .sb-footer {
-                    opacity: 0;
-                    visibility: hidden;
-                    transition: all 0.3s ease;
-                }
-                .sidebar.open .sb-logout-box,
-                .sidebar.open .sb-footer {
-                    opacity: 1;
-                    visibility: visible;
-                }
-
+                /* Footer: sembunyikan default, muncul saat toggle */
                 .sb-footer {
-                    padding: 15px 24px 40px 24px;
+                    display: none;
+                    padding: 15px 24px 25px 24px;
                     background-image: none !important;
+                }
+                .sidebar.open .sb-footer {
+                    display: block;
                 }
 
                 .content {
                     margin-left: 0 !important;
                     width: 100% !important;
-                    padding-top: 70px; /* Cegah konten utama tertimpa topbar */
+                    padding-top: 120px !important;   /* header 60px + menu ~50px + spacing */
                 }
             }
         `;
@@ -488,6 +537,7 @@
             'admin.html':     { bg: '#e0e7ff', color: '#2563eb' }
         };
 
+        // Menu utama + item Logout disatukan di body
         let mainMenus = [
             { href: 'dashboard.html', icon: 'bi-grid-fill', label: 'Dashboard' },
             { href: 'report.html', icon: 'bi-file-earmark-plus-fill', label: 'Report' },
@@ -498,7 +548,8 @@
             { href: 'budget.html', icon: 'bi-wallet2', label: 'Budget' },
             { href: 'approval.html', icon: 'bi-shield-check', label: 'Approval' },
             { divider: true },
-            { href: 'admin.html', icon: 'bi-person-fill', label: 'Admin' }
+            { href: 'admin.html', icon: 'bi-person-fill', label: 'Admin' },
+            { href: '#', icon: 'bi-box-arrow-right', label: 'Logout', isLogout: true }
         ];
 
         let sidebarHTML = `
@@ -509,6 +560,7 @@
                     </div>
                     <h5 class="sb-brand-title">Building Care</h5>
                     <div class="sb-brand-subtitle">Enterprise v4.3</div>
+                    <span class="sb-user-mobile">${userName}</span>
                 </div>
             </div>
 
@@ -522,11 +574,12 @@
             }
 
             const activeClass = (currentPage === menu.href) ? 'active' : '';
+            const isLogout = menu.isLogout ? ' logout-item' : '';
             const styleConf = iconStyles[menu.href] || { bg: '#f1f5f9', color: '#64748b' };
-            const chevronHTML = `<i class="bi bi-chevron-right sb-arrow"></i>`;
+            const chevronHTML = !menu.isLogout ? `<i class="bi bi-chevron-right sb-arrow"></i>` : '';
             
             sidebarHTML += `
-                <a href="${menu.href}" class="sb-menu-item ${activeClass}">
+                <a href="${menu.href}" class="sb-menu-item ${activeClass}${isLogout}">
                     <div class="sb-icon-box" style="background: ${styleConf.bg}; color: ${styleConf.color};">
                         <i class="bi ${menu.icon}"></i>
                     </div>
@@ -537,15 +590,6 @@
         });
 
         sidebarHTML += `
-            </div>
-
-            <div class="sb-logout-box">
-                <a href="#" id="logoutBtn" class="sb-menu-item sb-btn-logout">
-                    <div class="sb-icon-box">
-                        <i class="bi bi-box-arrow-right"></i>
-                    </div>
-                    <span class="sb-menu-label">Logout</span>
-                </a>
             </div>
 
             <div class="sb-footer">
@@ -565,10 +609,10 @@
 
         sidebarElement.innerHTML = sidebarHTML;
 
-        // Event Logout
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function(e) {
+        // Event Logout pada item dengan class .logout-item
+        const logoutItem = document.querySelector('.logout-item');
+        if (logoutItem) {
+            logoutItem.addEventListener('click', function(e) {
                 e.preventDefault();
                 showLogoutToast();
             });
@@ -576,7 +620,7 @@
     }
 
     // ================================================================
-    // 4. 📱 FUNGSI TOGGLE MOBILE (TOPBAR MODE)
+    // 4. 📱 FUNGSI TOGGLE MOBILE (MASIH BERFUNGSI UNTUK USER CARD)
     // ================================================================
     function initMobileToggle() {
         const toggleBtn = document.getElementById('sidebarToggle');
@@ -595,11 +639,10 @@
         if (!toggleBtn) {
             console.warn('⚠️ Sidebar toggle button (#sidebarToggle) tidak ditemukan.');
         } else {
-            // --- Event: Buka / Tutup Dropdown Topbar ---
             toggleBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
+                // Di mobile, toggle hanya menampilkan / menyembunyikan user card (footer)
                 const isOpen = sidebar.classList.toggle('open');
-                
                 const icon = toggleBtn.querySelector('i');
                 if (icon) {
                     icon.className = isOpen ? 'bi bi-x-lg' : 'bi bi-list';
@@ -607,7 +650,7 @@
             });
         }
 
-        // --- Event: Tutup saat klik di luar area menu topbar ---
+        // Tutup saat klik di luar sidebar
         document.addEventListener('click', function(e) {
             if (window.innerWidth <= 991.98 && 
                 sidebar.classList.contains('open') &&
@@ -617,14 +660,14 @@
             }
         });
 
-        // --- Event: Otomatis tutup topbar saat resize ke desktop ---
+        // Otomatis tutup saat resize ke desktop
         window.addEventListener('resize', function() {
             if (window.innerWidth > 991.98 && sidebar.classList.contains('open')) {
                 closeSidebar();
             }
         });
 
-        // --- Event: Tutup saat tombol ESC ditekan ---
+        // Tutup dengan tombol ESC
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && sidebar.classList.contains('open')) {
                 closeSidebar();

@@ -83,17 +83,45 @@
             background: #4b7bec;
         }
 
-        .menu-admin {
-            display: none;
-        }
-        .menu-admin.visible {
-            display: flex;
-        }
-
         .nik-cell {
             font-family: 'Courier New', monospace;
             font-weight: 600;
             letter-spacing: 0.5px;
+        }
+
+        /* Sidebar Styles */
+        .sidebar nav a.menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            color: var(--text-secondary, #64748b);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .sidebar nav a.menu:hover {
+            background: var(--bg-card-hover, #f1f5f9);
+            color: var(--text-primary, #0f172a);
+        }
+        .sidebar nav a.menu.active {
+            background: var(--accent-soft, #dbeafe);
+            color: var(--accent-color, #2563eb);
+            font-weight: 600;
+        }
+        .sidebar nav a.menu i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        .sidebar nav a.menu.text-danger {
+            color: #ef4444 !important;
+        }
+        .sidebar nav a.menu.text-danger:hover {
+            background: #fef2f2 !important;
+            color: #dc2626 !important;
         }
     </style>
 </head>
@@ -109,37 +137,7 @@
             <h5>Building Care</h5>
             <small>Enterprise v3.2</small>
         </div>
-
-        <nav>
-            <a href="dashboard.html" class="menu">
-                <i class="bi bi-grid-fill"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="report.html" class="menu">
-                <i class="bi bi-file-earmark-plus"></i>
-                <span>Report</span>
-            </a>
-            <a href="monitoring.html" class="menu">
-                <i class="bi bi-display"></i>
-                <span>Monitoring</span>
-            </a>
-            <a href="history.html" class="menu">
-                <i class="bi bi-clock-history"></i>
-                <span>History</span>
-            </a>
-            <a href="approval.html" class="menu">
-                <i class="bi bi-check-circle"></i>
-                <span>Approval</span>
-            </a>
-            <a href="admin.html" class="menu active">
-                <i class="bi bi-shield-lock-fill"></i>
-                <span>Admin</span>
-            </a>
-            <a href="#" id="logoutBtn" class="menu text-danger">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Logout</span>
-            </a>
-        </nav>
+        <nav></nav> <!-- 🔥 SIDEBAR DINAMIS DIISI OLEH sidebar.js -->
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -421,9 +419,44 @@
 <script src="assets/js/core/utils.js"></script>
 <script src="assets/js/modules/auth.js"></script>
 
+<!-- 🔥 SIDEBAR DINAMIS - PATH YANG BENAR -->
+<script src="assets/js/core/components/sidebar.js"></script>
+
 <script>
 (function() {
     'use strict';
+
+    // =============================================
+    // 🔥 GUARD: Hanya ADMINISTRATOR yang boleh akses admin panel
+    // =============================================
+    function checkAccess() {
+        try {
+            const session = BCS.Storage.getSession();
+            if (!session || !session.user) {
+                window.location.href = 'login.html';
+                return false;
+            }
+
+            const role = (session.user.role || '').toUpperCase();
+            if (role !== 'ADMINISTRATOR') {
+                // Redirect user biasa ke user-report.html atau dashboard
+                console.warn('⛔ Akses ditolak untuk role:', role, 'redirect ke dashboard.html');
+                window.location.href = 'dashboard.html';
+                return false;
+            }
+
+            return true;
+        } catch (e) {
+            console.warn('Guard error:', e);
+            window.location.href = 'login.html';
+            return false;
+        }
+    }
+
+    // Jalankan guard sebelum apapun
+    if (!checkAccess()) {
+        return;
+    }
 
     // =============================================
     // DARK MODE
@@ -731,12 +764,11 @@
     });
 
     // =============================================
-    // SAVE USER (Add / Edit) - FIXED
+    // SAVE USER (Add / Edit)
     // =============================================
     document.getElementById('saveUserBtn').addEventListener('click', async function() {
         const isEdit = !!document.getElementById('editEmail').value;
         
-        // 🔥 Ambil data dari form
         const data = {
             email: document.getElementById('userEmail').value.trim(),
             nik: document.getElementById('userNik').value.trim(),
@@ -746,24 +778,20 @@
             status: document.getElementById('userStatus').value
         };
         
-        // 🔥 Validasi
         if (!data.email || !data.nik || !data.nama) {
             Swal.fire('Perhatian', 'Nama, NIK, dan Email wajib diisi', 'warning');
             return;
         }
         
-        // 🔥 Validasi password hanya untuk create (bukan edit)
         if (!isEdit && (!data.password || data.password.length < 5)) {
             Swal.fire('Perhatian', 'Password minimal 5 karakter', 'warning');
             return;
         }
         
-        // 🔥 Jika edit dan password kosong, hapus field password dari data
         if (isEdit && !data.password) {
             delete data.password;
         }
         
-        // 🔥 Disable tombol & tampilkan loading
         this.disabled = true;
         this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
         
@@ -775,17 +803,11 @@
             console.log('Save user response:', response);
             
             if (response && response.success) {
-                // 🔥 Tutup modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'));
                 if (modal) modal.hide();
-                
-                // 🔥 Reset form
                 resetUserForm();
-                
-                // 🔥 Refresh data
                 await loadUsers();
                 await loadStats();
-                
                 Swal.fire('Berhasil', response.message, 'success');
             } else {
                 Swal.fire('Gagal', response?.message || 'Gagal menyimpan user', 'error');
@@ -794,14 +816,13 @@
             console.error('Save user error:', e);
             Swal.fire('Error', 'Terjadi kesalahan: ' + (e.message || 'Unknown error'), 'error');
         } finally {
-            // 🔥 Enable tombol kembali
             this.disabled = false;
             this.innerHTML = '<i class="bi bi-check-circle"></i> Simpan';
         }
     });
 
     // =============================================
-    // LOGIKA PROSES UPLOAD EXCEL
+    // PROSES UPLOAD EXCEL
     // =============================================
     document.getElementById('processExcelBtn').addEventListener('click', async function() {
         const fileInput = document.getElementById('excelFileInput');
@@ -906,11 +927,10 @@
     });
 
     // =============================================
-    // LOGIKApembuatan / CREATE & DOWNLOAD TEMPLATE EXCEL (NEW)
+    // DOWNLOAD TEMPLATE EXCEL
     // =============================================
     document.getElementById('downloadTemplateBtn').addEventListener('click', function() {
         try {
-            // 1. Definisikan header kolumn berserta contoh 1 baris dummy data
             const templateData = [
                 {
                     "nama": "Ahmad Fauzi",
@@ -930,14 +950,9 @@
                 }
             ];
 
-            // 2. Buat objek worksheet baru bawaan dari pustaka SheetJS
             const worksheet = XLSX.utils.json_to_sheet(templateData);
             const workbook = XLSX.utils.book_new();
-            
-            // 3. Masukkan worksheet ke dalam workbook dengan nama sheet 'Template Users'
             XLSX.utils.book_append_sheet(workbook, worksheet, "Template Users");
-
-            // 4. Trigger download otomatis file .xlsx di browser admin
             XLSX.writeFile(workbook, "Template_Bulk_Upload_Users.xlsx");
 
         } catch (error) {
@@ -999,7 +1014,7 @@
         await loadStats();
         await loadUsers();
         await loadActivities();
-        console.log('✅ Admin Panel initialized');
+        console.log('✅ Admin Panel initialized with dynamic sidebar');
     }
 
     if (document.readyState === 'loading') {

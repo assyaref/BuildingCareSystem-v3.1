@@ -1145,6 +1145,99 @@
     <!-- MAIN HISTORY LOGIC -->
     <script src="assets/js/modules/history.js"></script>
 
+    <!-- ============================================================
+    ADMIN ACCESS CONTROL — Hanya Administrator yang Boleh Akses
+    ============================================================ -->
+    <script>
+        (function() {
+            'use strict';
+
+            /**
+             * Cek apakah user memiliki role Administrator.
+             * Data user dicari dari berbagai kemungkinan storage key.
+             */
+            function isAdministrator() {
+                try {
+                    // Daftar kemungkinan key penyimpanan user
+                    var possibleKeys = ['user', 'userData', 'session', 'authUser', 'currentUser', 'userSession'];
+                    var user = null;
+
+                    // Cari di localStorage
+                    for (var i = 0; i < possibleKeys.length; i++) {
+                        var key = possibleKeys[i];
+                        var raw = localStorage.getItem(key);
+                        if (raw) {
+                            try {
+                                var parsed = JSON.parse(raw);
+                                if (parsed && typeof parsed === 'object') {
+                                    user = parsed;
+                                    break;
+                                }
+                            } catch (_) { /* ignore */ }
+                        }
+                    }
+
+                    // Jika belum ketemu, cari di sessionStorage
+                    if (!user) {
+                        for (var j = 0; j < possibleKeys.length; j++) {
+                            var key2 = possibleKeys[j];
+                            var raw2 = sessionStorage.getItem(key2);
+                            if (raw2) {
+                                try {
+                                    var parsed2 = JSON.parse(raw2);
+                                    if (parsed2 && typeof parsed2 === 'object') {
+                                        user = parsed2;
+                                        break;
+                                    }
+                                } catch (_) { /* ignore */ }
+                            }
+                        }
+                    }
+
+                    // Jika masih belum ada user, coba ambil dari window object (fallback)
+                    if (!user && window._user) {
+                        user = window._user;
+                    }
+
+                    if (!user) {
+                        return false;
+                    }
+
+                    // Cek role — case insensitive, support berbagai format
+                    var role = user.role || user.userRole || user.role_name || user.roleName || user.roles || '';
+                    if (Array.isArray(role)) {
+                        role = role.join(',');
+                    }
+                    role = String(role).toLowerCase().trim();
+
+                    // Role yang dianggap administrator
+                    var adminRoles = ['administrator', 'admin', 'superadmin', 'super_admin', 'super-admin'];
+
+                    for (var k = 0; k < adminRoles.length; k++) {
+                        if (role === adminRoles[k] || role.indexOf(adminRoles[k]) !== -1) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+
+                } catch (e) {
+                    console.warn('[AdminCheck] Error checking role:', e);
+                    return false;
+                }
+            }
+
+            // Jika bukan administrator, redirect ke login
+            if (!isAdministrator()) {
+                console.warn('[AdminCheck] Akses ditolak — bukan administrator. Redirect ke login.');
+                window.location.href = 'login.html';
+            } else {
+                console.log('[AdminCheck] Akses diterima — Administrator terverifikasi.');
+            }
+
+        })();
+    </script>
+
 </body>
 
 </html>

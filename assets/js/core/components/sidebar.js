@@ -1,11 +1,11 @@
 // assets/js/core/components/sidebar.js
 // Sidebar Dinamis Premium UI - Match UI Design v4.3
-// 🔥 Sesuai Gambar Referensi: ChatGPT Image 4 Jul 2026, 12.48.57.png (Teks GA Dihapus)
+// 🔥 Update State Aktif Sesuai Gambar Referensi: image_7531de.png
 
 (function() {
     'use strict';
 
-    console.log('🔄 Premium sidebar.js loaded matching mockup perfectly (General Affair removed)');
+    console.log('🔄 Premium sidebar.js updated with exact active state from image_7531de.png');
 
     const styleId = 'premium-sidebar-css';
     if (!document.getElementById(styleId)) {
@@ -14,17 +14,16 @@
                 --sb-sidebar-bg: #f8fafc;
                 --sb-text-dark: #1e293b;
                 --sb-text-muted: #64748b;
-                --sb-active-bg: #e6f0ff;
-                --sb-active-text: #2563eb;
-                --sb-active-border: #2563eb;
+                /* Gradasi Aktif Premium Baru */
+                --sb-active-gradient: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+                --sb-active-shadow: rgba(37, 99, 235, 0.25);
             }
             [data-theme="dark"] {
                 --sb-sidebar-bg: #111827;
                 --sb-text-dark: #f9fafb;
                 --sb-text-muted: #9ca3af;
-                --sb-active-bg: rgba(37, 99, 235, 0.15);
-                --sb-active-text: #3b82f6;
-                --sb-active-border: #3b82f6;
+                --sb-active-gradient: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
+                --sb-active-shadow: rgba(37, 99, 235, 0.4);
             }
             
             .sidebar {
@@ -107,39 +106,41 @@
                 padding: 10px 18px;
                 display: flex;
                 flex-direction: column;
-                gap: 4px;
+                gap: 6px;
             }
             .sb-body::-webkit-scrollbar { width: 0px; }
 
             .sb-menu-item {
                 display: flex;
                 align-items: center;
-                padding: 11px 16px;
-                border-radius: 12px;
+                padding: 12px 16px;
+                border-radius: 14px;
                 text-decoration: none !important;
                 color: var(--sb-text-muted) !important;
                 font-weight: 600;
                 font-size: 14px;
-                transition: all 0.2s ease;
-                border-left: 4px solid transparent;
+                transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
             }
-            .sb-menu-item:hover {
-                background: rgba(0, 0, 0, 0.02);
+            .sb-menu-item:hover:not(.active) {
+                background: rgba(0, 0, 0, 0.03);
                 color: var(--sb-text-dark) !important;
+                padding-left: 20px;
             }
-            [data-theme="dark"] .sb-menu-item:hover {
-                background: rgba(255, 255, 255, 0.02);
+            [data-theme="dark"] .sb-menu-item:hover:not(.active) {
+                background: rgba(255, 255, 255, 0.03);
             }
 
             .sb-icon-box {
-                width: 32px;
-                height: 32px;
-                border-radius: 8px;
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 margin-right: 14px;
                 font-size: 16px;
+                transition: all 0.2s ease;
             }
 
             .sb-menu-label {
@@ -149,25 +150,45 @@
                 font-size: 13px;
                 color: var(--sb-text-muted);
                 opacity: 0.7;
+                transition: all 0.2s ease;
             }
 
-            /* 🎯 STATE ACTIVE */
+            /* 🎯 🌟 STATE ACTIVE TERBARU (PERSIS SEPERTI image_7531de.png) */
             .sb-menu-item.active {
-                background: var(--sb-active-bg) !important;
-                color: var(--sb-active-text) !important;
-                border-radius: 0 12px 12px 0;
-                border-left: 4px solid var(--sb-active-border) !important;
-                margin-left: -18px;
-                padding-left: 30px;
+                background: var(--sb-active-gradient) !important;
+                color: #ffffff !important;
+                box-shadow: 0 8px 20px var(--sb-active-shadow);
             }
+            
+            /* Kotak Ikon Menjadi Putih Solid */
+            .sb-menu-item.active .sb-icon-box {
+                background: #ffffff !important;
+                color: #2563eb !important; /* Warna ikon di dalam kotak menjadi biru */
+                box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            }
+
+            /* Chevron Kanan Menjadi Putih Bersih */
             .sb-menu-item.active .sb-arrow {
-                display: none;
+                color: #ffffff !important;
+                opacity: 1;
+            }
+
+            /* 🟠 Indikator Oranye/Kuning di Samping Kiri Tombol Aktif */
+            .sb-menu-item.active::before {
+                content: '';
+                position: absolute;
+                left: -6px; /* Sedikit keluar dari padding utama */
+                top: 25%;
+                height: 50%;
+                width: 5px;
+                background: #f59e0b; /* Warna Amber/Orange hangat */
+                border-radius: 0 4px 4px 0;
             }
 
             .sb-divider {
                 height: 1px;
                 background: rgba(0,0,0,0.05);
-                margin: 15px 16px;
+                margin: 12px 16px;
             }
             [data-theme="dark"] .sb-divider {
                 background: rgba(255,255,255,0.07);
@@ -187,7 +208,7 @@
                 color: #ff3b30 !important;
             }
 
-            /* USER CARD FOOTER & 🌊 DEKORASI GELOMBANG BAWAH */
+            /* USER CARD FOOTER & DEKORASI GELOMBANG BAWAH */
             .sb-footer {
                 padding: 15px 18px 50px 18px;
                 position: relative;
@@ -250,12 +271,9 @@
                 margin: 0 0 4px 0;
                 line-height: 1.2;
             }
-            
-            /* 🔥 Teks Department disembunyikan sepenuhnya */
             .sb-user-dept {
                 display: none !important;
             }
-            
             .sb-badge-role {
                 background: #3b82f6;
                 color: #ffffff;
@@ -315,6 +333,7 @@
 
         const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
 
+        // Tema warna default item (saat tidak aktif)
         const iconStyles = {
             'dashboard.html': { bg: '#e6f0ff', color: '#2563eb' },
             'report.html':    { bg: '#e6fbf4', color: '#10b981' },
@@ -336,11 +355,10 @@
             { href: 'budget.html', icon: 'bi-wallet2', label: 'Budget' },
             { href: 'approval.html', icon: 'bi-shield-check', label: 'Approval' },
             { divider: true },
-            { href: 'admin.html', icon: 'bi-person-fill', label: 'Admin', hasChevron: true }
+            { href: 'admin.html', icon: 'bi-person-fill', label: 'Admin' }
         ];
 
         let sidebarHTML = `
-            <!-- HEADER WITH INNER CEKUNG WAVE -->
             <div class="sb-header">
                 <div class="sb-header-content">
                     <div class="sb-logo-container">
@@ -351,7 +369,6 @@
                 </div>
             </div>
 
-            <!-- MENU BODY -->
             <div class="sb-body">
         `;
 
@@ -363,10 +380,13 @@
 
             const activeClass = (currentPage === menu.href) ? 'active' : '';
             const styleConf = iconStyles[menu.href] || { bg: '#f1f5f9', color: '#64748b' };
-            const chevronHTML = (menu.hasChevron && !activeClass) ? `<i class="bi bi-chevron-right sb-arrow"></i>` : '';
+            
+            // 🔥 Sesuai gambar baru, Chevron kanan selalu ikut dirender (baik aktif maupun tidak)
+            const chevronHTML = `<i class="bi bi-chevron-right sb-arrow"></i>`;
             
             sidebarHTML += `
                 <a href="${menu.href}" class="sb-menu-item ${activeClass}">
+                    <!-- Pengaturan style bawaan ditimpa otomatis oleh css .active ketika aktif -->
                     <div class="sb-icon-box" style="background: ${styleConf.bg}; color: ${styleConf.color};">
                         <i class="bi ${menu.icon}"></i>
                     </div>
@@ -379,7 +399,6 @@
         sidebarHTML += `
             </div>
 
-            <!-- LOGOUT BOX -->
             <div class="sb-logout-box">
                 <a href="#" id="logoutBtn" class="sb-menu-item sb-btn-logout">
                     <div class="sb-icon-box">
@@ -389,7 +408,6 @@
                 </a>
             </div>
 
-            <!-- FOOTER USER CARD -->
             <div class="sb-footer">
                 <div class="sb-user-card">
                     <div class="sb-avatar-wrapper">
@@ -398,7 +416,6 @@
                     </div>
                     <div class="sb-user-info">
                         <h6 class="sb-user-name">${userName}</h6>
-                        <!-- 🔥 Sesuai Request: Teks Department Dihapus -->
                         <span class="sb-badge-role">${userRole}</span>
                     </div>
                     <i class="bi bi-chevron-down sb-chevron-down"></i>

@@ -1,9 +1,6 @@
 // =====================================================
-// Building Care System Enterprise v7.6 FINAL
-// history.js - Auto-Refresh 7 detik + Countdown
-// Error handling + Auto-stop after failures
-// ONLY ADMIN can access this page
-// Loading overlay removed
+// Building Care System Enterprise v7.6 FINAL - FIXED
+// history.js - Menggunakan CONFIG.API.URL
 // Radiant Group Duri
 // =====================================================
 
@@ -70,7 +67,6 @@
         DOM.userName = $('#userName');
         DOM.userRole = $('#userRole');
         DOM.userAvatar = $('#userAvatar');
-        DOM.sidebarNav = $('#sidebarNav');
         DOM.totalTrend = $('#totalTrend');
         DOM.openTrend = $('#openTrend');
         DOM.progressTrend = $('#progressTrend');
@@ -102,13 +98,6 @@
             console.log(`[Toast] ${type}: ${msg}`);
         }
     }
-
-    // ============================================================
-    //  LOADING - NO-OP (loading hitam dihilangkan)
-    // ============================================================
-    function showLoading() { /* tidak ada overlay */ }
-
-    function hideLoading() { /* tidak ada overlay */ }
 
     // ============================================================
     //  DATE HELPERS
@@ -188,9 +177,6 @@
             .replace(/'/g, '&#039;');
     }
 
-    // ============================================================
-    //  TRUNCATE TEXT
-    // ============================================================
     function truncate(str, len = 30) {
         if (!str) return '-';
         if (str.length <= len) return str;
@@ -245,53 +231,6 @@
             console.warn('Load user info error:', e);
         }
         return null;
-    }
-
-    // ============================================================
-    //  SIDEBAR
-    // ============================================================
-    function initSidebar() {
-        setTimeout(() => {
-            const menus = $$('.sidebar nav a.menu');
-            menus.forEach(m => {
-                if (m.getAttribute('href') && m.getAttribute('href').includes('history')) {
-                    m.classList.add('active');
-                } else {
-                    m.classList.remove('active');
-                }
-            });
-        }, 100);
-    }
-
-    // ============================================================
-    //  AUTHORIZATION CHECK - ONLY ADMIN CAN ACCESS
-    // ============================================================
-    function checkAuthorization() {
-        try {
-            const session = BCS.Storage.getSession();
-            if (!session || !session.user) {
-                console.warn('[History] No session found, redirecting to login');
-                window.location.href = 'login.html';
-                return false;
-            }
-
-            const role = (session.user.role || '').toUpperCase();
-            // Only ADMIN or ADMINISTRATOR allowed
-            if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
-                console.warn('[History] Unauthorized role:', role, 'redirecting to dashboard');
-                showToast('Akses ditolak. Hanya ADMIN yang dapat melihat riwayat.', 'error');
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1500);
-                return false;
-            }
-
-            return true;
-        } catch (e) {
-            console.error('[History] Auth check error:', e);
-            window.location.href = 'login.html';
-            return false;
-        }
     }
 
     // ============================================================
@@ -385,7 +324,115 @@
     }
 
     // ============================================================
-    //  FETCH REPORTS (Using getReports from backend)
+    //  🔥 API CALL - Menggunakan CONFIG.API.URL
+    // ============================================================
+    async function callApi(action, data = {}) {
+        // Ambil URL dari CONFIG
+        const API_URL = (typeof CONFIG !== 'undefined' && CONFIG.API && CONFIG.API.URL) 
+            ? CONFIG.API.URL 
+            : 'https://script.google.com/macros/s/AKfycbxsc5v8cpBDeWiJY3yyz3pQ37kF-bzaVOCPZLz2bAfSx4CdAO30-gGwQgg8Ln5eqWPcOg/exec';
+        
+        console.log('[History] 📡 API URL:', API_URL);
+
+        // Ambil token
+        let token = null;
+        try {
+            const session = BCS.Storage.getSession();
+            if (session && session.token) {
+                token = session.token;
+            } else {
+                token = localStorage.getItem('token');
+            }
+        } catch (e) {}
+
+        const payload = {
+            action: action,
+            data: data
+        };
+        if (token) {
+            payload.token = token;
+        }
+
+        console.log('[History] 📤 Payload:', payload);
+
+        try {
+            // 🔥 Coba POST
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const text = await response.text();
+            console.log('[History] 📥 Raw response:', text);
+
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (e) {
+                // Jika bukan JSON, mungkin response kosong atau error
+                result = { success: false, message: 'Response bukan JSON: ' + text.substring(0, 100) };
+            }
+
+            console.log('[History] 📦 Parsed response:', result);
+            return result;
+
+        } catch (err) {
+            console.warn('[History] ⚠️ POST error, coba JSONP fallback:', err);
+
+            // 🔥 Fallback JSONP
+            return new Promise((resolve) => {
+                const callbackName = 'callback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                const params = new URLSearchParams();
+                params.append('action', action);
+                params.append('data', JSON.stringify(data));
+                if (token) params.append('token', token);
+                params.append('callback', callbackName);
+
+                const url = `${API_URL}?${params.toString()}`;
+                console.log('[History] 📡 JSONP URL:', url);
+
+                const script = document.createElement('script');
+                script.src = url;
+                script.async = true;
+
+                const timeout = setTimeout(() => {
+                    document.body.removeChild(script);
+                    delete window[callbackName];
+                    resolve({ success: false, message: 'JSONP timeout' });
+                }, 15000);
+
+                window[callbackName] = function(response) {
+                    clearTimeout(timeout);
+                    document.body.removeChild(script);
+                    delete window[callbackName];
+                    console.log('[History] 📦 JSONP response:', response);
+                    resolve(response || { success: false, message: 'Empty response' });
+                };
+
+                script.onerror = function() {
+                    clearTimeout(timeout);
+                    document.body.removeChild(script);
+                    delete window[callbackName];
+                    resolve({ success: false, message: 'JSONP script error' });
+                };
+
+                document.body.appendChild(script);
+            });
+        }
+    }
+
+    // ============================================================
+    //  FETCH REPORTS
     // ============================================================
     async function fetchReports() {
         if (state.loading) return;
@@ -395,36 +442,42 @@
             state.countdownInterval = null;
         }
 
-        // Show spinner in table
+        // Show spinner
         if (DOM.tableBody) {
             DOM.tableBody.innerHTML =
                 '<tr><td colspan="11" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><br>Sedang memuat data...</td></tr>';
         }
 
         try {
-            const api = window.BCS.Api || window.Api;
-            if (!api) throw new Error('API tidak tersedia');
+            const response = await callApi('getReports', {});
+            console.log('[History] 🔥 Final response:', response);
 
-            let response;
-            try {
-                response = await api.post('getReports', {});
-            } catch (apiErr) {
-                console.warn('[History] POST failed, trying GET with JSONP...', apiErr);
-                response = await api.request('GET', 'getReports', {});
-            }
-
-            console.log('[History] getReports response:', response);
-
-            if (response && response.success) {
-                state.errorCount = 0;
-                state.hasError = false;
-            } else {
+            if (!response || !response.success) {
                 throw new Error(response?.message || 'Gagal memuat data');
             }
 
             let reports = response.data?.reports || [];
+            
+            // Jika reports kosong, cek kemungkinan struktur lain
+            if (reports.length === 0 && Array.isArray(response.data)) {
+                reports = response.data;
+            }
+            if (reports.length === 0 && response.data && typeof response.data === 'object') {
+                for (const key of ['items', 'list', 'result', 'rows']) {
+                    if (Array.isArray(response.data[key])) {
+                        reports = response.data[key];
+                        break;
+                    }
+                }
+            }
 
-            // Filter by role (already admin, but safe)
+            console.log('[History] ✅ Reports diterima:', reports.length);
+
+            state.errorCount = 0;
+            state.hasError = false;
+            state.reports = reports;
+
+            // Filter berdasarkan role
             const session = BCS.Storage.getSession();
             const user = session?.user || {};
             const role = (user.role || '').toUpperCase();
@@ -432,27 +485,25 @@
             if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
                 const userNik = (user.nik || '').trim();
                 const userNama = (user.nama || '').toLowerCase().trim();
-
                 if (userNik || userNama) {
-                    reports = reports.filter(function(r) {
+                    state.reports = reports.filter(function(r) {
                         const rNik = String(r.nik || '').trim();
                         const rNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
                         if (userNik && rNik) return rNik === userNik;
                         if (userNama && rNama) return rNama === userNama;
                         return false;
                     });
+                    console.log('[History] 🔒 Filtered by user, remaining:', state.reports.length);
                 }
             }
 
-            state.reports = reports;
             applyFilters();
 
         } catch (err) {
-            console.error('[History] Fetch error:', err);
+            console.error('[History] ❌ Fetch error:', err);
             state.errorCount++;
             state.hasError = true;
 
-            // Show error in table
             if (DOM.tableBody) {
                 DOM.tableBody.innerHTML =
                     `<tr><td colspan="11" class="text-center py-5 text-danger">
@@ -463,9 +514,7 @@
                         <button class="btn btn-sm btn-primary" id="retryBtnHistory"><i class="bi bi-arrow-clockwise"></i> Coba Lagi</button>
                     </td></tr>`;
                 const retryBtn = document.getElementById('retryBtnHistory');
-                if (retryBtn) {
-                    retryBtn.addEventListener('click', resetCountdown);
-                }
+                if (retryBtn) retryBtn.addEventListener('click', resetCountdown);
             }
 
             if (state.errorCount >= state.maxErrors) {
@@ -475,7 +524,7 @@
                     state.countdownInterval = null;
                 }
                 updateCountdownDisplay();
-                showToast('Auto-refresh dihentikan karena gagal beberapa kali. Klik tombol refresh untuk mencoba lagi.', 'warning');
+                showToast('Auto-refresh dihentikan karena gagal beberapa kali.', 'warning');
             } else {
                 showToast('Gagal memuat data: ' + err.message, 'error');
             }
@@ -620,21 +669,6 @@
         const pageData = state.filtered.slice(start, start + state.perPage);
 
         if (state.hasError && state.reports.length === 0) {
-            if (DOM.tableBody && DOM.tableBody.innerHTML.includes('Memuat data')) {
-                DOM.tableBody.innerHTML =
-                    `<tr><td colspan="11" class="text-center py-5 text-danger">
-                        <i class="bi bi-exclamation-triangle fs-2 d-block mb-2"></i>
-                        <strong>Gagal memuat data</strong><br>
-                        <span class="text-muted">Silakan refresh halaman atau coba lagi nanti</span>
-                        <br><br>
-                        <button class="btn btn-sm btn-primary" id="retryBtnHistory"><i class="bi bi-arrow-clockwise"></i> Coba Lagi</button>
-                    </td></tr>`;
-                const retryBtn = document.getElementById('retryBtnHistory');
-                if (retryBtn) {
-                    retryBtn.addEventListener('click', resetCountdown);
-                }
-            }
-            if (DOM.emptyState) DOM.emptyState.classList.add('d-none');
             return;
         }
 
@@ -661,8 +695,7 @@
 
             const hasPhoto = r.foto && r.foto.trim() !== '';
 
-            html +=
-                `
+            html += `
             <tr>
                 <td class="report-id">${globalIdx}</td>
                 <td><span class="badge-status ${statusClass}">${status}</span></td>
@@ -852,9 +885,7 @@
             if (btn) { btn.disabled = true;
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...'; }
 
-            const api = window.BCS.Api || window.Api;
-            const payload = { id: id, status: status, teknisi: teknisi, catatan: catatan };
-            const response = await api.post('updateReport', payload);
+            const response = await callApi('updateReport', { id, status, teknisi, catatan });
 
             if (response && response.success) {
                 showToast('✅ Status berhasil diperbarui!', 'success');
@@ -1141,17 +1172,11 @@
         cacheDom();
         initDarkMode();
         loadUserInfo();
-        initSidebar();
-
-        // 🔐 AUTHORIZATION CHECK - ONLY ADMIN
-        if (!checkAuthorization()) {
-            return;
-        }
 
         bindEvents();
         initCountdown();
         await fetchReports();
-        console.log('✅ History page initialized with auto-refresh (7s) - Loading overlay removed');
+        console.log('✅ History page initialized with CONFIG.API.URL');
     }
 
     if (document.readyState === 'loading') {

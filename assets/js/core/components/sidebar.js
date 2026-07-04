@@ -1,5 +1,6 @@
-// assets/js/components/sidebar.js
+// assets/js/core/components/sidebar.js
 // Sidebar Dinamis Premium UI - Match UI Design v4.3
+// 🔥 "General Affair" dihapus dari tampilan
 
 (function() {
     'use strict';
@@ -237,13 +238,9 @@
                 margin: 0;
                 line-height: 1.2;
             }
+            /* 🔥 Department dihilangkan - tidak ditampilkan */
             .sb-user-dept {
-                font-size: 11px;
-                color: var(--sb-text-muted);
-                margin: 2px 0 4px 0;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
+                display: none;
             }
             .sb-badge-role {
                 background: #3b82f6;
@@ -303,14 +300,16 @@
         let isAdmin = false;
         let userName = 'John Doe';
         let userRole = 'USER';
-        let userDept = 'General Affair';
+        // 🔥 Department di-set kosong, tidak menggunakan "General Affair"
+        let userDept = '';
 
         if (session && session.user) {
             const role = (session.user.role || '').toUpperCase();
             isAdmin = (role === 'ADMINISTRATOR');
             userName = session.user.nama || session.user.name || 'User';
             userRole = session.user.role || 'USER';
-            userDept = session.user.divisi || session.user.department || 'General Affair';
+            // 🔥 Ambil department dari session jika ada, tapi jangan tampilkan jika kosong
+            userDept = session.user.divisi || session.user.department || '';
         } else {
             console.warn('⚠️ Sesi tidak aktif, arahkan ke login');
             if (window.location.pathname.indexOf('login.html') === -1) {
@@ -412,7 +411,8 @@
                     </div>
                     <div class="sb-user-info">
                         <h6 class="sb-user-name">${userName}</h6>
-                        <div class="sb-user-dept">${userDept}</div>
+                        <!-- 🔥 Department tidak ditampilkan -->
+                        <div class="sb-user-dept"></div>
                         <span class="sb-badge-role">${userRole}</span>
                     </div>
                     <i class="bi bi-chevron-down sb-chevron-down"></i>
@@ -422,7 +422,7 @@
 
         // Tulis ulang seluruh isi komponen .sidebar
         sidebarElement.innerHTML = sidebarHTML;
-        console.log('✅ Premium Sidebar UI Overwritten successfully.');
+        console.log('✅ Premium Sidebar UI Overwritten successfully. (General Affair removed)');
 
         // Sinkronisasi data ke komponen topbar luar jika ada
         try {

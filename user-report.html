@@ -720,6 +720,14 @@
     loadNotifications();
     setInterval(loadNotifications,60000);
 
+    if (window.location.hash === '#notifications') {
+      setTimeout(() => {
+        notificationOverlay.classList.add('show');
+        loadNotifications();
+        try { history.replaceState({}, '', 'user-report.html'); } catch (e) {}
+      }, 180);
+    }
+
     // =============================================
     // 10. LOGOUT — MODERN TOAST SAMA SEPERTI user-history.html
     // =============================================

@@ -1025,7 +1025,22 @@
                         throw new Error((res && res.message) || 'Gagal memuat Report');
                     }
 
-                    var reports = res.data || res.reports || [];
+                    // Normalisasi response getReports agar kompatibel dengan:
+                    // 1. { success:true, data:[...] }
+                    // 2. { success:true, data:{ reports:[...] } }
+                    // 3. { success:true, reports:[...] }
+                    var reports = [];
+
+                    if (Array.isArray(res.data)) {
+                        reports = res.data;
+                    } else if (res.data && Array.isArray(res.data.reports)) {
+                        reports = res.data.reports;
+                    } else if (Array.isArray(res.reports)) {
+                        reports = res.reports;
+                    }
+
+                    console.log('📋 [WO] Reports normalized:', reports);
+
                     openReports = reports.filter(function(r) {
                         var status = normalizeReportStatus(r.status);
                         var id = reportIdOf(r);

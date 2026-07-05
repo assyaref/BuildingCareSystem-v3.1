@@ -536,9 +536,8 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Ditugaskan Kepada</label>
-                                    <select class="form-select" id="woAssignedTo">
-                                        <option value="">Pilih Teknisi...</option>
-                                    </select>
+                                    <input type="text" class="form-control" id="woAssignedTo"
+                                           placeholder="Ketik nama petugas / teknisi secara manual">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -1100,50 +1099,60 @@
             // =============================================
             // CRUD
             // =============================================
-            function openModal(data) {
+            async function openModal(data) {
                 data = data || null;
                 var modal = new bootstrap.Modal(document.getElementById('woModal'));
                 var form = document.getElementById('woForm');
                 form.reset();
 
-                if (data) {
-                    isEditMode = true;
-                    editId = data.id;
-                    document.getElementById('modalTitle').textContent = 'Edit Work Order';
-                    document.getElementById('woTitle').value = data.title || '';
-                    document.getElementById('woCategory').value = data.category_id || '';
-                    document.getElementById('woPriority').value = data.priority || 'medium';
-                    document.getElementById('woDescription').value = data.description || '';
-                    document.getElementById('woLocation').value = data.location || '';
-                    document.getElementById('woFloor').value = data.floor || '';
-                    document.getElementById('woStatus').value = data.status || 'open';
-                    document.getElementById('woAssignedTo').value = data.assigned_to || '';
-                    document.getElementById('woScheduledDate').value = data.scheduled_date || '';
-                    document.getElementById('woNotes').value = data.notes || '';
-                    document.getElementById('woEmergency').checked = data.is_emergency === true || String(data.is_emergency).toUpperCase() === 'TRUE';
-                } else {
-                    isEditMode = false;
-                    editId = null;
-                    document.getElementById('modalTitle').textContent = 'Buat Work Order';
-                    document.getElementById('woStatus').value = 'open';
-                }
+                isEditMode = !!data;
+                editId = data ? data.id : null;
+                document.getElementById('modalTitle').textContent =
+                    data ? 'Edit Work Order' : 'Buat Work Order';
 
-                loadCategories();
-                loadTechnicians();
+                // Siapkan daftar kategori lebih dulu agar nilai edit tidak hilang.
+                await loadCategories();
 
                 var reportSelect = document.getElementById('woReportId');
                 var reportGroup = document.getElementById('reportSourceGroup');
+                reportGroup.style.display = '';
 
                 if (data) {
-                    reportGroup.style.display = '';
-                    loadOpenReports(data.report_id || '').then(function() {
-                        reportSelect.value = data.report_id || '';
-                        reportSelect.disabled = true;
-                    });
+                    await loadOpenReports(data.report_id || '');
+
+                    document.getElementById('woTitle').value = data.title || '';
+                    document.getElementById('woCategory').value =
+                        String(data.category_id || data.category || '').toUpperCase();
+                    document.getElementById('woPriority').value =
+                        String(data.priority || 'medium').toLowerCase();
+                    document.getElementById('woDescription').value = data.description || '';
+                    document.getElementById('woLocation').value = data.location || '';
+                    document.getElementById('woFloor').value = data.floor || '';
+                    document.getElementById('woStatus').value =
+                        String(data.status || 'open').toLowerCase();
+
+                    // Ditugaskan Kepada sekarang manual dan selalu mengikuti WO terpilih.
+                    document.getElementById('woAssignedTo').value =
+                        data.assigned_to || data.assigned_to_name || '';
+
+                    var scheduled = data.scheduled_date || '';
+                    if (scheduled && String(scheduled).indexOf('T') > -1) {
+                        scheduled = String(scheduled).split('T')[0];
+                    }
+                    document.getElementById('woScheduledDate').value = scheduled;
+                    document.getElementById('woNotes').value = data.notes || '';
+                    document.getElementById('woEmergency').checked =
+                        data.is_emergency === true ||
+                        String(data.is_emergency).toUpperCase() === 'TRUE';
+
+                    reportSelect.value = data.report_id || '';
+                    reportSelect.disabled = true;
                 } else {
-                    reportGroup.style.display = '';
+                    document.getElementById('woStatus').value = 'open';
+                    document.getElementById('woPriority').value = 'medium';
+                    document.getElementById('woAssignedTo').value = '';
                     reportSelect.disabled = false;
-                    loadOpenReports('');
+                    await loadOpenReports('');
                 }
 
                 modal.show();
@@ -1158,21 +1167,6 @@
                     <option value="AIR">AIR</option>
                     <option value="GEDUNG">KONDISI GEDUNG</option>
                 `;
-            }
-
-            async function loadTechnicians() {
-                try {
-                    var res = await BCS.Api.post('getTechnicians', {});
-                    var sel = document.getElementById('woAssignedTo');
-                    sel.innerHTML = '<option value="">Pilih Teknisi...</option>';
-                    if (res.success && res.data && res.data.length > 0) {
-                        res.data.forEach(function(u) {
-                            sel.innerHTML += '<option value="' + u.id + '">' + u.name + '</option>';
-                        });
-                    }
-                } catch (e) {
-                    console.warn('Load technicians error:', e);
-                }
             }
 
             document.getElementById('woForm').addEventListener('submit', async function(e) {

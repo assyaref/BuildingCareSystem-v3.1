@@ -735,6 +735,43 @@
                 return map[s] || s;
             }
 
+
+            function normalizeStatusValue(value) {
+                var raw = String(value || '').trim().toLowerCase();
+                var aliases = {
+                    'progress': 'in_progress',
+                    'in progress': 'in_progress',
+                    'in-progress': 'in_progress',
+                    'done': 'completed',
+                    'complete': 'completed',
+                    'selesai': 'completed',
+                    'pending parts': 'pending_parts',
+                    'pending-parts': 'pending_parts'
+                };
+                return aliases[raw] || raw;
+            }
+
+            function firstValue(obj, keys, fallback) {
+                for (var i = 0; i < keys.length; i++) {
+                    var value = obj ? obj[keys[i]] : undefined;
+                    if (value !== undefined && value !== null && String(value).trim() !== '') {
+                        return value;
+                    }
+                }
+                return fallback;
+            }
+
+            function formatDateTimeSafe(value) {
+                if (!value) return '-';
+                var date = new Date(value);
+                if (isNaN(date.getTime())) {
+                    var normalized = String(value).replace(' ', 'T');
+                    date = new Date(normalized);
+                }
+                if (isNaN(date.getTime())) return String(value);
+                return date.toLocaleString('id-ID');
+            }
+
             function getStatusBadge(s) {
                 return '<span class="status-badge status-' + s + '">' + formatStatus(s) + '</span>';
             }
@@ -1243,24 +1280,55 @@
             async function viewDetail(id) {
                 try {
                     var res = await BCS.Api.post('getWorkOrder', { id: id });
-                    if (!res.success) {
-                        showToast('Gagal memuat detail', 'error');
+                    if (!res || !res.success) {
+                        showToast((res && res.message) || 'Gagal memuat detail', 'error');
                         return;
                     }
-                    var w = res.data;
+
+                    var w = res.data || {};
                     var container = document.getElementById('detailContent');
 
+                    var category = firstValue(w, ['category', 'category_id', 'kategori'], '-');
+                    var assignedTo = firstValue(w, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], 'Belum ditugaskan');
+                    var location = firstValue(w, ['location', 'lokasi'], '-');
+                    var floor = firstValue(w, ['floor', 'lantai', 'room', 'ruangan'], '');
+                    var status = normalizeStatusValue(firstValue(w, ['status', 'wo_status'], 'open'));
+                    var priority = String(firstValue(w, ['priority', 'prioritas'], 'medium')).toLowerCase();
+                    var timeline = Array.isArray(w.timeline) ? w.timeline : [];
+
                     var timelineHtml = '';
-                    if (w.timeline && w.timeline.length > 0) {
-                        w.timeline.forEach(function(t) {
-                            timelineHtml += `
-                            <div class="timeline-item">
-                                <div class="time">${new Date(t.created_at).toLocaleString('id-ID')}</div>
-                                <div class="status-label">${formatStatus(t.status)}</div>
-                                <div class="notes">${t.notes || ''}</div>
-                            </div>
-                        `;
-                        });
+                    if (timeline.length > 0) {
+                        timelineHtml = timeline.map(function(t) {
+                            var timelineStatus = normalizeStatusValue(firstValue(
+                                t,
+                                ['status', 'new_status', 'newStatus', 'action', 'activity', 'event'],
+                                'Aktivitas WO'
+                            ));
+
+                            var timelineLabel = timelineStatus === 'Aktivitas WO'
+                                ? timelineStatus
+                                : formatStatus(timelineStatus);
+
+                            var timelineNotes = firstValue(
+                                t,
+                                ['notes', 'note', 'description', 'keterangan', 'message'],
+                                ''
+                            );
+
+                            var timelineDate = firstValue(
+                                t,
+                                ['created_at', 'createdAt', 'datetime', 'timestamp', 'date'],
+                                ''
+                            );
+
+                            return `
+                                <div class="timeline-item">
+                                    <div class="time">${formatDateTimeSafe(timelineDate)}</div>
+                                    <div class="status-label">${timelineLabel || 'Aktivitas WO'}</div>
+                                    ${timelineNotes ? `<div class="notes">${timelineNotes}</div>` : ''}
+                                </div>
+                            `;
+                        }).join('');
                     } else {
                         timelineHtml = '<div class="text-muted" style="color:var(--text-muted);">Belum ada aktivitas</div>';
                     }
@@ -1269,49 +1337,54 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="fw-bold text-muted" style="font-size:11px;color:var(--text-muted);">REPORT SUMBER</div>
-                            <div class="fw-semibold" style="color:var(--text-secondary);">${w.report_id || '-'}</div>
+                            <div class="fw-semibold" style="color:var(--text-secondary);">${firstValue(w, ['report_id', 'reportId'], '-')}</div>
                         </div>
                         <div class="col-md-6">
                             <div class="fw-bold text-muted" style="font-size:11px;color:var(--text-muted);">NO. WO</div>
-                            <div class="fw-bold" style="font-size:16px;color:#4b7bec;">${w.wo_number || w.id}</div>
+                            <div class="fw-bold" style="font-size:16px;color:#4b7bec;">${firstValue(w, ['wo_number', 'woNumber', 'id'], '-')}</div>
                         </div>
-                        <div class="col-md-6 text-md-end">
-                            ${getStatusBadge(w.status)} ${getPriorityBadge(w.priority)}
-                            ${w.is_emergency ? '<span class="badge bg-danger ms-1">⚠️ Darurat</span>' : ''}
+                        <div class="col-12">
+                            ${getStatusBadge(status)} ${getPriorityBadge(priority)}
+                            ${w.is_emergency === true || String(w.is_emergency).toUpperCase() === 'TRUE' ? '<span class="badge bg-danger ms-1">⚠️ Darurat</span>' : ''}
                         </div>
                         <div class="col-12"><hr style="border-color:var(--border-color);"></div>
                         <div class="col-md-12">
-                            <h5 style="color:var(--text-primary);">${w.title}</h5>
+                            <h5 style="color:var(--text-primary);">${w.title || '-'}</h5>
                             <p class="text-muted" style="font-size:13px;color:var(--text-secondary);">${w.description || '-'}</p>
                         </div>
                         <div class="col-md-6">
                             <div class="text-muted" style="font-size:11px;color:var(--text-muted);">Kategori</div>
-                            <div style="color:var(--text-secondary);">${w.category || w.category_id || '-'}</div>
+                            <div style="color:var(--text-secondary);">${category}</div>
                         </div>
                         <div class="col-md-6">
                             <div class="text-muted" style="font-size:11px;color:var(--text-muted);">Lokasi</div>
-                            <div style="color:var(--text-secondary);">${w.location || '-'} ${w.floor ? ' - Lantai ' + w.floor : ''}</div>
+                            <div style="color:var(--text-secondary);">${location}${floor ? ' - Lantai ' + floor : ''}</div>
                         </div>
                         <div class="col-md-6">
                             <div class="text-muted" style="font-size:11px;color:var(--text-muted);">Ditugaskan</div>
-                            <div style="color:var(--text-secondary);">${w.assigned_to || 'Belum ditugaskan'}</div>
+                            <div style="color:var(--text-secondary);">${assignedTo}</div>
                         </div>
                         <div class="col-md-6">
                             <div class="text-muted" style="font-size:11px;color:var(--text-muted);">Jadwal</div>
-                            <div style="color:var(--text-secondary);">${formatDate(w.scheduled_date) || 'Belum dijadwalkan'}</div>
+                            <div style="color:var(--text-secondary);">${w.scheduled_date ? formatDate(w.scheduled_date) : 'Belum dijadwalkan'}</div>
                         </div>
                         <div class="col-12">
                             <div class="text-muted" style="font-size:11px;color:var(--text-muted);">Catatan</div>
                             <div style="color:var(--text-secondary);">${w.notes || '-'}</div>
                         </div>
                         <div class="col-12">
-                            <div class="text-muted" style="font-size:11px;color:var(--text-muted);">Timeline</div>
+                            <div class="text-muted mb-1" style="font-size:11px;color:var(--text-muted);">Timeline</div>
                             ${timelineHtml}
                         </div>
                     </div>
-                `;
-                    new bootstrap.Modal(document.getElementById('detailModal')).show();
+                    `;
+
+                    var detailEl = document.getElementById('detailModal');
+                    var detailModal = bootstrap.Modal.getOrCreateInstance(detailEl);
+                    detailModal.show();
+
                 } catch (e) {
+                    console.error('View detail error:', e);
                     showToast('Error: ' + e.message, 'error');
                 }
             }

@@ -767,9 +767,21 @@
         if (y > 275) { doc.addPage(); y = 24; }
       });
 
+      // Footer + link developer
+      const developerUrl = 'https://api.whatsapp.com/send?phone=6282167472765&text=Haii%20..%F0%9F%91%8B';
+
       doc.setFontSize(8);
       doc.setTextColor(120);
-      doc.text('Dokumen dibuat dari Building Care System', 20, 290);
+      doc.text('Dokumen dibuat dari Building Care System', 20, 284);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100);
+      doc.text('System developed by ', 20, 290);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 94, 255);
+      doc.textWithLink('assyaref.dev', 49, 290, { url: developerUrl });
+
       doc.save(`${id}.pdf`);
     }
 

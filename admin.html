@@ -976,8 +976,76 @@
                     action: act.action ?? act.Action ?? '-',
                     module: act.module ?? act.Module ?? '-',
                     description: act.description ?? act.Description ?? '-',
-                    timestamp: act.timestamp ?? act.Timestamp ?? act.Datetime ?? act.DateTime ?? act.created_at ?? act.CreatedAt ?? ''
+                    timestamp: act.timestamp ?? act.Timestamp ?? act.Datetime ?? act.DateTime ?? act.DATETIME ?? act.created_at ?? act.CreatedAt ?? act.createdAt ?? act.date ?? act.Date ?? ''
                 };
+            }
+
+            // =============================================
+            // TIMESTAMP PARSER — ISO / GAS / SHEET / LOKAL
+            // =============================================
+            function parseActivityTimestamp(value) {
+                if (value === null || value === undefined || value === '') return null;
+                if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+
+                if (typeof value === 'number') {
+                    var numericDate = new Date(value < 100000000000 ? value * 1000 : value);
+                    return isNaN(numericDate.getTime()) ? null : numericDate;
+                }
+
+                var raw = String(value).trim();
+                if (!raw) return null;
+
+                // Format serialisasi Google Apps Script: Date(2026,6,5,1,28,55)
+                var gasMatch = raw.match(/Date\s*\(\s*(\d{4})\s*,\s*(\d{1,2})\s*,\s*(\d{1,2})(?:\s*,\s*(\d{1,2}))?(?:\s*,\s*(\d{1,2}))?(?:\s*,\s*(\d{1,2}))?/i);
+                if (gasMatch) {
+                    return new Date(
+                        Number(gasMatch[1]), Number(gasMatch[2]), Number(gasMatch[3]),
+                        Number(gasMatch[4] || 0), Number(gasMatch[5] || 0), Number(gasMatch[6] || 0)
+                    );
+                }
+
+                // ISO standar, termasuk 2026-07-04T18:28:55.000Z
+                var direct = new Date(raw);
+                if (!isNaN(direct.getTime())) return direct;
+
+                // dd/MM/yyyy HH.mm.ss, dd/MM/yyyy HH:mm:ss, dd-MM-yyyy
+                var localMatch = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:[,\s]+(\d{1,2})[.:](\d{1,2})(?:[.:](\d{1,2}))?)?$/);
+                if (localMatch) {
+                    return new Date(
+                        Number(localMatch[3]), Number(localMatch[2]) - 1, Number(localMatch[1]),
+                        Number(localMatch[4] || 0), Number(localMatch[5] || 0), Number(localMatch[6] || 0)
+                    );
+                }
+
+                // yyyy-MM-dd HH:mm:ss tanpa T
+                var sqlMatch = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/);
+                if (sqlMatch) {
+                    return new Date(
+                        Number(sqlMatch[1]), Number(sqlMatch[2]) - 1, Number(sqlMatch[3]),
+                        Number(sqlMatch[4] || 0), Number(sqlMatch[5] || 0), Number(sqlMatch[6] || 0)
+                    );
+                }
+
+                return null;
+            }
+
+            function activityTimeValue(value) {
+                var date = parseActivityTimestamp(value);
+                return date ? date.getTime() : 0;
+            }
+
+            function formatActivityTimestamp(value) {
+                var date = parseActivityTimestamp(value);
+                if (!date) return '-';
+                return date.toLocaleString('id-ID', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
             }
 
             // =============================================
@@ -1203,9 +1271,7 @@
                     activities = activities.map(normalizeActivity);
 
                     activities.sort(function(a, b) {
-                        var tA = new Date(a.timestamp || a.Datetime || a.created_at || 0);
-                        var tB = new Date(b.timestamp || b.Datetime || b.created_at || 0);
-                        return tB - tA;
+                        return activityTimeValue(b.timestamp) - activityTimeValue(a.timestamp);
                     });
 
                     if (activities.length === 0) {
@@ -1239,10 +1305,9 @@
                     };
                 });
 
+                // Terbaru selalu di paling atas
                 activities.sort(function(a, b) {
-                    var tA = new Date(a.timestamp || 0);
-                    var tB = new Date(b.timestamp || 0);
-                    return tB - tA;
+                    return activityTimeValue(b.timestamp) - activityTimeValue(a.timestamp);
                 });
 
                 if (activities.length === 0) {
@@ -1252,8 +1317,8 @@
 
                 var html = '';
                 activities.slice(0, 17).forEach(function(act) {
-                    var timestamp = act.timestamp || act.Datetime || act.created_at || '';
-                    var formatted = timestamp ? new Date(timestamp).toLocaleString('id-ID') : '-';
+                    var timestamp = act.timestamp || '';
+                    var formatted = formatActivityTimestamp(timestamp);
                     html += `
                                 <tr>
                                     <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.user || act.Email || '-'}</td>

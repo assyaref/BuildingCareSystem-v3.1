@@ -35,6 +35,15 @@
 
     .history-item { transition:all 0.2s; cursor:default; -webkit-tap-highlight-color:transparent; }
     .history-item:active { transform:scale(0.99); }
+    .history-item.target-report {
+      border-color:#1e5eff !important;
+      box-shadow:0 0 0 4px rgba(30,94,255,.12), 0 12px 28px rgba(30,94,255,.16) !important;
+      animation:targetPulse 1.4s ease 2;
+    }
+    @keyframes targetPulse {
+      0%,100% { transform:scale(1); }
+      50% { transform:scale(1.015); }
+    }
     .img-thumb { width:60px; height:60px; background:#f3f4f6; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#d1d5db; font-size:22px; flex-shrink:0; overflow:hidden; cursor:pointer; }
     .img-thumb img { width:100%; height:100%; object-fit:cover; }
     
@@ -251,7 +260,7 @@
         const formattedDate = tanggal ? new Date(tanggal).toLocaleString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
 
         html += `
-          <div class="history-item border border-gray-100 rounded-2xl p-4 flex items-center justify-between shadow-sm bg-white mb-3">
+          <div class="history-item border border-gray-100 rounded-2xl p-4 flex items-center justify-between shadow-sm bg-white mb-3" data-report-id="${String(r.id || r.reportId || r.report_id || r.ID || '')}">
             <div class="space-y-1 flex-1 pr-2">
               <span class="status-badge ${statusClass}">${status}</span>
               <h4 class="font-bold text-sm text-gray-800 flex items-center gap-1.5 pt-1">
@@ -272,6 +281,32 @@
         `;
       });
       list.innerHTML = html;
+      focusTargetReport();
+    }
+
+    function focusTargetReport() {
+      const targetId = new URLSearchParams(window.location.search).get('reportId');
+      if (!targetId) return;
+
+      const cards = [...document.querySelectorAll('.history-item')];
+      const target = cards.find(card =>
+        String(card.dataset.reportId || '').trim().toLowerCase() ===
+        String(targetId).trim().toLowerCase()
+      );
+
+      if (!target) return;
+
+      target.classList.add('target-report');
+      setTimeout(() => {
+        target.scrollIntoView({ behavior:'smooth', block:'center' });
+      }, 180);
+
+      setTimeout(() => target.classList.remove('target-report'), 4200);
+
+      // Bersihkan query agar refresh berikutnya tidak terus menyorot kartu.
+      try {
+        history.replaceState({}, '', 'user-history.html');
+      } catch (e) {}
     }
 
     // =============================================
@@ -341,7 +376,9 @@
     // =============================================
     document.getElementById('navReport').addEventListener('click', function(e) { e.preventDefault(); window.location.href = 'user-report.html'; });
     document.getElementById('navHistory').addEventListener('click', function(e) { e.preventDefault(); window.location.href = 'user-history.html'; });
-    document.getElementById('notifBtn').addEventListener('click', function() { alert('Anda memiliki 3 notifikasi'); });
+    document.getElementById('notifBtn').addEventListener('click', function() {
+      window.location.href = 'user-report.html#notifications';
+    });
 
     const logoutOverlay = document.getElementById('logoutOverlay');
     const logoutToast = document.getElementById('logoutToast');

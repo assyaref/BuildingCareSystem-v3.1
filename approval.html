@@ -348,13 +348,10 @@
         }
 
         // ============================================================
-        // DATA MOCK DENGAN KATEGORI DAN PRIORITAS
+        // DATA APPROVAL AKTUAL
         // ============================================================
-        let mockApprovals = [
-            { id: 'APR-001', kategori: 'Kebersihan', lokasi: 'Gedung A - Lantai 2', tanggal: '2026-07-02', status: 'pending', pelapor: 'Budi Santoso', priority: 'medium' },
-            { id: 'APR-002', kategori: 'Perbaikan AC', lokasi: 'Ruang Rapat Utama', tanggal: '2026-07-03', status: 'pending', pelapor: 'Siti Rahma', priority: 'high' },
-            { id: 'APR-003', kategori: 'Listrik', lokasi: 'Gedung B - Lantai 1', tanggal: '2026-07-04', status: 'pending', pelapor: 'Agus Wijaya', priority: 'critical' },
-        ];
+        // Tidak ada data dummy. Data aktual dimuat oleh approval-actual.js.
+        let mockApprovals = [];
 
         function getCategoryStyle(kategori) {
             const kat = kategori.toLowerCase();
@@ -537,11 +534,9 @@
                 if (roleEl) roleEl.textContent = u.role || 'User';
                 if (avatarEl) avatarEl.textContent = (u.nama || u.name || u.username || 'U')[0].toUpperCase();
             } else {
-                const defaultUser = { name: 'Andi Permana', role: 'ADMIN' };
-                setSession({ user: defaultUser });
-                if (nameEl) nameEl.textContent = defaultUser.name;
-                if (roleEl) roleEl.textContent = defaultUser.role;
-                if (avatarEl) avatarEl.textContent = defaultUser.name[0];
+                if (nameEl) nameEl.textContent = 'User';
+                if (roleEl) roleEl.textContent = '-';
+                if (avatarEl) avatarEl.textContent = 'U';
             }
         }
 

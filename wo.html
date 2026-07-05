@@ -469,6 +469,15 @@
                 <form id="woForm">
                     <div class="modal-body">
                         <div class="row g-3">
+                            <div class="col-md-12" id="reportSourceGroup">
+                                <div class="form-group">
+                                    <label>Report Sumber <span class="required">*</span></label>
+                                    <select class="form-select" id="woReportId">
+                                        <option value="">Pilih Report OPEN...</option>
+                                    </select>
+                                    <small class="text-muted">Pilih laporan user. Data WO akan terisi otomatis dan terhubung ke Report.</small>
+                                </div>
+                            </div>
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label>Judul Work Order <span class="required">*</span></label>
@@ -680,6 +689,7 @@
             var perPage = 10;
             var isEditMode = false;
             var editId = null;
+            var openReports = [];
 
             var tableBody = document.getElementById('woTableBody');
             var paginationEl = document.getElementById('pagination');
@@ -991,6 +1001,89 @@
             }
 
             // =============================================
+            // REPORT SOURCE FOR WORK ORDER
+            // =============================================
+            function normalizeReportStatus(value) {
+                return String(value || '').trim().toUpperCase();
+            }
+
+            function reportIdOf(r) {
+                return r.id || r.reportId || r.report_id || '';
+            }
+
+            async function loadOpenReports(selectedId) {
+                var sel = document.getElementById('woReportId');
+                if (!sel) return;
+
+                sel.disabled = true;
+                sel.innerHTML = '<option value="">Memuat Report OPEN...</option>';
+
+                try {
+                    await waitForApi(8, 750);
+                    var res = await BCS.Api.post('getReports', {});
+
+                    if (!res || !res.success) {
+                        throw new Error((res && res.message) || 'Gagal memuat Report');
+                    }
+
+                    var reports = res.data || res.reports || [];
+                    openReports = reports.filter(function(r) {
+                        var status = normalizeReportStatus(r.status);
+                        var id = reportIdOf(r);
+                        var alreadyHasWO = allWO.some(function(w) {
+                            return String(w.report_id || '') === String(id);
+                        });
+                        return status === 'OPEN' && (!alreadyHasWO || String(id) === String(selectedId || ''));
+                    });
+
+                    sel.innerHTML = '<option value="">Pilih Report OPEN...</option>';
+
+                    openReports.forEach(function(r) {
+                        var id = reportIdOf(r);
+                        var category = r.kategori || r.category || '-';
+                        var location = r.lokasi || r.location || '-';
+                        var option = document.createElement('option');
+                        option.value = id;
+                        option.textContent = id + ' • ' + category + ' • ' + location;
+                        sel.appendChild(option);
+                    });
+
+                    if (selectedId) sel.value = selectedId;
+                } catch (err) {
+                    console.error('Load OPEN reports error:', err);
+                    sel.innerHTML = '<option value="">Gagal memuat Report OPEN</option>';
+                    showToast('Gagal memuat Report: ' + err.message, 'error');
+                } finally {
+                    sel.disabled = false;
+                }
+            }
+
+            function fillWOFromReport(reportId) {
+                var r = openReports.find(function(item) {
+                    return String(reportIdOf(item)) === String(reportId);
+                });
+                if (!r) return;
+
+                var category = String(r.kategori || r.category || '').toUpperCase();
+                var location = r.lokasi || r.location || '';
+                var description = r.deskripsi || r.description || '';
+                var priority = String(r.prioritas || r.priority || 'medium').toLowerCase();
+
+                document.getElementById('woTitle').value =
+                    'Perbaikan ' + (category || 'Kerusakan') + ' - ' + (location || reportId);
+                document.getElementById('woCategory').value = category;
+                document.getElementById('woDescription').value = description;
+                document.getElementById('woLocation').value = location;
+                document.getElementById('woPriority').value =
+                    ['low','medium','high','critical'].includes(priority) ? priority : 'medium';
+                document.getElementById('woStatus').value = 'open';
+            }
+
+            document.getElementById('woReportId').addEventListener('change', function() {
+                if (!isEditMode && this.value) fillWOFromReport(this.value);
+            });
+
+            // =============================================
             // CRUD
             // =============================================
             function openModal(data) {
@@ -1023,6 +1116,22 @@
 
                 loadCategories();
                 loadTechnicians();
+
+                var reportSelect = document.getElementById('woReportId');
+                var reportGroup = document.getElementById('reportSourceGroup');
+
+                if (data) {
+                    reportGroup.style.display = '';
+                    loadOpenReports(data.report_id || '').then(function() {
+                        reportSelect.value = data.report_id || '';
+                        reportSelect.disabled = true;
+                    });
+                } else {
+                    reportGroup.style.display = '';
+                    reportSelect.disabled = false;
+                    loadOpenReports('');
+                }
+
                 modal.show();
             }
 
@@ -1055,6 +1164,7 @@
             document.getElementById('woForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 var data = {
+                    report_id: document.getElementById('woReportId').value || '',
                     title: document.getElementById('woTitle').value.trim(),
                     category_id: document.getElementById('woCategory').value,
                     priority: document.getElementById('woPriority').value,
@@ -1070,6 +1180,11 @@
 
                 if (!data.title || !data.description || !data.category_id) {
                     showToast('Judul, deskripsi, dan kategori wajib diisi', 'warning');
+                    return;
+                }
+
+                if (!isEditMode && !data.report_id) {
+                    showToast('Pilih Report OPEN sebagai sumber Work Order', 'warning');
                     return;
                 }
 
@@ -1144,6 +1259,10 @@
 
                     container.innerHTML = `
                     <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="fw-bold text-muted" style="font-size:11px;color:var(--text-muted);">REPORT SUMBER</div>
+                            <div class="fw-semibold" style="color:var(--text-secondary);">${w.report_id || '-'}</div>
+                        </div>
                         <div class="col-md-6">
                             <div class="fw-bold text-muted" style="font-size:11px;color:var(--text-muted);">NO. WO</div>
                             <div class="fw-bold" style="font-size:16px;color:#4b7bec;">${w.wo_number || w.id}</div>

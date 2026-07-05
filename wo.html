@@ -739,11 +739,82 @@
             // =============================================
             // FETCH DATA
             // =============================================
+            // =============================================
+            // API READINESS GUARD
+            // Mencegah error jika api.js terlambat/gagal dimuat sementara
+            // =============================================
+            function isApiReady() {
+                return !!(
+                    window.BCS &&
+                    BCS.Api &&
+                    typeof BCS.Api.post === 'function'
+                );
+            }
+
+            function waitForApi(maxAttempts, delayMs) {
+                maxAttempts = maxAttempts || 8;
+                delayMs = delayMs || 750;
+
+                return new Promise(function(resolve, reject) {
+                    var attempt = 0;
+
+                    function check() {
+                        attempt++;
+
+                        if (isApiReady()) {
+                            console.log('✅ [WO] API ready on attempt', attempt);
+                            resolve(true);
+                            return;
+                        }
+
+                        console.warn('⏳ [WO] Waiting for API...', attempt + '/' + maxAttempts);
+
+                        if (attempt >= maxAttempts) {
+                            reject(new Error('API belum tersedia setelah ' + maxAttempts + ' percobaan'));
+                            return;
+                        }
+
+                        setTimeout(check, delayMs);
+                    }
+
+                    check();
+                });
+            }
+
+            function showApiRetry(message) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="bi bi-wifi-off fs-2 text-danger d-block mb-2"></i>
+                            <div class="fw-semibold text-danger mb-1">Koneksi API belum siap</div>
+                            <div class="text-muted mb-3" style="font-size:12px;">
+                                ${message || 'File API gagal atau terlambat dimuat.'}
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm" id="btnRetryWO">
+                                <i class="bi bi-arrow-clockwise"></i> Coba Lagi
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                var retryBtn = document.getElementById('btnRetryWO');
+                if (retryBtn) {
+                    retryBtn.addEventListener('click', function() {
+                        fetchWO();
+                    });
+                }
+            }
+
             async function fetchWO() {
                 try {
                     tableBody.innerHTML =
                         '<tr><td colspan="8" class="text-center py-4 text-muted" style="color:var(--text-muted);"><div class="spinner-border spinner-border-sm"></div> Memuat...</td></tr>';
-                    BCS.App.Loading.show();
+
+                    if (window.BCS && BCS.App && BCS.App.Loading && typeof BCS.App.Loading.show === 'function') {
+                        BCS.App.Loading.show();
+                    }
+
+                    await waitForApi(8, 750);
 
                     var response = await BCS.Api.post('getWorkOrders', {});
                     console.log('📊 WO response:', response);
@@ -760,11 +831,18 @@
 
                 } catch (err) {
                     console.error('Fetch WO error:', err);
-                    tableBody.innerHTML =
-                        '<tr><td colspan="8" class="text-center text-danger py-4">Error: ' + err.message +
-                    '</td></tr>';
+
+                    if (!isApiReady()) {
+                        showApiRetry(err.message);
+                    } else {
+                        tableBody.innerHTML =
+                            '<tr><td colspan="8" class="text-center text-danger py-4">Error: ' +
+                            (err.message || 'Gagal memuat Work Order') + '</td></tr>';
+                    }
                 } finally {
-                    BCS.App.Loading.hide();
+                    if (window.BCS && BCS.App && BCS.App.Loading && typeof BCS.App.Loading.hide === 'function') {
+                        BCS.App.Loading.hide();
+                    }
                 }
             }
 
@@ -1247,9 +1325,18 @@
             // =============================================
             async function init() {
                 if (!checkAdminAccess()) return;
+
                 initDarkMode();
                 loadUserInfo();
-                await fetchWO();
+
+                try {
+                    await waitForApi(8, 750);
+                    await fetchWO();
+                } catch (err) {
+                    console.error('❌ [WO] Initialization failed:', err);
+                    showApiRetry(err.message);
+                }
+
                 console.log('✅ Work Order page initialized — ADMIN ONLY');
             }
 

@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- Animate.css untuk animasi tambahan -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
   <style>
@@ -683,9 +684,9 @@
 
     function makeNotification(r){
       const status=statusOf(r.status), id=String(reportId(r)), category=r.kategori||r.category||'Laporan', location=r.lokasi||r.location||'', suffix=location?` • ${location}`:'', date=reportDate(r);
-      if(status==='DONE')return{id:`DONE-${id}`,reportId:id,type:'done',icon:'fa-circle-check',title:'Perbaikan Selesai',message:`${category}${suffix} telah selesai diperbaiki.`,date};
-      if(status==='PROGRESS')return{id:`PROGRESS-${id}`,reportId:id,type:'progress',icon:'fa-screwdriver-wrench',title:'Laporan Sedang Diproses',message:`${category}${suffix} sedang ditangani.`,date};
-      return{id:`OPEN-${id}`,reportId:id,type:'info',icon:'fa-file-circle-check',title:'Laporan Diterima',message:`${category}${suffix} sudah tercatat dan menunggu proses.`,date};
+      if(status==='DONE')return{id:`DONE-${id}`,reportId:id,type:'done',icon:'fa-circle-check',title:'Perbaikan Selesai',message:`${category}${suffix} telah selesai diperbaiki.`,date,report:r};
+      if(status==='PROGRESS')return{id:`PROGRESS-${id}`,reportId:id,type:'progress',icon:'fa-screwdriver-wrench',title:'Laporan Sedang Diproses',message:`${category}${suffix} sedang ditangani.`,date,report:r};
+      return{id:`OPEN-${id}`,reportId:id,type:'info',icon:'fa-file-circle-check',title:'Laporan Diterima',message:`${category}${suffix} sudah tercatat dan menunggu proses.`,date,report:r};
     }
 
     function extractReports(res){
@@ -712,10 +713,119 @@
     document.getElementById('notifBtn').addEventListener('click',()=>{notificationOverlay.classList.add('show');loadNotifications()});
     notificationOverlay.addEventListener('click',e=>{if(e.target===notificationOverlay)notificationOverlay.classList.remove('show')});
     markAllReadBtn.addEventListener('click',()=>{saveReadIds(notifications.map(n=>n.id));renderNotifications()});
-    notificationList.addEventListener('click',e=>{
-      const item=e.target.closest('.notif-item'); if(!item)return;
-      saveReadIds([...getReadIds(),item.dataset.id]); renderNotifications();
-      setTimeout(()=>location.href=item.dataset.reportId?`user-history.html?reportId=${encodeURIComponent(item.dataset.reportId)}`:'user-history.html',120);
+    function formatDetailDate(value) {
+      if (!value) return '-';
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString('id-ID', {
+        day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'
+      });
+    }
+
+    function downloadReportPdf(report) {
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        showCenterAlert('error', 'PDF belum siap. Silakan coba lagi.');
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const id = reportId(report) || 'REPORT';
+      const status = statusOf(report.status);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.text('BUILDING CARE SYSTEM', 20, 22);
+      doc.setFontSize(12);
+      doc.text('Detail Laporan Kerusakan', 20, 31);
+
+      doc.setDrawColor(220);
+      doc.line(20, 37, 190, 37);
+
+      const rows = [
+        ['ID Laporan', id],
+        ['Status', status],
+        ['Tanggal', formatDetailDate(reportDate(report))],
+        ['Pelapor', report.nama || report.name || report.pelapor || '-'],
+        ['Departemen', report.departemen || report.department || '-'],
+        ['Kategori', report.kategori || report.category || '-'],
+        ['Lokasi', report.lokasi || report.location || '-'],
+        ['Prioritas', report.prioritas || report.priority || 'NORMAL'],
+        ['Teknisi', report.teknisi || report.technician || '-'],
+        ['Deskripsi', report.deskripsi || report.description || '-'],
+        ['Catatan Teknisi', report.catatanTeknisi || report.catatan || report.technicianNote || '-']
+      ];
+
+      let y = 48;
+      doc.setFontSize(10);
+      rows.forEach(([label, value]) => {
+        const wrapped = doc.splitTextToSize(String(value ?? '-'), 115);
+        doc.setFont('helvetica', 'bold');
+        doc.text(label, 20, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text(wrapped, 70, y);
+        y += Math.max(8, wrapped.length * 6);
+        if (y > 275) { doc.addPage(); y = 24; }
+      });
+
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      doc.text('Dokumen dibuat dari Building Care System', 20, 290);
+      doc.save(`${id}.pdf`);
+    }
+
+    function openNotificationDetail(notification) {
+      const r = notification.report || {};
+      const id = notification.reportId || reportId(r) || '-';
+      const status = statusOf(r.status);
+      const priority = r.prioritas || r.priority || 'NORMAL';
+
+      notificationOverlay.classList.remove('show');
+
+      Swal.fire({
+        title: 'Detail Laporan',
+        width: 390,
+        showConfirmButton: true,
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: '<i class="fa-solid fa-file-pdf"></i> Download PDF',
+        denyButtonText: '<i class="fa-solid fa-clock-rotate-left"></i> Lihat di History',
+        cancelButtonText: 'Tutup',
+        reverseButtons: true,
+        html: `
+          <div style="text-align:left;font-size:13px;line-height:1.55;color:#475569">
+            <div style="background:#f8fafc;border:1px solid #eef2f7;border-radius:16px;padding:14px">
+              <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:12px">
+                <b style="color:#0f172a">${esc(id)}</b>
+                <span style="font-weight:800;color:#1e5eff">${esc(status)}</span>
+              </div>
+              <div><b>Lokasi:</b> ${esc(r.lokasi || r.location || '-')}</div>
+              <div><b>Kategori:</b> ${esc(r.kategori || r.category || '-')}</div>
+              <div><b>Prioritas:</b> ${esc(priority)}</div>
+              <div><b>Tanggal:</b> ${esc(formatDetailDate(reportDate(r)))}</div>
+              <div style="margin-top:9px"><b>Deskripsi:</b><br>${esc(r.deskripsi || r.description || '-')}</div>
+              ${r.teknisi || r.technician ? `<div style="margin-top:9px"><b>Teknisi:</b> ${esc(r.teknisi || r.technician)}</div>` : ''}
+              ${r.catatanTeknisi || r.catatan || r.technicianNote ? `<div style="margin-top:9px"><b>Catatan:</b><br>${esc(r.catatanTeknisi || r.catatan || r.technicianNote)}</div>` : ''}
+            </div>
+          </div>
+        `
+      }).then(result => {
+        if (result.isConfirmed) {
+          downloadReportPdf(r);
+        } else if (result.isDenied) {
+          location.href = id !== '-' ? `user-history.html?reportId=${encodeURIComponent(id)}` : 'user-history.html';
+        }
+      });
+    }
+
+    notificationList.addEventListener('click', e => {
+      const item = e.target.closest('.notif-item');
+      if (!item) return;
+
+      saveReadIds([...getReadIds(), item.dataset.id]);
+      renderNotifications();
+
+      const notification = notifications.find(n => n.id === item.dataset.id);
+      if (notification) openNotificationDetail(notification);
     });
     loadNotifications();
     setInterval(loadNotifications,60000);

@@ -889,7 +889,7 @@
             }
 
             // =============================================
-            // LOAD ONLINE STATISTICS (FIXED: UNIQUE USERS PER PERIOD)
+            // LOAD ONLINE STATISTICS
             // =============================================
             async function loadOnlineStats() {
                 try {
@@ -908,51 +908,32 @@
                     if (sessions.length > 0) {
                         var now = new Date();
                         var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                        
-                        // Awal minggu ini (Set ke hari Minggu/Senin jam 00:00:00)
                         var weekStart = new Date(now);
                         weekStart.setDate(now.getDate() - now.getDay());
                         weekStart.setHours(0, 0, 0, 0);
-                        
-                        // Awal bulan ini (Tanggal 1 jam 00:00:00)
                         var monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
                         monthStart.setHours(0, 0, 0, 0);
 
-                        // Menggunakan Set untuk mencatat ID/Email unik user yang login di masing-masing periode
                         var uniqueUsersToday = new Set();
                         var uniqueUsersWeek = new Set();
                         var uniqueUsersMonth = new Set();
 
                         sessions.forEach(function(s) {
                             var lastActive = s.lastActive || s.last_activity || s.login_at;
-                            // Mengambil identifier unik (email, user, atau nik)
                             var userIdentifier = s.email || s.user || s.nik || s.userId;
 
                             if (lastActive && userIdentifier) {
                                 var d = new Date(lastActive);
-                                
-                                // Cek dan masukkan ke kelompok Hari Ini
-                                if (d >= today) {
-                                    uniqueUsersToday.add(userIdentifier);
-                                }
-                                // Cek dan masukkan ke kelompok Minggu Ini
-                                if (d >= weekStart) {
-                                    uniqueUsersWeek.add(userIdentifier);
-                                }
-                                // Cek dan masukkan ke kelompok Bulan Ini
-                                if (d >= monthStart) {
-                                    uniqueUsersMonth.add(userIdentifier);
-                                }
+                                if (d >= today) uniqueUsersToday.add(userIdentifier);
+                                if (d >= weekStart) uniqueUsersWeek.add(userIdentifier);
+                                if (d >= monthStart) uniqueUsersMonth.add(userIdentifier);
                             }
                         });
 
-                        // Ambil ukuran (size) dari Set yang mewakili total user unik
                         todayCount = uniqueUsersToday.size;
                         weekCount = uniqueUsersWeek.size;
                         monthCount = uniqueUsersMonth.size;
-
                     } else {
-                        // Fallback dummy data jika response kosong
                         todayCount = Math.floor(Math.random() * 3) + 2;
                         weekCount = Math.floor(Math.random() * 10) + 12;
                         monthCount = Math.floor(Math.random() * 25) + 35;
@@ -976,8 +957,6 @@
 
             // =============================================
             // NORMALIZE API DATA
-            // Backend mengirim key PascalCase (Nama, NIK, Email, Role, Status),
-            // sementara UI sebelumnya membaca lowercase.
             // =============================================
             function normalizeUser(user) {
                 user = user || {};
@@ -1002,6 +981,11 @@
             }
 
             // =============================================
+            // GLOBAL CACHE UNTUK DATA USER (AGAR EDIT CEPAT)
+            // =============================================
+            var cachedUsers = [];
+
+            // =============================================
             // LOAD USERS
             // =============================================
             async function loadUsers() {
@@ -1024,10 +1008,14 @@
                         users = getDummyUsers();
                     }
 
+                    // Simpan ke cache
+                    cachedUsers = users;
                     renderUserTable(users);
                 } catch (e) {
                     console.error('Load users error, running fallback:', e);
-                    renderUserTable(getDummyUsers());
+                    var dummy = getDummyUsers();
+                    cachedUsers = dummy;
+                    renderUserTable(dummy);
                 }
             }
 
@@ -1077,11 +1065,15 @@
                 });
                 tbody.innerHTML = html;
 
+                // Event listener untuk tombol edit
                 document.querySelectorAll('.edit-user').forEach(function(btn) {
                     btn.addEventListener('click', function() {
-                        openEditUser(this.dataset.email, this.dataset.nik);
+                        var email = this.dataset.email;
+                        var nik = this.dataset.nik;
+                        openEditUser(email, nik);
                     });
                 });
+
                 document.querySelectorAll('.delete-user').forEach(function(btn) {
                     btn.addEventListener('click', function() {
                         deleteUser(this.dataset.email);
@@ -1090,124 +1082,71 @@
             }
 
             // =============================================
-            // LOAD ACTIVITIES
+            // OPEN EDIT USER — DIPERBAIKI AGAR IDENTITAS MUNCUL
             // =============================================
-            async function loadActivities() {
-                var tbody = document.getElementById('activityTableBody');
-                if (!tbody) return;
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted" style="color:var(--text-muted);"><div class="spinner-border spinner-border-sm mb-2"></div><br /> Memuat aktivitas...</td></tr>';
-
-                try {
-                    var response = await BCS.Api.post('getAdminActivities', { limit: 20 });
-                    var activities = [];
-                    if (response && response.success && response.data) {
-                        activities = Array.isArray(response.data) ? response.data : (response.data.activities || response.data.Activities || []);
-                    }
-
-                    activities = activities.map(normalizeActivity);
-
-                    if (activities.length === 0) {
-                        var now = new Date();
-                        activities = [
-                            { user: 'Syarif Hidayatullah', action: 'LOGIN', module: 'Auth', description: 'Login berhasil', timestamp: now.toISOString() },
-                            { user: 'Syarif Hidayatullah', action: 'CREATE_USER', module: 'Admin', description: 'Menambahkan user diva.amanda@radiant-utama.com', timestamp: new Date(now - 300000).toISOString() },
-                            { user: 'Bowo Indratno', action: 'UPDATE_REPORT', module: 'Report', description: 'Update laporan BCS-20260701-163852', timestamp: new Date(now - 600000).toISOString() },
-                            { user: 'Tukang Lapor', action: 'LOGIN', module: 'Auth', description: 'Login berhasil', timestamp: new Date(now - 1200000).toISOString() }
-                        ];
-                    }
-
-                    renderActivityTable(activities.map(normalizeActivity));
-                } catch (e) {
-                    console.warn('Load activities error:', e);
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4" style="color:var(--text-muted);">Gagal memuat riwayat aktivitas</td></tr>';
-                }
-            }
-
-            function renderActivityTable(activities) {
-                var tbody = document.getElementById('activityTableBody');
-                if (!tbody) return;
-
-                // Normalisasi ulang tepat sebelum render agar field API
-                // Action/Module/Description/Datetime pasti terbaca.
-                activities = (activities || []).map(function(act) {
-                    return {
-                        user: act.user ?? act.User ?? act.email ?? act.Email ?? '-',
-                        action: act.action ?? act.Action ?? act.ACTION ?? '-',
-                        module: act.module ?? act.Module ?? act.MODULE ?? '-',
-                        description: act.description ?? act.Description ?? act.DESCRIPTION ?? '-',
-                        timestamp: act.timestamp ?? act.Timestamp ?? act.Datetime ?? act.DateTime ?? act.DATETIME ?? act.created_at ?? act.CreatedAt ?? ''
-                    };
+            function openEditUser(email, nik) {
+                // Pertama cari di cache
+                var user = cachedUsers.find(function(u) {
+                    return u.email === email || u.nik === nik;
                 });
 
-                if (activities.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4" style="color:var(--text-muted);">Belum ada riwayat aktivitas</td></tr>';
+                // Jika tidak ada di cache, coba API
+                if (!user) {
+                    // Tampilkan loading di tombol simpan (opsional)
+                    var saveBtn = document.getElementById('saveUserBtn');
+                    if (saveBtn) saveBtn.disabled = true;
+
+                    BCS.Api.post('getUser', { email: email, nik: nik })
+                        .then(function(response) {
+                            var fetchedUser = null;
+                            if (response && response.success && response.data) {
+                                fetchedUser = normalizeUser(response.data.user || response.data.User || response.data);
+                            }
+                            if (fetchedUser && fetchedUser.email) {
+                                // Tambahkan ke cache agar tidak perlu request lagi
+                                var idx = cachedUsers.findIndex(function(u) { return u.email === fetchedUser.email || u.nik === fetchedUser.nik; });
+                                if (idx === -1) cachedUsers.push(fetchedUser);
+                                else cachedUsers[idx] = fetchedUser;
+                                populateUserModal(fetchedUser);
+                            } else {
+                                // Fallback ke dummy
+                                var dummy = getDummyUsers().find(function(u) { return u.email === email || u.nik === nik; });
+                                if (dummy) {
+                                    populateUserModal(dummy);
+                                } else {
+                                    Swal.fire('Error', 'Data user tidak ditemukan', 'error');
+                                }
+                            }
+                        })
+                        .catch(function(e) {
+                            console.warn('API getUser gagal, pakai cache/dummy', e);
+                            var dummy = getDummyUsers().find(function(u) { return u.email === email || u.nik === nik; });
+                            if (dummy) {
+                                populateUserModal(dummy);
+                            } else {
+                                Swal.fire('Error', 'Gagal memuat data user', 'error');
+                            }
+                        })
+                        .finally(function() {
+                            if (saveBtn) saveBtn.disabled = false;
+                        });
                     return;
                 }
 
-                var html = '';
-                activities.slice(0, 20).forEach(function(act) {
-                    var timestamp = act.timestamp || act.Datetime || act.created_at || '';
-                    var formatted = timestamp ? new Date(timestamp).toLocaleString('id-ID') : '-';
-                    html += `
-                                <tr>
-                                    <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.user || act.Email || '-'}</td>
-                                    <td style="padding:10px 16px;font-weight:500;color:var(--text-primary);font-size:13px;">${act.action || '-'}</td>
-                                    <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.module || '-'}</td>
-                                    <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.description || '-'}</td>
-                                    <td style="padding:10px 16px;color:var(--text-muted);font-size:12px;">${formatted}</td>
-                                </tr>
-                            `;
-                });
-                tbody.innerHTML = html;
+                // Jika ditemukan di cache, langsung tampilkan
+                populateUserModal(user);
             }
 
             // =============================================
-            // OPEN EDIT USER
+            // POPULATE MODAL DENGAN DATA USER
             // =============================================
-            function openEditUser(email, nik) {
-                var saveBtn = document.getElementById('saveUserBtn');
-                if (saveBtn) saveBtn.disabled = true;
-
-                BCS.Api.post('getUser', { email: email, nik: nik }).then(function(response) {
-                        var user = null;
-                        if (response && response.success && response.data) {
-                            user = normalizeUser(response.data.user || response.data.User || response.data);
-                        }
-
-                        if (!user || (!user.email && !user.nik)) {
-                            var dummy = getDummyUsers();
-                            user = dummy.find(function(u) { return u.email === email || u.nik === nik; });
-                        }
-
-                        if (!user) {
-                            Swal.fire('Error', 'Data user tidak ditemukan', 'error');
-                            return;
-                        }
-
-                        populateUserModal(user);
-                    })
-                    .catch(function(e) {
-                        console.warn('Get user runtime error, tracking dummy backup:', e);
-                        var dummy = getDummyUsers();
-                        var user = dummy.find(function(u) { return u.email === email || u.nik === nik; });
-                        if (user) {
-                            populateUserModal(user);
-                        } else {
-                            Swal.fire('Error', 'Gagal memuat data spesifik user', 'error');
-                        }
-                    })
-                    .finally(function() {
-                        if (saveBtn) saveBtn.disabled = false;
-                    });
-            }
-
             function populateUserModal(user) {
                 document.getElementById('userModalTitle').innerHTML = '<i class="bi bi-pencil-square"></i> Edit User';
                 document.getElementById('editEmail').value = user.email || '';
                 document.getElementById('userNama').value = user.nama || '';
                 document.getElementById('userNik').value = user.nik || '';
                 document.getElementById('userEmail').value = user.email || '';
-                document.getElementById('userEmail').disabled = true;
+                document.getElementById('userEmail').disabled = true; // email tidak bisa diubah
                 document.getElementById('userPassword').value = '';
                 document.getElementById('userPassword').placeholder = 'Kosongkan jika tidak ingin diubah';
                 document.getElementById('formUserRole').value = (user.role || 'USER').toUpperCase();
@@ -1244,6 +1183,88 @@
                         });
                     }
                 });
+            }
+
+            // =============================================
+            // LOAD ACTIVITIES — MENAMPILKAN 17 BARIS TERBARU
+            // =============================================
+            async function loadActivities() {
+                var tbody = document.getElementById('activityTableBody');
+                if (!tbody) return;
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted" style="color:var(--text-muted);"><div class="spinner-border spinner-border-sm mb-2"></div><br /> Memuat aktivitas...</td></tr>';
+
+                try {
+                    var response = await BCS.Api.post('getAdminActivities', { limit: 30 });
+                    var activities = [];
+                    if (response && response.success && response.data) {
+                        activities = Array.isArray(response.data) ? response.data : (response.data.activities || response.data.Activities || []);
+                    }
+
+                    activities = activities.map(normalizeActivity);
+
+                    activities.sort(function(a, b) {
+                        var tA = new Date(a.timestamp || a.Datetime || a.created_at || 0);
+                        var tB = new Date(b.timestamp || b.Datetime || b.created_at || 0);
+                        return tB - tA;
+                    });
+
+                    if (activities.length === 0) {
+                        var now = new Date();
+                        activities = [
+                            { user: 'Syarif Hidayatullah', action: 'LOGIN', module: 'Auth', description: 'Login berhasil', timestamp: now.toISOString() },
+                            { user: 'Syarif Hidayatullah', action: 'CREATE_USER', module: 'Admin', description: 'Menambahkan user diva.amanda@radiant-utama.com', timestamp: new Date(now - 300000).toISOString() },
+                            { user: 'Bowo Indratno', action: 'UPDATE_REPORT', module: 'Report', description: 'Update laporan BCS-20260701-163852', timestamp: new Date(now - 600000).toISOString() },
+                            { user: 'Tukang Lapor', action: 'LOGIN', module: 'Auth', description: 'Login berhasil', timestamp: new Date(now - 1200000).toISOString() }
+                        ];
+                    }
+
+                    renderActivityTable(activities);
+                } catch (e) {
+                    console.warn('Load activities error:', e);
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4" style="color:var(--text-muted);">Gagal memuat riwayat aktivitas</td></tr>';
+                }
+            }
+
+            function renderActivityTable(activities) {
+                var tbody = document.getElementById('activityTableBody');
+                if (!tbody) return;
+
+                activities = (activities || []).map(function(act) {
+                    return {
+                        user: act.user ?? act.User ?? act.email ?? act.Email ?? '-',
+                        action: act.action ?? act.Action ?? act.ACTION ?? '-',
+                        module: act.module ?? act.Module ?? act.MODULE ?? '-',
+                        description: act.description ?? act.Description ?? act.DESCRIPTION ?? '-',
+                        timestamp: act.timestamp ?? act.Timestamp ?? act.Datetime ?? act.DateTime ?? act.DATETIME ?? act.created_at ?? act.CreatedAt ?? ''
+                    };
+                });
+
+                activities.sort(function(a, b) {
+                    var tA = new Date(a.timestamp || 0);
+                    var tB = new Date(b.timestamp || 0);
+                    return tB - tA;
+                });
+
+                if (activities.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4" style="color:var(--text-muted);">Belum ada riwayat aktivitas</td></tr>';
+                    return;
+                }
+
+                var html = '';
+                activities.slice(0, 17).forEach(function(act) {
+                    var timestamp = act.timestamp || act.Datetime || act.created_at || '';
+                    var formatted = timestamp ? new Date(timestamp).toLocaleString('id-ID') : '-';
+                    html += `
+                                <tr>
+                                    <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.user || act.Email || '-'}</td>
+                                    <td style="padding:10px 16px;font-weight:500;color:var(--text-primary);font-size:13px;">${act.action || '-'}</td>
+                                    <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.module || '-'}</td>
+                                    <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.description || '-'}</td>
+                                    <td style="padding:10px 16px;color:var(--text-muted);font-size:12px;">${formatted}</td>
+                                </tr>
+                            `;
+                });
+                tbody.innerHTML = html;
             }
 
             // =============================================

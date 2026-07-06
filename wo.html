@@ -633,6 +633,9 @@
                 </div>
                 <div class="modal-body" id="detailContent" style="color:var(--text-primary);"></div>
                 <div class="modal-footer" style="border-top:1px solid var(--border-color);">
+                    <button type="button" class="btn btn-danger" id="btnPrintDetailPdf">
+                        <i class="bi bi-file-earmark-pdf-fill"></i> Print PDF
+                    </button>
                     <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
@@ -1820,6 +1823,261 @@
                 } catch (e) {
                     showToast('Error: ' + e.message, 'error');
                 }
+            }
+
+
+            // =============================================
+            // PRINT PDF DETAIL WORK ORDER
+            // =============================================
+            function pdfSafeText(value, fallback) {
+                var text = String(value == null || value === '' ? (fallback || '-') : value);
+                return text.replace(/[^\x20-\x7E\u00A0-\u00FF]/g, ' ');
+            }
+
+            function pdfFileName(value) {
+                return String(value || 'WorkOrder')
+                    .replace(/[\\/:*?"<>|]+/g, '-')
+                    .replace(/\s+/g, '_');
+            }
+
+            function printDetailPdf() {
+                if (!currentDetailWO) {
+                    showToast('Buka detail Work Order terlebih dahulu', 'warning');
+                    return;
+                }
+
+                try {
+                    if (!window.jspdf || !window.jspdf.jsPDF) {
+                        throw new Error('Library jsPDF belum tersedia');
+                    }
+
+                    var w = currentDetailWO;
+                    var costs = Array.isArray(currentCosts) ? currentCosts : [];
+                    var jsPDF = window.jspdf.jsPDF;
+                    var doc = new jsPDF('p', 'mm', 'a4');
+
+                    var pageW = 210;
+                    var pageH = 297;
+                    var margin = 15;
+                    var contentW = pageW - (margin * 2);
+                    var y = 16;
+
+                    function addPageIfNeeded(height) {
+                        if (y + height > pageH - 18) {
+                            doc.addPage();
+                            y = 18;
+                            drawPageHeader(false);
+                        }
+                    }
+
+                    function line(x1, y1, x2, y2) {
+                        doc.setDrawColor(220, 225, 235);
+                        doc.line(x1, y1, x2, y2);
+                    }
+
+                    function drawPageHeader(firstPage) {
+                        if (firstPage) {
+                            doc.setFillColor(30, 94, 255);
+                            doc.rect(0, 0, pageW, 31, 'F');
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFont('helvetica', 'bold');
+                            doc.setFontSize(16);
+                            doc.text('BUILDING CARE SYSTEM', margin, 13);
+                            doc.setFontSize(8);
+                            doc.setFont('helvetica', 'normal');
+                            doc.text('Radiant Group Duri | Work Order Report', margin, 20);
+
+                            doc.setFont('helvetica', 'bold');
+                            doc.setFontSize(11);
+                            doc.text('WORK ORDER', pageW - margin, 13, { align: 'right' });
+                            doc.setFontSize(8);
+                            doc.setFont('helvetica', 'normal');
+                            doc.text(pdfSafeText(w.wo_number || w.id), pageW - margin, 20, { align: 'right' });
+                            y = 39;
+                        } else {
+                            doc.setTextColor(100, 116, 139);
+                            doc.setFontSize(7);
+                            doc.setFont('helvetica', 'normal');
+                            doc.text('Building Care System | ' + pdfSafeText(w.wo_number || w.id), margin, 10);
+                            line(margin, 13, pageW - margin, 13);
+                        }
+                    }
+
+                    function labelValue(label, value, x, width) {
+                        doc.setTextColor(100, 116, 139);
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(7);
+                        doc.text(label.toUpperCase(), x, y);
+
+                        doc.setTextColor(15, 23, 42);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(9);
+                        var lines = doc.splitTextToSize(pdfSafeText(value), width);
+                        doc.text(lines, x, y + 5);
+                        return Math.max(10, lines.length * 4 + 5);
+                    }
+
+                    function sectionTitle(title) {
+                        addPageIfNeeded(12);
+                        doc.setFillColor(241, 245, 249);
+                        doc.roundedRect(margin, y, contentW, 8, 2, 2, 'F');
+                        doc.setTextColor(30, 64, 175);
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(9);
+                        doc.text(title, margin + 4, y + 5.3);
+                        y += 13;
+                    }
+
+                    drawPageHeader(true);
+
+                    doc.setTextColor(15, 23, 42);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(15);
+                    var titleLines = doc.splitTextToSize(pdfSafeText(w.title), contentW);
+                    doc.text(titleLines, margin, y);
+                    y += titleLines.length * 6 + 4;
+
+                    var statusText = formatStatus(normalizeStatusValue(w.status || 'open'));
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(30, 94, 255);
+                    doc.text('STATUS: ' + pdfSafeText(statusText).toUpperCase(), margin, y);
+                    doc.setTextColor(180, 83, 9);
+                    doc.text('PRIORITAS: ' + pdfSafeText(w.priority || 'medium').toUpperCase(), margin + 55, y);
+                    if (w.is_emergency === true || String(w.is_emergency).toUpperCase() === 'TRUE') {
+                        doc.setTextColor(220, 38, 38);
+                        doc.text('DARURAT', margin + 120, y);
+                    }
+                    y += 8;
+                    line(margin, y, pageW - margin, y);
+                    y += 8;
+
+                    var half = (contentW - 8) / 2;
+                    var h1 = labelValue('Report Sumber', w.report_id || '-', margin, half);
+                    var h2 = labelValue('Kategori', firstValue(w, ['category', 'category_id', 'kategori'], '-'), margin + half + 8, half);
+                    y += Math.max(h1, h2) + 2;
+
+                    h1 = labelValue('Lokasi', firstValue(w, ['location', 'lokasi'], '-'), margin, half);
+                    h2 = labelValue('Lantai / Ruangan', firstValue(w, ['floor', 'lantai', 'room', 'ruangan'], '-'), margin + half + 8, half);
+                    y += Math.max(h1, h2) + 2;
+
+                    h1 = labelValue('Teknisi', firstValue(w, ['assigned_to', 'assigned_to_id', 'assigned_to_name', 'teknisi'], 'Belum ditugaskan'), margin, half);
+                    h2 = labelValue('Jadwal Pengerjaan', w.scheduled_date ? formatDate(w.scheduled_date) : 'Belum dijadwalkan', margin + half + 8, half);
+                    y += Math.max(h1, h2) + 2;
+
+                    sectionTitle('DESKRIPSI PEKERJAAN');
+                    doc.setTextColor(51, 65, 85);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(9);
+                    var desc = doc.splitTextToSize(pdfSafeText(w.description), contentW);
+                    addPageIfNeeded(desc.length * 4 + 8);
+                    doc.text(desc, margin, y);
+                    y += desc.length * 4 + 7;
+
+                    if (w.notes) {
+                        sectionTitle('CATATAN');
+                        var notes = doc.splitTextToSize(pdfSafeText(w.notes), contentW);
+                        addPageIfNeeded(notes.length * 4 + 8);
+                        doc.setTextColor(51, 65, 85);
+                        doc.setFontSize(9);
+                        doc.text(notes, margin, y);
+                        y += notes.length * 4 + 7;
+                    }
+
+                    sectionTitle('RINCIAN BIAYA PERBAIKAN');
+
+                    var colX = [margin, margin + 24, margin + 84, margin + 101, margin + 128, margin + 158];
+                    var headers = ['Kategori', 'Deskripsi', 'Qty', 'Harga', 'Subtotal', 'Vendor'];
+                    var widths = [22, 58, 15, 25, 28, 22];
+
+                    addPageIfNeeded(16);
+                    doc.setFillColor(30, 94, 255);
+                    doc.rect(margin, y, contentW, 8, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(6.5);
+                    headers.forEach(function(h, i) {
+                        doc.text(h, colX[i] + 1.5, y + 5);
+                    });
+                    y += 8;
+
+                    if (costs.length === 0) {
+                        doc.setTextColor(100, 116, 139);
+                        doc.setFont('helvetica', 'italic');
+                        doc.setFontSize(8);
+                        doc.text('Belum ada biaya perbaikan.', margin + 2, y + 6);
+                        y += 12;
+                    } else {
+                        costs.forEach(function(c, index) {
+                            var descLines = doc.splitTextToSize(pdfSafeText(c.deskripsi || '-'), widths[1] - 3);
+                            var vendorLines = doc.splitTextToSize(pdfSafeText(c.vendor || '-'), widths[5] - 3);
+                            var rowH = Math.max(8, Math.max(descLines.length, vendorLines.length) * 3.5 + 3);
+
+                            addPageIfNeeded(rowH + 2);
+                            if (index % 2 === 0) {
+                                doc.setFillColor(248, 250, 252);
+                                doc.rect(margin, y, contentW, rowH, 'F');
+                            }
+
+                            doc.setTextColor(51, 65, 85);
+                            doc.setFont('helvetica', 'normal');
+                            doc.setFontSize(6.5);
+                            doc.text(pdfSafeText(c.kategori || '-'), colX[0] + 1.5, y + 5);
+                            doc.text(descLines, colX[1] + 1.5, y + 5);
+                            doc.text(String(Number(c.qty || 0)), colX[2] + 1.5, y + 5);
+                            doc.text(Number(c.harga_satuan || 0).toLocaleString('id-ID'), colX[3] + 1.5, y + 5);
+                            doc.text(Number(c.subtotal || 0).toLocaleString('id-ID'), colX[4] + 1.5, y + 5);
+                            doc.text(vendorLines, colX[5] + 1.5, y + 5);
+                            y += rowH;
+                        });
+                    }
+
+                    y += 5;
+                    addPageIfNeeded(22);
+                    var totalBiaya = costs.reduce(function(sum, c) {
+                        return sum + Number(c.subtotal || 0);
+                    }, 0);
+
+                    doc.setFillColor(238, 242, 255);
+                    doc.roundedRect(pageW - margin - 78, y, 78, 18, 3, 3, 'F');
+                    doc.setTextColor(71, 85, 105);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(7);
+                    doc.text('TOTAL BIAYA PERBAIKAN', pageW - margin - 73, y + 6);
+                    doc.setTextColor(109, 40, 217);
+                    doc.setFontSize(13);
+                    doc.text(formatRupiah(totalBiaya), pageW - margin - 5, y + 14, { align: 'right' });
+                    y += 27;
+
+                    addPageIfNeeded(28);
+                    line(margin, y, pageW - margin, y);
+                    y += 7;
+                    doc.setTextColor(100, 116, 139);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(7);
+                    doc.text('Dicetak: ' + new Date().toLocaleString('id-ID'), margin, y);
+                    doc.text('Building Care System Enterprise', pageW - margin, y, { align: 'right' });
+
+                    var pageCount = doc.getNumberOfPages();
+                    for (var page = 1; page <= pageCount; page++) {
+                        doc.setPage(page);
+                        doc.setTextColor(148, 163, 184);
+                        doc.setFontSize(7);
+                        doc.text('Halaman ' + page + ' dari ' + pageCount, pageW / 2, pageH - 8, { align: 'center' });
+                    }
+
+                    var fileName = pdfFileName(w.wo_number || w.id) + '_Detail.pdf';
+                    doc.save(fileName);
+                    showToast('PDF Work Order berhasil dibuat');
+                } catch (err) {
+                    console.error('Print detail PDF error:', err);
+                    showToast('Gagal membuat PDF: ' + err.message, 'error');
+                }
+            }
+
+            var btnPrintDetailPdf = document.getElementById('btnPrintDetailPdf');
+            if (btnPrintDetailPdf) {
+                btnPrintDetailPdf.addEventListener('click', printDetailPdf);
             }
 
             // =============================================

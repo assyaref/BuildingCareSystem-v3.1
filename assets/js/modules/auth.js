@@ -1,4 +1,4 @@
-// auth.js - Building Care System v7.5 FINAL
+// auth.js - Building Care System v7.6 FINAL LOGIN ANIMATION
 // Logout: guaranteed email capture
 
 (function() {
@@ -84,8 +84,16 @@
                 "ADMINISTRATOR": "dashboard.html"
             };
             const targetPage = routeMap[role.toUpperCase()] || "user-report.html";
-            window.location.replace(targetPage);
-            return response;
+
+            // Jangan redirect di auth.js.
+            // login.html akan menampilkan animasi sukses terlebih dahulu.
+            return {
+                ...response,
+                success: true,
+                targetPage: targetPage,
+                user: userData,
+                session: sessionData
+            };
 
         } catch (err) {
             BCS.Logger.error("Login Error:", err);
@@ -221,7 +229,7 @@
     };
     window.login = login;
 
-    console.log("✅ auth.js v7.5 FINAL loaded");
+    console.log("✅ auth.js v7.6 FINAL LOGIN ANIMATION loaded");
 })();
 
 // Fallback

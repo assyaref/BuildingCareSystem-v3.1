@@ -298,3 +298,195 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 console.log("✅ [BCS] Core Framework loaded");
+
+/**
+ * ======================================================
+ * 7. SESSION MANAGER - DEVICE ID + DEVICE NAME + PUBLIC IP
+ * ======================================================
+ */
+const Session = (() => {
+    const SESSION_KEY = "BCS_SESSION";
+    const CLIENT_INFO_KEY = "BCS_CLIENT_INFO";
+    const DEVICE_ID_KEY = "BCS_DEVICE_ID";
+    let heartbeatInterval = null;
+    let clientInfoPromise = null;
+
+    function get() {
+        try {
+            const data = BCS.Storage?.getSession?.();
+            if (data?.token) return data;
+
+            const raw = localStorage.getItem(SESSION_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed?.token) return parsed;
+            }
+        } catch (e) {}
+        return null;
+    }
+
+    function getToken() {
+        return get()?.token || localStorage.getItem("token") || null;
+    }
+
+    function getUser() { return get()?.user || {}; }
+    function getNik() { return get()?.nik || getUser()?.nik || ""; }
+    function getRole() { return get()?.role || getUser()?.role || ""; }
+    function getNama() { return getUser()?.nama || getUser()?.name || ""; }
+    function getEmail() { return get()?.email || getUser()?.email || ""; }
+    function isLoggedIn() { return !!getToken(); }
+
+    function makeDeviceId() {
+        let id = localStorage.getItem(DEVICE_ID_KEY);
+        if (id) return id;
+
+        if (window.crypto?.randomUUID) {
+            id = "DEV-" + crypto.randomUUID().replace(/-/g, "").toUpperCase();
+        } else {
+            id = "DEV-" + Date.now().toString(36).toUpperCase() +
+                 Math.random().toString(36).slice(2, 12).toUpperCase();
+        }
+        localStorage.setItem(DEVICE_ID_KEY, id);
+        return id;
+    }
+
+    function detectBrowser(ua) {
+        if (/Edg\//i.test(ua)) return "Microsoft Edge";
+        if (/OPR\//i.test(ua)) return "Opera";
+        if (/Chrome\//i.test(ua)) return "Google Chrome";
+        if (/Firefox\//i.test(ua)) return "Mozilla Firefox";
+        if (/Safari\//i.test(ua)) return "Safari";
+        return "Unknown";
+    }
+
+    function detectOS(ua) {
+        if (/Windows NT 10\.0/i.test(ua)) return "Windows 10/11";
+        if (/Windows/i.test(ua)) return "Windows";
+        if (/Android/i.test(ua)) return "Android";
+        if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
+        if (/Mac OS X/i.test(ua)) return "macOS";
+        if (/Linux/i.test(ua)) return "Linux";
+        return "Unknown";
+    }
+
+    function detectDevice(ua) {
+        if (/iPad|Tablet/i.test(ua)) return "Tablet";
+        if (/Mobile|Android|iPhone|iPod/i.test(ua)) return "Mobile";
+        return "Desktop";
+    }
+
+    async function detectClientInfo(force = false) {
+        if (!force) {
+            try {
+                const cached = JSON.parse(localStorage.getItem(CLIENT_INFO_KEY) || "null");
+                if (cached?.device_id && cached?.detected_at &&
+                    Date.now() - cached.detected_at < 6 * 60 * 60 * 1000) {
+                    return cached;
+                }
+            } catch (e) {}
+        }
+
+        if (clientInfoPromise) return clientInfoPromise;
+
+        clientInfoPromise = (async () => {
+            const ua = navigator.userAgent || "";
+            const device = detectDevice(ua);
+            const browser = detectBrowser(ua);
+            const os = detectOS(ua);
+
+            const info = {
+                device_id: makeDeviceId(),
+                device_name: `${os} ${device} • ${browser}`,
+                device,
+                browser,
+                os,
+                public_ip: "",
+                ip_address: "",
+                user_agent: ua,
+                detected_at: Date.now()
+            };
+
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 5000);
+                const response = await fetch("https://api.ipify.org?format=json", {
+                    cache: "no-store",
+                    signal: controller.signal
+                });
+                clearTimeout(timeout);
+
+                if (response.ok) {
+                    const json = await response.json();
+                    info.public_ip = json.ip || "";
+                    info.ip_address = info.public_ip;
+                }
+            } catch (e) {
+                console.warn("[Session] Public IP detection unavailable:", e.message);
+            }
+
+            try {
+                localStorage.setItem(CLIENT_INFO_KEY, JSON.stringify(info));
+            } catch (e) {}
+
+            return info;
+        })();
+
+        try { return await clientInfoPromise; }
+        finally { clientInfoPromise = null; }
+    }
+
+    async function sendHeartbeat() {
+        if (!isLoggedIn()) return false;
+        const info = await detectClientInfo(false);
+        return !!(await window.BCS?.Api?.heartbeat?.(info));
+    }
+
+    function startHeartbeat() {
+        stopHeartbeat();
+        if (!isLoggedIn()) return;
+        sendHeartbeat();
+        heartbeatInterval = setInterval(sendHeartbeat, 30000);
+    }
+
+    function stopHeartbeat() {
+        if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
+        }
+    }
+
+    function set(data) {
+        if (!data?.token) return false;
+        localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+        localStorage.setItem("token", data.token);
+        if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+        detectClientInfo(true).finally(startHeartbeat);
+        return true;
+    }
+
+    function clear() {
+        stopHeartbeat();
+        [SESSION_KEY, "token", "user", "nik", "role", "userEmail", CLIENT_INFO_KEY]
+            .forEach(key => {
+                localStorage.removeItem(key);
+                sessionStorage.removeItem(key);
+            });
+        BCS.Storage?.removeSession?.();
+        return true;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        if (isLoggedIn()) setTimeout(startHeartbeat, 1000);
+    });
+
+    window.addEventListener("beforeunload", stopHeartbeat);
+
+    return {
+        get, set, clear, isLoggedIn, getToken, getUser, getNik, getRole,
+        getNama, getEmail, detectClientInfo, sendHeartbeat, startHeartbeat, stopHeartbeat
+    };
+})();
+
+window.Session = Session;
+BCS.Session = Session;
+

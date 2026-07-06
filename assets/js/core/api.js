@@ -128,9 +128,12 @@ const Api = (() => {
             const data = {
                 token,
                 device: clientInfo.device || '',
+                device_id: clientInfo.device_id || '',
+                device_name: clientInfo.device_name || '',
                 browser: clientInfo.browser || '',
                 os: clientInfo.os || '',
-                ip_address: clientInfo.ip_address || '',
+                public_ip: clientInfo.public_ip || clientInfo.ip_address || '',
+                ip_address: clientInfo.ip_address || clientInfo.public_ip || '',
                 user_agent: clientInfo.user_agent || ''
             };
 
@@ -151,4 +154,4 @@ const Api = (() => {
 
 window.BCS.Api = Api;
 window.Api = Api;
-console.log("✅ [API] Core API loaded (Direct Google Script v6.5 + Device/IP)");
+console.log("✅ [API] Core API loaded (Direct Google Script v6.6 + Device Identity/Public IP)");

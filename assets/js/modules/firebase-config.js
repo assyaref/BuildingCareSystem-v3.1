@@ -2,7 +2,7 @@
 // BCS FIREBASE PUSH CLIENT - FINAL FIXED
 // Building Care System Enterprise
 // Firebase Cloud Messaging Web
-// Version 2.3.9
+// Version 2.3.10
 // ======================================================
 
 "use strict";
@@ -16,7 +16,6 @@ const BCS_FIREBASE_CONFIG = {
   appId: "1:994596342717:web:dc375a46352895db2220d4",
   measurementId: "G-7LETZNJ9PG"
 };
-
 const BCS_VAPID_KEY =
   "BC6mvtyczlo387aQq1Hu5Ws_y2g8J3TCIB8tUQu7yudX5HbjMFLufFhxF-XFi1U20fJ621IabBzbUPrMxI_dCd0";
 

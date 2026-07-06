@@ -1676,9 +1676,12 @@
                         </div>
                     </div>`;
 
-                document.getElementById('btnAddCost').addEventListener('click', function() {
-                    openCostModal(null);
-                });
+                var btnAddCost = document.getElementById('btnAddCost');
+                if (btnAddCost) {
+                    btnAddCost.addEventListener('click', function() {
+                        openCostModal(null);
+                    });
+                }
 
                 var wo = allWO.find(function(x) { return String(x.id) === String(woId); });
                 if (wo) {

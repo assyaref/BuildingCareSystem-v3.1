@@ -217,6 +217,49 @@
       to { transform: scaleX(0); }
     }
 
+  
+    /* Disable Notification Confirmation + Success Toast */
+    .swal-push-disable {
+      width:min(370px,calc(100vw - 32px)) !important;
+      border-radius:26px !important;
+      padding:0 !important;
+      overflow:hidden !important;
+      background:linear-gradient(145deg,#fff 0%,#fff7f7 100%) !important;
+      box-shadow:0 28px 80px rgba(239,68,68,.24) !important;
+    }
+    .swal-push-disable .swal2-html-container { margin:0 !important; padding:0 !important; }
+    .push-disable-toast { position:relative; padding:30px 24px 26px; text-align:center; overflow:hidden; }
+    .push-disable-icon {
+      width:86px;height:86px;margin:0 auto 17px;border-radius:28px;
+      display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(145deg,#fb7185,#ef4444,#f97316);
+      color:#fff;font-size:36px;box-shadow:0 17px 38px rgba(239,68,68,.30);
+      animation:pushDisablePop .58s cubic-bezier(.16,1,.3,1);
+    }
+    .push-disable-title { margin:0;color:#0f172a;font-size:21px;font-weight:800;letter-spacing:-.4px; }
+    .push-disable-message { max-width:285px;margin:8px auto 0;color:#64748b;font-size:13px;line-height:1.6; }
+    .push-disable-status {
+      display:inline-flex;align-items:center;gap:7px;margin-top:17px;padding:8px 13px;
+      border-radius:999px;background:#fee2e2;color:#b91c1c;font-size:11px;font-weight:800;
+    }
+    .push-disable-progress { position:absolute;left:0;right:0;bottom:0;height:5px;background:#fee2e2;overflow:hidden; }
+    .push-disable-progress::after {
+      content:"";display:block;width:100%;height:100%;transform-origin:left;
+      background:linear-gradient(90deg,#fb7185,#ef4444,#f97316);
+      animation:pushDisableTimer 2.8s linear forwards;
+    }
+    .push-btn.deactivate {
+      background:linear-gradient(135deg,#fee2e2,#fff1f2);
+      color:#dc2626;
+      border:1px solid #fecaca;
+    }
+    @keyframes pushDisablePop {
+      0%{transform:scale(.55) rotate(9deg);opacity:0}
+      70%{transform:scale(1.08) rotate(-2deg)}
+      100%{transform:scale(1);opacity:1}
+    }
+    @keyframes pushDisableTimer { from{transform:scaleX(1)} to{transform:scaleX(0)} }
+
   </style>
 </head>
 <body>
@@ -388,6 +431,99 @@
     const enableNotificationBtn = document.getElementById('enableNotificationBtn');
     const pushNotificationText = document.getElementById('pushNotificationText');
 
+
+    function setPushButtonActive() {
+      enableNotificationBtn.innerHTML =
+        '<i class="fa-solid fa-bell-slash"></i> Nonaktifkan';
+      enableNotificationBtn.classList.remove('active');
+      enableNotificationBtn.classList.add('deactivate');
+      enableNotificationBtn.disabled = false;
+      enableNotificationBtn.dataset.pushState = 'active';
+      pushNotificationText.textContent =
+        'Notifikasi aktif. Tekan Nonaktifkan untuk berhenti menerima update di perangkat ini.';
+    }
+
+    function setPushButtonInactive() {
+      enableNotificationBtn.innerHTML =
+        '<i class="fa-solid fa-bell"></i> Aktifkan';
+      enableNotificationBtn.classList.remove('active', 'deactivate');
+      enableNotificationBtn.disabled = false;
+      enableNotificationBtn.dataset.pushState = 'inactive';
+      pushNotificationText.textContent =
+        'Terima update status laporan langsung di HP.';
+    }
+
+    function showPushDisableSuccess() {
+      Swal.fire({
+        html: `
+          <div class="push-disable-toast">
+            <div class="push-disable-icon">
+              <i class="fa-solid fa-bell-slash"></i>
+            </div>
+            <h3 class="push-disable-title">Notifikasi Dinonaktifkan</h3>
+            <p class="push-disable-message">
+              Smartphone ini tidak akan menerima update status laporan sampai notifikasi diaktifkan kembali.
+            </p>
+            <div class="push-disable-status">
+              <i class="fa-solid fa-circle-minus"></i>
+              Perangkat terputus dari notifikasi BCS
+            </div>
+            <div class="push-disable-progress"></div>
+          </div>
+        `,
+        showConfirmButton:false,
+        timer:2800,
+        timerProgressBar:false,
+        backdrop:'rgba(15,23,42,.44)',
+        customClass:{ popup:'swal-push-disable' },
+        showClass:{ popup:'animate__animated animate__zoomIn animate__faster' },
+        hideClass:{ popup:'animate__animated animate__fadeOutDown animate__faster' }
+      });
+    }
+
+    async function disablePushNotification() {
+      const fcmToken = localStorage.getItem('BCS_FCM_TOKEN');
+
+      if (!fcmToken) {
+        setPushButtonInactive();
+        return;
+      }
+
+      const confirm = await Swal.fire({
+        icon:'warning',
+        title:'Nonaktifkan Notifikasi?',
+        text:'Perangkat ini tidak akan menerima update OPEN, PROGRESS, dan DONE.',
+        showCancelButton:true,
+        confirmButtonText:'Ya, Nonaktifkan',
+        cancelButtonText:'Batal',
+        reverseButtons:true,
+        confirmButtonColor:'#ef4444',
+        cancelButtonColor:'#64748b',
+        customClass:{ popup:'rounded-3xl' }
+      });
+
+      if (!confirm.isConfirmed) return;
+
+      enableNotificationBtn.disabled = true;
+      enableNotificationBtn.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin"></i> Menonaktifkan...';
+
+      const result = await BCS.Api.post('unregisterPushToken', {
+        fcmToken: fcmToken
+      });
+
+      if (!result || result.success !== true) {
+        throw new Error(result?.message || 'Gagal menonaktifkan token notifikasi.');
+      }
+
+      localStorage.removeItem('BCS_FCM_TOKEN');
+      localStorage.removeItem('BCS_FCM_REGISTERED_AT');
+
+      setPushButtonInactive();
+      showPushDisableSuccess();
+    }
+
+
     function updatePushNotificationUI() {
       if (!enableNotificationBtn || !pushNotificationText) return;
 
@@ -399,10 +535,7 @@
       }
 
       if (Notification.permission === 'granted' && localStorage.getItem('BCS_FCM_TOKEN')) {
-        enableNotificationBtn.textContent = 'Aktif';
-        enableNotificationBtn.classList.add('active');
-        enableNotificationBtn.disabled = true;
-        pushNotificationText.textContent = 'Perangkat ini siap menerima update OPEN, PROGRESS, dan DONE.';
+        setPushButtonActive();
       } else if (Notification.permission === 'denied') {
         enableNotificationBtn.textContent = 'Diblokir';
         enableNotificationBtn.disabled = true;
@@ -411,7 +544,23 @@
     }
 
     enableNotificationBtn?.addEventListener('click', async function() {
-      const oldText = this.textContent;
+      if (this.dataset.pushState === 'active') {
+        try {
+          await disablePushNotification();
+        } catch (error) {
+          console.error('[Push Notification Disable]', error);
+          setPushButtonActive();
+          Swal.fire({
+            icon:'error',
+            title:'Gagal Menonaktifkan',
+            text:error.message || 'Terjadi kesalahan saat menonaktifkan notifikasi.',
+            confirmButtonColor:'#ef4444'
+          });
+        }
+        return;
+      }
+
+      const oldText = this.innerHTML;
       this.disabled = true;
       this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
@@ -423,9 +572,7 @@
         const result = await window.BCSPush.enable();
 
         if (result?.success) {
-          this.textContent = 'Aktif';
-          this.classList.add('active');
-          pushNotificationText.textContent = 'Perangkat ini siap menerima update OPEN, PROGRESS, dan DONE.';
+          setPushButtonActive();
 
           showPushNotificationSuccess();
         } else {

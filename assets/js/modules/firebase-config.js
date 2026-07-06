@@ -2,7 +2,7 @@
 // BCS FIREBASE PUSH CLIENT - FINAL FIXED
 // Building Care System Enterprise
 // Firebase Cloud Messaging Web
-// Version 2.3.7
+// Version 2.3.9
 // ======================================================
 
 "use strict";

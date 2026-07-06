@@ -1653,7 +1653,7 @@
                     var w = res.data || {};
                     var container = document.getElementById('detailContent');
 
-                    var category = firstValue(w, ['category', 'category_id', 'kategori'], '-');
+                    var category = detailCategory;
                     var assignedTo = firstValue(w, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], 'Belum ditugaskan');
                     var location = firstValue(w, ['location', 'lokasi'], '-');
                     var floor = firstValue(w, ['floor', 'lantai', 'room', 'ruangan'], '');
@@ -1754,6 +1754,55 @@
 
                     currentDetailWOId = w.id;
                     currentDetailWO = w;
+
+                // FIX KATEGORI DETAIL:
+                // Prioritas sumber: response detail -> cache tabel -> report sumber -> judul WO.
+                var cachedWOForDetail = allWO.find(function(item) {
+                    return String(item.id || '') === String(w.id || id || '');
+                }) || {};
+
+                var detailCategory = firstValue(
+                    w,
+                    ['category', 'category_id', 'kategori'],
+                    ''
+                );
+
+                if (!detailCategory) {
+                    detailCategory = firstValue(
+                        cachedWOForDetail,
+                        ['category', 'category_id', 'kategori'],
+                        ''
+                    );
+                }
+
+                if (!detailCategory && w.report_id) {
+                    var sourceReportForDetail = openReports.find(function(r) {
+                        return String(reportIdOf(r)) === String(w.report_id);
+                    }) || {};
+
+                    detailCategory = firstValue(
+                        sourceReportForDetail,
+                        ['kategori', 'category', 'category_id'],
+                        ''
+                    );
+                }
+
+                if (!detailCategory) {
+                    var titleCategoryMatch = String(w.title || cachedWOForDetail.title || '')
+                        .match(/^Perbaikan\s+([^-]+?)\s*-/i);
+
+                    if (titleCategoryMatch && titleCategoryMatch[1]) {
+                        detailCategory = titleCategoryMatch[1].trim();
+                    }
+                }
+
+                detailCategory = String(detailCategory || '-').toUpperCase();
+
+                // Lengkapi object detail agar seluruh renderer dan Print PDF ikut memakai kategori benar.
+                w.category = detailCategory;
+                w.category_id = detailCategory;
+                w.kategori = detailCategory;
+
                     await renderCostSection(w.id);
 
                     var detailEl = document.getElementById('detailModal');

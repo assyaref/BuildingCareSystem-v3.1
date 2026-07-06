@@ -66,8 +66,15 @@
             margin-left: 4px;
         }
         @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(0.8); }
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
         }
         .theme-switcher-btn {
             width: 42px;
@@ -137,517 +144,480 @@
 
 <body>
 
-<!-- APP WRAPPER -->
-<div class="wrapper">
+    <!-- APP WRAPPER -->
+    <div class="wrapper">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="logo-area">
-            <img src="assets/img/logo.png" class="logo" alt="Logo">
-            <h5>Building Care</h5>
-            <small>Enterprise v3.2</small>
-        </div>
-        <nav></nav> <!-- 🔥 SIDEBAR DINAMIS DIISI OLEH sidebar.js -->
-    </aside>
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <img src="assets/img/logo.png" class="logo" alt="Logo">
+                <h5>Building Care</h5>
+                <small>Enterprise v3.2</small>
+            </div>
+            <nav></nav> <!-- 🔥 SIDEBAR DINAMIS DIISI OLEH sidebar.js -->
+        </aside>
 
-    <!-- MAIN CONTENT -->
-    <main class="content">
-        <div class="container-fluid">
+        <!-- MAIN CONTENT -->
+        <main class="content">
+            <div class="container-fluid">
 
-            <!-- TOPBAR -->
-            <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
-                <div>
-                    <h3>Dashboard</h3>
-                    <small>
-                        Building Care System Enterprise
-                        <br>
-                        <span class="brand-location">Radiant Group Duri</span>
-                    </small>
-                </div>
-
-                <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <!-- Auto-Refresh Timer -->
-                    <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background: var(--bg-card-hover, #f8fafc); border: 1px solid var(--border-color, #e2e8f0);">
-                        <span class="text-muted" style="font-size: 12px;">Auto-refresh:</span>
-                        <span id="refreshTimer" class="fw-bold" style="font-size: 13px; min-width: 20px; text-align: center; color: var(--text-primary, #0f172a);">7</span>
-                        <span class="text-muted" style="font-size: 11px;">detik</span>
-                        <span class="live-dot"></span>
+                <!-- TOPBAR -->
+                <header class="topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <h3>Dashboard</h3>
+                        <small>
+                            Building Care System Enterprise
+                            <br>
+                            <span class="brand-location">Radiant Group Duri</span>
+                        </small>
                     </div>
 
-                    <!-- Dark Mode -->
-                    <button class="theme-switcher-btn" id="darkModeToggle" title="Toggle Theme">
-                        <i class="bi bi-moon-fill" id="darkModeIcon" style="font-size: 1.15rem;"></i>
-                    </button>
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <!-- Auto-Refresh Timer -->
+                        <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background: var(--bg-card-hover, #f8fafc); border: 1px solid var(--border-color, #e2e8f0);">
+                            <span class="text-muted" style="font-size: 12px;">Auto-refresh:</span>
+                            <span id="refreshTimer" class="fw-bold" style="font-size: 13px; min-width: 20px; text-align: center; color: var(--text-primary, #0f172a);">7</span>
+                            <span class="text-muted" style="font-size: 11px;">detik</span>
+                            <span class="live-dot"></span>
+                        </div>
 
-                    <!-- User Profile -->
-                    <div class="user-profile-card p-3 d-flex align-items-center gap-3">
-                        <div class="avatar d-flex justify-content-center align-items-center" style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0D47A1, #2563EB); color: #fff;">
-                            <i class="bi bi-person-fill" style="font-size: 1.3rem;"></i>
-                        </div>
-                        <div>
-                            <div class="profile-name fw-semibold text-truncate" id="userName" style="max-width: 150px; color: var(--text-primary, #0f172a);">Loading...</div>
-                            <div class="role-badge" id="userRole">User</div>
-                        </div>
-                    </div>
-                </div>
-            </header>
+                        <!-- Dark Mode -->
+                        <button class="theme-switcher-btn" id="darkModeToggle" title="Toggle Theme">
+                            <i class="bi bi-moon-fill" id="darkModeIcon" style="font-size: 1.15rem;"></i>
+                        </button>
 
-            <!-- ===== SUMMARY CARDS ===== -->
-            <section class="row g-4 mt-1">
-                <div class="col-xl-3 col-md-6">
-                    <div class="summary-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="text-uppercase text-muted mb-1" style="font-size: 12px; font-weight: 600;">Total Report</h6>
-                                <h2 id="totalReport" class="fw-bold mb-2" style="color: var(--text-primary, #0f172a);">0</h2>
-                            </div>
-                            <div class="summary-icon bg-primary" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
-                                <i class="bi bi-file-earmark-text-fill"></i>
-                            </div>
-                        </div>
-                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
-                            <i id="totalTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
-                            <span id="totalTrend">0</span>
-                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6">
-                    <div class="summary-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="text-uppercase text-muted mb-1" style="font-size: 12px; font-weight: 600;">AC</h6>
-                                <h2 id="acTotal" class="fw-bold mb-2" style="color: var(--text-primary, #0f172a);">0</h2>
-                            </div>
-                            <div class="summary-icon bg-info" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
-                                <i class="bi bi-snow"></i>
-                            </div>
-                        </div>
-                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
-                            <i id="acTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
-                            <span id="acTrend">0</span>
-                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6">
-                    <div class="summary-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="text-uppercase text-muted mb-1" style="font-size: 12px; font-weight: 600;">Listrik</h6>
-                                <h2 id="listrikTotal" class="fw-bold mb-2" style="color: var(--text-primary, #0f172a);">0</h2>
-                            </div>
-                            <div class="summary-icon bg-warning" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
-                                <i class="bi bi-lightning-charge-fill"></i>
-                            </div>
-                        </div>
-                        <div class="summary-trend text-danger d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
-                            <i id="listrikTrendIcon" class="bi bi-arrow-down-short fs-5"></i>
-                            <span id="listrikTrend">0</span>
-                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6">
-                    <div class="summary-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="text-uppercase text-muted mb-1" style="font-size: 12px; font-weight: 600;">Kondisi Gedung</h6>
-                                <h2 id="gedungTotal" class="fw-bold mb-2" style="color: var(--text-primary, #0f172a);">0</h2>
-                            </div>
-                            <div class="summary-icon bg-purple" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
-                                <i class="bi bi-building-fill"></i>
-                            </div>
-                        </div>
-                        <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
-                            <i id="gedungTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
-                            <span id="gedungTrend">0</span>
-                            <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ===== STATUS CARDS ===== -->
-            <section class="row g-4 mt-2">
-                <div class="col-xl-4 col-md-6">
-                    <div class="status-card open p-4">
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-warning-soft">
-                                <i class="bi bi-folder2-open"></i>
+                        <!-- User Profile -->
+                        <div class="user-profile-card p-3 d-flex align-items-center gap-3">
+                            <div class="avatar d-flex justify-content-center align-items-center" style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0D47A1, #2563EB); color: #fff;">
+                                <i class="bi bi-person-fill" style="font-size: 1.3rem;"></i>
                             </div>
                             <div>
-                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">Open</h6>
-                                <h2 id="totalOpen" class="fw-bold mb-0" style="color: var(--text-primary, #0f172a);">0</h2>
+                                <div class="profile-name fw-semibold text-truncate" id="userName" style="max-width: 150px; color: var(--text-primary, #0f172a);">Loading...</div>
+                                <div class="role-badge" id="userRole">User</div>
                             </div>
                         </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary, #64748b);">0% dari total report</div>
-                        <div class="sparkline spark-orange"></div>
                     </div>
-                </div>
+                </header>
 
-                <div class="col-xl-4 col-md-6">
-                    <div class="status-card progress-card p-4">
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-info-soft">
-                                <i class="bi bi-arrow-repeat"></i>
-                            </div>
-                            <div>
-                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">In Progress</h6>
-                                <h2 id="totalProgress" class="fw-bold mb-0" style="color: var(--text-primary, #0f172a);">0</h2>
-                            </div>
-                        </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary, #64748b);">0% dari total report</div>
-                        <div class="sparkline spark-blue"></div>
-                    </div>
-                </div>
-
-                <div class="col-xl-4 col-md-12">
-                    <div class="status-card done-card p-4">
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-success-soft">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div>
-                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">Done</h6>
-                                <h2 id="totalDone" class="fw-bold mb-0" style="color: var(--text-primary, #0f172a);">0</h2>
-                            </div>
-                        </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary, #64748b);">0% dari total report</div>
-                        <div class="sparkline spark-green"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ===== SLA CARDS ===== -->
-            <section class="row g-4 mt-2">
-                <div class="col-xl-4 col-md-6">
-                    <div class="status-card p-4">
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-success-soft">
-                                <i class="bi bi-lightning-charge-fill"></i>
-                            </div>
-                            <div>
-                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">FAST SLA</h6>
-                                <h2 id="fastCount" class="fw-bold mb-0" style="color: var(--text-primary, #0f172a);">0</h2>
-                            </div>
-                        </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary, #64748b);"><span id="fastPercent" class="fw-bold text-success">0%</span> selesai &le; 4 jam</div>
-                        <div class="sparkline spark-green"></div>
-                    </div>
-                </div>
-
-                <div class="col-xl-4 col-md-6">
-                    <div class="status-card p-4">
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon bg-warning-soft">
-                                <i class="bi bi-clock-history"></i>
-                            </div>
-                            <div>
-                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">NORMAL SLA</h6>
-                                <h2 id="normalCount" class="fw-bold mb-0" style="color: var(--text-primary, #0f172a);">0</h2>
-                            </div>
-                        </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary, #64748b);"><span id="normalPercent" class="fw-bold text-warning">0%</span> selesai &le; 24 jam</div>
-                        <div class="sparkline spark-orange"></div>
-                    </div>
-                </div>
-
-                <div class="col-xl-4 col-md-12">
-                    <div class="status-card p-4">
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="status-icon" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">
-                                <i class="bi bi-exclamation-triangle-fill"></i>
-                            </div>
-                            <div>
-                                <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">LATE SLA</h6>
-                                <h2 id="lateCount" class="fw-bold mb-0" style="color: var(--text-primary, #0f172a);">0</h2>
-                            </div>
-                        </div>
-                        <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary, #64748b);"><span id="latePercent" class="fw-bold text-danger">0%</span> melebihi target</div>
-                        <div class="sparkline spark-red"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ===== CHART + ACTIVITY ===== -->
-            <section class="row g-4 mt-2">
-                <div class="col-xl-8">
-                    <div class="card enterprise-card h-100">
-                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <div class="d-flex align-items-center gap-3">
-                                <span class="fw-semibold"><i class="bi bi-bar-chart-line-fill me-2 text-primary"></i>Statistik Laporan</span>
-                                <small class="text-secondary" style="font-size: 12px;">Last Update : <span id="lastUpdate">-</span></small>
-                            </div>
-                            <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" id="refreshDashboard" style="border-color: var(--border-color, #e2e8f0); color: var(--text-primary, #0f172a); font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 8px;">
-                                <i class="bi bi-arrow-clockwise"></i> Refresh
-                            </button>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="row g-4">
-                                <div class="col-lg-5">
-                                    <div class="chart-container d-flex justify-content-center align-items-center" style="position: relative; height:280px; width:100%;">
-                                        <canvas id="renderCategoryChart"></canvas>
-                                    </div>
+                <!-- ===== SUMMARY CARDS ===== -->
+                <section class="row g-4 mt-1">
+                    <div class="col-xl-3 col-md-6">
+                        <div class="summary-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-uppercase text-muted mb-1" style="font-size: 12px; font-weight: 600;">Total Report</h6>
+                                    <h2 id="totalReport" class="fw-bold mb-2" style="color: var(--text-primary, #0f172a);">0</h2>
                                 </div>
-                                <div class="col-lg-7">
-                                    <div class="chart-container" style="position: relative; height:280px; width:100%;">
-                                        <canvas id="reportChart"></canvas>
+                                <div class="summary-icon bg-primary" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                                    <i class="bi bi-file-earmark-text-fill"></i>
+                                </div>
+                            </div>
+                            <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
+                                <i id="totalTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
+                                <span id="totalTrend">0</span>
+                                <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6">
+                        <div class="summary-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-uppercase text-muted mb-1" style="font-size: 12px; font-weight: 600;">AC</h6>
+                                    <h2 id="acTotal" class="fw-bold mb-2" style="color: var(--text-primary, #0f172a);">0</h2>
+                                </div>
+                                <div class="summary-icon bg-info" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                                    <i class="bi bi-snow"></i>
+                                </div>
+                            </div>
+                            <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
+                                <i id="acTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
+                                <span id="acTrend">0</span>
+                                <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6">
+                        <div class="summary-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-uppercase text-muted mb-1" style="font-size: 12px; font-weight: 600;">Listrik</h6>
+                                    <h2 id="listrikTotal" class="fw-bold mb-2" style="color: var(--text-primary, #0f172a);">0</h2>
+                                </div>
+                                <div class="summary-icon bg-warning" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                                    <i class="bi bi-lightning-charge-fill"></i>
+                                </div>
+                            </div>
+                            <div class="summary-trend text-danger d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
+                                <i id="listrikTrendIcon" class="bi bi-arrow-down-short fs-5"></i>
+                                <span id="listrikTrend">0</span>
+                                <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6">
+                        <div class="summary-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-uppercase text-muted mb-1" style="font-size: 12px; font-weight: 600;">Kondisi Gedung</h6>
+                                    <h2 id="gedungTotal" class="fw-bold mb-2" style="color: var(--text-primary, #0f172a);">0</h2>
+                                </div>
+                                <div class="summary-icon bg-purple" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
+                                    <i class="bi bi-building-fill"></i>
+                                </div>
+                            </div>
+                            <div class="summary-trend text-success d-flex align-items-center gap-1" style="font-size: 13px; font-weight: 500;">
+                                <i id="gedungTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
+                                <span id="gedungTrend">0</span>
+                                <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== STATUS CARDS ===== -->
+                <section class="row g-4 mt-2">
+                    <div class="col-xl-4 col-md-6">
+                        <div class="status-card open p-4">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="status-icon bg-warning-soft">
+                                    <i class="bi bi-folder2-open"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">Open</h6>
+                                    <h2 id="totalOpen" class="fw-bold mb-0" style="color: var(--text-primary, #0f172a);">0</h2>
+                                </div>
+                            </div>
+                            <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary, #64748b);">0% dari total report</div>
+                            <div class="sparkline spark-orange"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-4 col-md-6">
+                        <div class="status-card progress-card p-4">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="status-icon bg-info-soft">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">In Progress</h6>
+                                    <h2 id="totalProgress" class="fw-bold mb-0" style="color: var(--text-primary, #0f172a);">0</h2>
+                                </div>
+                            </div>
+                            <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary, #64748b);">0% dari total report</div>
+                            <div class="sparkline spark-blue"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-4 col-md-12">
+                        <div class="status-card done-card p-4">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="status-icon bg-success-soft">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">Done</h6>
+                                    <h2 id="totalDone" class="fw-bold mb-0" style="color: var(--text-primary, #0f172a);">0</h2>
+                                </div>
+                            </div>
+                            <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary, #64748b);">0% dari total report</div>
+                            <div class="sparkline spark-green"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== CHART + ACTIVITY ===== -->
+                <section class="row g-4 mt-2">
+                    <div class="col-xl-8">
+                        <div class="card enterprise-card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="fw-semibold"><i class="bi bi-bar-chart-line-fill me-2 text-primary"></i>Statistik Laporan</span>
+                                    <small class="text-secondary" style="font-size: 12px;">Last Update : <span id="lastUpdate">-</span></small>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" id="refreshDashboard" style="border-color: var(--border-color, #e2e8f0); color: var(--text-primary, #0f172a); font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 8px;">
+                                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                                </button>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-4">
+                                    <div class="col-lg-5">
+                                        <div class="chart-container d-flex justify-content-center align-items-center" style="position: relative; height:280px; width:100%;">
+                                            <canvas id="renderCategoryChart"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-7">
+                                        <div class="chart-container" style="position: relative; height:280px; width:100%;">
+                                            <canvas id="reportChart"></canvas>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-xl-4">
-                    <div class="card enterprise-card h-100">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <span class="fw-semibold">Aktivitas Terbaru</span>
-                            <a href="history.html" class="text-decoration-none fw-medium" style="color: var(--accent-color, #2563eb); font-size: 14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size: 10px;"></i></a>
-                        </div>
-                        <div class="card-body p-4" style="max-height: 310px; overflow-y: auto;">
-                            <div id="recentActivity" class="d-flex flex-column gap-1"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ===== MONTHLY TREND ===== -->
-            <section class="row g-4 mt-2 mb-4">
-                <div class="col-12">
-                    <div class="card enterprise-card">
-                        <div class="card-header">
-                            <span class="fw-semibold"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Monthly Report Trend</span>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="monthly-chart" style="position: relative; height: 260px; width: 100%;">
-                                <canvas id="monthlyChart"></canvas>
+                    <div class="col-xl-4">
+                        <div class="card enterprise-card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold">Aktivitas Terbaru</span>
+                                <a href="history.html" class="text-decoration-none fw-medium" style="color: var(--accent-color, #2563eb); font-size: 14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size: 10px;"></i></a>
+                            </div>
+                            <div class="card-body p-4" style="max-height: 310px; overflow-y: auto;">
+                                <div id="recentActivity" class="d-flex flex-column gap-1"></div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-        </div>
-    </main>
-</div>
+                <!-- ===== MONTHLY TREND ===== -->
+                <section class="row g-4 mt-2 mb-4">
+                    <div class="col-12">
+                        <div class="card enterprise-card">
+                            <div class="card-header">
+                                <span class="fw-semibold"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Monthly Report Trend</span>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="monthly-chart" style="position: relative; height: 260px; width: 100%;">
+                                    <canvas id="monthlyChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-<!-- ====================================================== -->
-<!-- SCRIPTS -->
-<!-- ====================================================== -->
+            </div>
+        </main>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- ====================================================== -->
+    <!-- SCRIPTS -->
+    <!-- ====================================================== -->
 
-<script src="config/config.js"></script>
-<script src="assets/js/core/app.js"></script>
-<script src="assets/js/core/api.js"></script>
-<script src="assets/js/core/storage.js"></script>
-<script src="assets/js/core/session.js"></script>
-<script src="assets/js/core/ui.js"></script>
-<script src="assets/js/core/utils.js"></script>
-<script src="assets/js/modules/auth.js"></script>
-<script src="assets/js/modules/dashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
 
-<!-- 🔥 SIDEBAR DINAMIS -->
-<script src="assets/js/core/components/sidebar.js"></script>
+    <script src="config/config.js">
+    </script>
+    <script src="assets/js/core/app.js">
+    </script>
+    <script src="assets/js/core/api.js">
+    </script>
+    <script src="assets/js/core/storage.js">
+    </script>
+    <script src="assets/js/core/session.js">
+    </script>
+    <script src="assets/js/core/ui.js">
+    </script>
+    <script src="assets/js/core/utils.js">
+    </script>
+    <script src="assets/js/modules/auth.js">
+    </script>
+    <script src="assets/js/modules/dashboard.js">
+    </script>
 
-<script>
-(function() {
-    'use strict';
+    <!-- 🔥 SIDEBAR DINAMIS -->
+    <script src="assets/js/core/components/sidebar.js">
+    </script>
 
-    // =============================================
-    // 🔥 GUARD: Hanya ADMINISTRATOR yang boleh akses dashboard
-    // =============================================
-    function checkAccess() {
-        try {
-            var session = BCS.Storage.getSession();
-            if (!session || !session.user) {
-                window.location.href = 'login.html';
-                return false;
-            }
+    <script>
+        (function() {
+            'use strict';
 
-            var role = (session.user.role || '').toUpperCase();
-            if (role !== 'ADMINISTRATOR') {
-                console.warn('⛔ Akses ditolak untuk role:', role, 'redirect ke user-report.html');
-                window.location.href = 'user-report.html';
-                return false;
-            }
+            // =============================================
+            // 🔥 GUARD: Hanya ADMINISTRATOR yang boleh akses dashboard
+            // =============================================
+            function checkAccess() {
+                try {
+                    var session = BCS.Storage.getSession();
+                    if (!session || !session.user) {
+                        window.location.href = 'login.html';
+                        return false;
+                    }
 
-            return true;
-        } catch (e) {
-            console.warn('Guard error:', e);
-            window.location.href = 'login.html';
-            return false;
-        }
-    }
+                    var role = (session.user.role || '').toUpperCase();
+                    if (role !== 'ADMINISTRATOR') {
+                        console.warn('⛔ Akses ditolak untuk role:', role, 'redirect ke user-report.html');
+                        window.location.href = 'user-report.html';
+                        return false;
+                    }
 
-    if (!checkAccess()) {
-        return;
-    }
-
-    // =============================================
-    // DARK MODE
-    // =============================================
-    function initDarkMode() {
-        var toggle = document.getElementById('darkModeToggle');
-        var icon = document.getElementById('darkModeIcon');
-        if (!toggle) return;
-        var savedTheme = localStorage.getItem('bcs_theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        if (icon) {
-            if (savedTheme === 'dark') {
-                icon.className = 'bi bi-sun-fill';
-                icon.style.color = '#ffd700';
-            } else {
-                icon.className = 'bi bi-moon-fill';
-                icon.style.color = '';
-            }
-        }
-        toggle.addEventListener('click', function() {
-            var currentTheme = document.documentElement.getAttribute('data-theme');
-            var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('bcs_theme', newTheme);
-            if (icon) {
-                if (newTheme === 'dark') {
-                    icon.className = 'bi bi-sun-fill';
-                    icon.style.color = '#ffd700';
-                } else {
-                    icon.className = 'bi bi-moon-fill';
-                    icon.style.color = '';
-                }
-            }
-        });
-    }
-
-    // =============================================
-    // LOGOUT
-    // =============================================
-    function initLogout() {
-        var logoutBtn = document.getElementById('logoutBtn');
-        if (!logoutBtn) return;
-        logoutBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (window.auth && typeof window.auth.logout === 'function') {
-                window.auth.logout();
-            } else {
-                if (confirm('Apakah Anda yakin ingin keluar?')) {
-                    localStorage.clear();
-                    sessionStorage.clear();
+                    return true;
+                } catch (e) {
+                    console.warn('Guard error:', e);
                     window.location.href = 'login.html';
+                    return false;
                 }
             }
-        });
-    }
 
-    // =============================================
-    // AUTO-REFRESH (Tanpa Toast)
-    // =============================================
-    var refreshTimer = 7;
-    var refreshInterval = null;
-    var timerInterval = null;
-    var isRefreshing = false;
-
-    function performRefresh() {
-        if (isRefreshing) return;
-        isRefreshing = true;
-
-        if (window.DashboardController && typeof window.DashboardController.refresh === 'function') {
-            window.DashboardController.refresh();
-        } else {
-            window.location.reload();
-        }
-
-        refreshTimer = 7;
-        updateTimerDisplay();
-
-        setTimeout(function() {
-            isRefreshing = false;
-        }, 1000);
-    }
-
-    function updateTimerDisplay() {
-        var timerEl = document.getElementById('refreshTimer');
-        if (timerEl) timerEl.textContent = refreshTimer;
-    }
-
-    function startAutoRefresh() {
-        if (refreshInterval) clearInterval(refreshInterval);
-        if (timerInterval) clearInterval(timerInterval);
-
-        timerInterval = setInterval(function() {
-            refreshTimer--;
-            if (refreshTimer <= 0) refreshTimer = 7;
-            updateTimerDisplay();
-        }, 1000);
-
-        refreshInterval = setInterval(function() {
-            performRefresh();
-        }, 7000);
-
-        updateTimerDisplay();
-        console.log('✅ Auto-refresh started (every 7 seconds) - without toast');
-    }
-
-    function stopAutoRefresh() {
-        if (refreshInterval) clearInterval(refreshInterval);
-        if (timerInterval) clearInterval(timerInterval);
-    }
-
-    // =============================================
-    // LOAD USER INFO
-    // =============================================
-    function loadUserInfo() {
-        try {
-            var session = BCS.Storage.getSession();
-            if (session && session.user) {
-                var user = session.user;
-                var nama = user.nama || user.name || 'User';
-                var role = user.role || 'User';
-                var nameEl = document.getElementById('userName');
-                var roleEl = document.getElementById('userRole');
-                if (nameEl) nameEl.textContent = nama;
-                if (roleEl) roleEl.textContent = role;
+            if (!checkAccess()) {
+                return;
             }
-        } catch (e) {
-            console.warn('Load user info error:', e);
-        }
-    }
 
-    // =============================================
-    // INIT
-    // =============================================
-    function init() {
-        loadUserInfo();
-        initDarkMode();
-        initLogout();
-        startAutoRefresh();
+            // =============================================
+            // DARK MODE
+            // =============================================
+            function initDarkMode() {
+                var toggle = document.getElementById('darkModeToggle');
+                var icon = document.getElementById('darkModeIcon');
+                if (!toggle) return;
+                var savedTheme = localStorage.getItem('bcs_theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                if (icon) {
+                    if (savedTheme === 'dark') {
+                        icon.className = 'bi bi-sun-fill';
+                        icon.style.color = '#ffd700';
+                    } else {
+                        icon.className = 'bi bi-moon-fill';
+                        icon.style.color = '';
+                    }
+                }
+                toggle.addEventListener('click', function() {
+                    var currentTheme = document.documentElement.getAttribute('data-theme');
+                    var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('bcs_theme', newTheme);
+                    if (icon) {
+                        if (newTheme === 'dark') {
+                            icon.className = 'bi bi-sun-fill';
+                            icon.style.color = '#ffd700';
+                        } else {
+                            icon.className = 'bi bi-moon-fill';
+                            icon.style.color = '';
+                        }
+                    }
+                });
+            }
 
-        if (window.DashboardController && typeof window.DashboardController.init === 'function') {
-            window.DashboardController.init();
-        }
+            // =============================================
+            // LOGOUT
+            // =============================================
+            function initLogout() {
+                var logoutBtn = document.getElementById('logoutBtn');
+                if (!logoutBtn) return;
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.auth && typeof window.auth.logout === 'function') {
+                        window.auth.logout();
+                    } else {
+                        if (confirm('Apakah Anda yakin ingin keluar?')) {
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            window.location.href = 'login.html';
+                        }
+                    }
+                });
+            }
 
-        console.log('✅ Dashboard System Initialized (Toast removed)');
-    }
+            // =============================================
+            // AUTO-REFRESH (Tanpa Toast)
+            // =============================================
+            var refreshTimer = 7;
+            var refreshInterval = null;
+            var timerInterval = null;
+            var isRefreshing = false;
 
-    window.addEventListener('beforeunload', function() {
-        stopAutoRefresh();
-    });
+            function performRefresh() {
+                if (isRefreshing) return;
+                isRefreshing = true;
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+                if (window.DashboardController && typeof window.DashboardController.refresh === 'function') {
+                    window.DashboardController.refresh();
+                } else {
+                    window.location.reload();
+                }
 
-})();
-</script>
+                refreshTimer = 7;
+                updateTimerDisplay();
+
+                setTimeout(function() {
+                    isRefreshing = false;
+                }, 1000);
+            }
+
+            function updateTimerDisplay() {
+                var timerEl = document.getElementById('refreshTimer');
+                if (timerEl) timerEl.textContent = refreshTimer;
+            }
+
+            function startAutoRefresh() {
+                if (refreshInterval) clearInterval(refreshInterval);
+                if (timerInterval) clearInterval(timerInterval);
+
+                timerInterval = setInterval(function() {
+                    refreshTimer--;
+                    if (refreshTimer <= 0) refreshTimer = 7;
+                    updateTimerDisplay();
+                }, 1000);
+
+                refreshInterval = setInterval(function() {
+                    performRefresh();
+                }, 7000);
+
+                updateTimerDisplay();
+                console.log('✅ Auto-refresh started (every 7 seconds) - without toast');
+            }
+
+            function stopAutoRefresh() {
+                if (refreshInterval) clearInterval(refreshInterval);
+                if (timerInterval) clearInterval(timerInterval);
+            }
+
+            // =============================================
+            // LOAD USER INFO
+            // =============================================
+            function loadUserInfo() {
+                try {
+                    var session = BCS.Storage.getSession();
+                    if (session && session.user) {
+                        var user = session.user;
+                        var nama = user.nama || user.name || 'User';
+                        var role = user.role || 'User';
+                        var nameEl = document.getElementById('userName');
+                        var roleEl = document.getElementById('userRole');
+                        if (nameEl) nameEl.textContent = nama;
+                        if (roleEl) roleEl.textContent = role;
+                    }
+                } catch (e) {
+                    console.warn('Load user info error:', e);
+                }
+            }
+
+            // =============================================
+            // INIT
+            // =============================================
+            function init() {
+                loadUserInfo();
+                initDarkMode();
+                initLogout();
+                startAutoRefresh();
+
+                if (window.DashboardController && typeof window.DashboardController.init === 'function') {
+                    window.DashboardController.init();
+                }
+
+                console.log('✅ Dashboard System Initialized (SLA removed)');
+            }
+
+            window.addEventListener('beforeunload', function() {
+                stopAutoRefresh();
+            });
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
 
 </body>
+
 </html>

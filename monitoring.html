@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -320,7 +321,6 @@
             color: var(--text-primary);
         }
 
-        /* sparkline diganti dengan progress bar, tetapi kita tetap pertahankan untuk estetika */
         .sparkline {
             height: 4px;
             width: 100%;
@@ -549,7 +549,7 @@
             color: var(--text-primary);
         }
 
-        /* Monthly detail table */
+        /* Monthly detail table untuk kategori */
         .monthly-detail-table {
             font-size: 13px;
             width: 100%;
@@ -577,35 +577,47 @@
             background: var(--accent-soft);
             font-weight: 600;
         }
-        .monthly-detail-table .badge-status {
+        .monthly-detail-table .badge-category {
             font-size: 10px;
             padding: 2px 8px;
             border-radius: 12px;
             font-weight: 600;
         }
-        .badge-open {
-            background: #fef3c7;
-            color: #d97706;
-        }
-        .badge-progress {
+        .badge-ac {
             background: #dbeafe;
             color: #2563eb;
         }
-        .badge-done {
-            background: #dcfce7;
-            color: #16a34a;
+        .badge-listrik {
+            background: #fef3c7;
+            color: #d97706;
         }
-        [data-theme="dark"] .badge-open {
-            background: #3d2e00;
-            color: #ffd700;
+        .badge-gedung {
+            background: #f3e8ff;
+            color: #7c3aed;
         }
-        [data-theme="dark"] .badge-progress {
+        [data-theme="dark"] .badge-ac {
             background: #00264d;
             color: #66b0ff;
         }
-        [data-theme="dark"] .badge-done {
-            background: #003d1a;
-            color: #00e676;
+        [data-theme="dark"] .badge-listrik {
+            background: #3d2e00;
+            color: #ffd700;
+        }
+        [data-theme="dark"] .badge-gedung {
+            background: #2d1b4e;
+            color: #a78bfa;
+        }
+
+        .monthly-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .monthly-filter-group label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
         }
 
         @media (max-width: 768px) {
@@ -796,13 +808,7 @@
                                     <small class="text-secondary" style="font-size:12px;">Last Update : <span id="lastUpdate">-</span></small>
                                 </div>
                                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                                    <!-- FILTER PERIODE -->
-                                    <select id="filterPeriod" class="filter-select form-select-sm" style="width:auto;">
-                                        <option value="day">Hari Ini</option>
-                                        <option value="week">Minggu Ini</option>
-                                        <option value="month" selected>Bulan Ini</option>
-                                    </select>
-                                    <!-- FILTER BULAN SPESIFIK -->
+                                    <!-- FILTER BULAN -->
                                     <select id="filterMonth" class="filter-select form-select-sm" style="width:auto;">
                                         <option value="all">Semua Bulan</option>
                                         <option value="0">Januari</option>
@@ -818,7 +824,10 @@
                                         <option value="10">November</option>
                                         <option value="11">Desember</option>
                                     </select>
-                                    <input type="date" id="filterDate" class="form-control form-control-sm" style="width:auto; max-width:150px; background:var(--bg-card); color:var(--text-primary); border-color:var(--border-color);">
+                                    <!-- RENTANG TANGGAL -->
+                                    <input type="date" id="filterDateStart" class="form-control form-control-sm" style="width:auto; max-width:140px; background:var(--bg-card); color:var(--text-primary); border-color:var(--border-color);" placeholder="Dari">
+                                    <span style="color:var(--text-secondary); font-size:12px;">-</span>
+                                    <input type="date" id="filterDateEnd" class="form-control form-control-sm" style="width:auto; max-width:140px; background:var(--bg-card); color:var(--text-primary); border-color:var(--border-color);" placeholder="Sampai">
                                     <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" id="refreshMonitoring" style="border-color: var(--border-color); color: var(--text-primary); font-size:12px; font-weight:500; padding:5px 12px; border-radius:8px;">
                                         <i class="bi bi-arrow-clockwise"></i> Refresh
                                     </button>
@@ -853,12 +862,12 @@
                     </div>
                 </section>
 
-                <!-- ===== MONTHLY TREND with DETAIL CHART & TABLE ===== -->
+                <!-- ===== MONTHLY TREND BERDASARKAN KATEGORI ===== -->
                 <section class="row g-4 mt-2">
                     <div class="col-12">
                         <div class="card enterprise-card">
                             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                <span class="fw-semibold" style="color:var(--text-primary);"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Monthly Report Trend</span>
+                                <span class="fw-semibold" style="color:var(--text-primary);"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Monthly Report Trend by Category</span>
                                 <div>
                                     <button class="btn btn-sm btn-outline-secondary toggle-detail-table" style="border-color: var(--border-color); color: var(--text-primary); font-size:12px; font-weight:500; padding:4px 12px; border-radius:8px;">
                                         <i class="bi bi-table me-1"></i> Tampilkan Detail
@@ -866,20 +875,20 @@
                                 </div>
                             </div>
                             <div class="card-body p-4">
-                                <!-- Grafik Multi-Line untuk Monthly Trend -->
+                                <!-- Grafik Multi-Line untuk Monthly Trend by Category -->
                                 <div class="monthly-chart" style="position:relative; height:280px; width:100%;">
-                                    <canvas id="monthlyDetailChart"></canvas>
+                                    <canvas id="monthlyCategoryChart"></canvas>
                                 </div>
-                                <!-- Detail Table -->
+                                <!-- Detail Table by Category -->
                                 <div id="monthlyDetailContainer" style="display:none; margin-top:20px; overflow-x:auto;">
                                     <table class="monthly-detail-table" id="monthlyDetailTable">
                                         <thead>
                                             <tr>
                                                 <th>Bulan</th>
+                                                <th>AC</th>
+                                                <th>Listrik</th>
+                                                <th>Kondisi Gedung</th>
                                                 <th>Total</th>
-                                                <th>Open</th>
-                                                <th>Progress</th>
-                                                <th>Done</th>
                                             </tr>
                                         </thead>
                                         <tbody id="monthlyDetailBody">
@@ -1076,9 +1085,9 @@
                 onlineUserCount: document.getElementById('onlineUserCount'),
                 onlineCountBadge: document.getElementById('onlineCountBadge'),
                 onlineUserList: document.getElementById('onlineUserList'),
-                filterPeriod: document.getElementById('filterPeriod'),
                 filterMonth: document.getElementById('filterMonth'),
-                filterDate: document.getElementById('filterDate'),
+                filterDateStart: document.getElementById('filterDateStart'),
+                filterDateEnd: document.getElementById('filterDateEnd'),
                 monthlyDetailBody: document.getElementById('monthlyDetailBody'),
                 monthlyDetailContainer: document.getElementById('monthlyDetailContainer'),
                 toggleDetailBtn: document.querySelector('.toggle-detail-table')
@@ -1086,7 +1095,7 @@
 
             var categoryChart = null,
                 reportChart = null,
-                monthlyDetailChart = null;
+                monthlyCategoryChart = null;
 
             // =============================================
             // AUTO-REFRESH
@@ -1148,9 +1157,9 @@
             }
 
             // =============================================
-            // GENERATE DUMMY DATA BERDASARKAN FILTER
+            // GENERATE DUMMY DATA
             // =============================================
-            function generateDummyData(filter, monthFilter, dateVal) {
+            function generateDummyData(monthFilter, dateStart, dateEnd) {
                 var base = {
                     total: 0,
                     open: 0,
@@ -1163,27 +1172,23 @@
                     openTrend: 0,
                     progressTrend: 0,
                     doneTrend: 0,
-                    monthly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    monthlyOpen: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    monthlyProgress: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    monthlyDone: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    // Monthly per category
+                    monthlyAC: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    monthlyListrik: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    monthlyGedung: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    monthlyTotal: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     lastUpdate: new Date().toLocaleString(),
                     activity: [],
                     activeUsers: []
                 };
 
-                // Multiplier berdasarkan periode
-                var multiplier = 1;
-                if (filter === 'day') multiplier = 1;
-                else if (filter === 'week') multiplier = 5;
-                else if (filter === 'month') multiplier = 20;
-
-                // Jika filter bulan spesifik (0-11), kita kurangi multiplier untuk simulasi data per bulan
-                if (monthFilter !== 'all') {
-                    multiplier = Math.max(1, Math.round(multiplier * 0.3));
-                }
-
                 var rand = function(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; };
+
+                // Base multiplier
+                var multiplier = 1;
+                if (monthFilter !== 'all') {
+                    multiplier = 3; // lebih fokus
+                }
 
                 var total = rand(5, 15) * multiplier;
                 var open = Math.floor(total * 0.3);
@@ -1203,29 +1208,27 @@
                 base.progressTrend = rand(-2, 6);
                 base.doneTrend = rand(-1, 8);
 
-                // Monthly data per status
+                // Monthly data per category
                 var months = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
                 var currentMonth = new Date().getMonth();
                 months.forEach(function(m) {
-                    // Jika filter bulan spesifik, hanya bulan yang dipilih yang mendapat data, sisanya 0
-                    var factor = (m === currentMonth) ? 1.2 : 1;
-                    var baseVal = rand(3, 12) * (filter === 'day' ? 0.2 : filter === 'week' ? 0.8 : 1);
+                    var factor = (m === currentMonth) ? 1.3 : 1;
+                    var baseVal = rand(2, 8) * (multiplier > 1 ? 1.5 : 1);
                     if (monthFilter !== 'all') {
                         if (parseInt(monthFilter) === m) {
-                            baseVal = baseVal * 3;
+                            baseVal = baseVal * 2.5;
                         } else {
-                            baseVal = 0;
+                            baseVal = baseVal * 0.3;
                         }
                     }
-                    var totalMonth = Math.round(baseVal * factor);
-                    var openMonth = Math.round(totalMonth * 0.3);
-                    var progressMonth = Math.round(totalMonth * 0.25);
-                    var doneMonth = totalMonth - openMonth - progressMonth;
-                    if (doneMonth < 0) doneMonth = 0;
-                    base.monthly[m] = totalMonth;
-                    base.monthlyOpen[m] = openMonth;
-                    base.monthlyProgress[m] = progressMonth;
-                    base.monthlyDone[m] = doneMonth;
+                    var acVal = Math.round(baseVal * rand(3, 6) / 10);
+                    var listrikVal = Math.round(baseVal * rand(2, 5) / 10);
+                    var gedungVal = Math.round(baseVal * rand(1, 4) / 10);
+                    var totalMonth = acVal + listrikVal + gedungVal;
+                    base.monthlyAC[m] = acVal;
+                    base.monthlyListrik[m] = listrikVal;
+                    base.monthlyGedung[m] = gedungVal;
+                    base.monthlyTotal[m] = totalMonth;
                 });
 
                 // Activity
@@ -1311,31 +1314,31 @@
                 });
             }
 
-            // ===== MONTHLY DETAIL CHART (Multi-Line) =====
-            function renderMonthlyDetailChart(data) {
-                var ctx = document.getElementById('monthlyDetailChart');
+            // ===== MONTHLY CATEGORY CHART (Multi-Line) =====
+            function renderMonthlyCategoryChart(data) {
+                var ctx = document.getElementById('monthlyCategoryChart');
                 if (!ctx) return;
                 var months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
-                var totalData = data.monthly || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                var openData = data.monthlyOpen || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                var progressData = data.monthlyProgress || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                var doneData = data.monthlyDone || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                var acData = data.monthlyAC || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                var listrikData = data.monthlyListrik || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                var gedungData = data.monthlyGedung || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                var totalData = data.monthlyTotal || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-                if (monthlyDetailChart) { monthlyDetailChart.destroy();
-                    monthlyDetailChart = null; }
+                if (monthlyCategoryChart) { monthlyCategoryChart.destroy();
+                    monthlyCategoryChart = null; }
 
-                monthlyDetailChart = new Chart(ctx, {
+                monthlyCategoryChart = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: months,
                         datasets: [{
-                            label: 'Total',
-                            data: totalData,
-                            borderColor: '#4b7bec',
-                            backgroundColor: 'rgba(75,123,236,0.1)',
+                            label: 'AC',
+                            data: acData,
+                            borderColor: '#06B6D4',
+                            backgroundColor: 'rgba(6,182,212,0.1)',
                             borderWidth: 3,
-                            pointBackgroundColor: '#4b7bec',
+                            pointBackgroundColor: '#06B6D4',
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 2,
                             pointRadius: 5,
@@ -1343,40 +1346,39 @@
                             fill: true,
                             tension: 0.4
                         }, {
-                            label: 'Open',
-                            data: openData,
-                            borderColor: '#f59e0b',
-                            backgroundColor: 'rgba(245,158,11,0.1)',
-                            borderWidth: 2,
-                            pointBackgroundColor: '#f59e0b',
+                            label: 'Listrik',
+                            data: listrikData,
+                            borderColor: '#FBBF24',
+                            backgroundColor: 'rgba(251,191,36,0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#FBBF24',
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 2,
-                            pointRadius: 4,
-                            pointHoverRadius: 7,
-                            fill: false,
-                            tension: 0.4,
-                            borderDash: [5, 5]
+                            pointRadius: 5,
+                            pointHoverRadius: 8,
+                            fill: true,
+                            tension: 0.4
                         }, {
-                            label: 'Progress',
-                            data: progressData,
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59,130,246,0.1)',
-                            borderWidth: 2,
-                            pointBackgroundColor: '#3b82f6',
+                            label: 'Kondisi Gedung',
+                            data: gedungData,
+                            borderColor: '#7C3AED',
+                            backgroundColor: 'rgba(124,58,237,0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#7C3AED',
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 2,
-                            pointRadius: 4,
-                            pointHoverRadius: 7,
-                            fill: false,
-                            tension: 0.4,
-                            borderDash: [3, 3]
+                            pointRadius: 5,
+                            pointHoverRadius: 8,
+                            fill: true,
+                            tension: 0.4
                         }, {
-                            label: 'Done',
-                            data: doneData,
-                            borderColor: '#22c55e',
-                            backgroundColor: 'rgba(34,197,94,0.1)',
+                            label: 'Total',
+                            data: totalData,
+                            borderColor: '#4b7bec',
+                            backgroundColor: 'rgba(75,123,236,0.05)',
                             borderWidth: 2,
-                            pointBackgroundColor: '#22c55e',
+                            borderDash: [5, 5],
+                            pointBackgroundColor: '#4b7bec',
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 2,
                             pointRadius: 4,
@@ -1427,19 +1429,19 @@
                 var currentMonth = new Date().getMonth();
                 var html = '';
                 for (var i = 0; i < 12; i++) {
-                    var total = data.monthly ? data.monthly[i] || 0 : 0;
-                    var open = data.monthlyOpen ? data.monthlyOpen[i] || 0 : 0;
-                    var progress = data.monthlyProgress ? data.monthlyProgress[i] || 0 : 0;
-                    var done = data.monthlyDone ? data.monthlyDone[i] || 0 : 0;
+                    var ac = data.monthlyAC ? data.monthlyAC[i] || 0 : 0;
+                    var listrik = data.monthlyListrik ? data.monthlyListrik[i] || 0 : 0;
+                    var gedung = data.monthlyGedung ? data.monthlyGedung[i] || 0 : 0;
+                    var total = data.monthlyTotal ? data.monthlyTotal[i] || 0 : 0;
                     var isCurrent = (i === currentMonth);
                     var rowClass = isCurrent ? 'current-month' : '';
                     html += `
                         <tr class="${rowClass}">
                             <td><strong>${months[i]}</strong> ${isCurrent ? '<span class="badge bg-success" style="font-size:9px;padding:1px 6px;">Sekarang</span>' : ''}</td>
+                            <td><span class="badge-category badge-ac">${ac}</span></td>
+                            <td><span class="badge-category badge-listrik">${listrik}</span></td>
+                            <td><span class="badge-category badge-gedung">${gedung}</span></td>
                             <td><strong>${total}</strong></td>
-                            <td><span class="badge-status badge-open">${open}</span></td>
-                            <td><span class="badge-status badge-progress">${progress}</span></td>
-                            <td><span class="badge-status badge-done">${done}</span></td>
                         </tr>
                     `;
                 }
@@ -1594,12 +1596,13 @@
                 try {
                     BCS.App.Loading.show();
 
-                    var period = DOM.filterPeriod ? DOM.filterPeriod.value : 'month';
                     var monthFilter = DOM.filterMonth ? DOM.filterMonth.value : 'all';
-                    var dateVal = DOM.filterDate ? DOM.filterDate.value : '';
+                    var dateStart = DOM.filterDateStart ? DOM.filterDateStart.value : '';
+                    var dateEnd = DOM.filterDateEnd ? DOM.filterDateEnd.value : '';
 
-                    var filter = { period: period, month: monthFilter };
-                    if (dateVal) filter.date = dateVal;
+                    var filter = { month: monthFilter };
+                    if (dateStart) filter.dateStart = dateStart;
+                    if (dateEnd) filter.dateEnd = dateEnd;
 
                     console.log('📊 Loading monitoring with filter:', filter);
 
@@ -1609,11 +1612,11 @@
                     var data;
                     if (!response || !response.success) {
                         console.warn('Gagal load dari API, gunakan data dummy');
-                        data = generateDummyData(period, monthFilter, dateVal);
+                        data = generateDummyData(monthFilter, dateStart, dateEnd);
                     } else {
                         data = response.data || {};
                         if (!data.total && data.total !== 0) {
-                            data = generateDummyData(period, monthFilter, dateVal);
+                            data = generateDummyData(monthFilter, dateStart, dateEnd);
                         }
                     }
 
@@ -1621,10 +1624,10 @@
 
                 } catch (error) {
                     console.error('Monitoring error:', error);
-                    var period2 = DOM.filterPeriod ? DOM.filterPeriod.value : 'month';
                     var monthFilter2 = DOM.filterMonth ? DOM.filterMonth.value : 'all';
-                    var dateVal2 = DOM.filterDate ? DOM.filterDate.value : '';
-                    var dummy = generateDummyData(period2, monthFilter2, dateVal2);
+                    var dateStart2 = DOM.filterDateStart ? DOM.filterDateStart.value : '';
+                    var dateEnd2 = DOM.filterDateEnd ? DOM.filterDateEnd.value : '';
+                    var dummy = generateDummyData(monthFilter2, dateStart2, dateEnd2);
                     updateUI(dummy);
                     BCS.App.Toast.danger('Terjadi kesalahan, menggunakan data simulasi');
                 } finally {
@@ -1654,7 +1657,7 @@
                 // Charts
                 renderCategoryChart(data);
                 renderReportChart(data);
-                renderMonthlyDetailChart(data);
+                renderMonthlyCategoryChart(data);
                 renderMonthlyDetailTable(data);
 
                 // Activity
@@ -1731,20 +1734,29 @@
             // FILTER EVENTS
             // =============================================
             function initFilters() {
-                if (DOM.filterPeriod) {
-                    DOM.filterPeriod.addEventListener('change', function() {
-                        loadMonitoring();
-                    });
+                // Set default date range (1 month ago to today)
+                var today = new Date();
+                var oneMonthAgo = new Date(today);
+                oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                if (DOM.filterDateStart) {
+                    DOM.filterDateStart.value = oneMonthAgo.toISOString().split('T')[0];
                 }
+                if (DOM.filterDateEnd) {
+                    DOM.filterDateEnd.value = today.toISOString().split('T')[0];
+                }
+
                 if (DOM.filterMonth) {
                     DOM.filterMonth.addEventListener('change', function() {
                         loadMonitoring();
                     });
                 }
-                if (DOM.filterDate) {
-                    var today = new Date().toISOString().split('T')[0];
-                    DOM.filterDate.value = today;
-                    DOM.filterDate.addEventListener('change', function() {
+                if (DOM.filterDateStart) {
+                    DOM.filterDateStart.addEventListener('change', function() {
+                        loadMonitoring();
+                    });
+                }
+                if (DOM.filterDateEnd) {
+                    DOM.filterDateEnd.addEventListener('change', function() {
                         loadMonitoring();
                     });
                 }
@@ -1787,7 +1799,7 @@
                 initToggleDetail();
                 await loadMonitoring();
                 startAutoRefresh();
-                console.log('✅ Monitoring page initialized — Enhanced monthly chart & month filter');
+                console.log('✅ Monitoring page initialized — Category-based monthly trend & month/date filters');
             }
 
             window.addEventListener('beforeunload', stopAutoRefresh);

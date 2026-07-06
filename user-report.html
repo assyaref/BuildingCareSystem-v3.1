@@ -473,6 +473,152 @@
     .push-btn{border:0;border-radius:11px;padding:9px 11px;background:#1e5eff;color:#fff;font-size:10px;font-weight:800;white-space:nowrap}
     .push-btn.active{background:#dcfce7;color:#15803d}.push-btn:disabled{opacity:.65}
 
+  
+    /* ==================================================
+       FINAL COLORFUL PUSH NOTIFICATION TOAST
+       ================================================== */
+    .swal-push-success {
+      width: min(370px, calc(100vw - 32px)) !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      border: 0 !important;
+      border-radius: 26px !important;
+      background: linear-gradient(145deg, #ffffff 0%, #f3f8ff 52%, #f5fff9 100%) !important;
+      box-shadow: 0 28px 80px rgba(30, 94, 255, .28) !important;
+    }
+    .swal-push-success .swal2-html-container {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .push-success-toast {
+      position: relative;
+      padding: 30px 24px 25px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .push-success-toast::before,
+    .push-success-toast::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .push-success-toast::before {
+      width: 190px;
+      height: 190px;
+      left: -95px;
+      top: -110px;
+      background: rgba(30, 94, 255, .13);
+    }
+    .push-success-toast::after {
+      width: 170px;
+      height: 170px;
+      right: -90px;
+      bottom: -105px;
+      background: rgba(34, 197, 94, .12);
+    }
+    .push-toast-spark {
+      position: absolute;
+      z-index: 1;
+      font-size: 14px;
+      animation: pushSparkle 1.5s ease-in-out infinite;
+    }
+    .push-toast-spark.p1 { top: 30px; left: 54px; color: #f59e0b; }
+    .push-toast-spark.p2 { top: 54px; right: 48px; color: #ec4899; animation-delay: .25s; }
+    .push-toast-spark.p3 { top: 104px; left: 44px; color: #22c55e; animation-delay: .5s; }
+    .push-success-icon {
+      position: relative;
+      z-index: 2;
+      width: 88px;
+      height: 88px;
+      margin: 0 auto 18px;
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 38px;
+      background: linear-gradient(145deg, #1e5eff, #6366f1 58%, #22c55e);
+      box-shadow: 0 17px 38px rgba(30, 94, 255, .35);
+      animation: pushToastPop .58s cubic-bezier(.16,1,.3,1);
+    }
+    .push-success-icon::after {
+      content: "";
+      position: absolute;
+      inset: -8px;
+      border: 2px solid rgba(30, 94, 255, .18);
+      border-radius: 34px;
+      animation: pushToastPulse 1.6s ease-out infinite;
+    }
+    .push-success-title {
+      position: relative;
+      z-index: 2;
+      margin: 0;
+      color: #0f172a;
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -.4px;
+    }
+    .push-success-message {
+      position: relative;
+      z-index: 2;
+      max-width: 285px;
+      margin: 8px auto 0;
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .push-success-status {
+      position: relative;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 17px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #dbeafe, #dcfce7);
+      color: #166534;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .push-success-progress {
+      position: absolute;
+      z-index: 3;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 5px;
+      background: #e0e7ff;
+      overflow: hidden;
+    }
+    .push-success-progress::after {
+      content: "";
+      display: block;
+      width: 100%;
+      height: 100%;
+      transform-origin: left;
+      background: linear-gradient(90deg, #1e5eff, #6366f1, #22c55e);
+      animation: pushToastTimer 2.8s linear forwards;
+    }
+    @keyframes pushToastPop {
+      0% { transform: scale(.55) rotate(-9deg); opacity: 0; }
+      70% { transform: scale(1.08) rotate(2deg); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes pushToastPulse {
+      0% { transform: scale(.88); opacity: .8; }
+      100% { transform: scale(1.25); opacity: 0; }
+    }
+    @keyframes pushSparkle {
+      0%,100% { transform: scale(.7) rotate(0); opacity: .35; }
+      50% { transform: scale(1.25) rotate(20deg); opacity: 1; }
+    }
+    @keyframes pushToastTimer {
+      from { transform: scaleX(1); }
+      to { transform: scaleX(0); }
+    }
+
   </style>
 </head>
 <body>
@@ -683,6 +829,43 @@
     }
 
 
+
+    function showPushNotificationSuccess() {
+      Swal.fire({
+        html: `
+          <div class="push-success-toast">
+            <span class="push-toast-spark p1"><i class="fa-solid fa-star"></i></span>
+            <span class="push-toast-spark p2"><i class="fa-solid fa-sparkles"></i></span>
+            <span class="push-toast-spark p3"><i class="fa-solid fa-circle"></i></span>
+
+            <div class="push-success-icon">
+              <i class="fa-solid fa-bell"></i>
+            </div>
+
+            <h3 class="push-success-title">Notifikasi Berhasil Diaktifkan!</h3>
+            <p class="push-success-message">
+              Smartphone ini sekarang siap menerima update status laporan secara langsung.
+            </p>
+
+            <div class="push-success-status">
+              <i class="fa-solid fa-circle-check"></i>
+              Perangkat terhubung ke BCS
+            </div>
+
+            <div class="push-success-progress"></div>
+          </div>
+        `,
+        showConfirmButton: false,
+        timer: 2800,
+        timerProgressBar: false,
+        backdrop: 'rgba(15, 23, 42, .44)',
+        customClass: { popup: 'swal-push-success' },
+        showClass: { popup: 'animate__animated animate__zoomIn animate__faster' },
+        hideClass: { popup: 'animate__animated animate__fadeOutUp animate__faster' }
+      });
+    }
+
+
     // =============================================
     // SMARTPHONE PUSH NOTIFICATION
     // =============================================
@@ -728,9 +911,7 @@
           this.classList.add('active');
           pushNotificationText.textContent = 'Perangkat ini siap menerima update OPEN, PROGRESS, dan DONE.';
 
-          if (typeof showCenterAlert === 'function') {
-            showCenterAlert('success', '🔔 Notifikasi smartphone berhasil diaktifkan');
-          }
+          showPushNotificationSuccess();
         } else {
           this.textContent = oldText;
           this.disabled = false;

@@ -9,6 +9,7 @@
     <meta name="author" content="Radiant Group Duri">
 
     <title>Work Order — Building Care System Enterprise</title>
+    <!-- FINAL FIX: Edit Report Picker + WO-to-History Sync -->
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
@@ -1462,7 +1463,7 @@
 
             // Klik kembali select untuk membuka daftar Report OPEN.
             document.getElementById('woReportId').addEventListener('mousedown', function() {
-                if (!this.disabled && this.size === 1) {
+                if (!isEditMode && !this.disabled && this.size === 1) {
                     this.size = 8;
                 }
             });
@@ -1519,11 +1520,21 @@
                 await loadCategories();
 
                 var reportSelect = document.getElementById('woReportId');
-                reportSelect.size = 8;
                 var reportGroup = document.getElementById('reportSourceGroup');
+                var reportTools = reportGroup ? reportGroup.querySelector('.report-picker-tools') : null;
+                var reportInfo = reportGroup ? reportGroup.querySelector('.report-result-info') : null;
+                var reportHelp = reportGroup ? reportGroup.querySelector('small.text-muted') : null;
+
                 reportGroup.style.display = '';
 
                 if (data) {
+                    // MODE EDIT: tampilkan hanya Report sumber yang terhubung.
+                    // Tidak lagi membuka list 8 baris yang membuat modal berantakan.
+                    reportSelect.size = 1;
+                    if (reportTools) reportTools.style.display = 'none';
+                    if (reportInfo) reportInfo.style.display = 'none';
+                    if (reportHelp) reportHelp.style.display = 'none';
+
                     await loadOpenReports(data.report_id || '');
 
                     document.getElementById('woTitle').value = data.title || '';
@@ -1553,7 +1564,14 @@
 
                     reportSelect.value = data.report_id || '';
                     reportSelect.disabled = true;
+                    reportSelect.size = 1;
                 } else {
+                    // MODE CREATE: aktifkan kembali pencarian dan daftar Report OPEN.
+                    reportSelect.size = 8;
+                    if (reportTools) reportTools.style.display = '';
+                    if (reportInfo) reportInfo.style.display = '';
+                    if (reportHelp) reportHelp.style.display = '';
+
                     document.getElementById('woStatus').value = 'open';
                     document.getElementById('woPriority').value = 'medium';
                     document.getElementById('woAssignedTo').value = '';
@@ -1578,7 +1596,18 @@
                 var reportSelect = document.getElementById('woReportId');
                 if (reportSelect) {
                     reportSelect.disabled = false;
+                    reportSelect.size = 8;
                     reportSelect.innerHTML = '<option value="">Pilih Report OPEN...</option>';
+                }
+
+                var reportGroup = document.getElementById('reportSourceGroup');
+                if (reportGroup) {
+                    var reportTools = reportGroup.querySelector('.report-picker-tools');
+                    var reportInfo = reportGroup.querySelector('.report-result-info');
+                    var reportHelp = reportGroup.querySelector('small.text-muted');
+                    if (reportTools) reportTools.style.display = '';
+                    if (reportInfo) reportInfo.style.display = '';
+                    if (reportHelp) reportHelp.style.display = '';
                 }
 
                 // Bersihkan backdrop liar hanya jika tidak ada modal yang masih terbuka

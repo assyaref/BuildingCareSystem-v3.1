@@ -1537,6 +1537,21 @@
 
                     await loadOpenReports(data.report_id || '');
 
+                    // FIX EDIT WO:
+                    // Report lama bisa sudah PROGRESS/DONE sehingga tidak ada di getOpenReports.
+                    // Tambahkan report yang terhubung secara manual agar Report Number tetap tampil.
+                    var linkedReportId = String(data.report_id || '').trim();
+                    var linkedExists = Array.from(reportSelect.options).some(function(opt) {
+                        return String(opt.value) === linkedReportId;
+                    });
+
+                    if (linkedReportId && !linkedExists) {
+                        var linkedOption = document.createElement('option');
+                        linkedOption.value = linkedReportId;
+                        linkedOption.textContent = linkedReportId;
+                        reportSelect.appendChild(linkedOption);
+                    }
+
                     document.getElementById('woTitle').value = data.title || '';
                     document.getElementById('woCategory').value =
                         String(data.category_id || data.category || '').toUpperCase();
@@ -1562,7 +1577,7 @@
                         data.is_emergency === true ||
                         String(data.is_emergency).toUpperCase() === 'TRUE';
 
-                    reportSelect.value = data.report_id || '';
+                    reportSelect.value = linkedReportId;
                     reportSelect.disabled = true;
                     reportSelect.size = 1;
                 } else {

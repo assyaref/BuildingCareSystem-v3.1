@@ -502,10 +502,306 @@
         .swal2-html-container {
             color: #4a4a62 !important;
         }
+
+        /* =====================================================
+           LOGIN SUCCESS OVERLAY
+        ====================================================== */
+        .login-success-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background:
+                radial-gradient(circle at 50% 34%, rgba(30, 94, 255, 0.14), transparent 34%),
+                linear-gradient(145deg, #f8fbff 0%, #eef5ff 100%);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .35s ease, visibility .35s ease;
+        }
+
+        .login-success-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: all;
+        }
+
+        .login-success-overlay.closing {
+            animation: successOverlayOut .45s ease forwards;
+        }
+
+        .success-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(22px) scale(.97);
+        }
+
+        .login-success-overlay.active .success-content {
+            animation: successContentIn .65s ease forwards;
+        }
+
+        .success-logo-wrap {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border-radius: 22px;
+            box-shadow: 0 14px 38px rgba(30, 94, 255, .14);
+            opacity: 0;
+            transform: translateY(-14px);
+        }
+
+        .login-success-overlay.active .success-logo-wrap {
+            animation: successTextIn .55s .12s ease forwards;
+        }
+
+        .success-logo {
+            width: 54px;
+            height: 54px;
+            object-fit: contain;
+            border-radius: 16px;
+        }
+
+        .success-check-wrapper {
+            position: relative;
+            width: 132px;
+            height: 132px;
+            margin: 0 auto 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-ring,
+        .success-ring::before,
+        .success-ring::after {
+            position: absolute;
+            content: "";
+            border-radius: 50%;
+            border: 2px solid rgba(34, 197, 94, .18);
+        }
+
+        .success-ring { inset: 0; }
+        .success-ring::before { inset: 12px; }
+        .success-ring::after { inset: 24px; }
+
+        .login-success-overlay.active .success-ring {
+            animation: successRing 1.7s .3s ease-out infinite;
+        }
+
+        .success-check-circle {
+            position: relative;
+            z-index: 2;
+            width: 94px;
+            height: 94px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #31e66f, #16b84d);
+            box-shadow: 0 20px 48px rgba(34, 197, 94, .32);
+            transform: scale(0);
+        }
+
+        .login-success-overlay.active .success-check-circle {
+            animation: successCirclePop .65s .32s cubic-bezier(.34,1.56,.64,1) forwards;
+        }
+
+        .success-check-circle i {
+            color: #fff;
+            font-size: 42px;
+            opacity: 0;
+            transform: scale(.45) rotate(-18deg);
+        }
+
+        .login-success-overlay.active .success-check-circle i {
+            animation: successCheckIn .42s .78s ease forwards;
+        }
+
+        .success-title,
+        .success-welcome,
+        .success-user-name,
+        .success-message,
+        .success-progress {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .success-title {
+            margin-bottom: 10px;
+            color: #12213f;
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -.7px;
+        }
+
+        .success-welcome {
+            margin-bottom: 4px;
+            color: #7f8ba3;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .success-user-name {
+            margin-bottom: 10px;
+            color: #1e5eff;
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .success-message {
+            color: #7f8ba3;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .login-success-overlay.active .success-title { animation: successTextIn .45s .88s ease forwards; }
+        .login-success-overlay.active .success-welcome { animation: successTextIn .45s 1.00s ease forwards; }
+        .login-success-overlay.active .success-user-name { animation: successTextIn .45s 1.10s ease forwards; }
+        .login-success-overlay.active .success-message { animation: successTextIn .45s 1.20s ease forwards; }
+
+        .success-progress {
+            width: min(280px, 76vw);
+            height: 8px;
+            margin: 26px auto 0;
+            overflow: hidden;
+            background: #dfe8f7;
+            border: 2px solid rgba(255,255,255,.9);
+            border-radius: 999px;
+            box-shadow: 0 4px 16px rgba(30,94,255,.08);
+        }
+
+        .login-success-overlay.active .success-progress {
+            animation: successTextIn .35s 1.28s ease forwards;
+        }
+
+        .success-progress-bar {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #1e5eff, #17b9f2, #31df69);
+        }
+
+        .login-success-overlay.active .success-progress-bar {
+            animation: successProgress 1.8s 1.35s ease forwards;
+        }
+
+        .success-particles span {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            opacity: 0;
+            background: #22c55e;
+        }
+
+        .success-particles span:nth-child(1) { top: 20%; left: 18%; }
+        .success-particles span:nth-child(2) { top: 27%; right: 18%; background: #1e5eff; }
+        .success-particles span:nth-child(3) { bottom: 24%; left: 23%; background: #f7b928; }
+        .success-particles span:nth-child(4) { bottom: 20%; right: 22%; }
+        .success-particles span:nth-child(5) { top: 48%; left: 10%; background: #1e5eff; }
+        .success-particles span:nth-child(6) { top: 52%; right: 10%; background: #f7b928; }
+
+        .login-success-overlay.active .success-particles span {
+            animation: particleFloat 1.9s ease-in-out infinite;
+        }
+
+        .login-success-overlay.active .success-particles span:nth-child(2) { animation-delay: .2s; }
+        .login-success-overlay.active .success-particles span:nth-child(3) { animation-delay: .4s; }
+        .login-success-overlay.active .success-particles span:nth-child(4) { animation-delay: .6s; }
+        .login-success-overlay.active .success-particles span:nth-child(5) { animation-delay: .8s; }
+        .login-success-overlay.active .success-particles span:nth-child(6) { animation-delay: 1s; }
+
+        @keyframes successContentIn {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes successRing {
+            0% { opacity: 0; transform: scale(.68); }
+            35% { opacity: 1; }
+            100% { opacity: 0; transform: scale(1.28); }
+        }
+
+        @keyframes successCirclePop {
+            0% { transform: scale(0); }
+            72% { transform: scale(1.12); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes successCheckIn {
+            to { opacity: 1; transform: scale(1) rotate(0); }
+        }
+
+        @keyframes successTextIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes successProgress {
+            to { width: 100%; }
+        }
+
+        @keyframes particleFloat {
+            0%, 100% { opacity: .22; transform: translateY(0) scale(.8); }
+            50% { opacity: .9; transform: translateY(-14px) scale(1); }
+        }
+
+        @keyframes successOverlayOut {
+            to { opacity: 0; transform: scale(1.025); }
+        }
+
+        @media (max-width: 480px) {
+            .success-check-wrapper { width: 112px; height: 112px; }
+            .success-check-circle { width: 82px; height: 82px; }
+            .success-check-circle i { font-size: 36px; }
+            .success-title { font-size: 25px; }
+            .success-user-name { font-size: 19px; }
+        }
+
     </style>
 </head>
 
 <body>
+
+    <!-- LOGIN SUCCESS ANIMATION -->
+    <div id="loginSuccessOverlay" class="login-success-overlay" aria-hidden="true">
+        <div class="success-particles" aria-hidden="true">
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+        </div>
+
+        <div class="success-content">
+            <div class="success-logo-wrap">
+                <img src="assets/img/logo.png" alt="Building Care System" class="success-logo">
+            </div>
+
+            <div class="success-check-wrapper">
+                <div class="success-ring"></div>
+                <div class="success-check-circle">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+            </div>
+
+            <h2 class="success-title">Login Berhasil!</h2>
+            <p class="success-welcome">Selamat datang,</p>
+            <h3 id="successUserName" class="success-user-name">Pengguna</h3>
+            <p class="success-message">Menyiapkan dashboard Anda...</p>
+
+            <div class="success-progress">
+                <div class="success-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- LOADING OVERLAY -->
     <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center;">
@@ -654,6 +950,8 @@
             const toggleIcon = document.getElementById('toggleIcon');
             const rememberCheck = document.getElementById('remember');
             const loadingOverlay = document.getElementById('loadingOverlay');
+            const successOverlay = document.getElementById('loginSuccessOverlay');
+            const successUserName = document.getElementById('successUserName');
 
             // =========================================
             // TOGGLE PASSWORD VISIBILITY
@@ -732,6 +1030,49 @@
             }
 
             // =========================================
+            // SHOW LOGIN SUCCESS ANIMATION
+            // =========================================
+            function showLoginSuccess(result) {
+                const user =
+                    result?.user ||
+                    result?.data?.user ||
+                    result?.session?.user ||
+                    {};
+
+                const displayName =
+                    user.nama ||
+                    user.name ||
+                    user.fullName ||
+                    user.username ||
+                    user.nik ||
+                    nikInput.value ||
+                    'Pengguna';
+
+                const targetPage =
+                    result?.targetPage ||
+                    result?.redirectUrl ||
+                    result?.data?.targetPage ||
+                    'user-report.html';
+
+                hideLoading();
+                successUserName.textContent = displayName;
+                successOverlay.setAttribute('aria-hidden', 'false');
+
+                // Restart animation safely
+                successOverlay.classList.remove('active', 'closing');
+                void successOverlay.offsetWidth;
+                successOverlay.classList.add('active');
+
+                setTimeout(function() {
+                    successOverlay.classList.add('closing');
+
+                    setTimeout(function() {
+                        window.location.replace(targetPage);
+                    }, 430);
+                }, 3200);
+            }
+
+            // =========================================
             // HANDLE LOGIN
             // =========================================
             async function handleLogin(e) {
@@ -779,12 +1120,9 @@
                         const result = await login(nik, password);
                         hideLoading();
 
-                        // Jika login sukses, redirect sudah ditangani oleh auth.js
-                        // tapi kita juga bisa handle di sini untuk berjaga-jaga
                         if (result && result.success) {
-                            // Redirect sudah dilakukan di auth.js, jadi tidak perlu lagi
-                            // Tapi jika redirect tidak terjadi, kita lakukan fallback
-                            console.log('✅ Login success, redirect should have occurred.');
+                            console.log('✅ Login berhasil, menampilkan animasi sukses.');
+                            showLoginSuccess(result);
                         } else {
                             showError(result?.message || 'NIK atau Password salah.');
                         }

@@ -877,6 +877,46 @@
                 ) || 0);
             }
 
+            // =============================================
+            // SINKRON STATUS WORK ORDER -> HISTORY REPORT
+            // Assigned / In Progress / Pending Parts => PROGRESS
+            // =============================================
+            function getHistoryStatusFromWO(woStatus) {
+                var status = String(woStatus || '').trim().toLowerCase();
+
+                if (['assigned', 'in_progress', 'pending_parts'].includes(status)) {
+                    return 'PROGRESS';
+                }
+
+                return null;
+            }
+
+            async function syncReportStatusFromWO(reportId, woStatus) {
+                var historyStatus = getHistoryStatusFromWO(woStatus);
+
+                if (!reportId || !historyStatus) {
+                    return { success: true, skipped: true };
+                }
+
+                var res = await BCS.Api.post('updateReportStatus', {
+                    id: reportId,
+                    report_id: reportId,
+                    status: historyStatus
+                });
+
+                if (!res || !res.success) {
+                    throw new Error((res && res.message) || 'Gagal sinkron status Report ke History');
+                }
+
+                console.log('🔄 [WO -> HISTORY] Status tersinkron:', {
+                    reportId: reportId,
+                    woStatus: woStatus,
+                    historyStatus: historyStatus
+                });
+
+                return res;
+            }
+
             async function getCostsForWO(woId) {
                 var res = await BCS.Api.post('getWorkOrderCosts', {
                     work_order_id: woId
@@ -1645,7 +1685,21 @@
                     }
 
                     if (res && res.success) {
-                        showToast(isEditMode ? 'WO berhasil diperbarui' : 'WO berhasil dibuat');
+                        // Sinkron otomatis status Report pada History.
+                        // Assigned / In Progress / Pending Parts => PROGRESS
+                        try {
+                            await syncReportStatusFromWO(data.report_id, data.status);
+                        } catch (syncErr) {
+                            console.error('❌ Sinkron status History gagal:', syncErr);
+                            showToast('WO tersimpan, tetapi sinkron History gagal: ' + syncErr.message, 'warning');
+                        }
+
+                        showToast(
+                            getHistoryStatusFromWO(data.status)
+                                ? 'WO berhasil disimpan • History menjadi PROGRESS'
+                                : (isEditMode ? 'WO berhasil diperbarui' : 'WO berhasil dibuat')
+                        );
+
                         bootstrap.Modal.getInstance(document.getElementById('woModal')).hide();
                         await fetchWO();
                     } else {

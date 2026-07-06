@@ -1803,7 +1803,39 @@
                         plugins: {
                             legend: {
                                 position: 'right',
-                                labels: { usePointStyle: true, boxWidth: 9, font: { family: 'Poppins', size: 11 } }
+                                labels: {
+                                    usePointStyle: true,
+                                    boxWidth: 9,
+                                    padding: 18,
+                                    font: { family: 'Poppins', size: 11, weight: '600' },
+                                    generateLabels: function(chart) {
+                                        var dataset = chart.data.datasets[0];
+                                        var values = dataset.data || [];
+                                        var total = values.reduce(function(sum, value) {
+                                            return sum + Number(value || 0);
+                                        }, 0);
+
+                                        return chart.data.labels.map(function(label, index) {
+                                            var value = Number(values[index] || 0);
+                                            var percent = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+
+                                            return {
+                                                text: label + '     ' + moneyIDR(value) + ' (' + percent + '%)',
+                                                fillStyle: dataset.backgroundColor[index % dataset.backgroundColor.length],
+                                                strokeStyle: dataset.backgroundColor[index % dataset.backgroundColor.length],
+                                                lineWidth: 0,
+                                                hidden: !chart.getDataVisibility(index),
+                                                index: index,
+                                                pointStyle: 'circle'
+                                            };
+                                        });
+                                    }
+                                },
+                                onClick: function(e, legendItem, legend) {
+                                    var index = legendItem.index;
+                                    legend.chart.toggleDataVisibility(index);
+                                    legend.chart.update();
+                                }
                             },
                             tooltip: {
                                 callbacks: {

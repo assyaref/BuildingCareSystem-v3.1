@@ -620,6 +620,71 @@
             font-weight: 500;
         }
 
+
+        /* ===== ANALISIS TOTAL BIAYA PERBAIKAN ===== */
+        .cost-analysis-card {
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .cost-metric {
+            height: 100%;
+            min-height: 112px;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px 12px;
+            text-align: center;
+            background: var(--bg-card);
+            transition: all .25s ease;
+        }
+        .cost-metric:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .07);
+        }
+        .cost-metric.blue { background: linear-gradient(145deg, rgba(37,99,235,.07), var(--bg-card)); }
+        .cost-metric.green { background: linear-gradient(145deg, rgba(34,197,94,.08), var(--bg-card)); }
+        .cost-metric.orange { background: linear-gradient(145deg, rgba(245,158,11,.09), var(--bg-card)); }
+        .cost-metric.purple { background: linear-gradient(145deg, rgba(168,85,247,.08), var(--bg-card)); }
+        .cost-metric-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .35px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .cost-metric.blue .cost-metric-label, .cost-metric.blue .cost-metric-value { color:#2563eb; }
+        .cost-metric.green .cost-metric-label, .cost-metric.green .cost-metric-value { color:#16a34a; }
+        .cost-metric.orange .cost-metric-label, .cost-metric.orange .cost-metric-value { color:#ea8a00; }
+        .cost-metric.purple .cost-metric-label, .cost-metric.purple .cost-metric-value { color:#9333ea; }
+        .cost-metric-value {
+            font-size: 23px;
+            font-weight: 700;
+            line-height: 1.25;
+            white-space: nowrap;
+        }
+        .cost-metric-note {
+            color: var(--text-secondary);
+            font-size: 10px;
+            margin-top: 6px;
+        }
+        .cost-chart-box {
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px;
+            height: 330px;
+            background: var(--bg-card);
+        }
+        .cost-chart-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .cost-chart-canvas {
+            position: relative;
+            height: 270px;
+        }
+
         @media (max-width: 768px) {
             .summary-card h2 {
                 font-size: 24px;
@@ -904,6 +969,72 @@
                     </div>
                 </section>
 
+
+                <!-- ===== ANALISIS TOTAL BIAYA PERBAIKAN ===== -->
+                <section class="row g-4 mt-2" id="costAnalysisSection">
+                    <div class="col-12">
+                        <div class="card enterprise-card cost-analysis-card">
+                            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <span class="fw-semibold" style="color:var(--text-primary);">
+                                    <i class="bi bi-cash-stack me-2 text-primary"></i>Analisis Total Biaya Perbaikan
+                                </span>
+                                <small class="text-secondary">Data Work Order & biaya perbaikan</small>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-3 mb-4">
+                                    <div class="col-xl-3 col-md-6">
+                                        <div class="cost-metric blue">
+                                            <div class="cost-metric-label">Total Biaya</div>
+                                            <div class="cost-metric-value" id="costTotalAll">Rp 0</div>
+                                            <div class="cost-metric-note">Seluruh Work Order Selesai</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-md-6">
+                                        <div class="cost-metric green">
+                                            <div class="cost-metric-label">Bulan Ini</div>
+                                            <div class="cost-metric-value" id="costThisMonth">Rp 0</div>
+                                            <div class="cost-metric-note">Total Biaya</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-md-6">
+                                        <div class="cost-metric orange">
+                                            <div class="cost-metric-label">Rata-rata / WO</div>
+                                            <div class="cost-metric-value" id="costAverageWO">Rp 0</div>
+                                            <div class="cost-metric-note">Per Work Order</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-md-6">
+                                        <div class="cost-metric purple">
+                                            <div class="cost-metric-label">Jumlah WO (Done)</div>
+                                            <div class="cost-metric-value" id="costDoneCount">0</div>
+                                            <div class="cost-metric-note">Work Order</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-xl-5">
+                                        <div class="cost-chart-box">
+                                            <div class="cost-chart-title">Biaya Per Kategori</div>
+                                            <div class="cost-chart-canvas">
+                                                <canvas id="costCategoryChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-7">
+                                        <div class="cost-chart-box">
+                                            <div class="cost-chart-title">Tren Biaya Bulanan</div>
+                                            <div class="cost-chart-canvas">
+                                                <canvas id="costMonthlyChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- SYSTEM HEALTH -->
                 <section class="row g-4 mt-2">
                     <div class="col-md-3">
@@ -1095,7 +1226,9 @@
 
             var categoryChart = null,
                 reportChart = null,
-                monthlyCategoryChart = null;
+                monthlyCategoryChart = null,
+                costCategoryChart = null,
+                costMonthlyChart = null;
 
             // =============================================
             // AUTO-REFRESH
@@ -1559,6 +1692,182 @@
                 console.log('✅ Online users rendered:', onlineUsers.length);
             }
 
+
+            // =============================================
+            // ANALISIS BIAYA WORK ORDER
+            // =============================================
+            function moneyIDR(value) {
+                return 'Rp ' + Math.round(Number(value || 0)).toLocaleString('id-ID');
+            }
+
+            function normalizeWOList(response) {
+                if (!response) return [];
+                if (Array.isArray(response)) return response;
+                if (Array.isArray(response.data)) return response.data;
+                if (response.data && Array.isArray(response.data.workOrders)) return response.data.workOrders;
+                if (Array.isArray(response.workOrders)) return response.workOrders;
+                return [];
+            }
+
+            function parseWODate(value) {
+                if (!value) return null;
+                var d = new Date(value);
+                return isNaN(d.getTime()) ? null : d;
+            }
+
+            async function loadCostAnalysis() {
+                try {
+                    var response = await BCS.Api.post('getWorkOrders', {});
+                    if (!response || response.success === false) {
+                        throw new Error(response && response.message ? response.message : 'Gagal mengambil Work Order');
+                    }
+
+                    var workOrders = normalizeWOList(response);
+                    var completed = workOrders.filter(function(wo) {
+                        var status = String(wo.status || '').toLowerCase().replace(/\s+/g, '_');
+                        return status === 'completed' || status === 'done' || status === 'selesai';
+                    });
+
+                    var totalAll = completed.reduce(function(sum, wo) {
+                        return sum + Number(wo.total_biaya || 0);
+                    }, 0);
+
+                    var now = new Date();
+                    var thisMonth = completed.reduce(function(sum, wo) {
+                        var d = parseWODate(wo.completed_date || wo.updated_at || wo.created_at);
+                        if (d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+                            return sum + Number(wo.total_biaya || 0);
+                        }
+                        return sum;
+                    }, 0);
+
+                    var average = completed.length ? totalAll / completed.length : 0;
+
+                    var elTotal = document.getElementById('costTotalAll');
+                    var elMonth = document.getElementById('costThisMonth');
+                    var elAvg = document.getElementById('costAverageWO');
+                    var elDone = document.getElementById('costDoneCount');
+                    if (elTotal) elTotal.textContent = moneyIDR(totalAll);
+                    if (elMonth) elMonth.textContent = moneyIDR(thisMonth);
+                    if (elAvg) elAvg.textContent = moneyIDR(average);
+                    if (elDone) elDone.textContent = completed.length;
+
+                    var categoryMap = {};
+                    completed.forEach(function(wo) {
+                        var category = String(wo.category || wo.category_id || wo.kategori || 'LAINNYA').toUpperCase();
+                        categoryMap[category] = (categoryMap[category] || 0) + Number(wo.total_biaya || 0);
+                    });
+
+                    var monthValues = new Array(12).fill(0);
+                    completed.forEach(function(wo) {
+                        var d = parseWODate(wo.completed_date || wo.updated_at || wo.created_at);
+                        if (d && d.getFullYear() === now.getFullYear()) {
+                            monthValues[d.getMonth()] += Number(wo.total_biaya || 0);
+                        }
+                    });
+
+                    renderCostCategoryChart(categoryMap);
+                    renderCostMonthlyChart(monthValues);
+                } catch (error) {
+                    console.error('Cost analysis error:', error);
+                }
+            }
+
+            function renderCostCategoryChart(categoryMap) {
+                var canvas = document.getElementById('costCategoryChart');
+                if (!canvas) return;
+
+                var labels = Object.keys(categoryMap);
+                var values = labels.map(function(label) { return categoryMap[label]; });
+                if (!labels.length) {
+                    labels = ['Belum Ada Biaya'];
+                    values = [1];
+                }
+
+                if (costCategoryChart) costCategoryChart.destroy();
+                costCategoryChart = new Chart(canvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: ['#2563eb', '#22c55e', '#f59e0b', '#9333ea', '#06b6d4', '#ef4444'],
+                            borderWidth: 2,
+                            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-card').trim() || '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '62%',
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: { usePointStyle: true, boxWidth: 9, font: { family: 'Poppins', size: 11 } }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        if (ctx.label === 'Belum Ada Biaya') return 'Belum ada biaya';
+                                        var total = ctx.dataset.data.reduce(function(a,b){ return a+b; }, 0);
+                                        var pct = total ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                                        return ctx.label + ': ' + moneyIDR(ctx.parsed) + ' (' + pct + '%)';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function renderCostMonthlyChart(values) {
+                var canvas = document.getElementById('costMonthlyChart');
+                if (!canvas) return;
+                var labels = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+
+                if (costMonthlyChart) costMonthlyChart.destroy();
+                costMonthlyChart = new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Biaya',
+                            data: values,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37,99,235,.10)',
+                            borderWidth: 2.5,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#2563eb',
+                            tension: .35,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { callbacks: { label: function(ctx) { return moneyIDR(ctx.parsed.y); } } }
+                        },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        if (value >= 1000000000) return (value/1000000000).toFixed(1) + ' M';
+                                        if (value >= 1000000) return (value/1000000).toFixed(1) + ' jt';
+                                        if (value >= 1000) return (value/1000).toFixed(0) + ' rb';
+                                        return value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
             // =============================================
             // UPDATE STATUS CARDS
             // =============================================
@@ -1621,6 +1930,7 @@
                     }
 
                     updateUI(data);
+                    loadCostAnalysis();
 
                 } catch (error) {
                     console.error('Monitoring error:', error);

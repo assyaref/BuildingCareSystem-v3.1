@@ -804,7 +804,6 @@
             var currentDetailWOId = null;
             var currentDetailWO = null;
             var currentCosts = [];
-            var costStorageKey = 'BCS_WO_COSTS_V1';
 
             var tableBody = document.getElementById('woTableBody');
             var paginationEl = document.getElementById('pagination');
@@ -827,72 +826,49 @@
                     .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
             }
 
-            function getLocalCosts() {
-                try { return JSON.parse(localStorage.getItem(costStorageKey) || '[]'); }
-                catch (e) { return []; }
-            }
-
-            function saveLocalCosts(items) {
-                localStorage.setItem(costStorageKey, JSON.stringify(items || []));
-            }
-
             function costTotalOfWO(w) {
-                var direct = firstValue(w, ['total_biaya','totalBiaya','total_cost','totalCost'], '');
-                if (direct !== '') return Number(direct || 0);
-                return getLocalCosts().filter(function(c) {
-                    return String(c.work_order_id) === String(w.id);
-                }).reduce(function(sum, c) { return sum + Number(c.subtotal || 0); }, 0);
+                return Number(firstValue(
+                    w,
+                    ['total_biaya', 'totalBiaya', 'total_cost', 'totalCost'],
+                    0
+                ) || 0);
             }
 
             async function getCostsForWO(woId) {
-                try {
-                    var res = await BCS.Api.post('getWorkOrderCosts', { work_order_id: woId });
-                    if (res && res.success) {
-                        var data = Array.isArray(res.data) ? res.data :
-                            (res.data && Array.isArray(res.data.costs) ? res.data.costs : []);
-                        return data;
-                    }
-                } catch (e) {
-                    console.warn('[WO COST] API belum mendukung getWorkOrderCosts, memakai penyimpanan lokal.', e);
-                }
-                return getLocalCosts().filter(function(c) {
-                    return String(c.work_order_id) === String(woId);
+                var res = await BCS.Api.post('getWorkOrderCosts', {
+                    work_order_id: woId
                 });
+
+                if (!res || !res.success) {
+                    throw new Error((res && res.message) || 'Gagal mengambil biaya Work Order');
+                }
+
+                if (Array.isArray(res.data)) return res.data;
+                if (res.data && Array.isArray(res.data.costs)) return res.data.costs;
+                return [];
             }
 
             async function saveCostItem(item) {
-                try {
-                    var action = item.id ? 'updateWorkOrderCost' : 'saveWorkOrderCost';
-                    var res = await BCS.Api.post(action, item);
-                    if (res && res.success) return res;
-                } catch (e) {
-                    console.warn('[WO COST] API biaya belum tersedia, memakai penyimpanan lokal.', e);
+                var action = item.id ? 'updateWorkOrderCost' : 'createWorkOrderCost';
+                var res = await BCS.Api.post(action, item);
+
+                if (!res || !res.success) {
+                    throw new Error((res && res.message) || 'Gagal menyimpan biaya Work Order');
                 }
 
-                var items = getLocalCosts();
-                if (item.id) {
-                    var idx = items.findIndex(function(x) { return String(x.id) === String(item.id); });
-                    if (idx >= 0) items[idx] = Object.assign({}, items[idx], item);
-                    else items.push(item);
-                } else {
-                    item.id = 'COST-' + Date.now();
-                    item.created_at = new Date().toISOString();
-                    items.push(item);
-                }
-                saveLocalCosts(items);
-                return { success: true, data: item, localFallback: true };
+                return res;
             }
 
             async function removeCostItem(costId) {
-                try {
-                    var res = await BCS.Api.post('deleteWorkOrderCost', { id: costId });
-                    if (res && res.success) return res;
-                } catch (e) {
-                    console.warn('[WO COST] API hapus biaya belum tersedia, memakai penyimpanan lokal.', e);
+                var res = await BCS.Api.post('deleteWorkOrderCost', {
+                    id: costId
+                });
+
+                if (!res || !res.success) {
+                    throw new Error((res && res.message) || 'Gagal menghapus biaya Work Order');
                 }
-                var items = getLocalCosts().filter(function(x) { return String(x.id) !== String(costId); });
-                saveLocalCosts(items);
-                return { success: true, localFallback: true };
+
+                return res;
             }
 
             function showToast(msg, type) {
@@ -1781,8 +1757,6 @@
                     var res = await saveCostItem(item);
                     if (res && res.success) {
                         bootstrap.Modal.getInstance(document.getElementById('costModal')).hide();
-                        showToast(res.localFallback ? 'Biaya tersimpan di browser. Tambahkan API biaya agar tersimpan ke database.' : 'Biaya berhasil disimpan',
-                                  res.localFallback ? 'info' : 'success');
                         await renderCostSection(currentDetailWOId);
                     } else {
                         showToast((res && res.message) || 'Gagal menyimpan biaya', 'error');

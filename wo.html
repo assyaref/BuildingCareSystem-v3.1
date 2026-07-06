@@ -586,10 +586,10 @@
                                 <div class="form-group">
                                     <label>Prioritas <span class="required">*</span></label>
                                     <select class="form-select" id="woPriority">
-                                        <option value="low">Low</option>
-                                        <option value="medium" selected>Medium</option>
-                                        <option value="high">High</option>
-                                        <option value="critical">Critical</option>
+                                        <option value="low">NORMAL</option>
+                                        <option value="medium">MEDIUM</option>
+                                        <option value="high">HIGH</option>
+                                        <option value="critical">URGENT</option>
                                     </select>
                                 </div>
                             </div>
@@ -1396,19 +1396,52 @@
                 });
                 if (!r) return;
 
-                var category = String(r.kategori || r.category || '').toUpperCase();
+                // Ambil nilai ASLI dari Report / History.
+                var reportCategory = String(r.kategori || r.category || '').trim().toUpperCase();
+                var reportPriority = String(r.prioritas || r.priority || 'NORMAL').trim().toUpperCase();
                 var location = r.lokasi || r.location || '';
                 var description = r.deskripsi || r.description || '';
-                var priority = String(r.prioritas || r.priority || 'medium').toLowerCase();
+
+                // Sinkron kategori History -> value kategori Work Order.
+                var categoryMap = {
+                    'AC': 'AC',
+                    'LISTRIK': 'LISTRIK',
+                    'AIR': 'AIR',
+                    'GEDUNG': 'GEDUNG',
+                    'KONDISI GEDUNG': 'GEDUNG',
+                    'KONDISI BANGUNAN': 'GEDUNG'
+                };
+
+                // Sinkron prioritas History -> value internal Work Order.
+                // Tampilan tetap mengikuti istilah Report: NORMAL / HIGH / URGENT.
+                var priorityMap = {
+                    'NORMAL': 'low',
+                    'LOW': 'low',
+                    'MEDIUM': 'medium',
+                    'HIGH': 'high',
+                    'URGENT': 'critical',
+                    'CRITICAL': 'critical'
+                };
+
+                var woCategoryValue = categoryMap[reportCategory] || reportCategory;
+                var woPriorityValue = priorityMap[reportPriority] || 'low';
 
                 document.getElementById('woTitle').value =
-                    'Perbaikan ' + (category || 'Kerusakan') + ' - ' + (location || reportId);
-                document.getElementById('woCategory').value = category;
+                    'Perbaikan ' + (reportCategory || 'Kerusakan') + ' - ' + (location || reportId);
+
+                document.getElementById('woCategory').value = woCategoryValue;
+                document.getElementById('woPriority').value = woPriorityValue;
                 document.getElementById('woDescription').value = description;
                 document.getElementById('woLocation').value = location;
-                document.getElementById('woPriority').value =
-                    ['low','medium','high','critical'].includes(priority) ? priority : 'medium';
                 document.getElementById('woStatus').value = 'open';
+
+                console.log('🔄 [WO] Sinkron dari History:', {
+                    reportId: reportId,
+                    kategoriHistory: reportCategory,
+                    kategoriWO: woCategoryValue,
+                    prioritasHistory: reportPriority,
+                    prioritasWO: woPriorityValue
+                });
             }
 
             document.getElementById('woReportId').addEventListener('change', function() {

@@ -1,31 +1,48 @@
 // ======================================================
 // BCS SERVICE WORKER
 // Building Care System Enterprise
-// Version 2.2 FINAL + FCM
+// Version 2.3.10 FINAL + FCM
+// Background Push + Status Style + Click Navigation
 // ======================================================
 
 "use strict";
 
-const CACHE_VERSION = "v2.2.0";
+const CACHE_VERSION = "v2.3.10";
 const CACHE_PREFIX = "bcs-cache-";
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
+
+// ======================================================
+// APP SHELL
+// ======================================================
 
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
+
+  // CSS
   "./assets/css/style.css",
   "./assets/css/login.css",
+
+  // Core JS
   "./assets/js/core/session.js",
   "./assets/js/core/app.js",
   "./assets/js/core/api.js",
   "./assets/js/core/storage.js",
   "./assets/js/core/ui.js",
   "./assets/js/core/utils.js",
+
+  // Modules
   "./assets/js/modules/auth.js",
   "./assets/js/modules/firebase-config.js",
+
+  // Config
   "./config/config.js",
+
+  // Images
   "./assets/img/logo.png",
+
+  // Icons
   "./assets/icons/favicon.ico",
   "./assets/icons/icon-72.png",
   "./assets/icons/icon-96.png",
@@ -37,53 +54,132 @@ const APP_SHELL = [
   "./assets/icons/icon-512.png"
 ];
 
+// ======================================================
+// INSTALL
+// Cache satu per satu agar satu file gagal tidak
+// membatalkan seluruh instalasi Service Worker.
+// ======================================================
+
 self.addEventListener("install", event => {
+  console.log(`[SW] Installing ${CACHE_NAME}...`);
+
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(async cache => {
-        await Promise.allSettled(
+        const results = await Promise.allSettled(
           APP_SHELL.map(async url => {
-            const request = new Request(url, { cache: "reload" });
-            const response = await fetch(request);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            await cache.put(request, response.clone());
+            try {
+              const request = new Request(url, {
+                cache: "reload"
+              });
+
+              const response = await fetch(request);
+
+              if (!response.ok) {
+                throw new Error(
+                  `HTTP ${response.status} ${response.statusText}`
+                );
+              }
+
+              await cache.put(
+                request,
+                response.clone()
+              );
+
+              console.log(`✅ [SW] Cached: ${url}`);
+
+            } catch (error) {
+              console.warn(
+                `⚠️ [SW] Failed to cache: ${url}`,
+                error.message
+              );
+
+              throw error;
+            }
           })
+        );
+
+        const successCount = results.filter(
+          item => item.status === "fulfilled"
+        ).length;
+
+        const failedCount = results.filter(
+          item => item.status === "rejected"
+        ).length;
+
+        console.log(
+          `[SW] Cache complete: ${successCount} success, ${failedCount} failed`
         );
       })
       .then(() => self.skipWaiting())
   );
 });
 
+// ======================================================
+// ACTIVATE
+// Hapus hanya cache lama milik BCS.
+// ======================================================
+
 self.addEventListener("activate", event => {
+  console.log(`[SW] Activating ${CACHE_NAME}...`);
+
   event.waitUntil(
     caches.keys()
-      .then(names => Promise.all(
-        names.map(name => {
-          if (
-            name.startsWith(CACHE_PREFIX) &&
-            name !== CACHE_NAME
-          ) {
-            return caches.delete(name);
-          }
-          return Promise.resolve(false);
-        })
-      ))
+      .then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            const isOldBCSCache =
+              cacheName.startsWith(CACHE_PREFIX) &&
+              cacheName !== CACHE_NAME;
+
+            if (isOldBCSCache) {
+              console.log(
+                `🗑️ [SW] Deleting old cache: ${cacheName}`
+              );
+
+              return caches.delete(cacheName);
+            }
+
+            return Promise.resolve(false);
+          })
+        );
+      })
       .then(() => self.clients.claim())
   );
 });
 
+// ======================================================
+// FETCH
+// Navigation = Network First
+// Static Asset = Cache First
+// GAS API / External Origin = tidak diintercept
+// ======================================================
+
 self.addEventListener("fetch", event => {
   const request = event.request;
-  if (request.method !== "GET") return;
+
+  if (request.method !== "GET") {
+    return;
+  }
 
   const url = new URL(request.url);
 
+  // Jangan intercept Google Apps Script API
   if (
     url.hostname === "script.google.com" ||
     url.hostname === "script.googleusercontent.com"
-  ) return;
+  ) {
+    return;
+  }
 
-  if (url.origin !== self.location.origin) return;
+  // Jangan intercept CDN / external origin
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  // ====================================================
+  // HTML / NAVIGATION = NETWORK FIRST
+  // ====================================================
 
   if (
     request.mode === "navigate" ||
@@ -94,39 +190,84 @@ self.addEventListener("fetch", event => {
         .then(response => {
           if (response && response.ok) {
             const clone = response.clone();
+
             caches.open(CACHE_NAME)
-              .then(cache => cache.put(request, clone))
+              .then(cache => {
+                cache.put(request, clone);
+              })
               .catch(() => {});
           }
+
           return response;
         })
         .catch(async () => {
-          return (
-            await caches.match(request) ||
-            await caches.match("./index.html") ||
-            new Response("Building Care System sedang offline.", {
+          const cached =
+            await caches.match(request);
+
+          if (cached) {
+            return cached;
+          }
+
+          const indexFallback =
+            await caches.match("./index.html");
+
+          if (indexFallback) {
+            return indexFallback;
+          }
+
+          return new Response(
+            "Building Care System sedang offline.",
+            {
               status: 503,
-              headers: { "Content-Type": "text/plain; charset=utf-8" }
-            })
+              statusText: "Offline",
+              headers: {
+                "Content-Type":
+                  "text/plain; charset=utf-8"
+              }
+            }
           );
         })
     );
+
     return;
   }
 
+  // ====================================================
+  // STATIC ASSETS = CACHE FIRST
+  // ====================================================
+
   event.respondWith(
     caches.match(request)
-      .then(cached => {
-        if (cached) return cached;
+      .then(cachedResponse => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
 
         return fetch(request)
           .then(response => {
-            if (!response || !response.ok) return response;
+            if (
+              !response ||
+              !response.ok
+            ) {
+              return response;
+            }
 
-            const clone = response.clone();
+            const responseToCache =
+              response.clone();
+
             caches.open(CACHE_NAME)
-              .then(cache => cache.put(request, clone))
-              .catch(() => {});
+              .then(cache => {
+                cache.put(
+                  request,
+                  responseToCache
+                );
+              })
+              .catch(error => {
+                console.warn(
+                  "[SW] Runtime cache failed:",
+                  error
+                );
+              });
 
             return response;
           });
@@ -134,89 +275,260 @@ self.addEventListener("fetch", event => {
   );
 });
 
-// FCM background message dikirim sebagai Web Push.
-// Handler ini menampilkan notifikasi jika payload push diterima.
+// ======================================================
+// PUSH NOTIFICATION
+// Bekerja saat BCS background atau ditutup.
+// ======================================================
+
 self.addEventListener("push", event => {
-  let data = {};
+  console.log("🔔 [SW] Push event received");
+
+  let payload = {};
 
   try {
-    data = event.data ? event.data.json() : {};
-  } catch (e) {
-    data = {
+    payload =
+      event.data
+        ? event.data.json()
+        : {};
+  } catch (error) {
+    payload = {
       notification: {
         title: "Building Care System",
-        body: event.data ? event.data.text() : "Ada pembaruan laporan."
+        body:
+          event.data
+            ? event.data.text()
+            : "Ada pembaruan laporan."
       }
     };
   }
 
-  const notification = data.notification || {};
-  const messageData = data.data || {};
+  const notification =
+    payload.notification || {};
+
+  const messageData =
+    payload.data || {};
+
+  const status = String(
+    messageData.status || ""
+  ).toUpperCase();
+
+  const reportId = String(
+    messageData.reportId || ""
+  );
+
+  // ====================================================
+  // STYLE BERDASARKAN STATUS
+  // ====================================================
+
+  let defaultTitle =
+    "🔔 Building Care System";
+
+  let defaultBody =
+    "Ada pembaruan status laporan.";
+
+  let vibration =
+    [200, 100, 200];
+
+  if (status === "OPEN") {
+    defaultTitle =
+      "🔵 Laporan Baru";
+
+    defaultBody =
+      reportId
+        ? `Laporan ${reportId} telah diterima.`
+        : "Ada laporan baru yang telah diterima.";
+
+    vibration =
+      [180, 80, 180];
+  }
+
+  if (status === "PROGRESS") {
+    defaultTitle =
+      "🟠 Laporan Sedang Diproses";
+
+    defaultBody =
+      reportId
+        ? `Laporan ${reportId} sedang ditangani.`
+        : "Laporan sedang dalam proses penanganan.";
+
+    vibration =
+      [200, 100, 200, 100, 300];
+  }
+
+  if (status === "DONE") {
+    defaultTitle =
+      "🟢 Pekerjaan Selesai";
+
+    defaultBody =
+      reportId
+        ? `Laporan ${reportId} telah selesai ditangani.`
+        : "Pekerjaan telah selesai ditangani.";
+
+    vibration =
+      [120, 70, 120, 70, 350];
+  }
 
   const title =
     notification.title ||
-    "Building Care System";
+    defaultTitle;
+
+  const body =
+    notification.body ||
+    defaultBody;
+
+  const targetUrl =
+    messageData.url ||
+    "./user-history.html";
 
   const options = {
-    body:
-      notification.body ||
-      "Ada pembaruan status laporan.",
-    icon: "./assets/icons/icon-192.png",
-    badge: "./assets/icons/icon-96.png",
+    body: body,
+
+    icon:
+      "./assets/icons/icon-192.png",
+
+    badge:
+      "./assets/icons/icon-96.png",
+
+    // PROGRESS dan DONE untuk report yang sama
+    // memiliki tag berbeda.
     tag:
-      messageData.reportId ||
-      "bcs-notification",
+      `bcs-${reportId || "notification"}-${status || "update"}`,
+
     renotify: true,
-    vibrate: [200, 100, 200],
+
+    vibrate: vibration,
+
+    timestamp: Date.now(),
+
     data: {
-      url:
-        messageData.url ||
-        "./history.html",
-      reportId:
-        messageData.reportId ||
-        "",
-      status:
-        messageData.status ||
-        ""
-    }
+      url: targetUrl,
+      reportId: reportId,
+      status: status
+    },
+
+    actions: [
+      {
+        action: "open",
+        title: "Lihat Laporan"
+      },
+      {
+        action: "close",
+        title: "Tutup"
+      }
+    ]
   };
 
   event.waitUntil(
-    self.registration.showNotification(title, options)
+    self.registration
+      .showNotification(
+        title,
+        options
+      )
+      .then(() => {
+        console.log(
+          `✅ [SW] Notification shown: ${status || "UPDATE"} ${reportId}`
+        );
+      })
+      .catch(error => {
+        console.error(
+          "❌ [SW] Failed to show notification:",
+          error
+        );
+      })
   );
 });
 
-self.addEventListener("notificationclick", event => {
-  event.notification.close();
+// ======================================================
+// NOTIFICATION CLICK
+// ======================================================
 
-  const targetUrl =
-    event.notification.data?.url ||
-    "./history.html";
+self.addEventListener(
+  "notificationclick",
+  event => {
+    console.log(
+      "[SW] Notification clicked:",
+      event.action
+    );
 
-  event.waitUntil(
-    self.clients.matchAll({
-      type: "window",
-      includeUncontrolled: true
-    })
-    .then(clientList => {
-      for (const client of clientList) {
-        if ("navigate" in client && "focus" in client) {
-          return client.navigate(targetUrl)
-            .then(() => client.focus());
+    event.notification.close();
+
+    // Tombol Tutup tidak membuka aplikasi
+    if (event.action === "close") {
+      return;
+    }
+
+    const targetUrl =
+      event.notification.data?.url ||
+      "./user-history.html";
+
+    const absoluteUrl =
+      new URL(
+        targetUrl,
+        self.location.origin
+      ).href;
+
+    event.waitUntil(
+      self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true
+      })
+      .then(clientList => {
+        // Jika BCS sudah terbuka, arahkan dan fokuskan
+        for (const client of clientList) {
+          if (
+            "focus" in client &&
+            "navigate" in client
+          ) {
+            return client
+              .navigate(absoluteUrl)
+              .then(() => client.focus());
+          }
         }
-      }
 
-      return self.clients.openWindow
-        ? self.clients.openWindow(targetUrl)
-        : null;
-    })
+        // Jika BCS tertutup, buka halaman tujuan
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(
+            absoluteUrl
+          );
+        }
+
+        return null;
+      })
   );
 });
+
+// ======================================================
+// NOTIFICATION CLOSE
+// ======================================================
+
+self.addEventListener(
+  "notificationclose",
+  event => {
+    console.log(
+      "[SW] Notification closed:",
+      event.notification.data?.status || "UNKNOWN",
+      event.notification.data?.reportId || ""
+    );
+  }
+);
+
+// ======================================================
+// MESSAGE HANDLER
+// ======================================================
 
 self.addEventListener("message", event => {
-  if (event.data?.type === "SKIP_WAITING") {
+  if (
+    event.data &&
+    event.data.type === "SKIP_WAITING"
+  ) {
+    console.log(
+      "[SW] Skip waiting requested"
+    );
+
     self.skipWaiting();
   }
 });
 
-console.log(`✅ [SW] Service Worker ${CACHE_VERSION} + FCM loaded`);
+console.log(
+  `✅ [SW] Service Worker ${CACHE_VERSION} FINAL + FCM loaded`
+);

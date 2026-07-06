@@ -756,7 +756,7 @@
         }
 
         @keyframes successOverlayOut {
-            to { opacity: 0; transform: scale(1.025); }
+            to { opacity: 1; transform: scale(1.025); }
         }
 
         @media (max-width: 480px) {
@@ -1055,6 +1055,15 @@
                     'user-report.html';
 
                 hideLoading();
+
+                // Sembunyikan halaman login agar tidak muncul kembali
+                const loginWrapper = document.querySelector('.login-wrapper');
+                if (loginWrapper) {
+                    loginWrapper.style.display = 'none';
+                }
+
+                document.body.style.background = '#f7f9ff';
+
                 successUserName.textContent = displayName;
                 successOverlay.setAttribute('aria-hidden', 'false');
 

@@ -1464,7 +1464,13 @@
                     chart.getDatasetMeta(0).data.forEach(function(bar, i) {
                         var value = Number(values[i] || 0);
                         var pct = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
-                        ctx.fillText(value + ' (' + pct + '%)', bar.x, bar.y - 8);
+
+                        // Jaga label tetap berada di dalam area chart.
+                        // Ini mencegah label batang tertinggi (DONE) terpotong.
+                        var chartTop = chart.chartArea ? chart.chartArea.top : 0;
+                        var labelY = Math.max(bar.y - 8, chartTop + 20);
+
+                        ctx.fillText(value + ' (' + pct + '%)', bar.x, labelY);
                     });
                     ctx.restore();
                 }
@@ -1498,8 +1504,20 @@
                                 }
                             }
                         },
-                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } },
-                                grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } }
+                        layout: {
+                            padding: {
+                                top: 22
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grace: '15%',
+                                ticks: { stepSize: 1, font: { size: 11 } },
+                                grid: { color: 'rgba(0,0,0,0.05)' }
+                            },
+                            x: { grid: { display: false } }
+                        }
                     }
                 });
             }

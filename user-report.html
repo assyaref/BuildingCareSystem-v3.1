@@ -464,6 +464,15 @@
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-6px); }
     }
+  
+    /* Smartphone Push Notification Card */
+    .push-card{margin-bottom:18px;padding:14px;border:1px solid #dbeafe;border-radius:16px;background:linear-gradient(145deg,#f8fbff,#eef4ff)}
+    .push-row{display:flex;align-items:center;gap:12px}
+    .push-icon{width:44px;height:44px;flex-shrink:0;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#1e5eff;color:#fff;font-size:18px;box-shadow:0 8px 20px rgba(30,94,255,.22)}
+    .push-info{min-width:0;flex:1}.push-title{font-size:13px;font-weight:800;color:#0f172a}.push-desc{margin-top:2px;font-size:10px;line-height:1.45;color:#64748b}
+    .push-btn{border:0;border-radius:11px;padding:9px 11px;background:#1e5eff;color:#fff;font-size:10px;font-weight:800;white-space:nowrap}
+    .push-btn.active{background:#dcfce7;color:#15803d}.push-btn:disabled{opacity:.65}
+
   </style>
 </head>
 <body>
@@ -493,6 +502,19 @@
 
   <!-- Content -->
   <div class="scroll-content bg-white rounded-t-2xl px-5 pt-5 pb-4">
+
+    <!-- Smartphone Push Notification -->
+    <div class="push-card" id="pushNotificationCard">
+      <div class="push-row">
+        <div class="push-icon"><i class="fa-solid fa-bell"></i></div>
+        <div class="push-info">
+          <div class="push-title">Notifikasi Smartphone</div>
+          <div class="push-desc" id="pushNotificationText">Terima update status laporan langsung di HP.</div>
+        </div>
+        <button class="push-btn" id="enableNotificationBtn" type="button">Aktifkan</button>
+      </div>
+    </div>
+
     <!-- Lokasi -->
     <div class="mb-4">
       <label class="block text-sm font-bold text-gray-800 mb-1.5">Lokasi Kerusakan</label>
@@ -659,6 +681,77 @@
 
       Swal.fire(config);
     }
+
+
+    // =============================================
+    // SMARTPHONE PUSH NOTIFICATION
+    // =============================================
+    const enableNotificationBtn = document.getElementById('enableNotificationBtn');
+    const pushNotificationText = document.getElementById('pushNotificationText');
+
+    function updatePushNotificationUI() {
+      if (!enableNotificationBtn || !pushNotificationText) return;
+
+      if (!('Notification' in window)) {
+        enableNotificationBtn.textContent = 'Tidak didukung';
+        enableNotificationBtn.disabled = true;
+        pushNotificationText.textContent = 'Browser ini belum mendukung notifikasi.';
+        return;
+      }
+
+      if (Notification.permission === 'granted' && localStorage.getItem('BCS_FCM_TOKEN')) {
+        enableNotificationBtn.textContent = 'Aktif';
+        enableNotificationBtn.classList.add('active');
+        enableNotificationBtn.disabled = true;
+        pushNotificationText.textContent = 'Perangkat ini siap menerima update OPEN, PROGRESS, dan DONE.';
+      } else if (Notification.permission === 'denied') {
+        enableNotificationBtn.textContent = 'Diblokir';
+        enableNotificationBtn.disabled = true;
+        pushNotificationText.textContent = 'Izin notifikasi diblokir. Aktifkan dari pengaturan browser.';
+      }
+    }
+
+    enableNotificationBtn?.addEventListener('click', async function() {
+      const oldText = this.textContent;
+      this.disabled = true;
+      this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+      try {
+        if (!window.BCSPush) {
+          throw new Error('Modul notifikasi belum siap. Muat ulang halaman.');
+        }
+
+        const result = await window.BCSPush.enable();
+
+        if (result?.success) {
+          this.textContent = 'Aktif';
+          this.classList.add('active');
+          pushNotificationText.textContent = 'Perangkat ini siap menerima update OPEN, PROGRESS, dan DONE.';
+
+          if (typeof showCenterAlert === 'function') {
+            showCenterAlert('success', '🔔 Notifikasi smartphone berhasil diaktifkan');
+          }
+        } else {
+          this.textContent = oldText;
+          this.disabled = false;
+          pushNotificationText.textContent = 'Izin notifikasi belum diberikan.';
+        }
+      } catch (error) {
+        console.error('[Push Notification]', error);
+        this.textContent = oldText;
+        this.disabled = false;
+        pushNotificationText.textContent = 'Gagal mengaktifkan. Coba lagi.';
+
+        if (typeof showCenterAlert === 'function') {
+          showCenterAlert('error', '❌ ' + error.message);
+        } else {
+          alert(error.message);
+        }
+      }
+    });
+
+    updatePushNotificationUI();
+
 
     // =============================================
     // 1. LOAD USER DATA

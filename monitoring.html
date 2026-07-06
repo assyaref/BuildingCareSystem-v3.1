@@ -1044,16 +1044,16 @@
                                 <div class="row g-3 mb-4">
                                     <div class="col-xl-3 col-md-6">
                                         <div class="cost-metric blue">
-                                            <div class="cost-metric-label">Total Biaya</div>
+                                            <div class="cost-metric-label">Total Keseluruhan Biaya WO</div>
                                             <div class="cost-metric-value" id="costTotalAll">Rp 0</div>
-                                            <div class="cost-metric-note">Seluruh Work Order Selesai</div>
+                                            <div class="cost-metric-note">Tidak berubah saat filter bulan</div>
                                         </div>
                                     </div>
                                     <div class="col-xl-3 col-md-6">
                                         <div class="cost-metric green">
-                                            <div class="cost-metric-label">Bulan Ini</div>
+                                            <div class="cost-metric-label" id="costFilteredMonthLabel">Biaya Per Bulan</div>
                                             <div class="cost-metric-value" id="costThisMonth">Rp 0</div>
-                                            <div class="cost-metric-note">Total Biaya</div>
+                                            <div class="cost-metric-note" id="costCurrentMonthText">Semua Bulan</div>
                                         </div>
                                     </div>
                                     <div class="col-xl-3 col-md-6">
@@ -1243,6 +1243,34 @@
                 } else {
                     icon.className = 'bi bi-moon-fill';
                     icon.style.color = '';
+                }
+            }
+
+            // =============================================
+            // LABEL BULAN BERJALAN UNTUK ANALISIS BIAYA
+            // =============================================
+            function updateCostCurrentMonthText(selectedMonth) {
+                var monthNames = [
+                    'Januari', 'Februari', 'Maret', 'April',
+                    'Mei', 'Juni', 'Juli', 'Agustus',
+                    'September', 'Oktober', 'November', 'Desember'
+                ];
+                var now = new Date();
+                var labelEl = document.getElementById('costFilteredMonthLabel');
+                var noteEl = document.getElementById('costCurrentMonthText');
+
+                if (selectedMonth === undefined || selectedMonth === null) {
+                    var filterEl = document.getElementById('costMonthFilter');
+                    selectedMonth = filterEl ? filterEl.value : 'all';
+                }
+
+                if (selectedMonth === 'all') {
+                    if (labelEl) labelEl.textContent = 'Biaya Per Bulan';
+                    if (noteEl) noteEl.textContent = 'Semua Bulan ' + now.getFullYear();
+                } else {
+                    var monthName = monthNames[Number(selectedMonth)] || '-';
+                    if (labelEl) labelEl.textContent = 'Biaya ' + monthName;
+                    if (noteEl) noteEl.textContent = 'Hasil Filter ' + monthName + ' ' + now.getFullYear();
                 }
             }
 
@@ -1935,59 +1963,65 @@
 
                     var filterEl = document.getElementById('costMonthFilter');
                     var selectedMonth = filterEl ? filterEl.value : 'all';
+                    var now = new Date();
+                    var currentYear = now.getFullYear();
 
+                    // TOTAL KESELURUHAN: tidak pernah berubah saat filter bulan.
+                    var totalAll = completed.reduce(function(sum, wo) {
+                        return sum + Number(wo.total_biaya || 0);
+                    }, 0);
+
+                    // DATA HASIL FILTER untuk kartu bulanan, kategori, dan tren.
                     var filteredCompleted = completed.filter(function(wo) {
-                        if (selectedMonth === 'all') return true;
                         var d = parseWODate(wo.completed_date || wo.updated_at || wo.created_at);
-                        return !!d && d.getMonth() === Number(selectedMonth);
+                        if (!d || d.getFullYear() !== currentYear) return false;
+                        if (selectedMonth === 'all') return true;
+                        return d.getMonth() === Number(selectedMonth);
                     });
 
                     var totalFiltered = filteredCompleted.reduce(function(sum, wo) {
                         return sum + Number(wo.total_biaya || 0);
                     }, 0);
 
-                    var now = new Date();
-                    var thisMonth = completed.reduce(function(sum, wo) {
-                        var d = parseWODate(wo.completed_date || wo.updated_at || wo.created_at);
-                        if (d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-                            return sum + Number(wo.total_biaya || 0);
-                        }
-                        return sum;
-                    }, 0);
-
-                    var average = filteredCompleted.length ? totalFiltered / filteredCompleted.length : 0;
+                    var average = filteredCompleted.length
+                        ? totalFiltered / filteredCompleted.length
+                        : 0;
 
                     var elTotal = document.getElementById('costTotalAll');
                     var elMonth = document.getElementById('costThisMonth');
                     var elAvg = document.getElementById('costAverageWO');
                     var elDone = document.getElementById('costDoneCount');
-                    if (elTotal) elTotal.textContent = moneyIDR(totalFiltered);
-                    if (elMonth) elMonth.textContent = moneyIDR(thisMonth);
+
+                    if (elTotal) elTotal.textContent = moneyIDR(totalAll);
+                    if (elMonth) elMonth.textContent = moneyIDR(totalFiltered);
                     if (elAvg) elAvg.textContent = moneyIDR(average);
                     if (elDone) elDone.textContent = filteredCompleted.length;
 
+                    updateCostCurrentMonthText(selectedMonth);
+
+                    // BIAYA PER KATEGORI mengikuti filter bulan.
                     var categoryMap = {};
                     filteredCompleted.forEach(function(wo) {
-                        var category = String(wo.category || wo.category_id || wo.kategori || 'LAINNYA').toUpperCase();
-                        categoryMap[category] = (categoryMap[category] || 0) + Number(wo.total_biaya || 0);
+                        var category = String(
+                            wo.category || wo.category_id || wo.kategori || 'LAINNYA'
+                        ).toUpperCase();
+
+                        categoryMap[category] =
+                            (categoryMap[category] || 0) +
+                            Number(wo.total_biaya || 0);
                     });
 
+                    // TREN BIAYA BULANAN mengikuti filter.
                     var monthValues = new Array(12).fill(0);
-                    completed.forEach(function(wo) {
+                    filteredCompleted.forEach(function(wo) {
                         var d = parseWODate(wo.completed_date || wo.updated_at || wo.created_at);
-                        if (d && d.getFullYear() === now.getFullYear()) {
-                            monthValues[d.getMonth()] += Number(wo.total_biaya || 0);
-                        }
+                        if (!d) return;
+                        monthValues[d.getMonth()] += Number(wo.total_biaya || 0);
                     });
-
-                    if (selectedMonth !== 'all') {
-                        monthValues = monthValues.map(function(value, index) {
-                            return index === Number(selectedMonth) ? value : 0;
-                        });
-                    }
 
                     renderCostCategoryChart(categoryMap);
                     renderCostMonthlyChart(monthValues);
+
                 } catch (error) {
                     console.error('Cost analysis error:', error);
                 }
@@ -2431,7 +2465,8 @@
             // INIT
             // =============================================
             async function init() {
-                if (!checkAdminAccess()) {
+                
+                updateCostCurrentMonthText();if (!checkAdminAccess()) {
                     return;
                 }
 

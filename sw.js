@@ -1,47 +1,31 @@
 // ======================================================
 // BCS SERVICE WORKER
 // Building Care System Enterprise
-// Version 2.0 FINAL
-// GitHub Pages Safe + Resilient Cache
+// Version 2.2 FINAL + FCM
 // ======================================================
 
 "use strict";
 
-const CACHE_VERSION = "v2.0.0";
+const CACHE_VERSION = "v2.2.0";
 const CACHE_PREFIX = "bcs-cache-";
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
-
-// ======================================================
-// APP SHELL
-// ======================================================
 
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
-
-  // CSS
   "./assets/css/style.css",
   "./assets/css/login.css",
-
-  // Core JS
   "./assets/js/core/session.js",
   "./assets/js/core/app.js",
   "./assets/js/core/api.js",
   "./assets/js/core/storage.js",
   "./assets/js/core/ui.js",
   "./assets/js/core/utils.js",
-
-  // Modules
   "./assets/js/modules/auth.js",
-
-  // Config
+  "./assets/js/modules/firebase-config.js",
   "./config/config.js",
-
-  // Images
   "./assets/img/logo.png",
-
-  // Icons
   "./assets/icons/favicon.ico",
   "./assets/icons/icon-72.png",
   "./assets/icons/icon-96.png",
@@ -53,168 +37,53 @@ const APP_SHELL = [
   "./assets/icons/icon-512.png"
 ];
 
-// ======================================================
-// INSTALL
-// Cache asset satu per satu.
-// Satu file gagal tidak membatalkan seluruh instalasi.
-// ======================================================
-
 self.addEventListener("install", event => {
-  console.log(
-    `[SW] Installing ${CACHE_NAME}...`
-  );
-
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(async cache => {
-
-        console.log(
-          `[SW] Caching ${APP_SHELL.length} app shell files...`
-        );
-
-        const results = await Promise.allSettled(
+        await Promise.allSettled(
           APP_SHELL.map(async url => {
-            try {
-              const request = new Request(url, {
-                cache: "reload"
-              });
-
-              const response = await fetch(request);
-
-              if (!response.ok) {
-                throw new Error(
-                  `HTTP ${response.status} ${response.statusText}`
-                );
-              }
-
-              await cache.put(request, response.clone());
-
-              console.log(
-                `✅ [SW] Cached: ${url}`
-              );
-
-              return url;
-
-            } catch (error) {
-
-              console.warn(
-                `⚠️ [SW] Failed to cache: ${url}`,
-                error.message
-              );
-
-              throw error;
-            }
+            const request = new Request(url, { cache: "reload" });
+            const response = await fetch(request);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            await cache.put(request, response.clone());
           })
         );
-
-        const successCount = results.filter(
-          result => result.status === "fulfilled"
-        ).length;
-
-        const failedCount = results.filter(
-          result => result.status === "rejected"
-        ).length;
-
-        console.log(
-          `✅ [SW] Cache complete: ${successCount} success, ${failedCount} failed`
-        );
-
-        return true;
       })
-      .then(() => {
-        console.log(
-          "✅ [SW] Installation complete"
-        );
-
-        return self.skipWaiting();
-      })
-      .catch(error => {
-        console.error(
-          "❌ [SW] Installation error:",
-          error
-        );
-      })
+      .then(() => self.skipWaiting())
   );
 });
-
-// ======================================================
-// ACTIVATE
-// Hapus cache BCS versi lama.
-// Cache lain milik domain tidak disentuh.
-// ======================================================
 
 self.addEventListener("activate", event => {
-  console.log(
-    `[SW] Activating ${CACHE_NAME}...`
-  );
-
   event.waitUntil(
     caches.keys()
-      .then(cacheNames => {
-        return Promise.all(
-          cacheNames.map(cacheName => {
-
-            const isOldBCSCache =
-              cacheName.startsWith(CACHE_PREFIX) &&
-              cacheName !== CACHE_NAME;
-
-            if (isOldBCSCache) {
-              console.log(
-                `🗑️ [SW] Deleting old cache: ${cacheName}`
-              );
-
-              return caches.delete(cacheName);
-            }
-
-            return Promise.resolve(false);
-          })
-        );
-      })
-      .then(() => {
-        console.log(
-          "✅ [SW] Activated and controlling clients"
-        );
-
-        return self.clients.claim();
-      })
+      .then(names => Promise.all(
+        names.map(name => {
+          if (
+            name.startsWith(CACHE_PREFIX) &&
+            name !== CACHE_NAME
+          ) {
+            return caches.delete(name);
+          }
+          return Promise.resolve(false);
+        })
+      ))
+      .then(() => self.clients.claim())
   );
 });
-
-// ======================================================
-// FETCH
-// Strategy:
-// 1. Navigation / HTML = Network First
-// 2. Static assets = Cache First
-// 3. API / external request = Network Only
-// ======================================================
 
 self.addEventListener("fetch", event => {
   const request = event.request;
-
-  // Hanya handle GET
-  if (request.method !== "GET") {
-    return;
-  }
+  if (request.method !== "GET") return;
 
   const url = new URL(request.url);
 
-  // Jangan intercept Google Apps Script API
   if (
     url.hostname === "script.google.com" ||
     url.hostname === "script.googleusercontent.com"
-  ) {
-    return;
-  }
+  ) return;
 
-  // Jangan intercept external origin / CDN
-  if (url.origin !== self.location.origin) {
-    return;
-  }
-
-  // ====================================================
-  // HTML / NAVIGATION
-  // Network First
-  // ====================================================
+  if (url.origin !== self.location.origin) return;
 
   if (
     request.mode === "navigate" ||
@@ -223,94 +92,41 @@ self.addEventListener("fetch", event => {
     event.respondWith(
       fetch(request)
         .then(response => {
-
-          if (
-            response &&
-            response.ok
-          ) {
+          if (response && response.ok) {
             const clone = response.clone();
-
             caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(request, clone);
-              })
+              .then(cache => cache.put(request, clone))
               .catch(() => {});
           }
-
           return response;
         })
         .catch(async () => {
-
-          const cached =
-            await caches.match(request);
-
-          if (cached) {
-            return cached;
-          }
-
-          const indexFallback =
-            await caches.match("./index.html");
-
-          if (indexFallback) {
-            return indexFallback;
-          }
-
-          return new Response(
-            "Building Care System sedang offline.",
-            {
+          return (
+            await caches.match(request) ||
+            await caches.match("./index.html") ||
+            new Response("Building Care System sedang offline.", {
               status: 503,
-              statusText: "Offline",
-              headers: {
-                "Content-Type":
-                  "text/plain; charset=utf-8"
-              }
-            }
+              headers: { "Content-Type": "text/plain; charset=utf-8" }
+            })
           );
         })
     );
-
     return;
   }
 
-  // ====================================================
-  // STATIC ASSETS
-  // Cache First
-  // ====================================================
-
   event.respondWith(
     caches.match(request)
-      .then(cachedResponse => {
-
-        if (cachedResponse) {
-          return cachedResponse;
-        }
+      .then(cached => {
+        if (cached) return cached;
 
         return fetch(request)
           .then(response => {
+            if (!response || !response.ok) return response;
 
-            if (
-              !response ||
-              !response.ok
-            ) {
-              return response;
-            }
-
-            const responseToCache =
-              response.clone();
-
+            const clone = response.clone();
             caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(
-                  request,
-                  responseToCache
-                );
-              })
-              .catch(error => {
-                console.warn(
-                  "[SW] Runtime cache failed:",
-                  error
-                );
-              });
+              .then(cache => cache.put(request, clone))
+              .catch(() => {});
 
             return response;
           });
@@ -318,24 +134,89 @@ self.addEventListener("fetch", event => {
   );
 });
 
-// ======================================================
-// MESSAGE HANDLER
-// Bisa dipanggil dari frontend untuk update SW.
-// ======================================================
+// FCM background message dikirim sebagai Web Push.
+// Handler ini menampilkan notifikasi jika payload push diterima.
+self.addEventListener("push", event => {
+  let data = {};
+
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (e) {
+    data = {
+      notification: {
+        title: "Building Care System",
+        body: event.data ? event.data.text() : "Ada pembaruan laporan."
+      }
+    };
+  }
+
+  const notification = data.notification || {};
+  const messageData = data.data || {};
+
+  const title =
+    notification.title ||
+    "Building Care System";
+
+  const options = {
+    body:
+      notification.body ||
+      "Ada pembaruan status laporan.",
+    icon: "./assets/icons/icon-192.png",
+    badge: "./assets/icons/icon-96.png",
+    tag:
+      messageData.reportId ||
+      "bcs-notification",
+    renotify: true,
+    vibrate: [200, 100, 200],
+    data: {
+      url:
+        messageData.url ||
+        "./history.html",
+      reportId:
+        messageData.reportId ||
+        "",
+      status:
+        messageData.status ||
+        ""
+    }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+
+  const targetUrl =
+    event.notification.data?.url ||
+    "./history.html";
+
+  event.waitUntil(
+    self.clients.matchAll({
+      type: "window",
+      includeUncontrolled: true
+    })
+    .then(clientList => {
+      for (const client of clientList) {
+        if ("navigate" in client && "focus" in client) {
+          return client.navigate(targetUrl)
+            .then(() => client.focus());
+        }
+      }
+
+      return self.clients.openWindow
+        ? self.clients.openWindow(targetUrl)
+        : null;
+    })
+  );
+});
 
 self.addEventListener("message", event => {
-  if (
-    event.data &&
-    event.data.type === "SKIP_WAITING"
-  ) {
-    console.log(
-      "[SW] Skip waiting requested"
-    );
-
+  if (event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 });
 
-console.log(
-  `✅ [SW] Service Worker ${CACHE_VERSION} loaded`
-);
+console.log(`✅ [SW] Service Worker ${CACHE_VERSION} + FCM loaded`);

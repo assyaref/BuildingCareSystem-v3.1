@@ -8,7 +8,7 @@
 "use strict";
 
 const BCS_FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCp6c807_EPAPi3LHBvv0Y9-JGKYifOFNU",
+  apiKey: "AIzaSyCp6c807_EPAPj3LHBvv0Y9-JGKYifOFNU",
   authDomain: "building-care-system.firebaseapp.com",
   projectId: "building-care-system",
   storageBucket: "building-care-system.firebasestorage.app",

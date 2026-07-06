@@ -1021,7 +1021,24 @@
                                 <span class="fw-semibold" style="color:var(--text-primary);">
                                     <i class="bi bi-cash-stack me-2 text-primary"></i>Analisis Total Biaya Perbaikan
                                 </span>
-                                <small class="text-secondary">Data Work Order & biaya perbaikan</small>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <small class="text-secondary me-1">Data Work Order & biaya perbaikan</small>
+                                    <select id="costMonthFilter" class="filter-select form-select-sm" style="width:auto;">
+                                        <option value="all">Semua Bulan</option>
+                                        <option value="0">Januari</option>
+                                        <option value="1">Februari</option>
+                                        <option value="2">Maret</option>
+                                        <option value="3">April</option>
+                                        <option value="4">Mei</option>
+                                        <option value="5">Juni</option>
+                                        <option value="6">Juli</option>
+                                        <option value="7">Agustus</option>
+                                        <option value="8">September</option>
+                                        <option value="9">Oktober</option>
+                                        <option value="10">November</option>
+                                        <option value="11">Desember</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="card-body p-4">
                                 <div class="row g-3 mb-4">
@@ -1916,7 +1933,16 @@
                         return status === 'completed' || status === 'done' || status === 'selesai';
                     });
 
-                    var totalAll = completed.reduce(function(sum, wo) {
+                    var filterEl = document.getElementById('costMonthFilter');
+                    var selectedMonth = filterEl ? filterEl.value : 'all';
+
+                    var filteredCompleted = completed.filter(function(wo) {
+                        if (selectedMonth === 'all') return true;
+                        var d = parseWODate(wo.completed_date || wo.updated_at || wo.created_at);
+                        return !!d && d.getMonth() === Number(selectedMonth);
+                    });
+
+                    var totalFiltered = filteredCompleted.reduce(function(sum, wo) {
                         return sum + Number(wo.total_biaya || 0);
                     }, 0);
 
@@ -1929,19 +1955,19 @@
                         return sum;
                     }, 0);
 
-                    var average = completed.length ? totalAll / completed.length : 0;
+                    var average = filteredCompleted.length ? totalFiltered / filteredCompleted.length : 0;
 
                     var elTotal = document.getElementById('costTotalAll');
                     var elMonth = document.getElementById('costThisMonth');
                     var elAvg = document.getElementById('costAverageWO');
                     var elDone = document.getElementById('costDoneCount');
-                    if (elTotal) elTotal.textContent = moneyIDR(totalAll);
+                    if (elTotal) elTotal.textContent = moneyIDR(totalFiltered);
                     if (elMonth) elMonth.textContent = moneyIDR(thisMonth);
                     if (elAvg) elAvg.textContent = moneyIDR(average);
-                    if (elDone) elDone.textContent = completed.length;
+                    if (elDone) elDone.textContent = filteredCompleted.length;
 
                     var categoryMap = {};
-                    completed.forEach(function(wo) {
+                    filteredCompleted.forEach(function(wo) {
                         var category = String(wo.category || wo.category_id || wo.kategori || 'LAINNYA').toUpperCase();
                         categoryMap[category] = (categoryMap[category] || 0) + Number(wo.total_biaya || 0);
                     });
@@ -1953,6 +1979,12 @@
                             monthValues[d.getMonth()] += Number(wo.total_biaya || 0);
                         }
                     });
+
+                    if (selectedMonth !== 'all') {
+                        monthValues = monthValues.map(function(value, index) {
+                            return index === Number(selectedMonth) ? value : 0;
+                        });
+                    }
 
                     renderCostCategoryChart(categoryMap);
                     renderCostMonthlyChart(monthValues);
@@ -2412,6 +2444,10 @@
                 startLiveServerTime();
                 initFilters();
                 initToggleDetail();
+                var costMonthFilter = document.getElementById('costMonthFilter');
+                if (costMonthFilter) {
+                    costMonthFilter.addEventListener('change', loadCostAnalysis);
+                }
                 await loadMonitoring();
                 startAutoRefresh();
                 console.log('✅ Monitoring page initialized — Category-based monthly trend & month/date filters');

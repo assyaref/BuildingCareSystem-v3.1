@@ -1933,45 +1933,128 @@
             // =============================================
             // LOAD MONITORING DATA
             // =============================================
+            // ===== ACTUAL REPORT DATA ENGINE =====
+            var actualReportsCache = [];
+
+            function normalizeReportList(response) {
+                if (!response) return [];
+                if (Array.isArray(response)) return response;
+                if (Array.isArray(response.data)) return response.data;
+                if (response.data && Array.isArray(response.data.reports)) return response.data.reports;
+                if (Array.isArray(response.reports)) return response.reports;
+                return [];
+            }
+
+            function normalizeReportStatus(value) {
+                var s = String(value || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+                if (['completed','complete','done','selesai','closed'].indexOf(s) >= 0) return 'DONE';
+                if (['progress','in_progress','proses','diproses','on_progress'].indexOf(s) >= 0) return 'PROGRESS';
+                return 'OPEN';
+            }
+
+            function normalizeReportCategory(value) {
+                var c = String(value || '').trim().toUpperCase();
+                if (c === 'AC' || c.indexOf('AIR CONDITION') >= 0) return 'AC';
+                if (c.indexOf('LISTRIK') >= 0 || c.indexOf('ELECTRIC') >= 0) return 'LISTRIK';
+                return 'GEDUNG';
+            }
+
+            function parseReportDate(report) {
+                var fields = ['created_at','createdAt','tanggal','date','reported_at','report_date','waktu','timestamp'];
+                for (var i=0; i<fields.length; i++) {
+                    var raw = report[fields[i]];
+                    if (!raw) continue;
+                    var d = new Date(raw);
+                    if (!isNaN(d.getTime())) return d;
+                    var m = String(raw).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:\s+(\d{1,2}):(\d{1,2}))?/);
+                    if (m) {
+                        d = new Date(+m[3], +m[2]-1, +m[1], +(m[4]||0), +(m[5]||0));
+                        if (!isNaN(d.getTime())) return d;
+                    }
+                }
+                return null;
+            }
+
+            function localFilterDate(value, endOfDay) {
+                if (!value) return null;
+                var p=value.split('-');
+                return new Date(+p[0], +p[1]-1, +p[2], endOfDay?23:0, endOfDay?59:0, endOfDay?59:0, endOfDay?999:0);
+            }
+
+            function buildActualMonitoringData(reports) {
+                var month = DOM.filterMonth ? DOM.filterMonth.value : 'all';
+                var start = DOM.filterDateStart ? localFilterDate(DOM.filterDateStart.value, false) : null;
+                var end = DOM.filterDateEnd ? localFilterDate(DOM.filterDateEnd.value, true) : null;
+
+                var filtered = reports.filter(function(r) {
+                    var d=parseReportDate(r);
+                    if (!d) return false;
+                    if (month !== 'all' && d.getMonth() !== Number(month)) return false;
+                    if (start && d < start) return false;
+                    if (end && d > end) return false;
+                    return true;
+                });
+
+                var data={
+                    total:filtered.length, open:0, progress:0, done:0,
+                    ac:0, listrik:0, bangunan:0,
+                    totalTrend:0, openTrend:0, progressTrend:0, doneTrend:0,
+                    monthlyAC:new Array(12).fill(0),
+                    monthlyListrik:new Array(12).fill(0),
+                    monthlyGedung:new Array(12).fill(0),
+                    monthlyTotal:new Array(12).fill(0),
+                    lastUpdate:new Date().toLocaleString('id-ID'),
+                    activity:[]
+                };
+
+                filtered.forEach(function(r) {
+                    var status=normalizeReportStatus(r.status);
+                    if(status==='DONE') data.done++; else if(status==='PROGRESS') data.progress++; else data.open++;
+
+                    var cat=normalizeReportCategory(r.kategori || r.category || r.category_id);
+                    if(cat==='AC') data.ac++; else if(cat==='LISTRIK') data.listrik++; else data.bangunan++;
+
+                    var d=parseReportDate(r), m=d.getMonth();
+                    if(cat==='AC') data.monthlyAC[m]++;
+                    else if(cat==='LISTRIK') data.monthlyListrik[m]++;
+                    else data.monthlyGedung[m]++;
+                    data.monthlyTotal[m]++;
+                });
+
+                data.activity=filtered.slice().sort(function(a,b){
+                    return (parseReportDate(b)||0)-(parseReportDate(a)||0);
+                }).slice(0,6).map(function(r){
+                    var d=parseReportDate(r);
+                    return {
+                        kategori:r.kategori||r.category||'Report',
+                        lokasi:r.lokasi||r.location||'',
+                        status:normalizeReportStatus(r.status),
+                        waktu:d?d.toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'-'
+                    };
+                });
+                return data;
+            }
+
+            async function loadActualReports(forceFetch) {
+                if (forceFetch || !actualReportsCache.length) {
+                    var response=await BCS.Api.post('getReports',{});
+                    if (!response || response.success===false) throw new Error(response&&response.message?response.message:'Gagal mengambil laporan aktual');
+                    actualReportsCache=normalizeReportList(response);
+                }
+                var data=buildActualMonitoringData(actualReportsCache);
+                updateUI(data);
+                console.log('📊 ACTUAL FILTER RESULT', {raw:actualReportsCache.length, filtered:data.total});
+            }
+
             async function loadMonitoring() {
                 try {
                     BCS.App.Loading.show();
-
-                    var monthFilter = DOM.filterMonth ? DOM.filterMonth.value : 'all';
-                    var dateStart = DOM.filterDateStart ? DOM.filterDateStart.value : '';
-                    var dateEnd = DOM.filterDateEnd ? DOM.filterDateEnd.value : '';
-
-                    var filter = { month: monthFilter };
-                    if (dateStart) filter.dateStart = dateStart;
-                    if (dateEnd) filter.dateEnd = dateEnd;
-
-                    console.log('📊 Loading monitoring with filter:', filter);
-
-                    var response = await BCS.Api.post('getSummary', filter);
-                    console.log('📊 Monitoring response:', response);
-
-                    var data;
-                    if (!response || !response.success) {
-                        console.warn('Gagal load dari API, gunakan data dummy');
-                        data = generateDummyData(monthFilter, dateStart, dateEnd);
-                    } else {
-                        data = response.data || {};
-                        if (!data.total && data.total !== 0) {
-                            data = generateDummyData(monthFilter, dateStart, dateEnd);
-                        }
-                    }
-
-                    updateUI(data);
+                    await loadActualReports(true);
                     loadCostAnalysis();
-
                 } catch (error) {
-                    console.error('Monitoring error:', error);
-                    var monthFilter2 = DOM.filterMonth ? DOM.filterMonth.value : 'all';
-                    var dateStart2 = DOM.filterDateStart ? DOM.filterDateStart.value : '';
-                    var dateEnd2 = DOM.filterDateEnd ? DOM.filterDateEnd.value : '';
-                    var dummy = generateDummyData(monthFilter2, dateStart2, dateEnd2);
-                    updateUI(dummy);
-                    BCS.App.Toast.danger('Terjadi kesalahan, menggunakan data simulasi');
+                    console.error('Monitoring actual data error:', error);
+                    if (DOM.lastUpdate) DOM.lastUpdate.textContent='Gagal memuat data aktual';
+                    BCS.App.Toast.danger('Gagal memuat laporan aktual');
                 } finally {
                     BCS.App.Loading.hide();
                 }
@@ -2088,19 +2171,13 @@
                 }
 
                 if (DOM.filterMonth) {
-                    DOM.filterMonth.addEventListener('change', function() {
-                        loadMonitoring();
-                    });
+                    
                 }
                 if (DOM.filterDateStart) {
-                    DOM.filterDateStart.addEventListener('change', function() {
-                        loadMonitoring();
-                    });
+                    
                 }
                 if (DOM.filterDateEnd) {
-                    DOM.filterDateEnd.addEventListener('change', function() {
-                        loadMonitoring();
-                    });
+                    
                 }
             }
 
@@ -2125,6 +2202,21 @@
             if (DOM.refreshBtn) {
                 DOM.refreshBtn.addEventListener('click', loadMonitoring);
             }
+
+            function refreshFilteredStatistics() {
+                if (DOM.filterDateStart && DOM.filterDateEnd &&
+                    DOM.filterDateStart.value && DOM.filterDateEnd.value &&
+                    DOM.filterDateStart.value > DOM.filterDateEnd.value) {
+                    DOM.filterDateEnd.value = DOM.filterDateStart.value;
+                }
+                loadActualReports(false).catch(function(error){
+                    console.error('Filter actual error:', error);
+                });
+            }
+
+            if (DOM.filterMonth) DOM.filterMonth.addEventListener('change', refreshFilteredStatistics);
+            if (DOM.filterDateStart) DOM.filterDateStart.addEventListener('change', refreshFilteredStatistics);
+            if (DOM.filterDateEnd) DOM.filterDateEnd.addEventListener('change', refreshFilteredStatistics);
 
             // =============================================
             // INIT

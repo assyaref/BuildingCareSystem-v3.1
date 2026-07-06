@@ -360,7 +360,7 @@
 
         .report-picker-tools {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 190px;
+            grid-template-columns: minmax(0, 1fr) 190px 190px;
             gap: 10px;
             margin-bottom: 10px;
         }
@@ -549,6 +549,13 @@
                                             <option value="LISTRIK">LISTRIK</option>
                                             <option value="AIR">AIR</option>
                                             <option value="GEDUNG">KONDISI GEDUNG</option>
+                                        </select>
+                                        <select class="form-select" id="reportPriorityFilter">
+                                            <option value="">Semua Prioritas</option>
+                                            <option value="LOW">Low</option>
+                                            <option value="MEDIUM">Medium</option>
+                                            <option value="HIGH">High</option>
+                                            <option value="CRITICAL">Critical</option>
                                         </select>
                                     </div>
                                     <select class="form-select" id="woReportId" size="8">
@@ -1285,19 +1292,23 @@
                 var sel = document.getElementById('woReportId');
                 var searchEl = document.getElementById('reportSearchInput');
                 var categoryEl = document.getElementById('reportCategoryFilter');
+                var priorityEl = document.getElementById('reportPriorityFilter');
                 var countEl = document.getElementById('reportResultCount');
                 if (!sel) return;
 
                 var keyword = String(searchEl ? searchEl.value : '').trim().toLowerCase();
                 var categoryFilter = String(categoryEl ? categoryEl.value : '').trim().toUpperCase();
+                var priorityFilter = String(priorityEl ? priorityEl.value : '').trim().toUpperCase();
 
                 var visibleReports = openReports.filter(function(r) {
                     var id = String(reportIdOf(r) || '').toLowerCase();
                     var category = String(r.kategori || r.category || '').trim().toUpperCase();
+                    var priority = String(r.prioritas || r.priority || 'MEDIUM').trim().toUpperCase();
 
                     var matchSearch = !keyword || id.indexOf(keyword) !== -1;
                     var matchCategory = !categoryFilter || category === categoryFilter;
-                    return matchSearch && matchCategory;
+                    var matchPriority = !priorityFilter || priority === priorityFilter;
+                    return matchSearch && matchCategory && matchPriority;
                 });
 
                 sel.innerHTML = '<option value="">Pilih Report OPEN...</option>';
@@ -1308,7 +1319,8 @@
                     var location = r.lokasi || r.location || '-';
                     var option = document.createElement('option');
                     option.value = id;
-                    option.textContent = id + ' • ' + category + ' • ' + location;
+                    var priority = String(r.prioritas || r.priority || 'MEDIUM').toUpperCase();
+                    option.textContent = id + ' • ' + category + ' • ' + priority + ' • ' + location;
                     sel.appendChild(option);
                 });
 
@@ -1400,11 +1412,29 @@
             }
 
             document.getElementById('woReportId').addEventListener('change', function() {
-                if (!isEditMode && this.value) fillWOFromReport(this.value);
+                if (!isEditMode && this.value) {
+                    fillWOFromReport(this.value);
+
+                    // Setelah report dipilih, tutup daftar panjang agar form WO langsung terlihat.
+                    this.size = 1;
+                    this.blur();
+                }
+            });
+
+            // Klik kembali select untuk membuka daftar Report OPEN.
+            document.getElementById('woReportId').addEventListener('mousedown', function() {
+                if (!this.disabled && this.size === 1) {
+                    this.size = 8;
+                }
+            });
+
+            document.getElementById('woReportId').addEventListener('blur', function() {
+                if (this.value) this.size = 1;
             });
 
             var reportSearchInput = document.getElementById('reportSearchInput');
             var reportCategoryFilter = document.getElementById('reportCategoryFilter');
+            var reportPriorityFilter = document.getElementById('reportPriorityFilter');
 
             if (reportSearchInput) {
                 reportSearchInput.addEventListener('input', function() {
@@ -1414,6 +1444,12 @@
 
             if (reportCategoryFilter) {
                 reportCategoryFilter.addEventListener('change', function() {
+                    renderOpenReportOptions(document.getElementById('woReportId').value);
+                });
+            }
+
+            if (reportPriorityFilter) {
+                reportPriorityFilter.addEventListener('change', function() {
                     renderOpenReportOptions(document.getElementById('woReportId').value);
                 });
             }
@@ -1430,8 +1466,10 @@
 
                 var reportSearchEl = document.getElementById('reportSearchInput');
                 var reportCategoryEl = document.getElementById('reportCategoryFilter');
+                var reportPriorityEl = document.getElementById('reportPriorityFilter');
                 if (reportSearchEl) reportSearchEl.value = '';
                 if (reportCategoryEl) reportCategoryEl.value = '';
+                if (reportPriorityEl) reportPriorityEl.value = '';
 
                 isEditMode = !!data;
                 editId = data ? data.id : null;
@@ -1442,6 +1480,7 @@
                 await loadCategories();
 
                 var reportSelect = document.getElementById('woReportId');
+                reportSelect.size = 8;
                 var reportGroup = document.getElementById('reportSourceGroup');
                 reportGroup.style.display = '';
 

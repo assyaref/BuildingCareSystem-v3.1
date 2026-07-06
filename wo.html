@@ -306,6 +306,57 @@
         .btn-secondary { background: var(--bg-card-hover); border-color: var(--border-color); color: var(--text-primary); }
         .btn-secondary:hover { background: var(--border-color); }
 
+
+        /* =============================================
+           TOTAL BIAYA PERBAIKAN
+        ============================================= */
+        .summary-card.cost-card {
+            background: linear-gradient(145deg, var(--bg-card), rgba(124,58,237,.08));
+            border-color: rgba(124,58,237,.22);
+        }
+        .summary-card .summary-icon.bg-cost {
+            background: linear-gradient(145deg, #a78bfa, #7c3aed);
+        }
+        .money-value { font-weight: 700; color: #7c3aed; white-space: nowrap; }
+        [data-theme="dark"] .money-value { color: #c4b5fd; }
+        .cost-tabs {
+            display:flex; gap:8px; flex-wrap:wrap; border-bottom:1px solid var(--border-color);
+            margin-bottom:18px; padding-bottom:10px;
+        }
+        .cost-tab {
+            border:0; background:transparent; color:var(--text-secondary); padding:8px 12px;
+            border-radius:10px; font-size:12px; font-weight:600;
+        }
+        .cost-tab.active { background:var(--accent-soft); color:var(--accent-color); }
+        .cost-summary-box {
+            border:1px solid var(--border-color); border-radius:14px; padding:14px;
+            background:var(--bg-card-hover); height:100%;
+        }
+        .cost-summary-row {
+            display:flex; justify-content:space-between; gap:12px; padding:7px 0;
+            border-bottom:1px dashed var(--border-color); font-size:12px;
+        }
+        .cost-summary-row:last-child { border-bottom:0; }
+        .cost-total-box {
+            margin-top:12px; padding:14px; border-radius:12px;
+            background:linear-gradient(135deg, rgba(124,58,237,.12), rgba(37,99,235,.10));
+        }
+        .cost-total-box .amount { font-size:24px; font-weight:800; color:#7c3aed; }
+        [data-theme="dark"] .cost-total-box .amount { color:#c4b5fd; }
+        .cost-table th { font-size:10px; text-transform:uppercase; color:var(--text-muted); }
+        .cost-table td { font-size:11px; color:var(--text-secondary); vertical-align:middle; }
+        .cost-category {
+            display:inline-flex; padding:4px 8px; border-radius:999px; font-size:9px; font-weight:700;
+        }
+        .cost-material { background:#dbeafe; color:#1d4ed8; }
+        .cost-jasa { background:#dcfce7; color:#15803d; }
+        .cost-transport { background:#ffedd5; color:#c2410c; }
+        .cost-lainnya { background:#f3e8ff; color:#7e22ce; }
+        [data-theme="dark"] .cost-material { background:#172554; color:#93c5fd; }
+        [data-theme="dark"] .cost-jasa { background:#052e16; color:#86efac; }
+        [data-theme="dark"] .cost-transport { background:#431407; color:#fdba74; }
+        [data-theme="dark"] .cost-lainnya { background:#3b0764; color:#d8b4fe; }
+
         @media (max-width: 768px) {
             .summary-card h2 { font-size: 24px; }
         }
@@ -352,37 +403,35 @@
                 </header>
 
                 <section class="row g-4 mt-2">
-                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                        <div class="summary-card">
-                            <div class="summary-top">
-                                <div class="summary-icon bg-primary"><i class="bi bi-clipboard-data"></i></div>
-                                <div><h6>Total WO</h6><h2 id="cardTotal">0</h2></div>
-                            </div>
-                        </div>
+                    <div class="col-xl col-lg-4 col-md-6">
+                        <div class="summary-card"><div class="summary-top">
+                            <div class="summary-icon bg-primary"><i class="bi bi-clipboard-data"></i></div>
+                            <div><h6>Total WO</h6><h2 id="cardTotal">0</h2></div>
+                        </div></div>
                     </div>
-                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                        <div class="summary-card">
-                            <div class="summary-top">
-                                <div class="summary-icon bg-danger-soft"><i class="bi bi-exclamation-circle"></i></div>
-                                <div><h6>Open</h6><h2 id="cardOpen">0</h2></div>
-                            </div>
-                        </div>
+                    <div class="col-xl col-lg-4 col-md-6">
+                        <div class="summary-card"><div class="summary-top">
+                            <div class="summary-icon bg-danger-soft"><i class="bi bi-exclamation-circle"></i></div>
+                            <div><h6>Open</h6><h2 id="cardOpen">0</h2></div>
+                        </div></div>
                     </div>
-                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                        <div class="summary-card">
-                            <div class="summary-top">
-                                <div class="summary-icon bg-info-soft"><i class="bi bi-arrow-repeat"></i></div>
-                                <div><h6>In Progress</h6><h2 id="cardProgress">0</h2></div>
-                            </div>
-                        </div>
+                    <div class="col-xl col-lg-4 col-md-6">
+                        <div class="summary-card"><div class="summary-top">
+                            <div class="summary-icon bg-info-soft"><i class="bi bi-arrow-repeat"></i></div>
+                            <div><h6>In Progress</h6><h2 id="cardProgress">0</h2></div>
+                        </div></div>
                     </div>
-                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-                        <div class="summary-card">
-                            <div class="summary-top">
-                                <div class="summary-icon bg-success-soft"><i class="bi bi-check-circle-fill"></i></div>
-                                <div><h6>Completed</h6><h2 id="cardDone">0</h2></div>
-                            </div>
-                        </div>
+                    <div class="col-xl col-lg-4 col-md-6">
+                        <div class="summary-card"><div class="summary-top">
+                            <div class="summary-icon bg-success-soft"><i class="bi bi-check-circle-fill"></i></div>
+                            <div><h6>Completed</h6><h2 id="cardDone">0</h2></div>
+                        </div></div>
+                    </div>
+                    <div class="col-xl col-lg-8 col-md-12">
+                        <div class="summary-card cost-card"><div class="summary-top">
+                            <div class="summary-icon bg-cost"><i class="bi bi-cash-stack"></i></div>
+                            <div><h6>Total Biaya Perbaikan</h6><h2 id="cardTotalCost" style="font-size:25px;">Rp 0</h2></div>
+                        </div></div>
                     </div>
                 </section>
 
@@ -434,12 +483,13 @@
                                                 <th class="py-3 fw-semibold" style="color:var(--text-secondary);">Status</th>
                                                 <th class="py-3 fw-semibold" style="color:var(--text-secondary);">Teknisi</th>
                                                 <th class="py-3 fw-semibold" style="color:var(--text-secondary);">Tanggal</th>
+                                                <th class="py-3 fw-semibold text-end" style="color:var(--text-secondary);">Total Biaya</th>
                                                 <th class="py-3 fw-semibold text-center" style="color:var(--text-secondary);">Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody id="woTableBody">
                                             <tr>
-                                                <td colspan="8" class="text-center py-4 text-muted" style="color:var(--text-muted);">
+                                                <td colspan="9" class="text-center py-4 text-muted" style="color:var(--text-muted);">
                                                     <div class="spinner-border spinner-border-sm mb-2"></div><br> Memuat data...
                                                 </td>
                                             </tr>
@@ -588,6 +638,68 @@
         </div>
     </div>
 
+
+    <!-- MODAL TAMBAH / EDIT BIAYA -->
+    <div class="modal fade" id="costModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" style="background:var(--bg-card);">
+                <div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);">
+                    <h5 class="modal-title text-white"><i class="bi bi-cash-coin"></i> <span id="costModalTitle">Tambah Biaya Perbaikan</span></h5>
+                    <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="costForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="costWOId">
+                        <input type="hidden" id="costEditId">
+                        <div class="row g-3">
+                            <div class="col-md-6"><div class="form-group">
+                                <label>Kategori Biaya <span class="required">*</span></label>
+                                <select class="form-select" id="costCategory" required>
+                                    <option value="MATERIAL">Material / Sparepart</option>
+                                    <option value="JASA">Jasa</option>
+                                    <option value="TRANSPORT">Transportasi</option>
+                                    <option value="LAINNYA">Lainnya</option>
+                                </select>
+                            </div></div>
+                            <div class="col-md-6"><div class="form-group">
+                                <label>Deskripsi <span class="required">*</span></label>
+                                <input class="form-control" id="costDescription" required placeholder="Contoh: Kapasitor AC 35uF">
+                            </div></div>
+                            <div class="col-md-3"><div class="form-group">
+                                <label>Qty <span class="required">*</span></label>
+                                <input type="number" min="1" step="1" class="form-control" id="costQty" value="1" required>
+                            </div></div>
+                            <div class="col-md-4"><div class="form-group">
+                                <label>Harga Satuan (Rp) <span class="required">*</span></label>
+                                <input type="number" min="0" step="1" class="form-control" id="costUnitPrice" value="0" required>
+                            </div></div>
+                            <div class="col-md-5"><div class="form-group">
+                                <label>Subtotal</label>
+                                <input class="form-control fw-bold" id="costSubtotal" value="Rp 0" readonly>
+                            </div></div>
+                            <div class="col-md-6"><div class="form-group">
+                                <label>Vendor / Toko</label>
+                                <input class="form-control" id="costVendor" placeholder="Nama vendor atau toko">
+                            </div></div>
+                            <div class="col-md-6"><div class="form-group">
+                                <label>Link Bukti / Nota</label>
+                                <input type="url" class="form-control" id="costProofUrl" placeholder="https://...">
+                            </div></div>
+                            <div class="col-12"><div class="form-group">
+                                <label>Catatan</label>
+                                <textarea class="form-control" id="costNotes" rows="2" placeholder="Catatan biaya opsional..."></textarea>
+                            </div></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top:1px solid var(--border-color);">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Simpan Biaya</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -688,6 +800,10 @@
             var isEditMode = false;
             var editId = null;
             var openReports = [];
+            var currentDetailWOId = null;
+            var currentDetailWO = null;
+            var currentCosts = [];
+            var costStorageKey = 'BCS_WO_COSTS_V1';
 
             var tableBody = document.getElementById('woTableBody');
             var paginationEl = document.getElementById('pagination');
@@ -698,6 +814,86 @@
             // =============================================
             // HELPERS
             // =============================================
+
+            function formatRupiah(value) {
+                var n = Number(value || 0);
+                return 'Rp ' + n.toLocaleString('id-ID');
+            }
+
+            function escapeHtml(value) {
+                return String(value == null ? '' : value)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+            }
+
+            function getLocalCosts() {
+                try { return JSON.parse(localStorage.getItem(costStorageKey) || '[]'); }
+                catch (e) { return []; }
+            }
+
+            function saveLocalCosts(items) {
+                localStorage.setItem(costStorageKey, JSON.stringify(items || []));
+            }
+
+            function costTotalOfWO(w) {
+                var direct = firstValue(w, ['total_biaya','totalBiaya','total_cost','totalCost'], '');
+                if (direct !== '') return Number(direct || 0);
+                return getLocalCosts().filter(function(c) {
+                    return String(c.work_order_id) === String(w.id);
+                }).reduce(function(sum, c) { return sum + Number(c.subtotal || 0); }, 0);
+            }
+
+            async function getCostsForWO(woId) {
+                try {
+                    var res = await BCS.Api.post('getWorkOrderCosts', { work_order_id: woId });
+                    if (res && res.success) {
+                        var data = Array.isArray(res.data) ? res.data :
+                            (res.data && Array.isArray(res.data.costs) ? res.data.costs : []);
+                        return data;
+                    }
+                } catch (e) {
+                    console.warn('[WO COST] API belum mendukung getWorkOrderCosts, memakai penyimpanan lokal.', e);
+                }
+                return getLocalCosts().filter(function(c) {
+                    return String(c.work_order_id) === String(woId);
+                });
+            }
+
+            async function saveCostItem(item) {
+                try {
+                    var action = item.id ? 'updateWorkOrderCost' : 'saveWorkOrderCost';
+                    var res = await BCS.Api.post(action, item);
+                    if (res && res.success) return res;
+                } catch (e) {
+                    console.warn('[WO COST] API biaya belum tersedia, memakai penyimpanan lokal.', e);
+                }
+
+                var items = getLocalCosts();
+                if (item.id) {
+                    var idx = items.findIndex(function(x) { return String(x.id) === String(item.id); });
+                    if (idx >= 0) items[idx] = Object.assign({}, items[idx], item);
+                    else items.push(item);
+                } else {
+                    item.id = 'COST-' + Date.now();
+                    item.created_at = new Date().toISOString();
+                    items.push(item);
+                }
+                saveLocalCosts(items);
+                return { success: true, data: item, localFallback: true };
+            }
+
+            async function removeCostItem(costId) {
+                try {
+                    var res = await BCS.Api.post('deleteWorkOrderCost', { id: costId });
+                    if (res && res.success) return res;
+                } catch (e) {
+                    console.warn('[WO COST] API hapus biaya belum tersedia, memakai penyimpanan lokal.', e);
+                }
+                var items = getLocalCosts().filter(function(x) { return String(x.id) !== String(costId); });
+                saveLocalCosts(items);
+                return { success: true, localFallback: true };
+            }
+
             function showToast(msg, type) {
                 type = type || 'success';
                 Swal.mixin({
@@ -829,7 +1025,7 @@
             function showApiRetry(message) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="8" class="text-center py-5">
+                        <td colspan="9" class="text-center py-5">
                             <i class="bi bi-wifi-off fs-2 text-danger d-block mb-2"></i>
                             <div class="fw-semibold text-danger mb-1">Koneksi API belum siap</div>
                             <div class="text-muted mb-3" style="font-size:12px;">
@@ -853,7 +1049,7 @@
             async function fetchWO() {
                 try {
                     tableBody.innerHTML =
-                        '<tr><td colspan="8" class="text-center py-4 text-muted" style="color:var(--text-muted);"><div class="spinner-border spinner-border-sm"></div> Memuat...</td></tr>';
+                        '<tr><td colspan="9" class="text-center py-4 text-muted" style="color:var(--text-muted);"><div class="spinner-border spinner-border-sm"></div> Memuat...</td></tr>';
 
                     if (window.BCS && BCS.App && BCS.App.Loading && typeof BCS.App.Loading.show === 'function') {
                         BCS.App.Loading.show();
@@ -866,7 +1062,7 @@
 
                     if (!response || !response.success) {
                         tableBody.innerHTML =
-                            '<tr><td colspan="8" class="text-center text-danger py-4">Gagal memuat data</td></tr>';
+                            '<tr><td colspan="9" class="text-center text-danger py-4">Gagal memuat data</td></tr>';
                         return;
                     }
 
@@ -881,7 +1077,7 @@
                         showApiRetry(err.message);
                     } else {
                         tableBody.innerHTML =
-                            '<tr><td colspan="8" class="text-center text-danger py-4">Error: ' +
+                            '<tr><td colspan="9" class="text-center text-danger py-4">Error: ' +
                             (err.message || 'Gagal memuat Work Order') + '</td></tr>';
                     }
                 } finally {
@@ -943,6 +1139,8 @@
                 document.getElementById('cardOpen').textContent = open;
                 document.getElementById('cardProgress').textContent = progress;
                 document.getElementById('cardDone').textContent = done;
+                var totalCost = allWO.reduce(function(sum, w) { return sum + costTotalOfWO(w); }, 0);
+                document.getElementById('cardTotalCost').textContent = formatRupiah(totalCost);
             }
 
             // =============================================
@@ -954,7 +1152,7 @@
 
                 if (pageData.length === 0) {
                     tableBody.innerHTML =
-                        '<tr><td colspan="8" class="text-center py-4 text-muted" style="color:var(--text-muted);"><i class="bi bi-inbox fs-4 d-block"></i>Tidak ada data</td></tr>';
+                        '<tr><td colspan="9" class="text-center py-4 text-muted" style="color:var(--text-muted);"><i class="bi bi-inbox fs-4 d-block"></i>Tidak ada data</td></tr>';
                     return;
                 }
 
@@ -972,6 +1170,7 @@
                         <td class="py-2">${getStatusBadge(w.status || 'open')}</td>
                         <td class="py-2" style="color:var(--text-secondary);">${w.assigned_to || '-'}</td>
                         <td class="py-2" style="color:var(--text-secondary);">${formatDate(w.created_at || w.tanggal)}</td>
+                        <td class="py-2 text-end money-value">${formatRupiah(costTotalOfWO(w))}</td>
                         <td class="py-2 text-center">
                             <div class="d-flex justify-content-center gap-1">
                                 <button class="btn-action view" data-id="${w.id}" title="Detail"><i class="bi bi-eye"></i></button>
@@ -1412,8 +1611,20 @@
                             <div class="text-muted mb-1" style="font-size:11px;color:var(--text-muted);">Timeline</div>
                             ${timelineHtml}
                         </div>
+                        <div class="col-12"><hr style="border-color:var(--border-color);"></div>
+                        <div class="col-12">
+                            <div id="costDetailArea">
+                                <div class="text-center py-4 text-muted">
+                                    <div class="spinner-border spinner-border-sm"></div> Memuat rincian biaya...
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     `;
+
+                    currentDetailWOId = w.id;
+                    currentDetailWO = w;
+                    await renderCostSection(w.id);
 
                     var detailEl = document.getElementById('detailModal');
                     var detailModal = bootstrap.Modal.getOrCreateInstance(detailEl);
@@ -1424,6 +1635,164 @@
                     showToast('Error: ' + e.message, 'error');
                 }
             }
+
+
+            async function renderCostSection(woId) {
+                var area = document.getElementById('costDetailArea');
+                if (!area) return;
+                currentCosts = await getCostsForWO(woId);
+
+                var totals = { MATERIAL:0, JASA:0, TRANSPORT:0, LAINNYA:0 };
+                currentCosts.forEach(function(c) {
+                    var cat = String(c.kategori || c.category || 'LAINNYA').toUpperCase();
+                    if (!totals.hasOwnProperty(cat)) cat = 'LAINNYA';
+                    totals[cat] += Number(c.subtotal || (Number(c.qty || 0) * Number(c.harga_satuan || c.unit_price || 0)) || 0);
+                });
+                var grand = Object.keys(totals).reduce(function(s, k) { return s + totals[k]; }, 0);
+
+                var rows = currentCosts.length ? currentCosts.map(function(c) {
+                    var cat = String(c.kategori || c.category || 'LAINNYA').toUpperCase();
+                    var qty = Number(c.qty || 0);
+                    var price = Number(c.harga_satuan || c.unit_price || 0);
+                    var subtotal = Number(c.subtotal || qty * price);
+                    return `<tr>
+                        <td><span class="cost-category cost-${cat.toLowerCase()}">${escapeHtml(cat)}</span></td>
+                        <td>${escapeHtml(c.deskripsi || c.description || '-')}</td>
+                        <td class="text-center">${qty}</td>
+                        <td class="text-end">${formatRupiah(price)}</td>
+                        <td class="text-end fw-bold">${formatRupiah(subtotal)}</td>
+                        <td class="text-center">
+                            <button class="btn-action edit" onclick="window.BCSCostEdit('${escapeHtml(c.id)}')" title="Edit"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-action delete" onclick="window.BCSCostDelete('${escapeHtml(c.id)}')" title="Hapus"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>`;
+                }).join('') : '<tr><td colspan="6" class="text-center py-4 text-muted">Belum ada rincian biaya</td></tr>';
+
+                area.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <div>
+                            <h6 class="mb-0"><i class="bi bi-cash-stack text-primary"></i> Biaya Perbaikan</h6>
+                            <small class="text-muted">Rincian biaya untuk Work Order ini</small>
+                        </div>
+                        <button class="btn btn-primary btn-sm" id="btnAddCost"><i class="bi bi-plus-circle"></i> Tambah Biaya</button>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-lg-4">
+                            <div class="cost-summary-box">
+                                <div class="cost-summary-row"><span>Material / Sparepart</span><strong>${formatRupiah(totals.MATERIAL)}</strong></div>
+                                <div class="cost-summary-row"><span>Jasa</span><strong>${formatRupiah(totals.JASA)}</strong></div>
+                                <div class="cost-summary-row"><span>Transportasi</span><strong>${formatRupiah(totals.TRANSPORT)}</strong></div>
+                                <div class="cost-summary-row"><span>Biaya Lainnya</span><strong>${formatRupiah(totals.LAINNYA)}</strong></div>
+                                <div class="cost-total-box">
+                                    <div class="text-muted" style="font-size:10px;font-weight:700;">TOTAL BIAYA</div>
+                                    <div class="amount">${formatRupiah(grand)}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-8">
+                            <div class="table-responsive">
+                                <table class="table table-sm cost-table mb-0">
+                                    <thead><tr><th>Kategori</th><th>Deskripsi</th><th class="text-center">Qty</th><th class="text-end">Harga</th><th class="text-end">Subtotal</th><th class="text-center">Aksi</th></tr></thead>
+                                    <tbody>${rows}</tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>`;
+
+                document.getElementById('btnAddCost').addEventListener('click', function() {
+                    openCostModal(null);
+                });
+
+                var wo = allWO.find(function(x) { return String(x.id) === String(woId); });
+                if (wo) {
+                    wo.total_biaya = grand;
+                    updateSummary();
+                    renderTable();
+                }
+            }
+
+            function updateCostSubtotal() {
+                var qty = Number(document.getElementById('costQty').value || 0);
+                var price = Number(document.getElementById('costUnitPrice').value || 0);
+                document.getElementById('costSubtotal').value = formatRupiah(qty * price);
+            }
+
+            function openCostModal(cost) {
+                document.getElementById('costForm').reset();
+                document.getElementById('costWOId').value = currentDetailWOId || '';
+                document.getElementById('costEditId').value = cost ? cost.id : '';
+                document.getElementById('costModalTitle').textContent = cost ? 'Edit Biaya Perbaikan' : 'Tambah Biaya Perbaikan';
+                document.getElementById('costCategory').value = cost ? String(cost.kategori || cost.category || 'MATERIAL').toUpperCase() : 'MATERIAL';
+                document.getElementById('costDescription').value = cost ? (cost.deskripsi || cost.description || '') : '';
+                document.getElementById('costQty').value = cost ? Number(cost.qty || 1) : 1;
+                document.getElementById('costUnitPrice').value = cost ? Number(cost.harga_satuan || cost.unit_price || 0) : 0;
+                document.getElementById('costVendor').value = cost ? (cost.vendor || '') : '';
+                document.getElementById('costProofUrl').value = cost ? (cost.bukti_url || cost.proof_url || '') : '';
+                document.getElementById('costNotes').value = cost ? (cost.catatan || cost.notes || '') : '';
+                updateCostSubtotal();
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('costModal')).show();
+            }
+
+            window.BCSCostEdit = function(id) {
+                var cost = currentCosts.find(function(c) { return String(c.id) === String(id); });
+                if (cost) openCostModal(cost);
+            };
+
+            window.BCSCostDelete = async function(id) {
+                var confirm = await Swal.fire({
+                    title:'Hapus biaya?', text:'Rincian biaya ini akan dihapus.', icon:'warning',
+                    showCancelButton:true, confirmButtonColor:'#dc2626', confirmButtonText:'Ya, Hapus'
+                });
+                if (!confirm.isConfirmed) return;
+                var res = await removeCostItem(id);
+                if (res && res.success) {
+                    showToast('Biaya berhasil dihapus');
+                    await renderCostSection(currentDetailWOId);
+                }
+            };
+
+            document.getElementById('costQty').addEventListener('input', updateCostSubtotal);
+            document.getElementById('costUnitPrice').addEventListener('input', updateCostSubtotal);
+
+            document.getElementById('costForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var qty = Number(document.getElementById('costQty').value || 0);
+                var price = Number(document.getElementById('costUnitPrice').value || 0);
+                var item = {
+                    id: document.getElementById('costEditId').value || '',
+                    work_order_id: document.getElementById('costWOId').value,
+                    kategori: document.getElementById('costCategory').value,
+                    deskripsi: document.getElementById('costDescription').value.trim(),
+                    qty: qty,
+                    harga_satuan: price,
+                    subtotal: qty * price,
+                    vendor: document.getElementById('costVendor').value.trim(),
+                    bukti_url: document.getElementById('costProofUrl').value.trim(),
+                    catatan: document.getElementById('costNotes').value.trim()
+                };
+                if (!item.work_order_id || !item.deskripsi || qty < 1 || price < 0) {
+                    showToast('Lengkapi data biaya dengan benar', 'warning');
+                    return;
+                }
+                var btn = this.querySelector('button[type="submit"]');
+                btn.disabled = true;
+                try {
+                    var res = await saveCostItem(item);
+                    if (res && res.success) {
+                        bootstrap.Modal.getInstance(document.getElementById('costModal')).hide();
+                        showToast(res.localFallback ? 'Biaya tersimpan di browser. Tambahkan API biaya agar tersimpan ke database.' : 'Biaya berhasil disimpan',
+                                  res.localFallback ? 'info' : 'success');
+                        await renderCostSection(currentDetailWOId);
+                    } else {
+                        showToast((res && res.message) || 'Gagal menyimpan biaya', 'error');
+                    }
+                } catch (err) {
+                    showToast('Error: ' + err.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+
 
             async function completeWO(id) {
                 var confirm = await Swal.fire({
@@ -1492,7 +1861,8 @@
                         'Status': formatStatus(w.status),
                         'Teknisi': w.assigned_to || '-',
                         'Lokasi': w.location || '-',
-                        'Tanggal': formatDate(w.created_at || w.tanggal)
+                        'Tanggal': formatDate(w.created_at || w.tanggal),
+                        'Total Biaya': costTotalOfWO(w)
                     };
                 });
                 var wb = XLSX.utils.book_new();

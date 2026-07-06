@@ -1138,7 +1138,8 @@
             // =============================================
             async function openModal(data) {
                 data = data || null;
-                var modal = new bootstrap.Modal(document.getElementById('woModal'));
+                var modalEl = document.getElementById('woModal');
+                var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                 var form = document.getElementById('woForm');
                 form.reset();
 
@@ -1193,6 +1194,41 @@
                 }
 
                 modal.show();
+            }
+
+
+            // =============================================
+            // FIX MODAL STUCK SETELAH BATAL / TUTUP EDIT
+            // =============================================
+            function cleanupModalState() {
+                isEditMode = false;
+                editId = null;
+
+                var form = document.getElementById('woForm');
+                if (form) form.reset();
+
+                var reportSelect = document.getElementById('woReportId');
+                if (reportSelect) {
+                    reportSelect.disabled = false;
+                    reportSelect.innerHTML = '<option value="">Pilih Report OPEN...</option>';
+                }
+
+                // Bersihkan backdrop liar hanya jika tidak ada modal yang masih terbuka
+                setTimeout(function() {
+                    if (!document.querySelector('.modal.show')) {
+                        document.querySelectorAll('.modal-backdrop').forEach(function(el) {
+                            el.remove();
+                        });
+                        document.body.classList.remove('modal-open');
+                        document.body.style.removeProperty('overflow');
+                        document.body.style.removeProperty('padding-right');
+                    }
+                }, 50);
+            }
+
+            var woModalEl = document.getElementById('woModal');
+            if (woModalEl) {
+                woModalEl.addEventListener('hidden.bs.modal', cleanupModalState);
             }
 
             async function loadCategories() {

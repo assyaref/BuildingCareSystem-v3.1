@@ -1,6 +1,8 @@
 // ======================================================
-// BCS FIREBASE PUSH CLIENT - FINAL
+// BCS FIREBASE PUSH CLIENT - FINAL FIXED
+// Building Care System Enterprise
 // Firebase Cloud Messaging Web
+// Version 2.3.0
 // ======================================================
 
 "use strict";
@@ -21,8 +23,17 @@ const BCS_VAPID_KEY =
 window.BCSPush = (() => {
   let firebaseApp = null;
   let messaging = null;
+  let firebaseModules = null;
+
+  // ====================================================
+  // LOAD FIREBASE
+  // ====================================================
 
   async function loadFirebase() {
+    if (firebaseModules && messaging) {
+      return firebaseModules;
+    }
+
     const appModule = await import(
       "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js"
     );
@@ -32,61 +43,141 @@ window.BCSPush = (() => {
     );
 
     firebaseApp =
-      appModule.getApps().length
+      appModule.getApps().length > 0
         ? appModule.getApp()
         : appModule.initializeApp(BCS_FIREBASE_CONFIG);
 
     messaging = messagingModule.getMessaging(firebaseApp);
 
-    return {
+    firebaseModules = {
       getToken: messagingModule.getToken,
       onMessage: messagingModule.onMessage
     };
+
+    return firebaseModules;
   }
+
+  // ====================================================
+  // GET CURRENT USER
+  // Mendukung BCS.Storage + localStorage + sessionStorage
+  // ====================================================
 
   function getCurrentUser() {
     try {
-      const raw =
-        localStorage.getItem("BCS_USER") ||
-        sessionStorage.getItem("BCS_USER");
+      if (window.BCS?.Storage?.getSession) {
+        const session = window.BCS.Storage.getSession();
 
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      return {};
+        if (session) {
+          return session.user || session;
+        }
+      }
+    } catch (error) {
+      console.warn(
+        "[BCS Push] Gagal membaca BCS.Storage:",
+        error
+      );
     }
+
+    const storageKeys = [
+      "BCS_USER",
+      "BCS_SESSION"
+    ];
+
+    for (const key of storageKeys) {
+      try {
+        const raw =
+          localStorage.getItem(key) ||
+          sessionStorage.getItem(key);
+
+        if (!raw) continue;
+
+        const parsed = JSON.parse(raw);
+
+        if (parsed) {
+          return parsed.user || parsed;
+        }
+      } catch (error) {
+        console.warn(
+          `[BCS Push] Gagal membaca ${key}:`,
+          error
+        );
+      }
+    }
+
+    return {};
   }
+
+  // ====================================================
+  // REGISTER TOKEN TO BACKEND
+  // FIX: BCS.Api, bukan BCS.API
+  // ====================================================
 
   async function sendTokenToBackend(fcmToken) {
     const user = getCurrentUser();
 
-    const payload = {
-      action: "registerPushToken",
-      data: {
-        fcmToken,
-        nik: user.nik || "",
-        email: user.email || "",
-        nama: user.nama || user.name || "",
-        role: user.role || "",
-        device: navigator.userAgent || "",
-        platform: navigator.platform || ""
-      }
+    const tokenData = {
+      fcmToken: fcmToken,
+      nik:
+        user.nik ||
+        user.NIK ||
+        "",
+      email:
+        user.email ||
+        user.Email ||
+        "",
+      nama:
+        user.nama ||
+        user.name ||
+        user.Nama ||
+        "",
+      role:
+        user.role ||
+        user.Role ||
+        "",
+      device:
+        navigator.userAgent ||
+        "",
+      platform:
+        navigator.userAgentData?.platform ||
+        navigator.platform ||
+        ""
     };
 
-    // Gunakan API helper BCS jika tersedia
-    if (window.BCS?.API?.post) {
-      return await window.BCS.API.post(
+    console.log(
+      "[BCS Push] Mendaftarkan token:",
+      {
+        nik: tokenData.nik,
+        email: tokenData.email,
+        nama: tokenData.nama,
+        role: tokenData.role
+      }
+    );
+
+    // API helper utama BCS
+    if (window.BCS?.Api?.post) {
+      const result = await window.BCS.Api.post(
         "registerPushToken",
-        payload.data
+        tokenData
       );
+
+      console.log(
+        "[BCS Push] Response backend:",
+        result
+      );
+
+      return result;
     }
 
-    // Fallback ke CONFIG.API_URL
+    // Fallback langsung ke API URL
     const apiUrl =
       window.CONFIG?.API_URL ||
-      window.BCS_CONFIG?.API_URL;
+      window.BCS_CONFIG?.API_URL ||
+      window.BCS?.CONFIG?.API_URL;
 
     if (!apiUrl) {
-      throw new Error("API_URL BCS tidak ditemukan.");
+      throw new Error(
+        "BCS.Api.post dan API_URL tidak ditemukan."
+      );
     }
 
     const response = await fetch(apiUrl, {
@@ -94,84 +185,238 @@ window.BCSPush = (() => {
       headers: {
         "Content-Type": "text/plain;charset=utf-8"
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        action: "registerPushToken",
+        data: tokenData
+      })
     });
 
-    return await response.json();
+    const result = await response.json();
+
+    console.log(
+      "[BCS Push] Response backend fallback:",
+      result
+    );
+
+    return result;
   }
+
+  // ====================================================
+  // ENABLE PUSH NOTIFICATION
+  // ====================================================
 
   async function enable() {
     if (!("Notification" in window)) {
-      throw new Error("Browser tidak mendukung notifikasi.");
+      throw new Error(
+        "Browser tidak mendukung notifikasi."
+      );
     }
 
     if (!("serviceWorker" in navigator)) {
-      throw new Error("Browser tidak mendukung Service Worker.");
+      throw new Error(
+        "Browser tidak mendukung Service Worker."
+      );
     }
 
-    const permission = await Notification.requestPermission();
+    console.log(
+      "[BCS Push] Permission saat ini:",
+      Notification.permission
+    );
+
+    let permission = Notification.permission;
+
+    if (permission !== "granted") {
+      permission =
+        await Notification.requestPermission();
+    }
 
     if (permission !== "granted") {
       return {
         success: false,
-        permission
+        permission: permission,
+        message: "Izin notifikasi belum diberikan."
       };
     }
 
-    const registration = await navigator.serviceWorker.ready;
+    console.log(
+      "[BCS Push] Menunggu Service Worker..."
+    );
+
+    const registration =
+      await navigator.serviceWorker.ready;
+
+    console.log(
+      "[BCS Push] Service Worker siap:",
+      registration.scope
+    );
+
     const firebase = await loadFirebase();
 
-    const fcmToken = await firebase.getToken(messaging, {
-      vapidKey: BCS_VAPID_KEY,
-      serviceWorkerRegistration: registration
-    });
+    console.log(
+      "[BCS Push] Meminta FCM token..."
+    );
+
+    const fcmToken =
+      await firebase.getToken(
+        messaging,
+        {
+          vapidKey: BCS_VAPID_KEY,
+          serviceWorkerRegistration: registration
+        }
+      );
 
     if (!fcmToken) {
-      throw new Error("FCM token tidak berhasil dibuat.");
+      throw new Error(
+        "FCM token tidak berhasil dibuat."
+      );
     }
 
-    const backendResult = await sendTokenToBackend(fcmToken);
+    console.log(
+      "[BCS Push] FCM token berhasil dibuat."
+    );
 
-    localStorage.setItem("BCS_FCM_TOKEN", fcmToken);
+    // Token wajib berhasil masuk backend
+    const backendResult =
+      await sendTokenToBackend(fcmToken);
+
+    if (
+      !backendResult ||
+      backendResult.success !== true
+    ) {
+      throw new Error(
+        backendResult?.message ||
+        "Token FCM gagal disimpan ke backend."
+      );
+    }
+
+    // Simpan lokal HANYA setelah backend sukses
+    localStorage.setItem(
+      "BCS_FCM_TOKEN",
+      fcmToken
+    );
+
+    localStorage.setItem(
+      "BCS_FCM_REGISTERED_AT",
+      new Date().toISOString()
+    );
+
+    console.log(
+      "[BCS Push] Token berhasil tersimpan di backend."
+    );
 
     return {
       success: true,
-      permission,
+      permission: permission,
       tokenSaved: true,
       backend: backendResult
     };
   }
 
+  // ====================================================
+  // FOREGROUND MESSAGE
+  // ====================================================
+
   async function initForegroundListener() {
     try {
+      if (
+        !("Notification" in window) ||
+        Notification.permission !== "granted"
+      ) {
+        return;
+      }
+
       const firebase = await loadFirebase();
 
-      firebase.onMessage(messaging, payload => {
-        const title =
-          payload?.notification?.title ||
-          "Building Care System";
+      firebase.onMessage(
+        messaging,
+        payload => {
+          console.log(
+            "[BCS Push] Foreground message:",
+            payload
+          );
 
-        const body =
-          payload?.notification?.body ||
-          "Ada pembaruan laporan.";
+          const title =
+            payload?.notification?.title ||
+            "Building Care System";
 
-        if (window.BCS?.UI?.toast) {
-          window.BCS.UI.toast(title + " - " + body, "info");
-        } else {
-          console.log("🔔", title, body);
+          const body =
+            payload?.notification?.body ||
+            "Ada pembaruan laporan.";
+
+          if (window.BCS?.UI?.toast) {
+            window.BCS.UI.toast(
+              `${title} - ${body}`,
+              "info"
+            );
+          } else {
+            console.log(
+              "🔔",
+              title,
+              body
+            );
+          }
         }
-      });
+      );
+
     } catch (error) {
-      console.warn("[BCS Push] Foreground listener gagal:", error);
+      console.warn(
+        "[BCS Push] Foreground listener gagal:",
+        error
+      );
     }
+  }
+
+  // ====================================================
+  // STATUS
+  // ====================================================
+
+  function getStatus() {
+    return {
+      supported:
+        "Notification" in window &&
+        "serviceWorker" in navigator,
+      permission:
+        "Notification" in window
+          ? Notification.permission
+          : "unsupported",
+      tokenSaved:
+        Boolean(
+          localStorage.getItem(
+            "BCS_FCM_TOKEN"
+          )
+        ),
+      registeredAt:
+        localStorage.getItem(
+          "BCS_FCM_REGISTERED_AT"
+        )
+    };
   }
 
   return {
     enable,
-    initForegroundListener
+    initForegroundListener,
+    getStatus
   };
 })();
 
-document.addEventListener("DOMContentLoaded", () => {
-  window.BCSPush.initForegroundListener();
-});
+// ======================================================
+// AUTO INIT FOREGROUND LISTENER
+// ======================================================
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    window.BCSPush
+      .initForegroundListener()
+      .catch(error => {
+        console.warn(
+          "[BCS Push] Auto init gagal:",
+          error
+        );
+      });
+  }
+);
+
+console.log(
+  "✅ BCS Firebase Push Client v2.3.0 loaded"
+);

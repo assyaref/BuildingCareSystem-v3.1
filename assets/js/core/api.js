@@ -4,7 +4,6 @@
 // Radiant Group Duri
 // ======================================================
 
-
 "use strict";
 if (!window.BCS) window.BCS = {};
 if (!BCS.Events) {

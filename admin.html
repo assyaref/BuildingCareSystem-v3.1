@@ -644,15 +644,41 @@
             color: var(--text-secondary);
         }
 
+        .user-management-actions {
+            display: flex !important;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: nowrap !important;
+            gap: 10px !important;
+            margin-left: auto;
+        }
+
+        .user-management-actions .user-search-box {
+            width: 360px;
+            flex: 0 1 360px;
+        }
+
         .user-management-actions .btn {
             height: 40px;
+            min-width: max-content;
             border-radius: 11px;
-            padding-inline: 13px;
+            padding: 0 14px;
             font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
         }
 
         .user-management-actions .btn-primary {
             box-shadow: 0 7px 16px rgba(37,99,235,.18);
+        }
+
+        #refreshUsers {
+            width: 40px;
+            min-width: 40px;
+            padding: 0;
         }
 
         [data-theme="dark"] .admin-table thead th {
@@ -663,13 +689,31 @@
             background: linear-gradient(90deg, rgba(96,165,250,.08), rgba(167,139,250,.05));
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1200px) {
+            .user-management-card .card-header {
+                align-items: flex-start !important;
+            }
+
             .user-management-actions {
                 width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap !important;
             }
-            .user-search-box {
+
+            .user-management-actions .user-search-box {
                 flex: 1 1 100%;
                 width: 100%;
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .user-management-actions .btn {
+                flex: 1 1 auto;
+            }
+
+            #refreshUsers {
+                flex: 0 0 40px;
             }
         }
 

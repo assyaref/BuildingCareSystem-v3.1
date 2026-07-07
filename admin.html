@@ -502,6 +502,177 @@
         }
 
 
+
+        /* ===== USER MANAGEMENT — COLORFUL ENTERPRISE UI ===== */
+        .user-management-card {
+            overflow: hidden;
+            border: 1px solid rgba(37, 99, 235, .12);
+            box-shadow: 0 14px 40px rgba(37, 99, 235, .07);
+        }
+
+        .user-management-card .card-header {
+            padding: 18px 20px;
+            background:
+                radial-gradient(circle at 90% 0%, rgba(124, 58, 237, .10), transparent 34%),
+                radial-gradient(circle at 10% 100%, rgba(14, 165, 233, .10), transparent 32%),
+                var(--bg-card);
+        }
+
+        .user-management-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-management-title-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 13px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 18px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            box-shadow: 0 8px 20px rgba(79, 70, 229, .24);
+        }
+
+        .user-management-title-text {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .admin-table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .admin-table thead th {
+            padding-top: 14px !important;
+            padding-bottom: 14px !important;
+            background: linear-gradient(180deg, rgba(37, 99, 235, .055), rgba(37, 99, 235, .018));
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .admin-table tbody tr {
+            transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
+        }
+
+        .admin-table tbody tr:hover {
+            background: linear-gradient(90deg, rgba(37, 99, 235, .055), rgba(124, 58, 237, .035));
+        }
+
+        .admin-table tbody td {
+            border-bottom-color: rgba(148, 163, 184, .16);
+        }
+
+        .user-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .avatar-circle {
+            width: 42px;
+            height: 42px;
+            flex: 0 0 42px;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, .18);
+            border: 2px solid rgba(255,255,255,.85);
+        }
+
+        .user-row:nth-child(6n+1) .avatar-circle { background: linear-gradient(135deg,#2563eb,#06b6d4) !important; }
+        .user-row:nth-child(6n+2) .avatar-circle { background: linear-gradient(135deg,#7c3aed,#ec4899) !important; }
+        .user-row:nth-child(6n+3) .avatar-circle { background: linear-gradient(135deg,#059669,#22c55e) !important; }
+        .user-row:nth-child(6n+4) .avatar-circle { background: linear-gradient(135deg,#ea580c,#f59e0b) !important; }
+        .user-row:nth-child(6n+5) .avatar-circle { background: linear-gradient(135deg,#0891b2,#3b82f6) !important; }
+        .user-row:nth-child(6n+6) .avatar-circle { background: linear-gradient(135deg,#db2777,#8b5cf6) !important; }
+
+        .user-primary-name {
+            font-size: 13px;
+            font-weight: 650;
+            color: var(--text-primary);
+        }
+
+        .user-email-mobile {
+            display: none;
+            margin-top: 2px;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .badge-role,
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border: 1px solid transparent;
+        }
+
+        .badge-role.admin { background:#f3e8ff; color:#7c3aed; border-color:#e9d5ff; }
+        .badge-role.user { background:#e0f2fe; color:#0284c7; border-color:#bae6fd; }
+        .badge-role.technician { background:#fef3c7; color:#b45309; border-color:#fde68a; }
+        .badge-role.super_admin { background:#ffe4e6; color:#be123c; border-color:#fecdd3; }
+        .badge-role.lead_branch { background:#ccfbf1; color:#0f766e; border-color:#99f6e4; }
+
+        .status-badge.active::before,
+        .status-badge.inactive::before {
+            content:'';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .status-badge.active::before {
+            background:#22c55e;
+            box-shadow: 0 0 0 4px rgba(34,197,94,.12);
+        }
+
+        .status-badge.inactive::before {
+            background:#ef4444;
+            box-shadow: 0 0 0 4px rgba(239,68,68,.12);
+        }
+
+        .nik-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 9px;
+            border-radius: 8px;
+            background: rgba(37, 99, 235, .07);
+            color: var(--text-secondary);
+        }
+
+        .user-management-actions .btn {
+            height: 40px;
+            border-radius: 11px;
+            padding-inline: 13px;
+            font-weight: 600;
+        }
+
+        .user-management-actions .btn-primary {
+            box-shadow: 0 7px 16px rgba(37,99,235,.18);
+        }
+
+        [data-theme="dark"] .admin-table thead th {
+            background: rgba(96,165,250,.06);
+        }
+
+        [data-theme="dark"] .user-row:hover {
+            background: linear-gradient(90deg, rgba(96,165,250,.08), rgba(167,139,250,.05));
+        }
+
+        @media (max-width: 900px) {
+            .user-management-actions {
+                width: 100%;
+            }
+            .user-search-box {
+                flex: 1 1 100%;
+                width: 100%;
+            }
+        }
+
         /* ===== USER MANAGEMENT SEARCH ===== */
         .user-search-box {
             position: relative;
@@ -724,13 +895,16 @@
                 <!-- USER MANAGEMENT -->
                 <section class="row g-4 mt-3">
                     <div class="col-12">
-                        <div class="card enterprise-card">
+                        <div class="card enterprise-card user-management-card">
                             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
-                                <div>
-                                    <span class="fw-semibold" style="color:var(--text-primary);"><i class="bi bi-people-fill me-2" style="color:var(--accent-color);"></i>User Management</span>
+                                <div class="user-management-title">
+                                    <div class="user-management-title-icon"><i class="bi bi-people-fill"></i></div>
+                                    <div>
+                                    <div class="user-management-title-text">User Management</div>
                                     <div class="user-search-info mt-1" id="userSearchInfo">Menampilkan semua user</div>
+                                    </div>
                                 </div>
-                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <div class="d-flex align-items-center gap-2 flex-wrap user-management-actions">
                                     <div class="user-search-box">
                                         <i class="bi bi-search"></i>
                                         <input type="search" class="form-control form-control-sm" id="userSearchInput"
@@ -1479,17 +1653,18 @@
                     var roleDisplay = formatRoleDisplay(role);
 
                     html += `
-                                <tr>
-                                    <td style="padding:10px 16px;">
-                                        <div class="d-flex align-items-center gap-2">
+                                <tr class="user-row">
+                                    <td style="padding:12px 16px;">
+                                        <div class="user-name-cell">
                                             <div class="avatar-circle" style="background:${isSuperAdmin ? '#7c3aed' : '#4b7bec'}">${initial}</div>
                                             <div>
-                                                <div class="fw-semibold" style="color:var(--text-primary);font-size:13px;">${user.nama || '-'}</div>
+                                                <div class="user-primary-name">${user.nama || '-'}</div>
+                                                <div class="user-email-mobile">${user.email || '-'}</div>
                                                 ${isSuperAdmin ? '<span class="badge" style="font-size:8px;background:#7c3aed;color:#fff;padding:2px 4px;">SUPER</span>' : ''}
                                             </div>
                                         </div>
                                     </td>
-                                    <td style="padding:10px 16px;font-size:13px;" class="nik-cell">${nikDisplay}</td>
+                                    <td style="padding:10px 16px;font-size:13px;" class="nik-cell"><span class="nik-chip">${nikDisplay}</span></td>
                                     <td style="padding:10px 16px;font-size:13px;color:var(--text-secondary);">${user.email || '-'}</td>
                                     <td style="padding:10px 16px;"><span class="badge-role ${roleClass}">${roleDisplay}</span></td>
                                     <td style="padding:10px 16px;"><span class="status-badge ${statusClass}">${user.status || 'INACTIVE'}</span></td>

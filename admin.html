@@ -1441,7 +1441,7 @@
                 document.getElementById('userModalTitle').innerHTML = '<i class="bi bi-pencil-square"></i> Edit User';
                 document.getElementById('editEmail').value = user.email || '';
                 document.getElementById('userNama').value = user.nama || '';
-                document.getElementById('userNik').value = user.nik || '';
+                document.getElementById('userNik').value = String(user.nik || '').replace(/^'+/, '');
                 document.getElementById('userEmail').value = user.email || '';
                 document.getElementById('userEmail').disabled = true; // email tidak bisa diubah
                 document.getElementById('userPassword').value = '';
@@ -1603,6 +1603,14 @@
             });
 
             // =============================================
+            // NIK HELPER — PAKSA GOOGLE SHEET MEMBACA SEBAGAI TEKS
+            // =============================================
+            function formatNikForSheet(value) {
+                var nik = String(value ?? '').trim().replace(/^'+/, '');
+                return nik ? "'" + nik : '';
+            }
+
+            // =============================================
             // SAVE USER (Add / Edit)
             // =============================================
             document.getElementById('saveUserBtn')?.addEventListener('click', async function() {
@@ -1612,7 +1620,7 @@
                 var data = {
                     email: document.getElementById('userEmail').value.trim(),
                     originalEmail: editEmailVal,
-                    nik: document.getElementById('userNik').value.trim(),
+                    nik: formatNikForSheet(document.getElementById('userNik').value),
                     nama: document.getElementById('userNama').value.trim(),
                     password: document.getElementById('userPassword').value,
                     role: document.getElementById('formUserRole').value,
@@ -1719,7 +1727,7 @@
 
                             var userData = {
                                 email: String(item.email).trim(),
-                                nik: String(item.nik).trim(),
+                                nik: formatNikForSheet(item.nik),
                                 nama: String(item.nama).trim(),
                                 password: item.password ? String(item.password) : '12345',
                                 role: item.role ? String(item.role).trim() : 'USER',

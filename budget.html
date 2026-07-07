@@ -126,6 +126,27 @@
             transform: translateY(-2px);
         }
 
+        .logout-btn-header {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+            box-shadow: var(--shadow);
+            font-size: 1.15rem;
+        }
+        .logout-btn-header:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+            color: var(--text-primary);
+        }
+
         .budget-badge {
             font-size: 11px;
             font-weight: 600;
@@ -304,6 +325,9 @@
                     <div class="d-flex align-items-center gap-3">
                         <button class="dark-toggle" id="darkModeToggle" title="Ubah Tema">
                             <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+                        </button>
+                        <button class="logout-btn-header" id="logoutBtn" title="Logout">
+                            <i class="bi bi-box-arrow-right"></i>
                         </button>
                         <div class="d-flex align-items-center gap-2 border-start ps-3">
                             <div class="avatar-sm" id="userAvatar">U</div>
@@ -588,25 +612,39 @@
             'use strict';
 
             // =============================================
-            // 1. VALIDASI AKSES: HANYA ADMINISTRATOR
+            // 1. GUARD: Hanya ADMINISTRATOR, SUPER ADMIN, dan LEAD BRANCH SUPPORT
             // =============================================
-            try {
-                const session = BCS.Storage.getSession();
-                if (!session || !session.user) {
+            (function checkAdminAccess() {
+                try {
+                    if (typeof BCS === 'undefined' || typeof BCS.Storage === 'undefined') {
+                        console.warn('BCS belum siap, menunggu 200ms...');
+                        setTimeout(checkAdminAccess, 200);
+                        return;
+                    }
+                    // Gunakan checkRole dari auth.js jika tersedia
+                    if (typeof checkRole === 'function') {
+                        if (!checkRole(['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'])) {
+                            return;
+                        }
+                        return;
+                    }
+                    // Fallback manual
+                    var session = BCS.Storage.getSession();
+                    if (!session || !session.token) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
+                    if (!['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'].includes(role)) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    console.log('✅ Akses budget diterima untuk role:', role);
+                } catch (e) {
+                    console.warn('Guard error:', e);
                     window.location.href = 'login.html';
-                    return;
                 }
-                const role = (session.user.role || '').toLowerCase().trim();
-                if (!['administrator', 'admin'].includes(role)) {
-                    window.location.href = 'login.html';
-                    return;
-                }
-                console.log('✅ Akses Budget diterima untuk role:', role);
-            } catch (err) {
-                console.error('Validasi akses Budget error:', err);
-                window.location.href = 'login.html';
-                return;
-            }
+            })();
 
             // =============================================
             // 2. DOM REFS
@@ -617,6 +655,7 @@
                 userAvatar: document.getElementById('userAvatar'),
                 darkToggle: document.getElementById('darkModeToggle'),
                 darkIcon: document.getElementById('darkModeIcon'),
+                logoutBtn: document.getElementById('logoutBtn'),
                 searchInput: document.getElementById('searchInput'),
                 filterStatus: document.getElementById('filterStatus'),
                 filterPriority: document.getElementById('filterPriority'),
@@ -670,6 +709,25 @@
                 DOM.darkToggle.addEventListener('click', function() {
                     const current = document.documentElement.getAttribute('data-theme');
                     setTheme(current === 'dark' ? 'light' : 'dark');
+                });
+            }
+
+            // =============================================
+            // LOGOUT
+            // =============================================
+            function initLogout() {
+                if (!DOM.logoutBtn) return;
+                DOM.logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.auth && typeof window.auth.logout === 'function') {
+                        window.auth.logout();
+                    } else {
+                        if (confirm('Apakah Anda yakin ingin keluar?')) {
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            window.location.href = 'login.html';
+                        }
+                    }
                 });
             }
 
@@ -1359,6 +1417,7 @@
             // =============================================
             async function init() {
                 initDarkMode();
+                initLogout();
                 loadUserInfo();
 
                 updateSummary();
@@ -1417,5 +1476,4 @@
     </script>
 
 </body>
-
 </html>

@@ -1,5 +1,5 @@
 // auth.js - Building Care System v7.6 FINAL LOGIN ANIMATION
-// Logout: guaranteed email capture
+// Added checkRole() for centralized role-based access control
 
 (function() {
     "use strict";
@@ -14,6 +14,36 @@
         };
         if (!BCS.App) BCS.App = { Toast: { info: function() {}, success: function() {}, danger: function() {}, warning: function() {} } };
         if (!BCS.Logger) BCS.Logger = { info: console.log, error: console.error, warn: console.warn };
+    }
+
+    // =============================================
+    // CHECK ROLE - CENTRALIZED GUARD
+    // =============================================
+    function checkRole(allowedRoles) {
+        try {
+            var session = BCS.Storage.getSession();
+            if (!session || !session.token) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
+            
+            // Jika role tidak diizinkan
+            if (!allowedRoles.includes(role)) {
+                // Jika role adalah admin dan mencoba akses halaman user, arahkan ke admin.html
+                if (allowedRoles.includes('USER') && ['ADMINISTRATOR','SUPER ADMIN','LEAD BRANCH SUPPORT'].includes(role)) {
+                    window.location.href = 'admin.html';
+                } else {
+                    window.location.href = 'login.html';
+                }
+                return false;
+            }
+            return true;
+        } catch (e) {
+            console.warn('[checkRole] Error:', e);
+            window.location.href = 'login.html';
+            return false;
+        }
     }
 
     // =============================================
@@ -64,7 +94,6 @@
                 email: email
             };
 
-            // 🔥 SIMPAN EMAIL SECARA EKSPLISIT
             if (email) {
                 localStorage.setItem('userEmail', email);
                 sessionStorage.setItem('userEmail', email);
@@ -85,8 +114,6 @@
             };
             const targetPage = routeMap[role.toUpperCase()] || "user-report.html";
 
-            // Jangan redirect di auth.js.
-            // login.html akan menampilkan animasi sukses terlebih dahulu.
             return {
                 ...response,
                 success: true,
@@ -110,10 +137,8 @@
     async function logout(redirectTo = "login.html") {
         BCS.Logger.info("Logout");
 
-        // 🔥 KUMPULKAN EMAIL DARI BERBAGAI SUMBER
         let email = '';
 
-        // 1. Dari session
         try {
             const session = BCS.Storage.getSession();
             if (session) {
@@ -124,7 +149,6 @@
             }
         } catch (e) {}
 
-        // 2. Dari localStorage langsung (jika ada)
         if (!email) {
             try {
                 const stored = localStorage.getItem('userEmail');
@@ -132,7 +156,6 @@
             } catch (e) {}
         }
 
-        // 3. Dari sessionStorage
         if (!email) {
             try {
                 const stored = sessionStorage.getItem('userEmail');
@@ -140,7 +163,6 @@
             } catch (e) {}
         }
 
-        // 4. Dari key 'user' di localStorage (JSON)
         if (!email) {
             try {
                 const userStr = localStorage.getItem('user');
@@ -151,7 +173,6 @@
             } catch (e) {}
         }
 
-        // 5. Dari BCS_SESSION (jika ada)
         if (!email) {
             try {
                 const bcsSession = localStorage.getItem('BCS_SESSION');
@@ -163,10 +184,8 @@
             } catch (e) {}
         }
 
-        // Log email yang berhasil diambil
         console.log('📧 Email captured for logout:', email || '(empty)');
 
-        // Ambil token
         let token = '';
         try {
             const session = BCS.Storage.getSession();
@@ -176,7 +195,6 @@
             }
         } catch (e) {}
 
-        // Kirim ke server (selalu kirim, meskipun email kosong)
         if (BCS.Api && typeof BCS.Api.post === 'function') {
             try {
                 const payload = { token: token };
@@ -190,7 +208,6 @@
             console.warn('⚠️ API not available, skipping server logout');
         }
 
-        // Clear semua storage
         try {
             if (BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
                 BCS.Storage.removeSession();
@@ -225,11 +242,13 @@
         login: login,
         logout: logout,
         isLoggedIn: isLoggedIn,
-        getSession: getSession
+        getSession: getSession,
+        checkRole: checkRole
     };
     window.login = login;
+    window.checkRole = checkRole;
 
-    console.log("✅ auth.js v7.6 FINAL LOGIN ANIMATION loaded");
+    console.log("✅ auth.js v7.7 with checkRole() loaded");
 })();
 
 // Fallback
@@ -243,6 +262,10 @@ if (typeof window.auth === 'undefined') {
             window.location.href = redirectTo || 'login.html';
         },
         isLoggedIn: function() { return false; },
-        getSession: function() { return null; }
+        getSession: function() { return null; },
+        checkRole: function() { return true; }
     };
+}
+if (typeof window.checkRole === 'undefined') {
+    window.checkRole = window.auth.checkRole;
 }

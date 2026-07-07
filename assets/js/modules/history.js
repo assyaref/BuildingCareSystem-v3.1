@@ -1,5 +1,5 @@
 // ============================================================
-// Building Care System Enterprise v7.6 FINAL - FIXED
+// Building Care System Enterprise v7.7 FINAL - ACTUAL ALL REPORTS
 // history.js - Auto Refresh 5 Menit (Background)
 // Radiant Group Duri
 // ============================================================
@@ -496,7 +496,9 @@
             const user = session?.user || {};
             const role = (user.role || '').toUpperCase();
 
-            if (role !== 'ADMIN' && role !== 'ADMINISTRATOR') {
+            const adminRoles = ['ADMIN', 'ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'];
+
+            if (!adminRoles.includes(role)) {
                 const userNik = (user.nik || '').trim();
                 const userNama = (user.nama || '').toLowerCase().trim();
                 if (userNik || userNama) {
@@ -596,38 +598,8 @@
             });
         }
 
-        const activePill = document.querySelector('.quick-pills .pill.active');
-        if (activePill) {
-            const range = activePill.dataset.range;
-            let start, end;
-            switch (range) {
-                case 'today':
-                    const tr = getTodayRange();
-                    start = tr.start;
-                    end = tr.end;
-                    break;
-                case 'week':
-                    const wr = getWeekRange();
-                    start = wr.start;
-                    end = wr.end;
-                    break;
-                case 'month':
-                    const mr = getMonthRange();
-                    start = mr.start;
-                    end = mr.end;
-                    break;
-                case 'last3months':
-                    const lr = getLast3MonthsRange();
-                    start = lr.start;
-                    end = lr.end;
-                    break;
-            }
-            if (start || end) {
-                result = result.filter(function(r) {
-                    return isDateInRange(r.tanggal || r.createdAt, start, end);
-                });
-            }
-        }
+        // FINAL: tanpa filter periode tanggal.
+        // Semua data actual dari sheet REPORT tetap ditampilkan.
 
         result.sort(function(a, b) {
             const dateA = new Date(a.tanggal || a.createdAt || 0);
@@ -1130,12 +1102,7 @@
     // ============================================================
     function bindEvents() {
         if (DOM.searchInput) {
-            DOM.searchInput.addEventListener('input', function() {
-                document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
-                    p.classList.remove('active');
-                });
-                applyFilters();
-            });
+            DOM.searchInput.addEventListener('input', applyFilters);
         }
 
         if (DOM.filterStatus) {
@@ -1149,16 +1116,6 @@
         if (DOM.sortOrder) {
             DOM.sortOrder.addEventListener('change', applyFilters);
         }
-
-        document.querySelectorAll('.quick-pills .pill').forEach(function(pill) {
-            pill.addEventListener('click', function() {
-                document.querySelectorAll('.quick-pills .pill').forEach(function(p) {
-                    p.classList.remove('active');
-                });
-                this.classList.add('active');
-                applyFilters();
-            });
-        });
 
         if (DOM.refreshBtn) {
             DOM.refreshBtn.addEventListener('click', resetCountdown);

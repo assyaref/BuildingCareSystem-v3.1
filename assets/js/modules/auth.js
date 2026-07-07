@@ -1,5 +1,5 @@
-// auth.js - Building Care System v7.6 FINAL LOGIN ANIMATION
-// Added checkRole() for centralized role-based access control
+// auth.js - Building Care System v7.7 FINAL
+// Centralized role-based access control
 
 (function() {
     "use strict";

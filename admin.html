@@ -1708,7 +1708,10 @@
                         var workbook = XLSX.read(dataBytes, { type: 'array' });
                         var sheetName = workbook.SheetNames[0];
                         var worksheet = workbook.Sheets[sheetName];
-                        var rawJson = XLSX.utils.sheet_to_json(worksheet);
+                        var rawJson = XLSX.utils.sheet_to_json(worksheet, {
+                            defval: '',
+                            raw: false
+                        });
 
                         if (rawJson.length === 0) {
                             Swal.fire('Gagal', 'File Excel kosong atau layout tidak tepat.', 'error');
@@ -1722,11 +1725,36 @@
                         for (var i = 0; i < rawJson.length; i++) {
                             var row = rawJson[i];
                             var item = {};
+
+                            // Normalisasi header Excel: abaikan spasi, underscore, titik, strip, BOM
                             Object.keys(row).forEach(function(k) {
-                                item[k.toLowerCase().trim()] = row[k];
+                                var cleanKey = String(k || '')
+                                    .replace(/^\uFEFF/, '')
+                                    .toLowerCase()
+                                    .trim()
+                                    .replace(/[\s_.\-]+/g, '');
+
+                                var value = row[k];
+
+                                if (['nama', 'namalengkap', 'name', 'fullname'].includes(cleanKey)) item.nama = value;
+                                else if (['nik', 'noinduk', 'nomorinduk', 'employeeid'].includes(cleanKey)) item.nik = value;
+                                else if (['email', 'emailaddress', 'alamatemail'].includes(cleanKey)) item.email = value;
+                                else if (['password', 'pass', 'sandi', 'katasandi'].includes(cleanKey)) item.password = value;
+                                else if (['role', 'peran', 'hakakses'].includes(cleanKey)) item.role = value;
+                                else if (['status', 'userstatus'].includes(cleanKey)) item.status = value;
                             });
 
-                            if (!item.email || !item.nik || !item.nama) {
+                            // Fallback posisi kolom jika header file tidak standar:
+                            // nama | nik | email | password | role | status
+                            var rowValues = Object.values(row);
+                            if (!String(item.nama ?? '').trim() && rowValues.length >= 1) item.nama = rowValues[0];
+                            if (!String(item.nik ?? '').trim() && rowValues.length >= 2) item.nik = rowValues[1];
+                            if (!String(item.email ?? '').trim() && rowValues.length >= 3) item.email = rowValues[2];
+                            if (!String(item.password ?? '').trim() && rowValues.length >= 4) item.password = rowValues[3];
+                            if (!String(item.role ?? '').trim() && rowValues.length >= 5) item.role = rowValues[4];
+                            if (!String(item.status ?? '').trim() && rowValues.length >= 6) item.status = rowValues[5];
+
+                            if (!String(item.email ?? '').trim() || !String(item.nik ?? '').trim() || !String(item.nama ?? '').trim()) {
                                 failureCount++;
                                 errors.push('Baris ' + (i + 2) + ': Atribut utama (Nama/NIK/Email) kosong.');
                                 continue;

@@ -381,6 +381,40 @@
 <script src="assets/js/modules/auth.js"></script>
 
 <script>
+  // =============================================
+  // GUARD: Hanya USER dan TECHNICIAN yang boleh mengakses
+  // =============================================
+  (function checkUserAccess() {
+    try {
+      // Tunggu sesaat agar BCS.Storage siap
+      if (typeof BCS === 'undefined' || typeof BCS.Storage === 'undefined') {
+        console.warn('BCS belum siap, menunggu 200ms...');
+        setTimeout(function() { checkUserAccess(); }, 200);
+        return;
+      }
+      
+      var session = BCS.Storage.getSession();
+      if (!session || !session.token) {
+        window.location.href = 'login.html';
+        return;
+      }
+      var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
+      if (role !== 'USER' && role !== 'TECHNICIAN') {
+        // Jika role adalah admin, arahkan ke admin.html
+        if (['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'].includes(role)) {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'login.html';
+        }
+        return;
+      }
+      console.log('✅ Akses user-history diterima untuk role:', role);
+    } catch (e) {
+      console.warn('Guard error:', e);
+      window.location.href = 'login.html';
+    }
+  })();
+
   (function() {
     'use strict';
 

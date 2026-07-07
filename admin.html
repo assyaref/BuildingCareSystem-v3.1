@@ -205,6 +205,11 @@
             color: #c62828;
         }
 
+        .badge-role.lead_branch {
+            background: #e0f7fa;
+            color: #00695c;
+        }
+
         .status-badge {
             font-size: 10px;
             padding: 3px 10px;
@@ -792,6 +797,8 @@
                                 <option value="USER">USER</option>
                                 <option value="ADMINISTRATOR">ADMINISTRATOR</option>
                                 <option value="TECHNICIAN">TECHNICIAN</option>
+                                <option value="SUPER ADMIN">SUPER ADMIN</option>
+                                <option value="LEAD BRANCH SUPPORT">LEAD BRANCH SUPPORT</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -829,7 +836,7 @@
                             nama | nik | email | password | role | status
                         </strong>
                         <ul class="mb-2 ps-3">
-                            <li><strong>role:</strong> USER, ADMINISTRATOR, atau TECHNICIAN</li>
+                            <li><strong>role:</strong> USER, ADMINISTRATOR, TECHNICIAN, SUPER ADMIN, LEAD BRANCH SUPPORT</li>
                             <li><strong>status:</strong> ACTIVE atau INACTIVE</li>
                             <li>Password minimal 5 karakter.</li>
                         </ul>
@@ -879,7 +886,7 @@
             'use strict';
 
             // =============================================
-            // GUARD: Hanya ADMINISTRATOR
+            // GUARD: Hanya ADMINISTRATOR, SUPER ADMIN, atau LEAD BRANCH SUPPORT
             // =============================================
             function checkAccess() {
                 try {
@@ -889,7 +896,7 @@
                         return false;
                     }
                     var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
-                    if (role !== 'ADMINISTRATOR') {
+                    if (role !== 'ADMINISTRATOR' && role !== 'SUPER ADMIN' && role !== 'LEAD BRANCH SUPPORT') {
                         window.location.href = 'dashboard.html';
                         return false;
                     }
@@ -1059,7 +1066,7 @@
                     }) || {};
 
                     var nama = sessionValue(s, ['nama','name','user_name','userName'], matchedUser.nama || email || 'User');
-                    var role = String(sessionValue(s, ['role','user_role'], matchedUser.role || 'USER')).toUpperCase();
+                    var role = String(sessionValue(s, ['role','user_role'], matchedUser.role || 'USER'));
                     var lastActive = sessionValue(s, ['lastActive','last_activity','lastActivity','login_at','created_at'], '');
                     var device = sessionValue(s, ['device','device_name','browser','user_agent','userAgent'], '-');
                     var ip = sessionValue(s, ['ip','ip_address','ipAddress'], '-');
@@ -1261,6 +1268,14 @@
             var cachedOnlineSessions = [];
 
             // =============================================
+            // FORMAT ROLE DISPLAY (biarkan apa adanya)
+            // =============================================
+            function formatRoleDisplay(role) {
+                if (!role) return 'USER';
+                return role; // biarkan sesuai database (dengan spasi)
+            }
+
+            // =============================================
             // LOAD USERS
             // =============================================
             async function loadUsers() {
@@ -1307,13 +1322,19 @@
                 var html = '';
                 users.forEach(function(user) {
                     var initial = (user.nama || 'U').charAt(0).toUpperCase();
-                    var role = (user.role || 'USER').toUpperCase();
-                    var roleClass = role === 'ADMINISTRATOR' ? 'admin' : role === 'TECHNICIAN' ? 'technician' : 'user';
-                    var isSuperAdmin = user.email === 'admin@bcs.com' || user.nik === '0000' || role === 'SUPER_ADMIN';
+                    var role = (user.role || 'USER');
+                    var roleClass = 'user';
+                    if (role === 'ADMINISTRATOR') roleClass = 'admin';
+                    else if (role === 'TECHNICIAN') roleClass = 'technician';
+                    else if (role === 'SUPER ADMIN') roleClass = 'super_admin';
+                    else if (role === 'LEAD BRANCH SUPPORT') roleClass = 'lead_branch';
+
+                    var isSuperAdmin = user.email === 'admin@bcs.com' || user.nik === '0000' || role === 'SUPER ADMIN';
                     if (isSuperAdmin) roleClass = 'super_admin';
 
                     var statusClass = (user.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'active' : 'inactive';
                     var nikDisplay = user.nik || '-';
+                    var roleDisplay = formatRoleDisplay(role);
 
                     html += `
                                 <tr>
@@ -1328,7 +1349,7 @@
                                     </td>
                                     <td style="padding:10px 16px;font-size:13px;" class="nik-cell">${nikDisplay}</td>
                                     <td style="padding:10px 16px;font-size:13px;color:var(--text-secondary);">${user.email || '-'}</td>
-                                    <td style="padding:10px 16px;"><span class="badge-role ${roleClass}">${role}</span></td>
+                                    <td style="padding:10px 16px;"><span class="badge-role ${roleClass}">${roleDisplay}</span></td>
                                     <td style="padding:10px 16px;"><span class="status-badge ${statusClass}">${user.status || 'INACTIVE'}</span></td>
                                     <td style="padding:10px 16px;text-align:center;">
                                         <div class="d-flex justify-content-center gap-1">
@@ -1425,7 +1446,8 @@
                 document.getElementById('userEmail').disabled = true; // email tidak bisa diubah
                 document.getElementById('userPassword').value = '';
                 document.getElementById('userPassword').placeholder = 'Kosongkan jika tidak ingin diubah';
-                document.getElementById('formUserRole').value = (user.role || 'USER').toUpperCase();
+                // Set dropdown role — nilai sudah sesuai dengan database (dengan spasi)
+                document.getElementById('formUserRole').value = user.role || 'USER';
                 document.getElementById('userStatus').value = (user.status || 'ACTIVE').toUpperCase();
                 document.getElementById('passwordRequired').style.display = 'none';
 
@@ -1597,13 +1619,23 @@
                     status: document.getElementById('userStatus').value
                 };
 
-                if (!data.email || !data.nik || !data.nama) {
-                    Swal.fire('Perhatian', 'Kolom Nama, NIK, dan Email wajib diisi.', 'warning');
-                    return;
+                // VALIDASI SPESIFIK
+                var errors = [];
+                if (!data.nama) errors.push('Nama Lengkap');
+                if (!data.nik) errors.push('NIK');
+                if (!data.email) errors.push('Email');
+                if (!isEdit && (!data.password || data.password.length < 5)) {
+                    errors.push('Password (min. 5 karakter)');
                 }
 
-                if (!isEdit && (!data.password || data.password.length < 5)) {
-                    Swal.fire('Perhatian', 'Password baru minimal berjumlah 5 karakter.', 'warning');
+                if (errors.length > 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Perhatian',
+                        html: 'Kolom berikut wajib diisi:<br><ul style="text-align:left;">' +
+                              errors.map(function(e) { return '<li>' + e + '</li>'; }).join('') +
+                              '</ul>'
+                    });
                     return;
                 }
 
@@ -1690,7 +1722,7 @@
                                 nik: String(item.nik).trim(),
                                 nama: String(item.nama).trim(),
                                 password: item.password ? String(item.password) : '12345',
-                                role: item.role ? String(item.role).toUpperCase().trim() : 'USER',
+                                role: item.role ? String(item.role).trim() : 'USER',
                                 status: item.status ? String(item.status).toUpperCase().trim() : 'ACTIVE'
                             };
 
@@ -1742,7 +1774,8 @@
                 try {
                     var templateData = [
                         { "nama": "Ahmad Fauzi", "nik": "01123", "email": "ahmad.fauzi@radiant.com", "password": "password123", "role": "USER", "status": "ACTIVE" },
-                        { "nama": "Siti Aminah", "nik": "01124", "email": "siti.aminah@radiant.com", "password": "password456", "role": "TECHNICIAN", "status": "ACTIVE" }
+                        { "nama": "Siti Aminah", "nik": "01124", "email": "siti.aminah@radiant.com", "password": "password456", "role": "TECHNICIAN", "status": "ACTIVE" },
+                        { "nama": "Budi Santoso", "nik": "01125", "email": "budi@radiant.com", "password": "password789", "role": "SUPER ADMIN", "status": "ACTIVE" }
                     ];
                     var worksheet = XLSX.utils.json_to_sheet(templateData);
                     var workbook = XLSX.utils.book_new();

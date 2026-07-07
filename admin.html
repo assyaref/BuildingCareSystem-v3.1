@@ -1329,7 +1329,14 @@
                     else if (role === 'SUPER ADMIN') roleClass = 'super_admin';
                     else if (role === 'LEAD BRANCH SUPPORT') roleClass = 'lead_branch';
 
-                    var isSuperAdmin = user.email === 'admin@bcs.com' || user.nik === '0000' || role === 'SUPER ADMIN';
+                    // Sembunyikan akun bawaan Super Admin dari tabel User Management
+                    var isBuiltInSuperAdmin =
+                        String(user.email || '').toLowerCase() === 'admin@bcs.com' ||
+                        String(user.nik || '').replace(/^'+/, '') === '0000';
+
+                    if (isBuiltInSuperAdmin) return;
+
+                    var isSuperAdmin = role === 'SUPER ADMIN';
                     if (isSuperAdmin) roleClass = 'super_admin';
 
                     var statusClass = (user.status || 'ACTIVE').toUpperCase() === 'ACTIVE' ? 'active' : 'inactive';

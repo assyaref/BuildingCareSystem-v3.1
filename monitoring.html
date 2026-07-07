@@ -798,6 +798,13 @@
         }
         .min-width-0 { min-width:0; }
 
+    
+        .stat-card .apps-script-logo {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+        }
+
     </style>
 </head>
 
@@ -1156,11 +1163,7 @@
                 <section class="row g-4 mt-2">
                     <div class="col-md-3">
                         <div class="stat-card">
-                            <div class="stat-icon service-brand mx-auto"><svg class="service-logo" viewBox="0 0 64 64" aria-label="Google Apps Script logo">
-<path fill="#4285F4" d="M15 5h24l10 10v44H15z"/>
-<path fill="#AECBFA" d="M39 5v12h12z"/>
-<path fill="#fff" d="M25 24l-9 8 9 8 3-4-5-4 5-4zm14 0l-3 4 5 4-5 4 3 4 9-8zm-9 20h5l7-24h-5z"/>
-</svg></div>
+                            <div class="stat-icon service-brand mx-auto"><img src="assets/img/google-apps-script-logo.png" class="service-logo apps-script-logo" alt="Google Apps Script"></div>
                             <div class="stat-number" id="apiStatus" style="color:var(--text-primary);">●</div>
                             <div class="stat-label" style="color:var(--text-secondary);">API Server</div>
                             <div class="stat-trend up" id="apiStatusText" style="color:#22c55e;">Online</div>

@@ -429,6 +429,18 @@
             transform: translateY(-4px);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
         }
+        .stat-card .service-logo {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+            display: block;
+        }
+        .stat-card .stat-icon.service-brand {
+            background: transparent !important;
+            width: 58px;
+            height: 58px;
+        }
+
         .stat-card .stat-icon {
             width: 48px;
             height: 48px;
@@ -1102,7 +1114,11 @@
                 <section class="row g-4 mt-2">
                     <div class="col-md-3">
                         <div class="stat-card">
-                            <div class="stat-icon blue mx-auto"><i class="bi bi-server"></i></div>
+                            <div class="stat-icon service-brand mx-auto"><svg class="service-logo" viewBox="0 0 64 64" aria-label="Google Apps Script logo">
+<path fill="#4285F4" d="M15 5h24l10 10v44H15z"/>
+<path fill="#AECBFA" d="M39 5v12h12z"/>
+<path fill="#fff" d="M25 24l-9 8 9 8 3-4-5-4 5-4zm14 0l-3 4 5 4-5 4 3 4 9-8zm-9 20h5l7-24h-5z"/>
+</svg></div>
                             <div class="stat-number" id="apiStatus" style="color:var(--text-primary);">●</div>
                             <div class="stat-label" style="color:var(--text-secondary);">API Server</div>
                             <div class="stat-trend up" id="apiStatusText" style="color:#22c55e;">Online</div>
@@ -1110,7 +1126,11 @@
                     </div>
                     <div class="col-md-3">
                         <div class="stat-card">
-                            <div class="stat-icon green mx-auto"><i class="bi bi-database"></i></div>
+                            <div class="stat-icon service-brand mx-auto"><svg class="service-logo" viewBox="0 0 64 64" aria-label="Google Sheets logo">
+<path fill="#0F9D58" d="M14 4h25l11 11v45H14z"/>
+<path fill="#87CEAC" d="M39 4v13h13z"/>
+<path fill="#fff" d="M21 25h22v22H21zm4 4v4h6v-4zm10 0v4h4v-4zM25 37v6h6v-6zm10 0v6h4v-6z"/>
+</svg></div>
                             <div class="stat-number" id="dbStatus" style="color:var(--text-primary);">●</div>
                             <div class="stat-label" style="color:var(--text-secondary);">Database</div>
                             <div class="stat-trend up" id="dbStatusText" style="color:#22c55e;">Online</div>
@@ -1118,7 +1138,11 @@
                     </div>
                     <div class="col-md-3">
                         <div class="stat-card">
-                            <div class="stat-icon orange mx-auto"><i class="bi bi-drive"></i></div>
+                            <div class="stat-icon service-brand mx-auto"><svg class="service-logo" viewBox="0 0 64 64" aria-label="Google Drive logo">
+<path fill="#0F9D58" d="M24 7h16l16 28H40z"/>
+<path fill="#F4B400" d="M24 7L8 35l8 14 16-28z"/>
+<path fill="#4285F4" d="M16 49h32l8-14H24z"/>
+</svg></div>
                             <div class="stat-number" id="driveStatus" style="color:var(--text-primary);">●</div>
                             <div class="stat-label" style="color:var(--text-secondary);">Google Drive</div>
                             <div class="stat-trend up" id="driveStatusText" style="color:#22c55e;">Online</div>

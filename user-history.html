@@ -395,23 +395,23 @@
       
       var session = BCS.Storage.getSession();
       if (!session || !session.token) {
-        window.location.href = 'login.html';
+        window.location.href = '/login';
         return;
       }
       var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
       if (role !== 'USER' && role !== 'TECHNICIAN') {
-        // Jika role adalah admin, arahkan ke admin.html
+        // Jika role adalah admin, arahkan ke /admin
         if (['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'].includes(role)) {
-          window.location.href = 'admin.html';
+          window.location.href = '/admin';
         } else {
-          window.location.href = 'login.html';
+          window.location.href = '/login';
         }
         return;
       }
       console.log('✅ Akses user-history diterima untuk role:', role);
     } catch (e) {
       console.warn('Guard error:', e);
-      window.location.href = 'login.html';
+      window.location.href = '/login';
     }
   })();
 
@@ -761,7 +761,7 @@
 
       // Bersihkan query agar refresh berikutnya tidak terus menyorot kartu.
       try {
-        history.replaceState({}, '', 'user-history.html');
+        history.replaceState({}, '', '/user-history');
       } catch (e) {}
     }
 
@@ -830,10 +830,10 @@
     // =============================================
     // 6. NAVIGASI, NOTIF & MODERN TOAST LOGOUT
     // =============================================
-    document.getElementById('navReport').addEventListener('click', function(e) { e.preventDefault(); window.location.href = 'user-report.html'; });
-    document.getElementById('navHistory').addEventListener('click', function(e) { e.preventDefault(); window.location.href = 'user-history.html'; });
+    document.getElementById('navReport').addEventListener('click', function(e) { e.preventDefault(); window.location.href = '/user-report'; });
+    document.getElementById('navHistory').addEventListener('click', function(e) { e.preventDefault(); window.location.href = '/user-history'; });
     document.getElementById('notifBtn').addEventListener('click', function() {
-      window.location.href = 'user-report.html#notifications';
+      window.location.href = '/user-report#notifications';
     });
 
     const logoutOverlay = document.getElementById('logoutOverlay');
@@ -871,7 +871,7 @@
         } catch(e) {}
         const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
         keys.forEach(key => { localStorage.removeItem(key); sessionStorage.removeItem(key); });
-        window.location.href = 'login.html';
+        window.location.href = '/login';
       }, 600);
     });
 

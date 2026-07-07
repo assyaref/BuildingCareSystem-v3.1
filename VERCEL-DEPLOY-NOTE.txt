@@ -1,0 +1,18 @@
+BCS VERCEL FINAL
+================
+
+Perubahan:
+- URL halaman dibuat tanpa .html
+- Navigasi internal diperbarui ke clean URL
+- vercel.json ditambahkan
+- Refresh langsung pada route halaman didukung
+- Service worker tetap tersedia dengan cache revalidation
+
+Contoh:
+dashboard.html -> /dashboard
+report.html -> /report
+history.html -> /history
+monitoring.html -> /monitoring
+user-report.html -> /user-report
+
+Upload isi project ini ke repository GitHub yang terhubung ke Vercel.

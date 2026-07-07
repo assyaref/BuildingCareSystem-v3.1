@@ -841,7 +841,7 @@
                                     <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Riwayat Laporan Saya</h5>
                                     <small class="text-muted">5 laporan terakhir yang Anda kirim</small>
                                 </div>
-                                <a href="history.html" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                                <a href="/history" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
@@ -1015,18 +1015,18 @@
                 // Fallback manual
                 var session = BCS.Storage.getSession();
                 if (!session || !session.token) {
-                    window.location.href = 'login.html';
+                    window.location.href = '/login';
                     return;
                 }
                 var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
                 if (!['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'].includes(role)) {
-                    window.location.href = 'login.html';
+                    window.location.href = '/login';
                     return;
                 }
                 console.log('✅ Akses report diterima untuk role:', role);
             } catch (e) {
                 console.warn('Guard error:', e);
-                window.location.href = 'login.html';
+                window.location.href = '/login';
             }
         })();
 
@@ -1109,7 +1109,7 @@
                         if (confirm('Apakah Anda yakin ingin keluar?')) {
                             localStorage.clear();
                             sessionStorage.clear();
-                            window.location.href = 'login.html';
+                            window.location.href = '/login';
                         }
                     }
                 });

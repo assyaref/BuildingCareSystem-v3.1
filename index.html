@@ -162,8 +162,8 @@
         // ============================================
         const CONFIG = {
             DEBUG: true,
-            LOGIN_URL: 'login.html',
-            DASHBOARD_URL: 'dashboard.html',
+            LOGIN_URL: '/login',
+            DASHBOARD_URL: '/dashboard',
             REDIRECT_DELAY: 1000 // ms
         };
 
@@ -219,7 +219,7 @@
         // CHECK LOGIN PAGE
         // ============================================
         function checkLoginPage() {
-            // Cek apakah login.html bisa diakses
+            // Cek apakah /login bisa diakses
             fetch(CONFIG.LOGIN_URL, { method: 'HEAD' })
                 .then(function(response) {
                     if (response.ok) {
@@ -227,14 +227,14 @@
                         redirectTo(CONFIG.LOGIN_URL);
                     } else {
                         log('Login page not found (status: ' + response.status + ')');
-                        // Coba fallback ke index.html sebagai login
-                        redirectTo('index.html?mode=login');
+                        // Coba fallback ke / sebagai login
+                        redirectTo('/?mode=login');
                     }
                 })
                 .catch(function(error) {
                     log('Error checking login page:', error);
                     // Coba fallback
-                    showError('Halaman login tidak ditemukan. Pastikan file login.html tersedia.');
+                    showError('Halaman login tidak ditemukan. Pastikan file /login tersedia.');
                 });
         }
 
@@ -252,7 +252,7 @@
             // Tampilkan loader dengan pesan
             loader.querySelector('small').textContent = 'Mengarahkan ke halaman login...';
             
-            // Cek dan redirect ke login.html
+            // Cek dan redirect ke /login
             checkLoginPage();
         }
 

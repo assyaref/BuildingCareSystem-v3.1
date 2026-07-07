@@ -368,7 +368,7 @@
                         <div class="card enterprise-card h-100">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <span class="fw-semibold">Aktivitas Terbaru</span>
-                                <a href="history.html" class="text-decoration-none fw-medium" style="color: var(--accent-color, #2563eb); font-size: 14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size: 10px;"></i></a>
+                                <a href="/history" class="text-decoration-none fw-medium" style="color: var(--accent-color, #2563eb); font-size: 14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size: 10px;"></i></a>
                             </div>
                             <div class="card-body p-4" style="max-height: 310px; overflow-y: auto;">
                                 <div id="recentActivity" class="d-flex flex-column gap-1"></div>
@@ -452,14 +452,14 @@
                 try {
                     var session = BCS.Storage.getSession();
                     if (!session || !session.token) {
-                        window.location.href = 'login.html';
+                        window.location.href = '/login';
                         return false;
                     }
 
                     var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
                     if (!['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'].includes(role)) {
                         console.warn('⛔ Akses ditolak untuk role:', role);
-                        window.location.href = 'login.html';
+                        window.location.href = '/login';
                         return false;
                     }
 
@@ -467,7 +467,7 @@
                     return true;
                 } catch (e) {
                     console.warn('Guard error:', e);
-                    window.location.href = 'login.html';
+                    window.location.href = '/login';
                     return false;
                 }
             }
@@ -525,7 +525,7 @@
                         if (confirm('Apakah Anda yakin ingin keluar?')) {
                             localStorage.clear();
                             sessionStorage.clear();
-                            window.location.href = 'login.html';
+                            window.location.href = '/login';
                         }
                     }
                 });

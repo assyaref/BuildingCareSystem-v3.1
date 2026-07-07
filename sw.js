@@ -17,7 +17,7 @@ const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
 
 const APP_SHELL = [
   "./",
-  "./index.html",
+  ".//",
   "./manifest.json",
 
   // CSS
@@ -209,7 +209,7 @@ self.addEventListener("fetch", event => {
           }
 
           const indexFallback =
-            await caches.match("./index.html");
+            await caches.match(".//");
 
           if (indexFallback) {
             return indexFallback;
@@ -378,7 +378,7 @@ self.addEventListener("push", event => {
 
   const targetUrl =
     messageData.url ||
-    "./user-history.html";
+    ".//user-history";
 
   const options = {
     body: body,
@@ -459,7 +459,7 @@ self.addEventListener(
 
     const targetUrl =
       event.notification.data?.url ||
-      "./user-history.html";
+      ".//user-history";
 
     const absoluteUrl =
       new URL(

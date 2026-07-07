@@ -791,7 +791,7 @@
     </section>
   </div>
 
-  <!-- Modern Interactive Logout Toast Overlay (sama persis seperti di user-history.html) -->
+  <!-- Modern Interactive Logout Toast Overlay (sama persis seperti di /user-history) -->
   <div id="logoutOverlay">
     <div id="logoutToast">
       <div class="toast-handle"></div>
@@ -837,23 +837,23 @@
       
       var session = BCS.Storage.getSession();
       if (!session || !session.token) {
-        window.location.href = 'login.html';
+        window.location.href = '/login';
         return;
       }
       var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
       if (role !== 'USER' && role !== 'TECHNICIAN') {
-        // Jika role adalah admin, arahkan ke admin.html
+        // Jika role adalah admin, arahkan ke /admin
         if (['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'].includes(role)) {
-          window.location.href = 'admin.html';
+          window.location.href = '/admin';
         } else {
-          window.location.href = 'login.html';
+          window.location.href = '/login';
         }
         return;
       }
       console.log('✅ Akses user-report diterima untuk role:', role);
     } catch (e) {
       console.warn('Guard error:', e);
-      window.location.href = 'login.html';
+      window.location.href = '/login';
     }
   })();
 
@@ -1425,12 +1425,12 @@
     // =============================================
     document.getElementById('navHistory').addEventListener('click', function(e) {
       e.preventDefault();
-      window.location.href = 'user-history.html';
+      window.location.href = '/user-history';
     });
 
     document.getElementById('navReport').addEventListener('click', function(e) {
       e.preventDefault();
-      window.location.href = 'user-report.html';
+      window.location.href = '/user-report';
     });
 
     // =============================================
@@ -1607,7 +1607,7 @@
         if (result.isConfirmed) {
           downloadReportPdf(r);
         } else if (result.isDenied) {
-          location.href = id !== '-' ? `user-history.html?reportId=${encodeURIComponent(id)}` : 'user-history.html';
+          location.href = id !== '-' ? `/user-history?reportId=${encodeURIComponent(id)}` : '/user-history';
         }
       });
     }
@@ -1629,7 +1629,7 @@
       setTimeout(() => {
         notificationOverlay.classList.add('show');
         loadNotifications();
-        try { history.replaceState({}, '', 'user-report.html'); } catch (e) {}
+        try { history.replaceState({}, '', '/user-report'); } catch (e) {}
       }, 180);
     }
 
@@ -1678,7 +1678,7 @@
     }
 
     // =============================================
-    // 10. LOGOUT — MODERN TOAST SAMA SEPERTI user-history.html
+    // 10. LOGOUT — MODERN TOAST SAMA SEPERTI /user-history
     // =============================================
     const logoutOverlay = document.getElementById('logoutOverlay');
     const logoutToast = document.getElementById('logoutToast');
@@ -1721,7 +1721,7 @@
       });
 
       await showLogoutSuccess();
-      window.location.href = 'login.html';
+      window.location.href = '/login';
     });
 
     // =============================================

@@ -1052,7 +1052,7 @@
                     result?.targetPage ||
                     result?.redirectUrl ||
                     result?.data?.targetPage ||
-                    'user-report.html';
+                    '/user-report';
 
                 hideLoading();
 
@@ -1162,7 +1162,7 @@
                                 showConfirmButton: false,
                                 timerProgressBar: true
                             }).then(() => {
-                                window.location.href = 'dashboard.html';
+                                window.location.href = '/dashboard';
                             });
                             resolve({ success: true });
                         } else {

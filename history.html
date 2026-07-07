@@ -196,6 +196,25 @@
             font-weight: 500;
         }
 
+        .topbar .logout-btn-header {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+        }
+        .topbar .logout-btn-header:hover {
+            background: var(--bg-card-hover);
+            transform: scale(1.05);
+        }
+
         /* ========== COUNTDOWN ========== */
         .countdown-area {
             display: flex;
@@ -919,6 +938,11 @@
                         <i class="bi bi-moon-fill" id="darkModeIcon"></i>
                     </button>
 
+                    <!-- Logout Button -->
+                    <button class="logout-btn-header" id="logoutBtn" title="Logout">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </button>
+
                     <!-- User Avatar -->
                     <div class="avatar-sm" id="userAvatar">U</div>
                     <div class="user-info">
@@ -1157,75 +1181,137 @@
     <script src="assets/js/modules/history.js"></script>
 
     <!-- ============================================================
-    ADMIN ACCESS CONTROL — Hanya Administrator yang Boleh Akses
+    ADMIN ACCESS CONTROL — Hanya ADMINISTRATOR, SUPER ADMIN, LEAD BRANCH SUPPORT
     ============================================================ -->
     <script>
         (function() {
             'use strict';
 
-            function isAdministrator() {
-                try {
-                    var possibleKeys = ['user', 'userData', 'session', 'authUser', 'currentUser', 'userSession'];
-                    var user = null;
-                    for (var i = 0; i < possibleKeys.length; i++) {
-                        var raw = localStorage.getItem(possibleKeys[i]);
-                        if (raw) {
-                            try {
-                                var parsed = JSON.parse(raw);
-                                if (parsed && typeof parsed === 'object') {
-                                    user = parsed;
-                                    break;
-                                }
-                            } catch (_) { /* ignore */ }
-                        }
-                    }
-                    if (!user) {
-                        for (var j = 0; j < possibleKeys.length; j++) {
-                            var raw2 = sessionStorage.getItem(possibleKeys[j]);
-                            if (raw2) {
-                                try {
-                                    var parsed2 = JSON.parse(raw2);
-                                    if (parsed2 && typeof parsed2 === 'object') {
-                                        user = parsed2;
-                                        break;
-                                    }
-                                } catch (_) { /* ignore */ }
-                            }
-                        }
-                    }
-                    if (!user && window._user) {
-                        user = window._user;
-                    }
-                    if (!user) {
+            function checkAdminAccess() {
+                // Gunakan checkRole dari auth.js jika tersedia
+                if (typeof checkRole === 'function') {
+                    if (!checkRole(['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'])) {
                         return false;
                     }
-                    var role = user.role || user.userRole || user.role_name || user.roleName || user.roles || '';
-                    if (Array.isArray(role)) {
-                        role = role.join(',');
+                    return true;
+                }
+
+                // Fallback manual
+                try {
+                    var session = BCS.Storage.getSession();
+                    if (!session || !session.token) {
+                        window.location.href = 'login.html';
+                        return false;
                     }
-                    role = String(role).toLowerCase().trim();
-                    var adminRoles = ['administrator', 'admin', 'superadmin', 'super_admin', 'super-admin'];
-                    for (var k = 0; k < adminRoles.length; k++) {
-                        if (role === adminRoles[k] || role.indexOf(adminRoles[k]) !== -1) {
-                            return true;
-                        }
+                    var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
+                    if (!['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'].includes(role)) {
+                        window.location.href = 'login.html';
+                        return false;
                     }
-                    return false;
+                    console.log('✅ Akses history diterima untuk role:', role);
+                    return true;
                 } catch (e) {
-                    console.warn('[AdminCheck] Error checking role:', e);
+                    console.warn('Guard error:', e);
+                    window.location.href = 'login.html';
                     return false;
                 }
             }
 
-            if (!isAdministrator()) {
-                console.warn('[AdminCheck] Akses ditolak — bukan administrator. Redirect ke login.');
-                window.location.href = 'login.html';
+            if (!checkAdminAccess()) {
+                return;
+            }
+
+            // =============================================
+            // LOGOUT
+            // =============================================
+            var logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.auth && typeof window.auth.logout === 'function') {
+                        window.auth.logout();
+                    } else {
+                        if (confirm('Apakah Anda yakin ingin keluar?')) {
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            window.location.href = 'login.html';
+                        }
+                    }
+                });
+            }
+
+            // =============================================
+            // DARK MODE
+            // =============================================
+            function initDarkMode() {
+                var toggle = document.getElementById('darkModeToggle');
+                var icon = document.getElementById('darkModeIcon');
+                if (!toggle) return;
+                var saved = localStorage.getItem('bcs_theme') || 'light';
+                document.documentElement.setAttribute('data-theme', saved);
+                if (icon) {
+                    if (saved === 'dark') {
+                        icon.className = 'bi bi-sun-fill';
+                        icon.style.color = '#ffd700';
+                    } else {
+                        icon.className = 'bi bi-moon-fill';
+                        icon.style.color = '';
+                    }
+                }
+                toggle.addEventListener('click', function() {
+                    var current = document.documentElement.getAttribute('data-theme');
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('bcs_theme', next);
+                    if (icon) {
+                        if (next === 'dark') {
+                            icon.className = 'bi bi-sun-fill';
+                            icon.style.color = '#ffd700';
+                        } else {
+                            icon.className = 'bi bi-moon-fill';
+                            icon.style.color = '';
+                        }
+                    }
+                });
+            }
+
+            // =============================================
+            // LOAD USER INFO
+            // =============================================
+            function loadUserInfo() {
+                try {
+                    var session = BCS.Storage.getSession();
+                    if (session && session.user) {
+                        var user = session.user;
+                        var nama = user.nama || user.name || 'User';
+                        var role = user.role || 'User';
+                        document.getElementById('userName').textContent = nama;
+                        document.getElementById('userRole').textContent = role;
+                        document.getElementById('userAvatar').textContent = nama.charAt(0).toUpperCase();
+                    }
+                } catch (e) {
+                    console.warn('Load user info error:', e);
+                }
+            }
+
+            // =============================================
+            // INIT — HistoryController di-assume oleh history.js
+            // =============================================
+            function init() {
+                initDarkMode();
+                loadUserInfo();
+                // history.js akan inisialisasi HistoryController
+                // jika ada, cukup biarkan.
+                console.log('✅ History page initialized with correct access control');
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
             } else {
-                console.log('[AdminCheck] Akses diterima — Administrator terverifikasi.');
+                init();
             }
         })();
     </script>
-
 
 </body>
 

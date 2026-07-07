@@ -1162,11 +1162,9 @@ main.content,
                                 <option value="desc">Terbaru</option>
                                 <option value="asc">Terlama</option>
                             </select>
-                            <div class="quick-pills">
-                                <span class="pill active" data-range="today">Hari Ini</span>
-                                <span class="pill" data-range="week">Minggu Ini</span>
-                                <span class="pill" data-range="month">Bulan Ini</span>
-                                <span class="pill" data-range="last3months">3 Bulan</span>
+                            <!-- Filter periode dihapus: tampilkan seluruh data report actual -->
+                            <div class="quick-pills d-none" aria-hidden="true">
+                                <span class="pill active" data-range="all">Semua Data</span>
                             </div>
                         </div>
                         <div class="toolbar-right">
@@ -1319,6 +1317,61 @@ main.content,
 
     <!-- MAIN HISTORY LOGIC -->
     <script src="assets/js/modules/history.js"></script>
+
+    <!-- FINAL: Paksa History menampilkan seluruh data actual tanpa filter periode -->
+    <script>
+        (function () {
+            "use strict";
+
+            function forceAllActualReports() {
+                var allPill = document.querySelector('.quick-pills .pill[data-range="all"]');
+
+                document.querySelectorAll('.quick-pills .pill').forEach(function (pill) {
+                    pill.classList.toggle('active', pill === allPill);
+                });
+
+                if (allPill) {
+                    allPill.dispatchEvent(new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    }));
+                }
+
+                /* Compatibility untuk beberapa versi HistoryController */
+                var candidates = [
+                    window.HistoryController,
+                    window.historyController,
+                    window.BCS && window.BCS.HistoryController,
+                    window.BCS && window.BCS.History
+                ].filter(Boolean);
+
+                candidates.forEach(function (controller) {
+                    ['dateRange', 'range', 'period', 'timeRange', 'quickRange'].forEach(function (key) {
+                        if (key in controller) controller[key] = 'all';
+                        if (controller.filters && key in controller.filters) controller.filters[key] = 'all';
+                        if (controller.state && key in controller.state) controller.state[key] = 'all';
+                    });
+
+                    if (typeof controller.applyFilters === 'function') controller.applyFilters();
+                    else if (typeof controller.filterData === 'function') controller.filterData();
+                    else if (typeof controller.render === 'function') controller.render();
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function () {
+                    setTimeout(forceAllActualReports, 300);
+                });
+            } else {
+                setTimeout(forceAllActualReports, 300);
+            }
+
+            window.addEventListener('load', function () {
+                setTimeout(forceAllActualReports, 500);
+            });
+        })();
+    </script>
 
     <!-- ============================================================
     ADMIN ACCESS CONTROL — Hanya ADMINISTRATOR, SUPER ADMIN, LEAD BRANCH SUPPORT

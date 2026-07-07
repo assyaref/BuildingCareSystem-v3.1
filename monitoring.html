@@ -799,10 +799,18 @@
         .min-width-0 { min-width:0; }
 
     
+        /* API Server logo dibuat lebih proporsional */
         .stat-card .apps-script-logo {
-            width: 68px;
-            height: 68px;
+            width: 118px;
+            height: 82px;
+            max-width: none;
             object-fit: contain;
+            transform: scale(1.28);
+            filter: drop-shadow(0 5px 10px rgba(15, 23, 42, 0.10));
+        }
+
+        .stat-card:hover .apps-script-logo {
+            transform: scale(1.36);
         }
 
     </style>

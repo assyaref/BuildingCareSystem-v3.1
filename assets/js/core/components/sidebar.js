@@ -209,10 +209,17 @@
 
             .sb-menu-item:hover .sb-arrow { transform: translateX(2px); }
 
+            /* ACTIVE MENU: dibuat persis seperti referensi */
             .sb-menu-item.active {
-                color: #fff !important;
-                background: linear-gradient(135deg, var(--bcs-blue-3), #2051d9) !important;
-                box-shadow: 0 13px 27px rgba(37,99,235,.25);
+                min-height: 64px;
+                margin: 10px 0;
+                padding: 10px 15px;
+                color: #ffffff !important;
+                background: linear-gradient(135deg, #3b7af5 0%, #1f55db 100%) !important;
+                border-radius: 16px;
+                box-shadow:
+                    0 14px 26px rgba(37,99,235,.28),
+                    inset 0 1px 0 rgba(255,255,255,.16);
                 transform: none;
             }
 
@@ -221,20 +228,39 @@
                 position: absolute;
                 left: -20px;
                 top: 14px;
-                width: 5px;
-                height: 28px;
-                border-radius: 0 5px 5px 0;
-                background: #ffab00;
-                box-shadow: 0 4px 12px rgba(255,171,0,.35);
+                width: 6px;
+                height: 36px;
+                border-radius: 0 6px 6px 0;
+                background: #ffad00;
+                box-shadow: 0 5px 12px rgba(255,173,0,.28);
             }
 
             .sb-menu-item.active .sb-icon-box {
-                background: #fff !important;
-                color: #2862e8 !important;
-                box-shadow: 0 6px 16px rgba(15,23,42,.1);
+                width: 42px;
+                height: 42px;
+                flex-basis: 42px;
+                background: #ffffff !important;
+                color: #2f6cf5 !important;
+                border-radius: 12px;
+                box-shadow:
+                    0 5px 12px rgba(15,23,42,.10),
+                    inset 0 0 0 1px rgba(37,99,235,.05);
+                font-size: 17px;
             }
 
-            .sb-menu-item.active .sb-arrow { color: #fff; }
+            .sb-menu-item.active .sb-menu-label {
+                color: #ffffff;
+                font-size: 15px;
+                font-weight: 800;
+                letter-spacing: -.15px;
+            }
+
+            .sb-menu-item.active .sb-arrow {
+                color: #ffffff;
+                opacity: 1;
+                font-size: 16px;
+                transform: none;
+            }
 
             .sb-menu-item.sb-logout { color: #ef4444 !important; }
 

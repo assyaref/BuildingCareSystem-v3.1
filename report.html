@@ -262,6 +262,24 @@
             font-size: 18px;
             flex-shrink: 0;
         }
+        .logout-btn-header {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            color: #fff;
+            font-size: 1.15rem;
+        }
+        .logout-btn-header:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
 
         /* ============================================================
                    CARDS
@@ -696,6 +714,11 @@
                             <i class="bi bi-moon-fill" id="darkModeIcon"></i>
                         </button>
 
+                        <!-- Logout Button -->
+                        <button class="logout-btn-header" id="logoutBtn" title="Logout">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </button>
+
                         <div class="avatar-sm" id="userAvatar">U</div>
                         <div>
                             <div class="fw-bold" id="userName" style="font-size:14px;color:var(--text-primary);">Loading...</div>
@@ -972,6 +995,41 @@
     </script>
 
     <script>
+        // =============================================
+        // GUARD: Hanya ADMINISTRATOR, SUPER ADMIN, dan LEAD BRANCH SUPPORT
+        // =============================================
+        (function checkAdminAccess() {
+            try {
+                if (typeof BCS === 'undefined' || typeof BCS.Storage === 'undefined') {
+                    console.warn('BCS belum siap, menunggu 200ms...');
+                    setTimeout(checkAdminAccess, 200);
+                    return;
+                }
+                // Gunakan checkRole dari auth.js jika tersedia
+                if (typeof checkRole === 'function') {
+                    if (!checkRole(['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'])) {
+                        return;
+                    }
+                    return;
+                }
+                // Fallback manual
+                var session = BCS.Storage.getSession();
+                if (!session || !session.token) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
+                if (!['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'].includes(role)) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                console.log('✅ Akses report diterima untuk role:', role);
+            } catch (e) {
+                console.warn('Guard error:', e);
+                window.location.href = 'login.html';
+            }
+        })();
+
         (function() {
             'use strict';
 
@@ -1004,6 +1062,7 @@
                 historyTableBody: document.getElementById('historyTableBody'),
                 darkToggle: document.getElementById('darkModeToggle'),
                 darkIcon: document.getElementById('darkModeIcon'),
+                logoutBtn: document.getElementById('logoutBtn')
             };
 
             let currentFile = null;
@@ -1034,6 +1093,25 @@
                     const current = document.documentElement.getAttribute('data-theme');
                     const next = current === 'dark' ? 'light' : 'dark';
                     setTheme(next);
+                });
+            }
+
+            // =============================================
+            // LOGOUT
+            // =============================================
+            function initLogout() {
+                if (!DOM.logoutBtn) return;
+                DOM.logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.auth && typeof window.auth.logout === 'function') {
+                        window.auth.logout();
+                    } else {
+                        if (confirm('Apakah Anda yakin ingin keluar?')) {
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            window.location.href = 'login.html';
+                        }
+                    }
                 });
             }
 
@@ -1320,64 +1398,12 @@
             DOM.resetBtn.addEventListener('click', resetForm);
             DOM.form.addEventListener('submit', submitReport);
 
-            // Logout handler
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (window.auth && typeof window.auth.logout === 'function') {
-                        window.auth.logout();
-                    } else {
-                        if (confirm('Apakah Anda yakin ingin keluar?')) {
-                            localStorage.clear();
-                            sessionStorage.clear();
-                            window.location.href = 'login.html';
-                        }
-                    }
-                });
-            }
-
             // =============================================
-            // INIT — dengan validasi role ADMINISTRATOR
+            // INIT
             // =============================================
             async function init() {
-                // -------------------------------------------------------
-                // 1. VALIDASI AKSES: HANYA ADMINISTRATOR YANG BOLEH MASUK
-                // -------------------------------------------------------
-                try {
-                    const session = BCS.Storage.getSession();
-
-                    // Jika session tidak ada atau user tidak login → redirect login
-                    if (!session || !session.user) {
-                        window.location.href = 'login.html';
-                        return;
-                    }
-
-                    // Ambil role dari session (case-insensitive)
-                    const role = (session.user.role || '').toLowerCase().trim();
-
-                    // Role yang diperbolehkan: 'administrator' atau 'admin'
-                    const allowedRoles = ['administrator', 'admin'];
-                    if (!allowedRoles.includes(role)) {
-                        // Jika bukan administrator, redirect ke login
-                        window.location.href = 'login.html';
-                        return;
-                    }
-
-                    // Jika lolos validasi, lanjutkan inisialisasi halaman
-                    console.log('✅ Akses diterima untuk role:', role);
-
-                } catch (err) {
-                    // Jika terjadi error saat validasi, redirect ke login
-                    console.error('Validasi akses error:', err);
-                    window.location.href = 'login.html';
-                    return;
-                }
-
-                // -------------------------------------------------------
-                // 2. INISIALISASI KOMPONEN
-                // -------------------------------------------------------
                 initDarkMode();
+                initLogout();
                 loadUserInfo();
                 await loadUserHistory();
                 console.log('✅ Report page initialized with working light/dark mode');

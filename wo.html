@@ -9,7 +9,7 @@
     <meta name="author" content="Radiant Group Duri">
 
     <title>Work Order — Building Care System Enterprise</title>
-    <!-- FINAL FIX: Edit Report Picker + WO-to-History Sync -->
+    <!-- FINAL FIX: Edit Report Picker + WO-to-History Sync + Role Guard -->
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
@@ -123,6 +123,24 @@
         .dark-toggle:hover {
             background: var(--bg-card-hover);
             transform: rotate(20deg);
+        }
+        .logout-btn-header {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+        }
+        .logout-btn-header:hover {
+            background: var(--bg-card-hover);
+            transform: scale(1.05);
         }
 
         .status-badge {
@@ -410,6 +428,9 @@
                     <div class="d-flex align-items-center gap-3">
                         <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
                             <i class="bi bi-moon-fill" id="darkModeIcon"></i>
+                        </button>
+                        <button class="logout-btn-header" id="logoutBtn" title="Logout">
+                            <i class="bi bi-box-arrow-right"></i>
                         </button>
                         <div class="avatar-sm" id="userAvatar">U</div>
                         <div>
@@ -761,31 +782,43 @@
     <script src="assets/js/core/components/sidebar.js"></script>
 
     <script>
+        // =============================================
+        // GUARD: Hanya ADMINISTRATOR, SUPER ADMIN, dan LEAD BRANCH SUPPORT
+        // =============================================
+        (function checkAdminAccess() {
+            try {
+                if (typeof BCS === 'undefined' || typeof BCS.Storage === 'undefined') {
+                    console.warn('BCS belum siap, menunggu 200ms...');
+                    setTimeout(checkAdminAccess, 200);
+                    return;
+                }
+                // Gunakan checkRole dari auth.js jika tersedia
+                if (typeof checkRole === 'function') {
+                    if (!checkRole(['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'])) {
+                        return;
+                    }
+                    return;
+                }
+                // Fallback manual
+                var session = BCS.Storage.getSession();
+                if (!session || !session.token) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
+                if (!['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'].includes(role)) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                console.log('✅ Akses work order diterima untuk role:', role);
+            } catch (e) {
+                console.warn('Guard error:', e);
+                window.location.href = 'login.html';
+            }
+        })();
+
         (function() {
             'use strict';
-
-            // =============================================
-            // ADMIN ACCESS CHECK
-            // =============================================
-            function checkAdminAccess() {
-                try {
-                    var session = BCS.Storage.getSession();
-                    if (!session || !session.user) {
-                        window.location.href = 'login.html';
-                        return false;
-                    }
-                    var role = (session.user.role || '').toLowerCase();
-                    if (role !== 'administrator' && role !== 'admin') {
-                        window.location.href = 'login.html';
-                        return false;
-                    }
-                    return true;
-                } catch (e) {
-                    console.warn('Admin access check error:', e);
-                    window.location.href = 'login.html';
-                    return false;
-                }
-            }
 
             // =============================================
             // DARK MODE
@@ -815,6 +848,26 @@
                     icon.className = 'bi bi-moon-fill';
                     icon.style.color = '';
                 }
+            }
+
+            // =============================================
+            // LOGOUT
+            // =============================================
+            function initLogout() {
+                var logoutBtn = document.getElementById('logoutBtn');
+                if (!logoutBtn) return;
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.auth && typeof window.auth.logout === 'function') {
+                        window.auth.logout();
+                    } else {
+                        if (confirm('Apakah Anda yakin ingin keluar?')) {
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            window.location.href = 'login.html';
+                        }
+                    }
+                });
             }
 
             // =============================================
@@ -2451,9 +2504,8 @@
             // INIT
             // =============================================
             async function init() {
-                if (!checkAdminAccess()) return;
-
                 initDarkMode();
+                initLogout();
                 loadUserInfo();
 
                 try {

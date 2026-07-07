@@ -10,7 +10,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/dashboard.css" />
     <style>
-        /* (sama seperti sebelumnya) */
         :root {
             --bcs-primary: #3b82f6;
             --bcs-primary-gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
@@ -112,6 +111,22 @@
             flex-shrink: 0;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
+
+        .logout-btn-header {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #ffffff;
+            font-size: 1.15rem;
+        }
+        .logout-btn-header:hover { background: rgba(255, 255, 255, 0.25); transform: scale(1.05); }
 
         .approval-item {
             display: flex;
@@ -235,6 +250,9 @@
                     <button class="dark-toggle" id="darkModeToggle" title="Toggle Dark Mode">
                         <i class="bi bi-moon-fill" id="darkModeIcon"></i>
                     </button>
+                    <button class="logout-btn-header" id="logoutBtn" title="Logout">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </button>
                     <div class="d-flex align-items-center gap-3 ps-3 border-start border-white-50">
                         <div class="avatar-sm" id="userAvatar">U</div>
                         <div class="d-none d-sm-block text-white">
@@ -296,10 +314,16 @@
         'use strict';
 
         // ============================================================
-        // 1. VALIDASI AKSES: HANYA ADMINISTRATOR
+        // 1. VALIDASI AKSES: ADMINISTRATOR, SUPER ADMIN, LEAD BRANCH SUPPORT
         // ============================================================
         function checkAccess() {
             try {
+                // Gunakan checkRole dari auth.js jika tersedia
+                if (typeof checkRole === 'function') {
+                    return checkRole(['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT']);
+                }
+
+                // Fallback manual
                 let session = null;
                 if (typeof BCS !== 'undefined' && BCS.Storage && typeof BCS.Storage.getSession === 'function') {
                     session = BCS.Storage.getSession();
@@ -313,8 +337,9 @@
                     window.location.href = 'login.html';
                     return false;
                 }
-                const role = (session.user.role || '').toLowerCase().trim();
-                if (!['administrator', 'admin'].includes(role)) {
+                const role = (session.user.role || '').toUpperCase().trim();
+                const allowed = ['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'];
+                if (!allowed.includes(role)) {
                     window.location.href = 'login.html';
                     return false;
                 }
@@ -340,17 +365,30 @@
             } catch { return null; }
         }
 
-        function setSession(data) {
-            if (typeof BCS !== 'undefined' && BCS.Storage && typeof BCS.Storage.setSession === 'function') {
-                return BCS.Storage.setSession(data);
-            }
-            localStorage.setItem('bcs_session', JSON.stringify(data));
+        // ============================================================
+        // LOGOUT
+        // ============================================================
+        function initLogout() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (!logoutBtn) return;
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (window.auth && typeof window.auth.logout === 'function') {
+                    window.auth.logout();
+                } else {
+                    if (confirm('Apakah Anda yakin ingin keluar?')) {
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.href = 'login.html';
+                    }
+                }
+            });
         }
 
         // ============================================================
         // DATA APPROVAL AKTUAL
         // ============================================================
-        // Tidak ada data dummy. Data aktual dimuat oleh approval-actual.js.
+        // Data dimuat dari approval-actual.js di bawah.
         let mockApprovals = [];
 
         function getCategoryStyle(kategori) {
@@ -402,7 +440,6 @@
             let html = '';
             pending.forEach((item) => {
                 const style = getCategoryStyle(item.kategori);
-                // Tampilkan prioritas sebagai badge tambahan
                 const priorityLabel = (item.priority || 'medium').charAt(0).toUpperCase() + (item.priority || 'medium').slice(1);
                 html += `
                     <div class="approval-item" data-id="${item.id}">
@@ -495,7 +532,7 @@
             const icon = document.getElementById('darkModeIcon');
             if (!toggle || !icon) return;
 
-            const saved = localStorage.getItem('bcs_theme');
+            const saved = localStorage.getItem('bcs_theme') || 'light';
             if (saved === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
                 icon.className = 'bi bi-sun-fill';
@@ -547,6 +584,7 @@
             if (!checkAccess()) return;
 
             initDarkMode();
+            initLogout();
             loadUserInfo();
 
             // Event listener filter prioritas
@@ -556,7 +594,7 @@
             }
 
             renderApprovals();
-            console.log('✅ Colorful Enterprise UI Loaded Successfully.');
+            console.log('✅ Approval page initialized with access control: ADMINISTRATOR, SUPER ADMIN, LEAD BRANCH SUPPORT');
         }
 
         if (document.readyState === 'loading') {

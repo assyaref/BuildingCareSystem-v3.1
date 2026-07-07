@@ -1327,7 +1327,7 @@
                 costMonthlyChart = null;
 
             // =============================================
-            // AUTO-REFRESH
+            // AUTO-REFRESH — HANYA UNTUK MONITORING (TIDAK UNTUK USER ONLINE)
             // =============================================
             var refreshTimer = 7;
             var refreshInterval = null,
@@ -1337,8 +1337,8 @@
             function performRefresh() {
                 if (isRefreshing) return;
                 isRefreshing = true;
-                loadMonitoring();
-                loadOnlineUsersAdminStyle();
+                loadMonitoring();               // ← refresh data laporan, grafik, statistik
+                // loadOnlineUsersAdminStyle(); // ← DIHAPUS, user online hanya manual refresh
                 refreshTimer = 7;
                 updateTimerDisplay();
                 setTimeout(function() { isRefreshing = false; }, 1000);
@@ -1359,7 +1359,7 @@
                 }, 1000);
                 refreshInterval = setInterval(performRefresh, 7000);
                 updateTimerDisplay();
-                console.log('✅ Auto-refresh started (every 7s)');
+                console.log('✅ Auto-refresh started (every 7s) - User Online tidak ikut auto-refresh');
             }
 
             function stopAutoRefresh() {
@@ -2364,11 +2364,11 @@
                 }
                 if (DOM.timezoneLabel) DOM.timezoneLabel.textContent = 'WIB';
 
-                // Online Users
+                // Online Users - tetap diambil dari data.activeUsers (jika ada), tapi tidak di-auto-refresh
                 if (data.activeUsers) {
                     renderOnlineUsers(data.activeUsers);
                 } else {
-                    renderOnlineUsers([]);
+                    // Jangan override dengan kosong, biarkan data yang sudah ada
                 }
             }
 
@@ -2472,6 +2472,7 @@
 
                 initDarkMode();
                 loadUserInfo();
+                // Hanya muat sekali saat halaman dibuka
                 loadOnlineUsersAdminStyle();
                 if (DOM.refreshOnlineUsersBtn) {
                     DOM.refreshOnlineUsersBtn.addEventListener('click', manualRefreshOnlineUsers);
@@ -2485,7 +2486,7 @@
                 }
                 await loadMonitoring();
                 startAutoRefresh();
-                console.log('✅ Monitoring page initialized — Category-based monthly trend & month/date filters');
+                console.log('✅ Monitoring page initialized — User Online hanya manual refresh');
             }
 
             window.addEventListener('beforeunload', stopAutoRefresh);

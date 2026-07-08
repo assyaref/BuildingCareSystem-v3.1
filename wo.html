@@ -1728,32 +1728,26 @@ main.content,
                 var reportInfo = reportGroup ? reportGroup.querySelector('.report-result-info') : null;
                 var reportHelp = reportGroup ? reportGroup.querySelector('small.text-muted') : null;
 
-                reportGroup.style.display = '';
+                if (reportGroup) reportGroup.style.display = '';
 
                 if (data) {
                     // MODE EDIT: tampilkan hanya Report sumber yang terhubung.
                     // Tidak lagi membuka list 8 baris yang membuat modal berantakan.
-                    reportSelect.size = 1;
                     if (reportTools) reportTools.style.display = 'none';
                     if (reportInfo) reportInfo.style.display = 'none';
                     if (reportHelp) reportHelp.style.display = 'none';
 
                     await loadOpenReports(data.report_id || '');
 
-                    // FIX EDIT WO:
-                    // Report lama bisa sudah PROGRESS/DONE sehingga tidak ada di getOpenReports.
-                    // Tambahkan report yang terhubung secara manual agar Report Number tetap tampil.
+                    // FIX FINAL TABLE PICKER:
+                    // woReportId sekarang adalah <input type="hidden">, bukan <select>.
+                    // Karena itu jangan akses .options, .size, atau appendChild(<option>).
                     var linkedReportId = String(data.report_id || '').trim();
-                    var linkedExists = Array.from(reportSelect.options).some(function(opt) {
-                        return String(opt.value) === linkedReportId;
-                    });
+                    reportSelect.value = linkedReportId;
 
-                    if (linkedReportId && !linkedExists) {
-                        var linkedOption = document.createElement('option');
-                        linkedOption.value = linkedReportId;
-                        linkedOption.textContent = linkedReportId;
-                        reportSelect.appendChild(linkedOption);
-                    }
+                    // Render tabel bila report masih tersedia di daftar OPEN.
+                    // Jika report lama sudah PROGRESS/DONE, hidden input tetap menyimpan relasinya.
+                    renderOpenReportOptions(linkedReportId);
 
                     document.getElementById('woTitle').value = data.title || '';
                     document.getElementById('woCategory').value =
@@ -1782,10 +1776,8 @@ main.content,
 
                     reportSelect.value = linkedReportId;
                     reportSelect.disabled = true;
-                    reportSelect.size = 1;
                 } else {
                     // MODE CREATE: aktifkan kembali pencarian dan daftar Report OPEN.
-                    reportSelect.size = 8;
                     if (reportTools) reportTools.style.display = '';
                     if (reportInfo) reportInfo.style.display = '';
                     if (reportHelp) reportHelp.style.display = '';
@@ -1814,7 +1806,6 @@ main.content,
                 var reportSelect = document.getElementById('woReportId');
                 if (reportSelect) {
                     reportSelect.disabled = false;
-                    reportSelect.size = 8;
                     reportSelect.innerHTML = '<option value="">Pilih Report OPEN...</option>';
                 }
 

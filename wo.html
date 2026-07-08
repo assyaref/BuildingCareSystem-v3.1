@@ -383,6 +383,18 @@
             gap: 10px;
             margin-bottom: 10px;
         }
+
+        .report-picker-table-wrap{border:1px solid var(--border-color);border-radius:12px;overflow:auto;max-height:260px;background:var(--bg-card)}
+        .report-picker-table{width:100%;border-collapse:collapse;min-width:720px;font-size:11px}
+        .report-picker-table thead th{position:sticky;top:0;z-index:2;padding:11px 12px;background:var(--bg-card-hover);color:var(--text-secondary);border-bottom:1px solid var(--border-color);text-transform:uppercase;font-size:10px;white-space:nowrap}
+        .report-picker-table tbody td{padding:10px 12px;border-bottom:1px solid var(--border-color);color:var(--text-secondary);vertical-align:middle}
+        .report-picker-table tbody tr{cursor:pointer;transition:.18s ease}
+        .report-picker-table tbody tr:hover{background:var(--bg-card-hover)}
+        .report-picker-table tbody tr.selected{background:var(--accent-soft);box-shadow:inset 4px 0 0 var(--accent-color)}
+        .report-id-cell{font-weight:700;color:var(--accent-color)!important;white-space:nowrap}
+        .report-empty-cell{text-align:center;padding:28px 12px!important;color:var(--text-muted)!important}
+        .report-chip{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:9px;font-weight:700;white-space:nowrap;background:#dbeafe;color:#1d4ed8}
+
         .report-result-info {
             display: flex;
             justify-content: space-between;
@@ -720,9 +732,15 @@ main.content,
                                             <option value="CRITICAL">Critical</option>
                                         </select>
                                     </div>
-                                    <select class="form-select" id="woReportId" size="8">
-                                        <option value="">Pilih Report OPEN...</option>
-                                    </select>
+                                    <input type="hidden" id="woReportId" value="">
+                                    <div class="report-picker-table-wrap">
+                                        <table class="report-picker-table">
+                                            <thead><tr><th>Report No.</th><th>Kategori</th><th>Prioritas</th><th>Lokasi</th><th>Deskripsi</th></tr></thead>
+                                            <tbody id="reportPickerTableBody">
+                                                <tr><td colspan="5" class="report-empty-cell">Pilih Report OPEN...</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                     <div class="report-result-info">
                                         <span id="reportResultCount">0 Report OPEN</span>
                                         <span><i class="bi bi-sort-down"></i> Terbaru di atas</span>
@@ -1489,58 +1507,61 @@ main.content,
             }
 
             function renderOpenReportOptions(selectedId) {
-                var sel = document.getElementById('woReportId');
-                var searchEl = document.getElementById('reportSearchInput');
-                var categoryEl = document.getElementById('reportCategoryFilter');
-                var priorityEl = document.getElementById('reportPriorityFilter');
+                var input = document.getElementById('woReportId');
+                var tbody = document.getElementById('reportPickerTableBody');
+                var keyword = String(document.getElementById('reportSearchInput').value || '').trim().toLowerCase();
+                var categoryFilter = String(document.getElementById('reportCategoryFilter').value || '').trim().toUpperCase();
+                var priorityFilter = String(document.getElementById('reportPriorityFilter').value || '').trim().toUpperCase();
                 var countEl = document.getElementById('reportResultCount');
-                if (!sel) return;
-
-                var keyword = String(searchEl ? searchEl.value : '').trim().toLowerCase();
-                var categoryFilter = String(categoryEl ? categoryEl.value : '').trim().toUpperCase();
-                var priorityFilter = String(priorityEl ? priorityEl.value : '').trim().toUpperCase();
 
                 var visibleReports = openReports.filter(function(r) {
                     var id = String(reportIdOf(r) || '').toLowerCase();
                     var category = String(r.kategori || r.category || '').trim().toUpperCase();
                     var priority = String(r.prioritas || r.priority || 'MEDIUM').trim().toUpperCase();
-
-                    var matchSearch = !keyword || id.indexOf(keyword) !== -1;
-                    var matchCategory = !categoryFilter || category === categoryFilter;
-                    var matchPriority = !priorityFilter || priority === priorityFilter;
-                    return matchSearch && matchCategory && matchPriority;
+                    var location = String(r.lokasi || r.location || '').toLowerCase();
+                    var description = String(r.deskripsi || r.description || '').toLowerCase();
+                    return (!keyword || id.includes(keyword) || location.includes(keyword) || description.includes(keyword))
+                        && (!categoryFilter || category === categoryFilter)
+                        && (!priorityFilter || priority === priorityFilter);
                 });
 
-                sel.innerHTML = '<option value="">Pilih Report OPEN...</option>';
+                if (!visibleReports.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="report-empty-cell"><i class="bi bi-inbox d-block mb-1"></i>Tidak ada Report OPEN</td></tr>';
+                } else {
+                    tbody.innerHTML = visibleReports.map(function(r) {
+                        var id = reportIdOf(r);
+                        var category = r.kategori || r.category || '-';
+                        var priority = String(r.prioritas || r.priority || 'MEDIUM').toUpperCase();
+                        var location = r.lokasi || r.location || '-';
+                        var description = r.deskripsi || r.description || '-';
+                        var selected = String(id) === String(selectedId || input.value || '');
+                        return '<tr data-report-id="' + escapeHtml(id) + '" class="' + (selected ? 'selected' : '') + '">' +
+                            '<td class="report-id-cell">' + escapeHtml(id) + '</td>' +
+                            '<td><span class="report-chip">' + escapeHtml(category) + '</span></td>' +
+                            '<td>' + escapeHtml(priority) + '</td>' +
+                            '<td>' + escapeHtml(location) + '</td>' +
+                            '<td>' + escapeHtml(description.length > 55 ? description.substring(0,55) + '...' : description) + '</td></tr>';
+                    }).join('');
 
-                visibleReports.forEach(function(r) {
-                    var id = reportIdOf(r);
-                    var category = r.kategori || r.category || '-';
-                    var location = r.lokasi || r.location || '-';
-                    var option = document.createElement('option');
-                    option.value = id;
-                    var priority = String(r.prioritas || r.priority || 'MEDIUM').toUpperCase();
-                    option.textContent = id + ' • ' + category + ' • ' + priority + ' • ' + location;
-                    sel.appendChild(option);
-                });
-
-                if (selectedId && visibleReports.some(function(r) {
-                    return String(reportIdOf(r)) === String(selectedId);
-                })) {
-                    sel.value = selectedId;
+                    tbody.querySelectorAll('tr[data-report-id]').forEach(function(row) {
+                        row.addEventListener('click', function() {
+                            input.value = this.dataset.reportId;
+                            tbody.querySelectorAll('tr').forEach(function(x){ x.classList.remove('selected'); });
+                            this.classList.add('selected');
+                            if (!isEditMode) fillWOFromReport(input.value);
+                        });
+                    });
                 }
-
-                if (countEl) {
-                    countEl.textContent = visibleReports.length + ' Report OPEN';
-                }
+                if (selectedId) input.value = selectedId;
+                if (countEl) countEl.textContent = visibleReports.length + ' Report OPEN';
             }
 
             async function loadOpenReports(selectedId) {
                 var sel = document.getElementById('woReportId');
                 if (!sel) return;
 
-                sel.disabled = true;
-                sel.innerHTML = '<option value="">Memuat Report OPEN...</option>';
+                var tbody = document.getElementById('reportPickerTableBody');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="report-empty-cell">Memuat Report OPEN...</td></tr>';
 
                 try {
                     await waitForApi(8, 750);
@@ -1583,11 +1604,10 @@ main.content,
                     renderOpenReportOptions(selectedId);
                 } catch (err) {
                     console.error('Load OPEN reports error:', err);
-                    sel.innerHTML = '<option value="">Gagal memuat Report OPEN</option>';
+                    var tbody = document.getElementById('reportPickerTableBody');
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="report-empty-cell text-danger">Gagal memuat Report OPEN</td></tr>';
                     showToast('Gagal memuat Report: ' + err.message, 'error');
-                } finally {
-                    sel.disabled = false;
-                }
+                } finally {}
             }
 
             function fillWOFromReport(reportId) {
@@ -1644,17 +1664,7 @@ main.content,
                 });
             }
 
-            document.getElementById('woReportId').addEventListener('change', function() {
-                if (!isEditMode && this.value) {
-                    fillWOFromReport(this.value);
-
-                    // Setelah report dipilih, tutup daftar panjang agar form WO langsung terlihat.
-                    this.size = 1;
-                    this.blur();
-                }
-            });
-
-            // Klik kembali select untuk membuka daftar Report OPEN.
+            // Report dipilih melalui klik baris tabel.
             document.getElementById('woReportId').addEventListener('mousedown', function() {
                 if (!isEditMode && !this.disabled && this.size === 1) {
                     this.size = 8;

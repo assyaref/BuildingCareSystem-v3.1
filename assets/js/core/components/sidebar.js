@@ -16,6 +16,7 @@
         { href: "report",     icon: "bi-file-earmark-plus-fill",  label: "Report",     tone: "green" },
         { href: "monitoring", icon: "bi-display-fill",            label: "Monitoring", tone: "purple" },
         { href: "history",    icon: "bi-clock-fill",              label: "History",    tone: "amber" },
+        { href: "electricity", icon: "bi-lightning-charge-fill",  label: "Electricity", tone: "yellow" }, // ← TAMBAHAN
         { divider: true },
         { href: "wo",         icon: "bi-clipboard2-check-fill",   label: "Work Order", tone: "blue", mobilePrimary: true },
         { href: "budget",     icon: "bi-wallet2",                 label: "Budget",     tone: "green" },
@@ -194,6 +195,7 @@
             .sb-tone-indigo { background: #e5e9ff; color: #6174ed; }
             .sb-tone-slate  { background: #edf2f7; color: #64748b; }
             .sb-tone-red    { background: #ffe7e7; color: #ef4444; }
+            .sb-tone-yellow { background: #fff3cd; color: #d39e00; } /* tambahan untuk electricity */
 
             .sb-menu-label {
                 flex: 1;
@@ -209,7 +211,7 @@
 
             .sb-menu-item:hover .sb-arrow { transform: translateX(2px); }
 
-            /* ACTIVE MENU: dibuat persis seperti referensi */
+            /* ACTIVE MENU */
             .sb-menu-item.active {
                 min-height: 64px;
                 margin: 10px 0;
@@ -803,6 +805,7 @@
         const mobileMenus = [
             MENUS.find(x => x.href === "dashboard"),
             MENUS.find(x => x.href === "report"),
+            MENUS.find(x => x.href === "electricity"), // ← electricity masuk bottom nav
             MENUS.find(x => x.href === "wo"),
             MENUS.find(x => x.href === "history"),
             MENUS.find(x => x.href === "monitoring")

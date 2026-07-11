@@ -27,6 +27,10 @@
       "destination": "/history.html"
     },
     {
+      "source": "/electricity",
+      "destination": "/electricity.html"
+    },
+    {
       "source": "/login",
       "destination": "/login.html"
     },

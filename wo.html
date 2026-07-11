@@ -1548,7 +1548,8 @@ main.content,
                             input.value = this.dataset.reportId;
                             tbody.querySelectorAll('tr').forEach(function(x){ x.classList.remove('selected'); });
                             this.classList.add('selected');
-                            if (!isEditMode) fillWOFromReport(input.value);
+                            // Selalu panggil fillWOFromReport (baik create maupun edit)
+                            fillWOFromReport(input.value);
                         });
                     });
                 }
@@ -1731,22 +1732,17 @@ main.content,
                 if (reportGroup) reportGroup.style.display = '';
 
                 if (data) {
-                    // MODE EDIT: tampilkan hanya Report sumber yang terhubung.
-                    // Tidak lagi membuka list 8 baris yang membuat modal berantakan.
-                    if (reportTools) reportTools.style.display = 'none';
-                    if (reportInfo) reportInfo.style.display = 'none';
-                    if (reportHelp) reportHelp.style.display = 'none';
+                    // MODE EDIT: TAMPILKAN REPORT PICKER dan pilih report yang terhubung
+                    if (reportTools) reportTools.style.display = '';
+                    if (reportInfo) reportInfo.style.display = '';
+                    if (reportHelp) reportHelp.style.display = '';
 
                     await loadOpenReports(data.report_id || '');
 
-                    // FIX FINAL TABLE PICKER:
-                    // woReportId sekarang adalah <input type="hidden">, bukan <select>.
-                    // Karena itu jangan akses .options, .size, atau appendChild(<option>).
                     var linkedReportId = String(data.report_id || '').trim();
                     reportSelect.value = linkedReportId;
 
-                    // Render tabel bila report masih tersedia di daftar OPEN.
-                    // Jika report lama sudah PROGRESS/DONE, hidden input tetap menyimpan relasinya.
+                    // Render tabel dengan report yang terhubung tetap dipilih
                     renderOpenReportOptions(linkedReportId);
 
                     document.getElementById('woTitle').value = data.title || '';
@@ -1760,7 +1756,6 @@ main.content,
                     document.getElementById('woStatus').value =
                         String(data.status || 'open').toLowerCase();
 
-                    // Ditugaskan Kepada sekarang manual dan selalu mengikuti WO terpilih.
                     document.getElementById('woAssignedTo').value =
                         data.assigned_to || data.assigned_to_name || '';
 
@@ -1774,10 +1769,9 @@ main.content,
                         data.is_emergency === true ||
                         String(data.is_emergency).toUpperCase() === 'TRUE';
 
-                    reportSelect.value = linkedReportId;
-                    reportSelect.disabled = true;
+                    reportSelect.disabled = false; // Izinkan perubahan
                 } else {
-                    // MODE CREATE: aktifkan kembali pencarian dan daftar Report OPEN.
+                    // MODE CREATE: aktifkan pencarian dan daftar Report OPEN
                     if (reportTools) reportTools.style.display = '';
                     if (reportInfo) reportInfo.style.display = '';
                     if (reportHelp) reportHelp.style.display = '';

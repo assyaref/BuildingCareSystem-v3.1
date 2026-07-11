@@ -2,9 +2,15 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 1.2 (dengan list terpisah)
+ * Version 1.3 (dengan ChartDataLabels & format angka)
  * =====================================================
  */
+
+// Referensi ke plugin ChartDataLabels (di-load dari CDN)
+const ChartDataLabels = window.ChartDataLabels || {
+    id: 'datalabels',
+    // fallback jika plugin tidak tersedia
+};
 
 const ElectricityController = {
     chartMonthly: null,
@@ -28,6 +34,11 @@ const ElectricityController = {
     },
 
     init() {
+        // Inisialisasi pageSize dari dropdown
+        const pageSizeEl = document.getElementById('cmbPageSize');
+        if (pageSizeEl) {
+            this.state.filter.pageSize = parseInt(pageSizeEl.value, 10) || 10;
+        }
         this.registerEvent();
         this.loadDashboard();
         this.startAutoRefresh();
@@ -74,7 +85,6 @@ const ElectricityController = {
         try {
             this.showLoading(true);
 
-            // Jika force refresh, refresh cache dulu
             if (forceRefresh) {
                 const refreshRes = await BCS.Api.refreshElectricityCache();
                 if (!refreshRes.success) {
@@ -83,14 +93,12 @@ const ElectricityController = {
                 }
             }
 
-            // Ambil dashboard
             const dashboardRes = await BCS.Api.getElectricityDashboard();
             if (!dashboardRes.success) {
                 this.showError(dashboardRes.message || "Gagal memuat dashboard.");
                 return;
             }
 
-            // Ambil list record (tabel)
             const listRes = await BCS.Api.getElectricityList();
 
             const data = dashboardRes.data || {};
@@ -103,7 +111,6 @@ const ElectricityController = {
 
             this.render();
 
-            // Jika list gagal, tampilkan peringatan tapi dashboard tetap jalan
             if (!listRes.success) {
                 console.warn('[Electricity] List data gagal dimuat:', listRes.message);
             }
@@ -125,9 +132,7 @@ const ElectricityController = {
         this.renderMonthlyChart();
         this.renderTrend();
         this.renderEntityChart();
-        this.renderBenchmark();
-        this.renderTopConsumer();
-        this.renderAlert();
+        this.renderStatusSummary();
         this.renderTable();
         this.updateLastUpdate();
     },
@@ -145,22 +150,43 @@ const ElectricityController = {
     renderSummary() {
         const data = this.state.dashboard || {};
 
-        this.setText("totalKwh", this.formatNumber(data.totalKwh || 0));
-        this.setText("totalNominal", this.formatCurrency(data.totalNominal || 0));
-        this.setText("totalMeter", this.formatNumber(data.totalMeter || 0));
-        this.setText("avgKwh", this.formatNumber(data.averageKwh || 0));
+        this.setText("totalKwh", this.formatNumber(data.totalKwh, 2));
+        this.setText("totalNominal", this.formatCurrency(data.totalNominal));
+        this.setText("totalMeter", this.formatNumber(data.totalMeter, 0));
+        this.setText("avgKwh", this.formatNumber(data.averageKwh, 2));
 
         this.renderQuickInformation(data);
     },
 
     renderQuickInformation(data) {
-        this.setText("highestMonth", data.highestMonth || "-");
-        this.setText("lowestMonth", data.lowestMonth || "-");
-        this.setText("avgMonth", this.formatNumber(data.averageMonth || 0) + " kWh");
-        this.setText("lblEfficiency", (data.efficiency || 0) + "%");
-        this.setText("lblGrowth", (data.growth || 0) + "%");
-        this.setText("lblHighestEntity", data.highestEntity || "-");
-        this.setText("lblLowestEntity", data.lowestEntity || "-");
+        // Quick info cards
+        this.setText("growthInfo", data.growth ? data.growth.toFixed(1) + '%' : '-');
+        this.setText("alertSummary", data.alerts ? data.alerts.length + ' alert' : 'Tidak ada alert');
+
+        // Summary trend badges
+        const growth = data.growth || 0;
+        const trendEl = document.getElementById("totalTrend");
+        if (trendEl) {
+            const icon = growth >= 0 ? 'bi-arrow-up-short' : 'bi-arrow-down-short';
+            const cls = growth >= 0 ? 'trend-up' : 'trend-down';
+            trendEl.className = `badge-trend ${cls}`;
+            trendEl.innerHTML = `<i class="bi ${icon}"></i> ${growth.toFixed(1)}%`;
+        }
+
+        const nominalTrend = document.getElementById("nominalTrend");
+        if (nominalTrend) {
+            const icon = growth >= 0 ? 'bi-arrow-up-short' : 'bi-arrow-down-short';
+            const cls = growth >= 0 ? 'trend-up' : 'trend-down';
+            nominalTrend.className = `badge-trend ${cls}`;
+            nominalTrend.innerHTML = `<i class="bi ${icon}"></i> ${growth.toFixed(1)}%`;
+        }
+
+        // Avg month label
+        const avgLabel = document.getElementById("avgMonthLabel");
+        if (avgLabel) {
+            const latestMonth = data.highestMonth || '-';
+            avgLabel.textContent = latestMonth !== '-' ? latestMonth : '-';
+        }
     },
 
     // ==========================================================
@@ -173,35 +199,45 @@ const ElectricityController = {
         el.textContent = value;
     },
 
-    formatNumber(value) {
-        return Number(value || 0).toLocaleString("id-ID");
+    formatNumber(value, decimals = 2) {
+        const num = Number(value || 0);
+        return num.toLocaleString('id-ID', {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        });
     },
 
     formatCurrency(value) {
-        return new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
+        const num = Number(value || 0);
+        return 'Rp ' + num.toLocaleString('id-ID', {
+            minimumFractionDigits: 0,
             maximumFractionDigits: 0
-        }).format(value || 0);
+        });
+    },
+
+    formatPercent(value) {
+        const num = Number(value || 0);
+        return num.toFixed(1) + '%';
     },
 
     getStatusBadge(status) {
-        switch (status) {
-            case "NORMAL": return "badge-normal";
-            case "MAINTENANCE": return "badge-warning";
-            case "NEGATIVE": return "badge-danger";
-            case "GANTI_METER": return "badge-danger";
-            case "NO_READING": return "badge-info";
-            default: return "badge-info";
-        }
+        const map = {
+            'NORMAL': 'badge-normal',
+            'MAINTENANCE': 'badge-warning',
+            'NEGATIVE': 'badge-danger',
+            'GANTI_METER': 'badge-danger',
+            'NO_READING': 'badge-info',
+            'ALERT': 'badge-danger'
+        };
+        return map[status] || 'badge-secondary';
     },
 
     // ==========================================================
-    // MONTHLY CHART
+    // MONTHLY CHART (dengan angka di atas batang)
     // ==========================================================
 
     renderMonthlyChart() {
-        const canvas = document.getElementById("monthlyChart");
+        const canvas = document.getElementById('monthlyChart');
         if (!canvas) return;
 
         if (this.chartMonthly) {
@@ -213,43 +249,57 @@ const ElectricityController = {
         const values = monthly.map(item => item.value);
 
         this.chartMonthly = new Chart(canvas, {
-            type: "bar",
+            type: 'bar',
             data: {
-                labels,
+                labels: labels,
                 datasets: [{
-                    label: "Pemakaian (kWh)",
+                    label: 'Pemakaian (kWh)',
                     data: values,
-                    borderRadius: 8,
-                    borderWidth: 0,
-                    backgroundColor: "#1565C0"
+                    backgroundColor: '#1565C0',
+                    borderRadius: 4,
+                    borderSkipped: false,
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: {
-                    duration: 600
-                },
                 plugins: {
-                    legend: {
-                        display: false
+                    legend: { display: false },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'end',
+                        color: '#1a1a1a',
+                        font: { weight: 'bold', size: 10 },
+                        formatter: (value) => {
+                            return value > 0 ? this.formatNumber(value, 0) : '';
+                        }
                     }
                 },
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        ticks: {
+                            callback: (value) => this.formatNumber(value, 0),
+                            font: { size: 10 }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: { size: 10 }
+                        }
                     }
                 }
-            }
+            },
+            plugins: [ChartDataLabels]
         });
     },
 
     // ==========================================================
-    // ENTITY CHART
+    // ENTITY CHART (donut dengan persentase + legend nilai)
     // ==========================================================
 
     renderEntityChart() {
-        const canvas = document.getElementById("entityChart");
+        const canvas = document.getElementById('entityChart');
         if (!canvas) return;
 
         if (this.chartEntity) {
@@ -257,201 +307,133 @@ const ElectricityController = {
         }
 
         const entity = this.state.dashboard.entity || [];
+        const total = entity.reduce((sum, item) => sum + item.totalKwh, 0);
+        const colors = ['#1565C0', '#2E7D32', '#F9A825', '#D32F2F', '#0288D1', '#8E24AA', '#546E7A'];
 
         this.chartEntity = new Chart(canvas, {
-            type: "doughnut",
+            type: 'doughnut',
             data: {
                 labels: entity.map(item => item.entitas),
                 datasets: [{
                     data: entity.map(item => item.totalKwh),
-                    backgroundColor: [
-                        "#1565C0", "#2E7D32", "#F9A825",
-                        "#D32F2F", "#0288D1", "#8E24AA", "#546E7A"
-                    ],
-                    borderWidth: 0
+                    backgroundColor: colors.slice(0, entity.length),
+                    borderWidth: 0,
                 }]
             },
             options: {
                 responsive: true,
-                cutout: "65%",
-                animation: {
-                    animateRotate: true
-                },
+                maintainAspectRatio: false,
+                cutout: '65%',
                 plugins: {
-                    legend: {
-                        position: "bottom"
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#fff',
+                        font: { weight: 'bold', size: 11 },
+                        formatter: (value, ctx) => {
+                            const percentage = total > 0 ? ((value / total) * 100) : 0;
+                            return percentage > 5 ? `${percentage.toFixed(1)}%` : '';
+                        },
+                        anchor: 'center',
+                        align: 'center',
                     }
                 }
-            }
+            },
+            plugins: [ChartDataLabels]
         });
+
+        // Legend dengan nilai kWh
+        const legendContainer = document.getElementById('entityLegend');
+        if (legendContainer) {
+            legendContainer.innerHTML = entity.map((item, idx) => {
+                const percentage = total > 0 ? ((item.totalKwh / total) * 100) : 0;
+                return `
+                    <div class="d-flex align-items-center gap-2 py-1 border-bottom border-light">
+                        <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${colors[idx % colors.length]};"></span>
+                        <span class="fw-medium">${item.entitas}</span>
+                        <span class="ms-auto fw-bold">${this.formatNumber(item.totalKwh, 0)} kWh</span>
+                        <span class="text-muted" style="font-size:0.7rem;">(${percentage.toFixed(1)}%)</span>
+                    </div>
+                `;
+            }).join('');
+        }
     },
 
     // ==========================================================
-    // TREND
+    // STATUS SUMMARY (Ringkasan Status)
+    // ==========================================================
+
+    renderStatusSummary() {
+        // Ini akan diisi dari data status yang diambil dari alert/statistics
+        // Untuk sementara kita gunakan data dari state.alerts
+        const alerts = this.state.alerts || [];
+        const stats = {
+            NORMAL: 0,
+            MAINTENANCE: 0,
+            GANTI_METER: 0,
+            NEGATIVE: 0,
+            ALERT: 0
+        };
+
+        // Jika ada data records, hitung status dari records
+        const records = this.state.records || [];
+        records.forEach(r => {
+            const status = r.status || 'NORMAL';
+            if (stats[status] !== undefined) stats[status]++;
+            else stats[status] = 1;
+        });
+
+        // Update elemen status di HTML
+        const statusItems = document.querySelectorAll('.status-list-item');
+        if (statusItems.length >= 4) {
+            // Normal
+            const normalCount = statusItems[0]?.querySelector('.count');
+            if (normalCount) normalCount.textContent = `${stats.NORMAL || 0} Meter →`;
+
+            // Maintenance
+            const maintenanceCount = statusItems[1]?.querySelector('.count');
+            if (maintenanceCount) maintenanceCount.textContent = `${stats.MAINTENANCE || 0} Meter →`;
+
+            // Ganti Meter
+            const gantiCount = statusItems[2]?.querySelector('.count');
+            if (gantiCount) gantiCount.textContent = `${stats.GANTI_METER || 0} Meter →`;
+
+            // Negatif
+            const negatifCount = statusItems[3]?.querySelector('.count');
+            if (negatifCount) negatifCount.textContent = `${stats.NEGATIVE || 0} Meter →`;
+        }
+    },
+
+    // ==========================================================
+    // TREND (tidak digunakan di UI baru, tapi tetap ada untuk kompatibilitas)
     // ==========================================================
 
     renderTrend() {
-        const container = document.getElementById("trendContainer");
-        if (!container) return;
-
-        container.innerHTML = "";
-        const trends = this.state.trend || [];
-
-        if (!trends.length) {
-            container.innerHTML = `
-                <div class="text-center text-muted py-4">
-                    Tidak ada data trend.
-                </div>
-            `;
-            return;
-        }
-
-        trends.forEach(item => {
-            let cls = "trend-flat";
-            let icon = "bi-dash-circle";
-
-            if (item.trendType === "UP") {
-                cls = "trend-up";
-                icon = "bi-arrow-up-circle-fill";
-            } else if (item.trendType === "DOWN") {
-                cls = "trend-down";
-                icon = "bi-arrow-down-circle-fill";
-            }
-
-            container.insertAdjacentHTML("beforeend", `
-                <div class="trend-item fade-up">
-                    <div>
-                        <div class="trend-title">${item.month}</div>
-                        <small class="text-muted">${item.value} kWh</small>
-                    </div>
-                    <div class="${cls}">
-                        <i class="bi ${icon}"></i>
-                        ${item.change > 0 ? '+' : ''}${item.change} (${item.percentChange}%)
-                    </div>
-                </div>
-            `);
-        });
+        // Trend sudah digabung ke quick info
+        // Fungsi ini dibiarkan kosong agar tidak error
     },
 
     // ==========================================================
-    // BENCHMARK
+    // BENCHMARK (tidak digunakan di UI baru)
     // ==========================================================
 
     renderBenchmark() {
-        const tbody = document.querySelector("#tblBenchmark tbody");
-        if (!tbody) return;
-
-        tbody.innerHTML = "";
-        const rows = this.state.benchmark || [];
-
-        if (!rows.length) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="table-empty">
-                        Tidak ada data benchmark.
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        rows.forEach(item => {
-            tbody.insertAdjacentHTML("beforeend", `
-                <tr>
-                    <td><strong>${item.entitas}</strong></td>
-                    <td class="text-end">${this.formatNumber(item.totalKwh)}</td>
-                    <td class="text-end">${item.totalMeter}</td>
-                    <td class="text-end">${this.formatNumber(item.avgPerMeter)}</td>
-                    <td>
-                        <div class="benchmark-bar">
-                            <div class="benchmark-fill" style="width:${item.benchmark}%"></div>
-                        </div>
-                    </td>
-                </tr>
-            `);
-        });
+        // Tidak digunakan di UI baru
     },
 
     // ==========================================================
-    // TOP CONSUMER (dengan ID meter)
+    // TOP CONSUMER (diganti entity chart)
     // ==========================================================
 
     renderTopConsumer() {
-        const container = document.getElementById("topConsumerContainer");
-        if (!container) return;
-
-        container.innerHTML = "";
-        const list = this.state.topConsumer || [];
-
-        this.setText("topConsumerCount", list.length);
-
-        if (!list.length) {
-            container.innerHTML = `
-                <div class="text-center text-muted py-5">
-                    Tidak ada data.
-                </div>
-            `;
-            return;
-        }
-
-        list.forEach((item, index) => {
-            // Ambil idPelanggan atau id
-            const meterId = item.idPelanggan || item.id || '-';
-            container.insertAdjacentHTML("beforeend", `
-                <div class="consumer-card fade-up">
-                    <div class="consumer-rank">${index + 1}</div>
-                    <div class="consumer-info">
-                        <div class="consumer-name">${item.entitas}</div>
-                        <div class="consumer-meter">Meter : ${meterId}</div>
-                    </div>
-                    <div class="consumer-value">
-                        <div class="consumer-kwh">${this.formatNumber(item.totalKwh)}</div>
-                        <div class="consumer-cost">${this.formatCurrency(item.totalNominal)}</div>
-                    </div>
-                </div>
-            `);
-        });
+        // Tidak digunakan di UI baru
     },
 
     // ==========================================================
-    // ALERT
+    // ALERT (digabung ke quick info)
     // ==========================================================
 
     renderAlert() {
-        const container = document.getElementById("alertContainer");
-        if (!container) return;
-
-        container.innerHTML = "";
-        const alerts = this.state.alerts || [];
-
-        this.setText("alertCount", alerts.length + " Alert");
-
-        if (!alerts.length) {
-            container.innerHTML = `
-                <div class="text-center text-success py-4">
-                    <i class="bi bi-check-circle-fill"></i>
-                    Tidak ada alert.
-                </div>
-            `;
-            return;
-        }
-
-        alerts.forEach(item => {
-            const title = item.idPelanggan || item.id || 'Meter';
-            const desc = `${item.entitas || ''} - ${item.keterangan || item.status || ''}`;
-            container.insertAdjacentHTML("beforeend", `
-                <div class="alert-card fade-up">
-                    <div class="alert-icon">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="alert-title">${title}</div>
-                        <div class="alert-description">${desc}</div>
-                        <div class="alert-time">${item.bulan || ''}</div>
-                    </div>
-                </div>
-            `);
-        });
+        // Tidak digunakan di UI baru
     },
 
     // ==========================================================
@@ -465,15 +447,14 @@ const ElectricityController = {
         tbody.innerHTML = "";
         let rows = [...this.state.records];
 
-        const keyword = this.state.filter.keyword.toLowerCase();
+        const keyword = this.state.filter.keyword.toLowerCase().trim();
         const status = this.state.filter.status;
 
         if (keyword) {
             rows = rows.filter(r => {
-                return (
-                    String(r.entitas).toLowerCase().includes(keyword) ||
-                    String(r.idPelanggan).toLowerCase().includes(keyword)
-                );
+                const entitas = String(r.entitas || '').toLowerCase();
+                const id = String(r.idPelanggan || '').toLowerCase();
+                return entitas.includes(keyword) || id.includes(keyword);
             });
         }
 
@@ -482,20 +463,21 @@ const ElectricityController = {
         }
 
         const totalRows = rows.length;
-        const totalPage = Math.max(1, Math.ceil(totalRows / this.state.filter.pageSize));
+        const pageSize = this.state.filter.pageSize;
+        const totalPage = Math.max(1, Math.ceil(totalRows / pageSize));
         if (this.state.filter.page > totalPage) {
             this.state.filter.page = totalPage;
         }
 
-        const start = (this.state.filter.page - 1) * this.state.filter.pageSize;
-        const end = Math.min(start + this.state.filter.pageSize, totalRows);
+        const start = (this.state.filter.page - 1) * pageSize;
+        const end = Math.min(start + pageSize, totalRows);
         const pageRows = rows.slice(start, end);
 
         if (!pageRows.length) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="table-empty">
-                        Tidak ada data.
+                    <td colspan="10" class="text-center text-muted py-4">
+                        Tidak ada data
                     </td>
                 </tr>
             `;
@@ -504,23 +486,23 @@ const ElectricityController = {
             return;
         }
 
-        pageRows.forEach(item => {
+        pageRows.forEach((item, idx) => {
             const badgeClass = this.getStatusBadge(item.status);
+            const isNegative = item.pemakaian < 0;
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
-                    <td>${item.bulan}</td>
-                    <td>${item.entitas}</td>
-                    <td>${item.idPelanggan}</td>
-                    <td class="text-end">${this.formatNumber(item.awal)}</td>
-                    <td class="text-end">${this.formatNumber(item.akhir)}</td>
-                    <td class="text-end">${this.formatNumber(item.pemakaian)}</td>
-                    <td class="text-end">${this.formatCurrency(item.nominal)}</td>
+                    <td class="text-start ps-4">${start + idx + 1}</td>
+                    <td class="text-start">${item.bulan || '-'}</td>
+                    <td class="text-start"><code>${item.idPelanggan || '-'}</code></td>
+                    <td class="text-start">${item.entitas || '-'}</td>
+                    <td class="text-end">${this.formatNumber(item.awal, 2)}</td>
+                    <td class="text-end">${this.formatNumber(item.akhir, 2)}</td>
+                    <td class="text-end ${isNegative ? 'text-danger fw-bold' : ''}">${this.formatNumber(item.pemakaian, 2)}</td>
+                    <td class="text-end ${item.nominal < 0 ? 'text-danger' : ''}">${this.formatCurrency(item.nominal)}</td>
+                    <td>${item.keterangan || '-'}</td>
                     <td>
-                        <span class="badge ${badgeClass}">${item.status}</span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-primary btn-detail" data-id="${item.idPelanggan}">
-                            Detail
+                        <button class="btn btn-sm btn-outline-primary btn-detail" data-id="${item.idPelanggan}" title="Detail">
+                            <i class="bi bi-eye"></i>
                         </button>
                     </td>
                 </tr>
@@ -548,21 +530,65 @@ const ElectricityController = {
         const pageSize = this.state.filter.pageSize;
         const totalPage = Math.ceil(total / pageSize);
 
-        for (let i = 1; i <= totalPage; i++) {
+        if (totalPage <= 1) {
+            ul.innerHTML = `<li class="page-item disabled"><span class="page-link">1</span></li>`;
+            return;
+        }
+
+        // Previous
+        ul.insertAdjacentHTML("beforeend", `
+            <li class="page-item ${this.state.filter.page === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${this.state.filter.page - 1}">&laquo;</a>
+            </li>
+        `);
+
+        // Page numbers
+        const maxVisible = 5;
+        let startPage = Math.max(1, this.state.filter.page - Math.floor(maxVisible / 2));
+        let endPage = Math.min(totalPage, startPage + maxVisible - 1);
+        if (endPage - startPage < maxVisible - 1) {
+            startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+
+        if (startPage > 1) {
+            ul.insertAdjacentHTML("beforeend", `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`);
+            if (startPage > 2) {
+                ul.insertAdjacentHTML("beforeend", `<li class="page-item disabled"><span class="page-link">…</span></li>`);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
             ul.insertAdjacentHTML("beforeend", `
-                <li class="page-item ${i === this.state.filter.page ? "active" : ""}">
-                    <a class="page-link" href="#" data-page="${i}">
-                        ${i}
-                    </a>
+                <li class="page-item ${i === this.state.filter.page ? 'active' : ''}">
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
                 </li>
             `);
         }
 
+        if (endPage < totalPage) {
+            if (endPage < totalPage - 1) {
+                ul.insertAdjacentHTML("beforeend", `<li class="page-item disabled"><span class="page-link">…</span></li>`);
+            }
+            ul.insertAdjacentHTML("beforeend", `
+                <li class="page-item"><a class="page-link" href="#" data-page="${totalPage}">${totalPage}</a></li>
+            `);
+        }
+
+        // Next
+        ul.insertAdjacentHTML("beforeend", `
+            <li class="page-item ${this.state.filter.page === totalPage ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${this.state.filter.page + 1}">&raquo;</a>
+            </li>
+        `);
+
         ul.querySelectorAll(".page-link").forEach(btn => {
             btn.onclick = (e) => {
                 e.preventDefault();
-                this.state.filter.page = Number(btn.dataset.page);
-                this.renderTable();
+                const page = parseInt(btn.dataset.page, 10);
+                if (page && page >= 1 && page <= totalPage) {
+                    this.state.filter.page = page;
+                    this.renderTable();
+                }
             };
         });
     },
@@ -580,15 +606,17 @@ const ElectricityController = {
     // ==========================================================
 
     async showDetail(id) {
+        if (!id) {
+            this.showToast("ID meter tidak valid.", "error");
+            return;
+        }
+
         try {
             this.showLoading(true);
             const response = await BCS.Api.getElectricityDetail(id);
 
             if (!response.success) {
-                this.showToast(
-                    response.message || "Data tidak ditemukan.",
-                    "error"
-                );
+                this.showToast(response.message || "Data tidak ditemukan.", "error");
                 return;
             }
 
@@ -596,16 +624,17 @@ const ElectricityController = {
 
             this.setText("detailMeterId", data.id || "-");
             this.setText("detailEntity", data.entity || "-");
-            this.setText("detailTotalKwh", this.formatNumber(data.totalKwh || 0));
-            this.setText("detailTotalNominal", this.formatCurrency(data.totalNominal || 0));
+            this.setText("detailTotalKwh", this.formatNumber(data.totalKwh, 2));
+            this.setText("detailTotalNominal", this.formatCurrency(data.totalNominal));
 
             this.renderDetailChart(data.history || []);
             this.renderDetailTable(data.history || []);
 
-            const modal = bootstrap.Modal.getOrCreateInstance(
-                document.getElementById("meterDetailModal")
-            );
-            modal.show();
+            const modalEl = document.getElementById("meterDetailModal");
+            if (modalEl) {
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
 
         } catch (err) {
             console.error(err);
@@ -627,17 +656,21 @@ const ElectricityController = {
             this.chartDetail.destroy();
         }
 
+        const labels = history.map(x => x.month || x.bulan || '');
+        const values = history.map(x => x.kwh || x.pemakaian || 0);
+
         this.chartDetail = new Chart(canvas, {
             type: "line",
             data: {
-                labels: history.map(x => x.month),
+                labels: labels,
                 datasets: [{
                     label: "kWh",
-                    data: history.map(x => x.kwh),
+                    data: values,
                     borderColor: "#1565C0",
                     backgroundColor: "rgba(21,101,192,.15)",
                     fill: true,
-                    tension: .35
+                    tension: .35,
+                    pointBackgroundColor: "#1565C0"
                 }]
             },
             options: {
@@ -646,9 +679,33 @@ const ElectricityController = {
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'end',
+                        color: '#1a1a1a',
+                        font: { weight: 'bold', size: 9 },
+                        formatter: (value) => {
+                            return value > 0 ? this.formatNumber(value, 0) : '';
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: (value) => this.formatNumber(value, 0),
+                            font: { size: 9 }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: { size: 9 }
+                        }
                     }
                 }
-            }
+            },
+            plugins: [ChartDataLabels]
         });
     },
 
@@ -665,7 +722,7 @@ const ElectricityController = {
         if (!history || !history.length) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center">
+                    <td colspan="6" class="text-center text-muted py-3">
                         Tidak ada histori.
                     </td>
                 </tr>
@@ -674,14 +731,22 @@ const ElectricityController = {
         }
 
         history.forEach(item => {
+            const bulan = item.month || item.bulan || '-';
+            const awal = item.awal || 0;
+            const akhir = item.akhir || 0;
+            const kwh = item.kwh || item.pemakaian || 0;
+            const nominal = item.nominal || 0;
+            const status = item.status || 'NORMAL';
+            const badgeClass = this.getStatusBadge(status);
+
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
-                    <td>${item.month}</td>
-                    <td>${this.formatNumber(item.awal)}</td>
-                    <td>${this.formatNumber(item.akhir)}</td>
-                    <td>${this.formatNumber(item.kwh)}</td>
-                    <td>${this.formatCurrency(item.nominal)}</td>
-                    <td>${item.status}</td>
+                    <td>${bulan}</td>
+                    <td>${this.formatNumber(awal, 2)}</td>
+                    <td>${this.formatNumber(akhir, 2)}</td>
+                    <td class="${kwh < 0 ? 'text-danger fw-bold' : ''}">${this.formatNumber(kwh, 2)}</td>
+                    <td>${this.formatCurrency(nominal)}</td>
+                    <td><span class="badge ${badgeClass}">${status}</span></td>
                 </tr>
             `);
         });
@@ -692,10 +757,12 @@ const ElectricityController = {
     // ==========================================================
 
     registerEvent() {
+        // Refresh
         document.getElementById("btnRefresh")?.addEventListener("click", () => {
             this.loadDashboard(true);
         });
 
+        // Search
         document.getElementById("btnSearch")?.addEventListener("click", () => {
             this.state.filter.keyword = document.getElementById("txtSearch").value.trim();
             this.state.filter.page = 1;
@@ -708,24 +775,33 @@ const ElectricityController = {
             }
         });
 
+        // Status filter
         document.getElementById("cmbStatus")?.addEventListener("change", e => {
             this.state.filter.status = e.target.value;
             this.state.filter.page = 1;
             this.renderTable();
         });
 
+        // Reset
         document.getElementById("btnReset")?.addEventListener("click", () => {
             document.getElementById("txtSearch").value = "";
             document.getElementById("cmbStatus").value = "ALL";
-
-            this.state.filter = {
-                keyword: "",
-                status: "ALL",
-                page: 1,
-                pageSize: 10
-            };
-
+            this.state.filter.keyword = "";
+            this.state.filter.status = "ALL";
+            this.state.filter.page = 1;
             this.renderTable();
+        });
+
+        // Page size
+        document.getElementById("cmbPageSize")?.addEventListener("change", e => {
+            this.state.filter.pageSize = parseInt(e.target.value, 10) || 10;
+            this.state.filter.page = 1;
+            this.renderTable();
+        });
+
+        // Add Data (placeholder)
+        document.getElementById("btnAddData")?.addEventListener("click", () => {
+            this.showToast("Fitur tambah data sedang dalam pengembangan.", "info");
         });
     },
 

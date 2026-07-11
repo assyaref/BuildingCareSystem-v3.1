@@ -36,28 +36,23 @@
         ================================================== -->
         <header class="page-header">
             <div>
-                <h3 class="page-title">
-                    Utility Management / Listrik
-                </h3>
+                <h3 class="page-title">Utility Management / Listrik</h3>
                 <small class="text-muted">Kelola dan pantau pemakaian listrik</small>
             </div>
-            
             <div class="d-flex align-items-center gap-3">
                 <div class="update-pill">
                     <i class="bi bi-clock-history"></i>
                     <div>
-                        <span class="text-muted d-block" style="font-size: 0.7rem;">Last Update</span>
+                        <span class="text-muted d-block" style="font-size:0.7rem;">Last Update</span>
                         <strong id="lblLastUpdate">-</strong>
                     </div>
                 </div>
-                
                 <div class="position-relative">
-                    <button class="btn btn-light bg-white border rounded-circle shadow-sm p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <button class="btn btn-light bg-white border rounded-circle shadow-sm p-2 d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
                         <i class="bi bi-bell-fill text-muted"></i>
                     </button>
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary border border-2 border-white">3</span>
                 </div>
-                
                 <button id="btnRefresh" class="btn btn-primary d-flex align-items-center gap-2" type="button">
                     <i class="bi bi-arrow-repeat"></i> Refresh
                 </button>
@@ -93,7 +88,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="col">
                     <div class="summary-card">
                         <div class="summary-icon bg-icon-green"><i class="bi bi-cash-stack"></i></div>
@@ -107,7 +101,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="col">
                     <div class="summary-card">
                         <div class="summary-icon bg-icon-yellow"><i class="bi bi-speedometer2"></i></div>
@@ -118,7 +111,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="col">
                     <div class="summary-card">
                         <div class="summary-icon bg-icon-red"><i class="bi bi-graph-up-arrow"></i></div>
@@ -129,18 +121,17 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="col">
                     <div class="summary-card">
                         <div class="summary-icon bg-icon-purple"><i class="bi bi-shield-check"></i></div>
                         <div class="flex-grow-1 w-100">
                             <div class="d-flex justify-content-between align-items-start">
                                 <small>Data Quality</small>
-                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill" style="font-size: 0.65rem;">Good</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill" style="font-size:0.65rem;">Good</span>
                             </div>
                             <h2 id="dataQuality">81%</h2>
                             <div class="quality-progress">
-                                <div class="quality-progress-bar" id="qualityBar" style="width: 81%;"></div>
+                                <div class="quality-progress-bar" id="qualityBar" style="width:81%;"></div>
                             </div>
                         </div>
                     </div>
@@ -160,23 +151,21 @@
                             <select class="form-select form-select-sm filter-control w-auto"><option>12 Bulan</option></select>
                         </div>
                         <div class="card-body flex-grow-1">
-                            <canvas id="monthlyChart" style="max-height: 250px;"></canvas>
+                            <canvas id="monthlyChart" style="max-height:250px;"></canvas>
                         </div>
                     </div>
                 </div>
-
                 <div class="col-xl-3 col-lg-6">
                     <div class="electricity-card d-flex flex-column">
                         <div class="card-header"><h5 class="fs-6 fw-bold"><i class="bi bi-pie-chart-fill text-warning me-2"></i> Pemakaian per Meter</h5></div>
                         <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                            <div style="position: relative; width: 160px; height: 160px;">
+                            <div style="position:relative;width:160px;height:160px;">
                                 <canvas id="entityChart"></canvas>
                             </div>
-                            <div id="entityLegend" class="mt-4 w-100 px-2 text-start" style="font-size: 0.75rem;"></div>
+                            <div id="entityLegend" class="mt-4 w-100 px-2 text-start" style="font-size:0.75rem;"></div>
                         </div>
                     </div>
                 </div>
-
                 <div class="col-xl-3 col-lg-6">
                     <div class="electricity-card d-flex flex-column">
                         <div class="card-header"><h5 class="fs-6 fw-bold">Ringkasan Status</h5></div>
@@ -253,10 +242,10 @@
                         <small class="text-muted" id="tableInfo">Menampilkan 0 data</small>
                     </div>
                     <div class="d-flex flex-wrap align-items-center gap-2">
-                        <div class="input-group input-group-sm" style="width: 200px;">
+                        <div class="input-group input-group-sm" style="width:200px;">
                             <input id="txtSearch" type="text" class="form-control filter-control" placeholder="Cari Entitas / Meter...">
                         </div>
-                        <select id="cmbStatus" class="form-select form-select-sm filter-control" style="width: 150px;">
+                        <select id="cmbStatus" class="form-select form-select-sm filter-control" style="width:150px;">
                             <option value="ALL">Semua Status</option>
                             <option value="NORMAL">NORMAL</option>
                             <option value="MAINTENANCE">MAINTENANCE</option>
@@ -294,14 +283,14 @@
 
                 <div class="p-3 bg-white border-top d-flex flex-wrap justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="text-muted" style="font-size: 0.8rem;">Tampilkan</span>
-                        <select id="cmbPageSize" class="form-select form-select-sm filter-control" style="width:60px; padding: 4px 8px;">
+                        <span class="text-muted" style="font-size:0.8rem;">Tampilkan</span>
+                        <select id="cmbPageSize" class="form-select form-select-sm filter-control" style="width:60px;padding:4px 8px;">
                             <option value="5">5</option>
                             <option value="10" selected>10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
                         </select>
-                        <span class="text-muted" style="font-size: 0.8rem;">/ halaman</span>
+                        <span class="text-muted" style="font-size:0.8rem;">/ halaman</span>
                     </div>
                     <nav><ul id="pagination" class="pagination pagination-sm mb-0"></ul></nav>
                 </div>
@@ -309,7 +298,7 @@
         </section>
 
         <!-- ==================================================
-             FORM MODAL (TAMBAH / EDIT)
+             FORM MODAL (TAMBAH / EDIT) dengan DATALIST ID
         ================================================== -->
         <div class="modal fade" id="formModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
@@ -344,7 +333,9 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold">ID Pelanggan <span class="text-danger">*</span></label>
-                                    <input id="formIdPelanggan" class="form-control" placeholder="182103847826" required>
+                                    <!-- DATALIST UNTUK ID PELANGGAN -->
+                                    <input id="formIdPelanggan" list="idPelangganList" class="form-control" placeholder="Cari atau pilih ID Pelanggan..." required autocomplete="off">
+                                    <datalist id="idPelangganList"></datalist>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold">Entitas <span class="text-danger">*</span></label>

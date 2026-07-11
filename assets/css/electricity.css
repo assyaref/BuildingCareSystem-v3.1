@@ -1,7 +1,7 @@
 /* ===========================================================
    Building Care System Enterprise
    Electricity Module
-   Version : 1.2 (UI sesuai gambar)
+   Version : 1.3 (angka hitam jelas)
 =========================================================== */
 
 :root {
@@ -95,7 +95,7 @@ body {
 }
 
 /* ===========================================================
-   SUMMARY CARDS (seperti gambar)
+   SUMMARY CARDS - ANGKA HITAM JELAS
 =========================================================== */
 .summary-card {
     background: var(--elec-card);
@@ -130,12 +130,17 @@ body {
     font-size: 13px;
     display: block;
 }
+
+/* 🔥 ANGKA UTAMA: hitam pekat, tebal, mudah dibaca */
 .summary-card h2 {
     margin: 4px 0 2px;
     font-weight: 700;
     font-size: 28px;
     line-height: 1.2;
+    color: #000000 !important; /* dipaksa hitam */
 }
+
+/* Badge trend (naik/turun) tetap warna sesuai */
 .summary-card .badge {
     font-size: 12px;
     font-weight: 600;
@@ -207,19 +212,8 @@ canvas {
     margin: 2px 0 0;
     font-weight: 700;
     font-size: 16px;
+    color: #000000 !important; /* hitam */
 }
-
-/* ===========================================================
-   BENCHMARK (tidak digunakan, kita pakai entity chart)
-=========================================================== */
-
-/* ===========================================================
-   TOP CONSUMER (diganti entity chart)
-=========================================================== */
-
-/* ===========================================================
-   ALERT (digabung dengan informasi)
-=========================================================== */
 
 /* ===========================================================
    TABLE
@@ -246,6 +240,7 @@ canvas {
 #tblElectricity td {
     vertical-align: middle;
     padding: 10px 14px;
+    color: #000000; /* teks hitam */
 }
 #tblElectricity tbody tr {
     transition: .15s;
@@ -256,6 +251,15 @@ canvas {
 #tblElectricity .btn-sm {
     padding: 2px 8px;
     font-size: 12px;
+}
+
+/* Angka pada tabel (kolom nominal, pemakaian) tetap hitam */
+#tblElectricity td.text-end {
+    font-weight: 500;
+    color: #000000;
+}
+#tblElectricity td.text-danger {
+    color: #dc3545 !important; /* tetap merah jika negatif */
 }
 
 /* ===========================================================
@@ -355,6 +359,7 @@ canvas {
 }
 #meterDetailModal h5 {
     font-weight: 700;
+    color: #000000;
 }
 
 /* ===========================================================
@@ -386,6 +391,7 @@ canvas {
 }
 #emptyState h4 {
     font-weight: 700;
+    color: #000000;
 }
 #emptyState p {
     color: #6B7280;

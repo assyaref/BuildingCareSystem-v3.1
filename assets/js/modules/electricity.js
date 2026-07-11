@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 1.5 (Data Quality + Status Dinamis)
+ * Version 1.6 (Auto-fill Entitas + Datalist ID)
  * =====================================================
  */
 
@@ -152,7 +152,7 @@ const ElectricityController = {
 
     render() {
         this.renderSummary();
-        this.renderStatusSummary(); // <-- DINAMIS
+        this.renderStatusSummary();
         this.renderMonthlyChart();
         this.renderEntityChart();
         this.renderTable();
@@ -183,7 +183,6 @@ const ElectricityController = {
         this.setText("lblLowestEntity", data.lowestEntity || "-");
         this.setText("growthInfo", (data.growth || 0) + "%");
 
-        // Update trend badges
         const growth = data.growth || 0;
         const trendEl = document.getElementById("totalTrend");
         if (trendEl) {
@@ -208,14 +207,13 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // STATUS SUMMARY (DINAMIS berdasarkan data)
+    // STATUS SUMMARY (DINAMIS)
     // ==========================================================
 
     renderStatusSummary() {
         const records = this.state.records || [];
         const total = records.length;
 
-        // Hitung status
         const counts = {
             'NORMAL': 0,
             'MAINTENANCE': 0,
@@ -237,13 +235,11 @@ const ElectricityController = {
         const normal = counts['NORMAL'] || 0;
         const quality = total > 0 ? Math.round((normal / total) * 100) : 100;
 
-        // Update Data Quality card
         const qualityEl = document.getElementById('dataQuality');
         const qualityBar = document.getElementById('qualityBar');
         if (qualityEl) qualityEl.textContent = quality + '%';
         if (qualityBar) qualityBar.style.width = quality + '%';
 
-        // Update badge status (Good / Fair / Poor)
         const qualityBadge = document.querySelector('.summary-card .badge.bg-primary.bg-opacity-10');
         if (qualityBadge) {
             if (quality >= 90) {
@@ -261,7 +257,6 @@ const ElectricityController = {
             }
         }
 
-        // Update status list items
         const statusItems = {
             'Normal': counts['NORMAL'] || 0,
             'Maintenance': counts['MAINTENANCE'] || 0,
@@ -281,14 +276,12 @@ const ElectricityController = {
             });
         }
 
-        // Update alert summary (jumlah maintenance + ganti meter + negative + alert)
         const totalAlert = counts['MAINTENANCE'] + counts['GANTI_METER'] + counts['NEGATIVE'] + counts['ALERT'] + counts['NO_READING'];
         const alertEl = document.getElementById('alertSummary');
         if (alertEl) {
             alertEl.textContent = totalAlert > 0 ? totalAlert + ' Meter' : 'Tidak ada';
         }
 
-        // Update decline info (negatif)
         const declineEl = document.getElementById('declineInfo');
         if (declineEl) {
             declineEl.textContent = counts['NEGATIVE'] > 0 ? counts['NEGATIVE'] + ' Meter' : '0';
@@ -578,7 +571,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // CRUD - TAMBAH / EDIT / HAPUS
+    // CRUD - TAMBAH / EDIT / HAPUS (dengan Auto-Fill Entitas)
     // ==========================================================
 
     openForm(data = null) {
@@ -586,12 +579,39 @@ const ElectricityController = {
         const title = document.getElementById('formModalTitle');
         const btnSave = document.getElementById('btnSaveRecord');
 
+        // --- Populasi datalist ID Pelanggan ---
+        const datalist = document.getElementById('idPelangganList');
+        if (datalist) {
+            const ids = [...new Set(this.state.records.map(r => r.idPelanggan).filter(Boolean))];
+            datalist.innerHTML = ids.map(id => `<option value="${id}">`).join('');
+        }
+
+        // --- Event listener untuk auto-fill Entitas ---
+        const idInput = document.getElementById('formIdPelanggan');
+        if (idInput) {
+            // Hapus listener lama dengan clone & replace
+            const newInput = idInput.cloneNode(true);
+            idInput.parentNode.replaceChild(newInput, idInput);
+            newInput.id = 'formIdPelanggan';
+            // Pasang listener baru
+            newInput.addEventListener('input', function(e) {
+                const val = this.value.trim();
+                if (!val) return;
+                const record = ElectricityController.state.records.find(r => r.idPelanggan === val);
+                const entitasSelect = document.getElementById('formEntitas');
+                if (record && entitasSelect) {
+                    entitasSelect.value = record.entitas || '';
+                }
+            });
+        }
+
         if (data) {
             title.innerHTML = `<i class="bi bi-pencil-square text-warning me-2"></i> Edit Data`;
             btnSave.textContent = 'Update';
             document.getElementById('formId').value = data.id || '';
             document.getElementById('formBulan').value = data.bulan || '';
-            document.getElementById('formIdPelanggan').value = data.idPelanggan || '';
+            const idField = document.getElementById('formIdPelanggan');
+            if (idField) idField.value = data.idPelanggan || '';
             document.getElementById('formEntitas').value = data.entitas || '';
             document.getElementById('formAwal').value = data.awal || '';
             document.getElementById('formAkhir').value = data.akhir || '';
@@ -603,6 +623,8 @@ const ElectricityController = {
             btnSave.textContent = 'Simpan';
             document.getElementById('electricityForm').reset();
             document.getElementById('formId').value = '';
+            const idField = document.getElementById('formIdPelanggan');
+            if (idField) idField.value = '';
         }
 
         modal.show();

@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 1.0
+ * Version 1.1
  * =====================================================
  */
 
@@ -10,6 +10,7 @@ const ElectricityController = {
     chartMonthly: null,
     chartEntity: null,
     chartDetail: null,
+    refreshTimer: null,
 
     state: {
         dashboard: null,
@@ -26,11 +27,44 @@ const ElectricityController = {
         }
     },
 
+    // ==========================================================
+    // INIT
+    // ==========================================================
+
     init() {
         this.registerEvent();
         this.loadDashboard();
         this.startAutoRefresh();
     },
+
+    // ==========================================================
+    // LOADING & ERROR
+    // ==========================================================
+
+    showLoading(show) {
+        const el = document.getElementById("loadingOverlay");
+        if (!el) return;
+        el.classList.toggle("d-none", !show);
+    },
+
+    showError(message) {
+        this.showToast(message, "error");
+    },
+
+    // ==========================================================
+    // AUTO REFRESH
+    // ==========================================================
+
+    startAutoRefresh() {
+        if (this.refreshTimer) clearInterval(this.refreshTimer);
+        this.refreshTimer = setInterval(() => {
+            this.loadDashboard();
+        }, 300000); // 5 menit
+    },
+
+    // ==========================================================
+    // LOAD DASHBOARD
+    // ==========================================================
 
     async loadDashboard(forceRefresh = false) {
         try {
@@ -60,6 +94,10 @@ const ElectricityController = {
         }
     },
 
+    // ==========================================================
+    // RENDER
+    // ==========================================================
+
     render() {
         this.renderSummary();
         this.renderMonthlyChart();
@@ -72,9 +110,9 @@ const ElectricityController = {
         this.updateLastUpdate();
     },
 
-    /* ==========================================================
-       SUMMARY
-    ========================================================== */
+    // ==========================================================
+    // SUMMARY
+    // ==========================================================
 
     renderSummary() {
         const data = this.state.dashboard || {};
@@ -97,9 +135,9 @@ const ElectricityController = {
         this.setText("lblLowestEntity", data.lowestEntity || "-");
     },
 
-    /* ==========================================================
-       HELPER
-    ========================================================== */
+    // ==========================================================
+    // HELPER
+    // ==========================================================
 
     setText(id, value) {
         const el = document.getElementById(id);
@@ -119,9 +157,34 @@ const ElectricityController = {
         }).format(value || 0);
     },
 
-    /* ==========================================================
-       MONTHLY CHART
-    ========================================================== */
+    getStatusBadge(status) {
+        switch (status) {
+            case "NORMAL":
+                return "badge-normal";
+            case "MAINTENANCE":
+                return "badge-warning";
+            case "NEGATIVE":
+                return "badge-danger";
+            case "GANTI_METER":
+                return "badge-danger";
+            case "NO_READING":
+                return "badge-info";
+            case "ALERT":
+                return "badge-danger";
+            default:
+                return "badge-info";
+        }
+    },
+
+    updateLastUpdate() {
+        const el = document.getElementById("lblLastUpdate");
+        if (!el) return;
+        el.textContent = new Date().toLocaleString("id-ID");
+    },
+
+    // ==========================================================
+    // MONTHLY CHART
+    // ==========================================================
 
     renderMonthlyChart() {
         const canvas = document.getElementById("monthlyChart");
@@ -167,9 +230,9 @@ const ElectricityController = {
         });
     },
 
-    /* ==========================================================
-       ENTITY CHART
-    ========================================================== */
+    // ==========================================================
+    // ENTITY CHART
+    // ==========================================================
 
     renderEntityChart() {
         const canvas = document.getElementById("entityChart");
@@ -209,9 +272,9 @@ const ElectricityController = {
         });
     },
 
-    /* ==========================================================
-       TREND
-    ========================================================== */
+    // ==========================================================
+    // TREND
+    // ==========================================================
 
     renderTrend() {
         const container = document.getElementById("trendContainer");
@@ -262,9 +325,9 @@ const ElectricityController = {
         });
     },
 
-    /* ==========================================================
-       BENCHMARK
-    ========================================================== */
+    // ==========================================================
+    // BENCHMARK
+    // ==========================================================
 
     renderBenchmark() {
         const tbody = document.querySelector("#tblBenchmark tbody");
@@ -301,9 +364,9 @@ const ElectricityController = {
         });
     },
 
-    /* ==========================================================
-       TOP CONSUMER
-    ========================================================== */
+    // ==========================================================
+    // TOP CONSUMER
+    // ==========================================================
 
     renderTopConsumer() {
         const container = document.getElementById("topConsumerContainer");
@@ -340,9 +403,9 @@ const ElectricityController = {
         });
     },
 
-    /* ==========================================================
-       ALERT
-    ========================================================== */
+    // ==========================================================
+    // ALERT
+    // ==========================================================
 
     renderAlert() {
         const container = document.getElementById("alertContainer");
@@ -379,9 +442,9 @@ const ElectricityController = {
         });
     },
 
-    /* ==========================================================
-       TABLE
-    ========================================================== */
+    // ==========================================================
+    // TABLE
+    // ==========================================================
 
     renderTable() {
         const tbody = document.querySelector("#tblElectricity tbody");
@@ -418,11 +481,13 @@ const ElectricityController = {
                     </td>
                 </tr>
             `;
+            this.setText("tableInfo", "Menampilkan 0 data");
             this.renderPagination(0);
             return;
         }
 
         pageRows.forEach(item => {
+            const badgeClass = this.getStatusBadge(item.status);
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
                     <td>${item.month}</td>
@@ -433,7 +498,7 @@ const ElectricityController = {
                     <td class="text-end">${this.formatNumber(item.kwh)}</td>
                     <td class="text-end">${this.formatCurrency(item.nominal)}</td>
                     <td>
-                        <span class="badge badge-info">${item.status}</span>
+                        <span class="badge ${badgeClass}">${item.status}</span>
                     </td>
                     <td>
                         <button class="btn btn-sm btn-primary btn-detail" data-id="${item.id}">
@@ -452,9 +517,9 @@ const ElectricityController = {
         this.bindDetailButton();
     },
 
-    /* ==========================================================
-       PAGINATION
-    ========================================================== */
+    // ==========================================================
+    // PAGINATION
+    // ==========================================================
 
     renderPagination(total) {
         const ul = document.getElementById("pagination");
@@ -492,9 +557,9 @@ const ElectricityController = {
         });
     },
 
-    /* ==========================================================
-       DETAIL
-    ========================================================== */
+    // ==========================================================
+    // DETAIL
+    // ==========================================================
 
     async showDetail(id) {
         try {
@@ -532,9 +597,9 @@ const ElectricityController = {
         }
     },
 
-    /* ==========================================================
-       DETAIL CHART
-    ========================================================== */
+    // ==========================================================
+    // DETAIL CHART
+    // ==========================================================
 
     renderDetailChart(history) {
         const canvas = document.getElementById("detailChart");
@@ -569,9 +634,9 @@ const ElectricityController = {
         });
     },
 
-    /* ==========================================================
-       DETAIL TABLE
-    ========================================================== */
+    // ==========================================================
+    // DETAIL TABLE
+    // ==========================================================
 
     renderDetailTable(history) {
         const tbody = document.getElementById("detailTable");
@@ -593,9 +658,9 @@ const ElectricityController = {
         });
     },
 
-    /* ==========================================================
-       EVENT
-    ========================================================== */
+    // ==========================================================
+    // EVENT
+    // ==========================================================
 
     registerEvent() {
         document.getElementById("btnRefresh")?.addEventListener("click", () => {
@@ -629,9 +694,9 @@ const ElectricityController = {
         });
     },
 
-    /* ==========================================================
-       NOTIFICATION
-    ========================================================== */
+    // ==========================================================
+    // NOTIFICATION
+    // ==========================================================
 
     showToast(message, type = "info") {
         if (window.BCS && BCS.UI && typeof BCS.UI.toast === "function") {
@@ -641,9 +706,9 @@ const ElectricityController = {
         console.log(type.toUpperCase(), message);
     },
 
-    /* ==========================================================
-       DESTROY
-    ========================================================== */
+    // ==========================================================
+    // DESTROY
+    // ==========================================================
 
     destroyCharts() {
         if (this.chartMonthly) {
@@ -658,8 +723,16 @@ const ElectricityController = {
             this.chartDetail.destroy();
             this.chartDetail = null;
         }
+        if (this.refreshTimer) {
+            clearInterval(this.refreshTimer);
+            this.refreshTimer = null;
+        }
     }
 };
+
+// ==========================================================
+// AUTO INIT
+// ==========================================================
 
 window.addEventListener("beforeunload", () => {
     ElectricityController.destroyCharts();
@@ -668,3 +741,5 @@ window.addEventListener("beforeunload", () => {
 document.addEventListener("DOMContentLoaded", () => {
     ElectricityController.init();
 });
+
+console.log("✅ [Electricity] Module loaded successfully (v1.1)");

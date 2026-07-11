@@ -1,7 +1,7 @@
 /* ===========================================================
    Building Care System Enterprise
    Electricity Module
-   Version : 1.0
+   Version : 1.1
 =========================================================== */
 
 :root {
@@ -16,6 +16,7 @@
     --elec-text: #374151;
     --elec-radius: 16px;
     --elec-shadow: 0 4px 18px rgba(0,0,0,.08);
+    --elec-shadow-hover: 0 12px 28px rgba(0,0,0,.10);
     --elec-transition: .25s;
 }
 
@@ -24,9 +25,27 @@ body {
 }
 
 /* ===========================================================
+   SCROLLBAR
+=========================================================== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 20px;
+}
+::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 20px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+/* ===========================================================
    PAGE
 =========================================================== */
-
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -46,7 +65,6 @@ body {
 /* ===========================================================
    CARD
 =========================================================== */
-
 .electricity-card {
     border: none;
     border-radius: var(--elec-radius);
@@ -55,7 +73,8 @@ body {
 }
 
 .electricity-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px);
+    box-shadow: var(--elec-shadow-hover);
 }
 
 .card-header {
@@ -71,7 +90,6 @@ body {
 /* ===========================================================
    SUMMARY
 =========================================================== */
-
 .summary-card {
     background: var(--elec-card);
     border-radius: var(--elec-radius);
@@ -80,11 +98,13 @@ body {
     display: flex;
     align-items: center;
     gap: 18px;
+    min-height: 120px;
     transition: all .25s;
 }
 
 .summary-card:hover {
     transform: translateY(-4px);
+    box-shadow: var(--elec-shadow-hover);
 }
 
 .summary-icon {
@@ -96,6 +116,7 @@ body {
     align-items: center;
     color: #fff;
     font-size: 28px;
+    flex-shrink: 0;
 }
 
 .summary-card small {
@@ -115,6 +136,12 @@ body {
 /* ===========================================================
    CHART
 =========================================================== */
+canvas {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
 
 #monthlyChart {
     width: 100% !important;
@@ -140,7 +167,6 @@ body {
 /* ===========================================================
    TREND
 =========================================================== */
-
 .electricity-trend {
     display: flex;
     flex-direction: column;
@@ -188,7 +214,6 @@ body {
 /* ===========================================================
    MINI CARD
 =========================================================== */
-
 .mini-card {
     background: #fff;
     border-radius: 14px;
@@ -198,11 +223,12 @@ body {
     gap: 14px;
     border: 1px solid var(--elec-border);
     transition: .25s;
+    min-height: 80px;
 }
 
 .mini-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--elec-shadow);
+    box-shadow: var(--elec-shadow-hover);
 }
 
 .mini-icon {
@@ -214,6 +240,7 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 22px;
+    flex-shrink: 0;
 }
 
 .mini-card small {
@@ -229,7 +256,6 @@ body {
 /* ===========================================================
    ENTITY CHART
 =========================================================== */
-
 .entity-wrapper {
     position: relative;
     height: 300px;
@@ -258,7 +284,6 @@ body {
 /* ===========================================================
    BENCHMARK
 =========================================================== */
-
 #tblBenchmark {
     margin-bottom: 0;
 }
@@ -319,7 +344,6 @@ body {
 /* ===========================================================
    TOP CONSUMER
 =========================================================== */
-
 #topConsumerContainer {
     display: flex;
     flex-direction: column;
@@ -339,7 +363,7 @@ body {
 
 .consumer-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--elec-shadow);
+    box-shadow: var(--elec-shadow-hover);
 }
 
 .consumer-rank {
@@ -351,11 +375,8 @@ body {
     align-items: center;
     color: #fff;
     font-weight: 700;
-    background: linear-gradient(
-        135deg,
-        var(--elec-warning),
-        #FFB300
-    );
+    background: linear-gradient(135deg, var(--elec-warning), #FFB300);
+    flex-shrink: 0;
 }
 
 .consumer-info {
@@ -390,7 +411,6 @@ body {
 /* ===========================================================
    BADGE
 =========================================================== */
-
 .badge-normal {
     background: #E8F5E9;
     color: #2E7D32;
@@ -414,7 +434,6 @@ body {
 /* ===========================================================
    PROGRESS BAR
 =========================================================== */
-
 .progress-electricity {
     height: 10px;
     border-radius: 20px;
@@ -433,7 +452,6 @@ body {
 /* ===========================================================
    ELECTRICITY ALERT
 =========================================================== */
-
 #alertContainer {
     display: flex;
     flex-direction: column;
@@ -454,7 +472,7 @@ body {
 
 .alert-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--elec-shadow);
+    box-shadow: var(--elec-shadow-hover);
 }
 
 .alert-icon {
@@ -487,6 +505,9 @@ body {
 /* ===========================================================
    HISTORY TABLE
 =========================================================== */
+.table-responsive {
+    overflow-x: auto;
+}
 
 #tblElectricity {
     margin-bottom: 0;
@@ -524,7 +545,6 @@ body {
 /* ===========================================================
    SEARCH
 =========================================================== */
-
 #txtSearch {
     border-radius: 10px;
     border: 1px solid var(--elec-border);
@@ -551,7 +571,6 @@ body {
 /* ===========================================================
    PAGINATION
 =========================================================== */
-
 .pagination {
     gap: 6px;
 }
@@ -575,7 +594,6 @@ body {
 /* ===========================================================
    EMPTY TABLE
 =========================================================== */
-
 .table-empty {
     text-align: center;
     padding: 50px 20px;
@@ -591,7 +609,6 @@ body {
 /* ===========================================================
    TABLE INFO
 =========================================================== */
-
 #tableInfo {
     font-size: 13px;
     color: #6B7280;
@@ -600,7 +617,6 @@ body {
 /* ===========================================================
    DETAIL MODAL
 =========================================================== */
-
 #meterDetailModal .modal-content {
     border: none;
     border-radius: 18px;
@@ -631,7 +647,6 @@ body {
 /* ===========================================================
    LOADING OVERLAY
 =========================================================== */
-
 .loading-overlay {
     position: fixed;
     inset: 0;
@@ -651,7 +666,6 @@ body {
 /* ===========================================================
    SKELETON
 =========================================================== */
-
 .skeleton {
     position: relative;
     overflow: hidden;
@@ -682,7 +696,6 @@ body {
 /* ===========================================================
    EMPTY STATE
 =========================================================== */
-
 #emptyState {
     background: #fff;
     border-radius: 18px;
@@ -701,7 +714,6 @@ body {
 /* ===========================================================
    ANIMATION
 =========================================================== */
-
 .fade-up {
     animation: fadeUp .35s ease;
 }
@@ -735,10 +747,10 @@ body {
 /* ===========================================================
    RESPONSIVE
 =========================================================== */
-
 @media(max-width: 992px) {
     .summary-card {
         padding: 18px;
+        min-height: 100px;
     }
     
     .summary-card h2 {
@@ -765,6 +777,7 @@ body {
     .summary-card {
         flex-direction: column;
         text-align: center;
+        min-height: auto;
     }
     
     .summary-icon {
@@ -802,7 +815,6 @@ body {
 /* ===========================================================
    PRINT
 =========================================================== */
-
 @media print {
     body {
         background: #fff;
@@ -827,7 +839,6 @@ body {
 /* ===========================================================
    UTILITIES
 =========================================================== */
-
 .text-kwh {
     color: var(--elec-primary);
     font-weight: 700;
@@ -852,7 +863,7 @@ body {
 }
 
 .shadow-hover:hover {
-    box-shadow: var(--elec-shadow);
+    box-shadow: var(--elec-shadow-hover);
 }
 
 .rounded-xl {

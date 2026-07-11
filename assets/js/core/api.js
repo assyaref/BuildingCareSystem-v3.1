@@ -156,7 +156,6 @@ const Api = (() => {
         const d = response.data || {};
         const summary = d.summary || {};
 
-        // Mapping struktur backend → frontend
         response.data = {
             totalRecord: summary.totalRecord || 0,
             totalMeter: summary.totalMeter || 0,
@@ -175,9 +174,29 @@ const Api = (() => {
             benchmark: d.benchmark || [],
             entity: summary.entity || [],
             topConsumer: (d.entityTop && d.entityTop.topUsage) || [],
-            alerts: d.latestAlerts || [],
-            records: []
+            alerts: d.latestAlerts || []
         };
+
+        return response;
+    }
+
+    async function getElectricityList() {
+        const response = await request('POST', 'getElectricityList', {});
+        if (!response.success) return response;
+
+        // Mapping list data agar konsisten
+        const list = response.data || [];
+        response.data = list.map(item => ({
+            bulan: item.bulan || item.month || '',
+            entitas: item.entitas || item.entity || '',
+            idPelanggan: item.idPelanggan || item.id || '',
+            awal: item.awal || 0,
+            akhir: item.akhir || 0,
+            pemakaian: item.pemakaian || item.kwh || 0,
+            nominal: item.nominal || 0,
+            status: item.status || 'NORMAL',
+            keterangan: item.keterangan || ''
+        }));
 
         return response;
     }
@@ -189,19 +208,18 @@ const Api = (() => {
         const data = response.data || {};
         const history = data.history || [];
 
-        // Mapping
         response.data = {
             id: data.id || id,
-            entity: history.length ? history[0].entitas : '-',
+            entity: data.entity || (history.length ? history[0].entitas : '-'),
             totalKwh: history.reduce((s, r) => s + (r.pemakaian || 0), 0),
             totalNominal: history.reduce((s, r) => s + (r.nominal || 0), 0),
             history: history.map(r => ({
-                month: r.bulan,
-                awal: r.awal,
-                akhir: r.akhir,
-                kwh: r.pemakaian,
-                nominal: r.nominal,
-                status: r.status
+                month: r.bulan || r.month || '',
+                awal: r.awal || 0,
+                akhir: r.akhir || 0,
+                kwh: r.pemakaian || r.kwh || 0,
+                nominal: r.nominal || 0,
+                status: r.status || 'NORMAL'
             }))
         };
 
@@ -210,10 +228,6 @@ const Api = (() => {
 
     async function refreshElectricityCache() {
         return request('POST', 'refreshElectricityCache', {});
-    }
-
-    async function getElectricityList() {
-        return request('POST', 'getElectricityList', {});
     }
 
     async function getElectricitySummary() {
@@ -246,9 +260,9 @@ const Api = (() => {
         request,
         heartbeat,
         getElectricityDashboard,
+        getElectricityList,
         getElectricityDetail,
         refreshElectricityCache,
-        getElectricityList,
         getElectricitySummary,
         getElectricityChart,
         getElectricityAlerts,
@@ -260,4 +274,4 @@ const Api = (() => {
 
 window.BCS.Api = Api;
 window.Api = Api;
-console.log("✅ [API] Core API loaded with Electricity mapping");
+console.log("✅ [API] Core API loaded with Electricity mapping (list + detail)");

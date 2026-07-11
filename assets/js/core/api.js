@@ -146,9 +146,10 @@ const Api = (() => {
     }
 
     // =============================================
-    // ELECTRICITY MANAGEMENT API (dengan mapping)
+    // ELECTRICITY MANAGEMENT API
     // =============================================
 
+    // --- READ ---
     async function getElectricityDashboard() {
         const response = await request('POST', 'getElectricityDashboard', {});
         if (!response.success) return response;
@@ -184,7 +185,6 @@ const Api = (() => {
         const response = await request('POST', 'getElectricityList', {});
         if (!response.success) return response;
 
-        // Mapping list data agar konsisten
         const list = response.data || [];
         response.data = list.map(item => ({
             bulan: item.bulan || item.month || '',
@@ -226,10 +226,6 @@ const Api = (() => {
         return response;
     }
 
-    async function refreshElectricityCache() {
-        return request('POST', 'refreshElectricityCache', {});
-    }
-
     async function getElectricitySummary() {
         return request('POST', 'getElectricitySummary', {});
     }
@@ -254,24 +250,46 @@ const Api = (() => {
         return request('POST', 'getElectricityTrend', {});
     }
 
+    async function refreshElectricityCache() {
+        return request('POST', 'refreshElectricityCache', {});
+    }
+
+    // --- CRUD ---
+    async function createElectricityRecord(data) {
+        return request('POST', 'createElectricityRecord', data);
+    }
+
+    async function updateElectricityRecord(data) {
+        return request('POST', 'updateElectricityRecord', data);
+    }
+
+    async function deleteElectricityRecord(data) {
+        return request('POST', 'deleteElectricityRecord', data);
+    }
+
     return {
         post:(action,data)=>request("POST",action,data),
         get:(action,data)=>request("GET",action,data),
         request,
         heartbeat,
+        // READ
         getElectricityDashboard,
         getElectricityList,
         getElectricityDetail,
-        refreshElectricityCache,
         getElectricitySummary,
         getElectricityChart,
         getElectricityAlerts,
         getElectricityBenchmark,
         getElectricityTopConsumer,
-        getElectricityTrend
+        getElectricityTrend,
+        refreshElectricityCache,
+        // CRUD
+        createElectricityRecord,
+        updateElectricityRecord,
+        deleteElectricityRecord
     };
 })();
 
 window.BCS.Api = Api;
 window.Api = Api;
-console.log("✅ [API] Core API loaded with Electricity mapping (list + detail)");
+console.log("✅ [API] Core API loaded with Electricity CRUD support");

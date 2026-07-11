@@ -1,52 +1,58 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Electricity Management</title>
 
-    <!-- Bootstrap -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    
+    <!-- Bootstrap 5 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
-    <!-- Existing CSS -->
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/dashboard.css">
-    
-    <!-- Electricity -->
-    <link rel="stylesheet" href="assets/css/electricity.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Core BCS CSS -->
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <link rel="stylesheet" href="assets/css/dashboard.css" />
+
+    <!-- Electricity Module CSS -->
+    <link rel="stylesheet" href="assets/css/electricity.css" />
 </head>
 <body>
 
 <div class="wrapper">
-    <!-- Sidebar -->
+    <!-- SIDEBAR -->
     <aside id="sidebar" class="sidebar"></aside>
 
-    <!-- Main -->
+    <!-- MAIN CONTENT -->
     <main id="main-content" class="content">
 
-        <!-- Topbar -->
+        <!-- ==================================================
+             TOPBAR
+        ================================================== -->
         <header class="page-header">
             <div>
                 <h3 class="page-title">
                     <i class="bi bi-lightning-charge-fill text-warning"></i>
-                    Electricity Management
+                    Utility Management / Listrik
                 </h3>
-                <small class="text-muted">Monitoring Pemakaian Listrik</small>
+                <small class="text-muted">Kelola dan pantau pemakaian listrik</small>
             </div>
-            <div class="d-flex gap-2 align-items-center">
-                <small>
-                    Last Update : <span id="lblLastUpdate">-</span>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <small class="text-muted">
+                    <i class="bi bi-clock"></i> Last Update :
+                    <span id="lblLastUpdate">-</span>
                 </small>
-                <button id="btnRefresh" class="btn btn-primary" type="button">
+                <button id="btnRefresh" class="btn btn-primary btn-sm" type="button">
                     <i class="bi bi-arrow-repeat"></i> Refresh
                 </button>
             </div>
         </header>
 
-        <!-- Breadcrumb -->
+        <!-- ==================================================
+             BREADCRUMB
+        ================================================== -->
         <nav class="breadcrumb-wrapper">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item">Dashboard</li>
@@ -54,10 +60,12 @@
             </ol>
         </nav>
 
-        <!-- Summary -->
+        <!-- ==================================================
+             SUMMARY CARDS (sesuai gambar)
+        ================================================== -->
         <section class="summary-section">
             <div class="row g-4">
-                <!-- Total kWh -->
+                <!-- Total Pemakaian -->
                 <div class="col-xl-3 col-md-6">
                     <div class="summary-card">
                         <div class="summary-icon bg-primary">
@@ -66,7 +74,10 @@
                         <div>
                             <small>Total Pemakaian</small>
                             <h2 id="totalKwh">0</h2>
-                            <span>kWh</span>
+                            <span class="badge bg-success bg-opacity-10 text-success" id="totalTrend">
+                                <i class="bi bi-arrow-up"></i> 0%
+                            </span>
+                            <span class="text-muted ms-1" style="font-size:12px;">dari bulan lalu</span>
                         </div>
                     </div>
                 </div>
@@ -80,291 +91,138 @@
                         <div>
                             <small>Total Nominal</small>
                             <h2 id="totalNominal">Rp0</h2>
-                            <span>IDR</span>
+                            <span class="badge bg-success bg-opacity-10 text-success" id="nominalTrend">
+                                <i class="bi bi-arrow-up"></i> 0%
+                            </span>
+                            <span class="text-muted ms-1" style="font-size:12px;">dari bulan lalu</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Meter -->
+                <!-- Jumlah Meter -->
                 <div class="col-xl-3 col-md-6">
                     <div class="summary-card">
                         <div class="summary-icon bg-warning">
                             <i class="bi bi-speedometer2"></i>
                         </div>
                         <div>
-                            <small>Total Meter</small>
+                            <small>Jumlah Meter</small>
                             <h2 id="totalMeter">0</h2>
-                            <span>Unit</span>
+                            <span class="badge bg-success bg-opacity-10 text-success">Aktif semua</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Average -->
+                <!-- Rata-rata per Hari -->
                 <div class="col-xl-3 col-md-6">
                     <div class="summary-card">
                         <div class="summary-icon bg-danger">
                             <i class="bi bi-graph-up-arrow"></i>
                         </div>
                         <div>
-                            <small>Average</small>
+                            <small>Rata-rata per Hari</small>
                             <h2 id="avgKwh">0</h2>
-                            <span>kWh / Meter</span>
+                            <span class="text-muted" style="font-size:12px;" id="avgMonthLabel">-</span>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- =======================================================
-             MONTHLY CONSUMPTION
-        ======================================================== -->
-        <section class="mt-4">
-            <div class="card shadow-sm border-0 electricity-card">
-                <div class="card-header bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-0">
-                                <i class="bi bi-bar-chart-line-fill text-primary"></i>
-                                Monthly Electricity Consumption
-                            </h5>
-                            <small class="text-muted">Grafik pemakaian listrik per bulan</small>
-                        </div>
-                        <div>
-                            <span class="badge bg-primary">12 Bulan</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <canvas id="monthlyChart" height="110"></canvas>
-                </div>
-            </div>
-        </section>
-
-        <!-- =======================================================
-             TREND + ENTITY
-        ======================================================== -->
+        <!-- ==================================================
+             CHART + ENTITY DISTRIBUTION (baris 1)
+        ================================================== -->
         <section class="mt-4">
             <div class="row g-4">
-                <!-- =======================================
-                     MONTHLY TREND
-                ======================================== -->
-                <div class="col-lg-6">
+                <!-- Grafik Pemakaian Listrik (kWh) -->
+                <div class="col-lg-8">
                     <div class="card shadow-sm border-0 electricity-card">
-                        <div class="card-header bg-white">
-                            <h5 class="mb-0">
-                                <i class="bi bi-graph-up-arrow text-success"></i>
-                                Monthly Trend
-                            </h5>
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0">
+                                    <i class="bi bi-bar-chart-line-fill text-primary"></i>
+                                    Grafik Pemakaian Listrik (kWh)
+                                </h5>
+                            </div>
+                            <span class="badge bg-primary">12 Bulan</span>
                         </div>
                         <div class="card-body">
-                            <div id="trendContainer" class="electricity-trend">
-                                <!-- Render JS -->
-                            </div>
+                            <canvas id="monthlyChart" height="120"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <!-- =======================================
-                     ENTITY DISTRIBUTION
-                ======================================== -->
-                <div class="col-lg-6">
+                <!-- Entity Distribution (Donut) -->
+                <div class="col-lg-4">
                     <div class="card shadow-sm border-0 electricity-card">
                         <div class="card-header bg-white">
                             <h5 class="mb-0">
                                 <i class="bi bi-pie-chart-fill text-warning"></i>
-                                Entity Distribution
+                                Pemakaian per Meter
                             </h5>
                         </div>
                         <div class="card-body">
-                            <canvas id="entityChart" height="260"></canvas>
+                            <canvas id="entityChart" height="200"></canvas>
+                            <div id="entityLegend" class="mt-2 small"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- =======================================================
-             QUICK INFORMATION
-        ======================================================== -->
+        <!-- ==================================================
+             INFORMASI CEPAT (Quick Info)
+        ================================================== -->
         <section class="mt-4">
             <div class="row g-3">
-                <div class="col-md-4">
-                    <div class="mini-card">
-                        <div class="mini-icon bg-primary">
-                            <i class="bi bi-lightning-charge-fill"></i>
-                        </div>
-                        <div>
-                            <small>Highest Month</small>
-                            <h5 id="highestMonth">-</h5>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="mini-card">
                         <div class="mini-icon bg-success">
-                            <i class="bi bi-arrow-down-circle-fill"></i>
+                            <i class="bi bi-arrow-up-circle-fill"></i>
                         </div>
                         <div>
-                            <small>Lowest Month</small>
-                            <h5 id="lowestMonth">-</h5>
+                            <small>Pemakaian Naik</small>
+                            <h5 id="growthInfo">-</h5>
+                            <span class="text-muted" style="font-size:12px;">dibandingkan bulan lalu</span>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="mini-card">
                         <div class="mini-icon bg-warning">
-                            <i class="bi bi-speedometer2"></i>
+                            <i class="bi bi-exclamation-triangle-fill"></i>
                         </div>
                         <div>
-                            <small>Avg / Month</small>
-                            <h5 id="avgMonth">-</h5>
+                            <small>Catatan Meter</small>
+                            <h5 id="alertSummary">-</h5>
+                            <span class="text-muted" style="font-size:12px;">perlu perhatian</span>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- =======================================================
-             BENCHMARK + TOP CONSUMER
-        ======================================================== -->
-        <section class="mt-4">
-            <div class="row g-4">
-                <!-- ==========================================
-                     BENCHMARK
-                =========================================== -->
-                <div class="col-lg-7">
-                    <div class="card shadow-sm border-0 electricity-card">
-                        <div class="card-header bg-white">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5 class="mb-0">
-                                        <i class="bi bi-bar-chart-fill text-primary"></i>
-                                        Benchmark Consumption
-                                    </h5>
-                                    <small class="text-muted">Perbandingan konsumsi setiap entitas</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0" id="tblBenchmark">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Entitas</th>
-                                            <th class="text-end">kWh</th>
-                                            <th class="text-end">Meter</th>
-                                            <th class="text-end">Avg</th>
-                                            <th class="text-center">Benchmark</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- JS -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ==========================================
-                     TOP CONSUMER
-                =========================================== -->
-                <div class="col-lg-5">
-                    <div class="card shadow-sm border-0 electricity-card">
-                        <div class="card-header bg-white">
-                            <div class="d-flex justify-content-between">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-trophy-fill text-warning"></i>
-                                    Top Consumer
-                                </h5>
-                                <span id="topConsumerCount" class="badge bg-primary">0</span>
-                            </div>
-                        </div>
-                        <div id="topConsumerContainer" class="card-body">
-                            <!-- JS -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- =======================================================
-             PERFORMANCE SUMMARY
-        ======================================================== -->
-        <section class="mt-4">
-            <div class="card shadow-sm border-0 electricity-card">
-                <div class="card-header bg-white">
-                    <h5>
-                        <i class="bi bi-speedometer2 text-success"></i>
-                        Performance Summary
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3">
-                            <h3 id="lblEfficiency" class="text-success">-</h3>
-                            <small>Efficiency</small>
-                        </div>
-                        <div class="col-md-3">
-                            <h3 id="lblGrowth" class="text-primary">-</h3>
-                            <small>Growth</small>
-                        </div>
-                        <div class="col-md-3">
-                            <h3 id="lblHighestEntity" class="text-warning">-</h3>
-                            <small>Highest Entity</small>
-                        </div>
-                        <div class="col-md-3">
-                            <h3 id="lblLowestEntity" class="text-danger">-</h3>
-                            <small>Lowest Entity</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- =======================================================
-             ELECTRICITY ALERT
-        ======================================================== -->
-        <section class="mt-4">
-            <div class="card shadow-sm border-0 electricity-card">
-                <div class="card-header bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-0">
-                                <i class="bi bi-exclamation-triangle-fill text-danger"></i>
-                                Electricity Alert
-                            </h5>
-                            <small class="text-muted">Monitoring kondisi meter listrik</small>
-                        </div>
-                        <span id="alertCount" class="badge bg-danger">0 Alert</span>
-                    </div>
-                </div>
-                <div id="alertContainer" class="card-body">
-                    <!-- Render by electricity.js -->
-                </div>
-            </div>
-        </section>
-
-        <!-- =======================================================
-             HISTORY TABLE
-        ======================================================== -->
+        <!-- ==================================================
+             TABLE HISTORY (dengan filter + pagination)
+        ================================================== -->
         <section class="mt-4 mb-5">
             <div class="card shadow-sm border-0 electricity-card">
                 <div class="card-header bg-white">
-                    <div class="row align-items-center">
+                    <div class="row align-items-center g-2">
                         <div class="col-md-4">
                             <h5 class="mb-0">
                                 <i class="bi bi-table text-primary"></i>
-                                Electricity History
+                                Data Pemakaian Listrik
                             </h5>
+                            <small class="text-muted" id="tableInfo">Menampilkan 0 data</small>
                         </div>
                         <div class="col-md-8">
                             <div class="row g-2">
-                                <div class="col-md-5">
-                                    <input id="txtSearch" class="form-control" placeholder="Cari Entitas / Meter">
+                                <div class="col-md-4">
+                                    <input id="txtSearch" class="form-control form-control-sm" placeholder="Cari Entitas / Meter" />
                                 </div>
                                 <div class="col-md-3">
-                                    <select id="cmbStatus" class="form-select">
+                                    <select id="cmbStatus" class="form-select form-select-sm">
                                         <option value="ALL">Semua Status</option>
                                         <option value="NORMAL">NORMAL</option>
                                         <option value="MAINTENANCE">MAINTENANCE</option>
@@ -374,40 +232,56 @@
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <button id="btnSearch" class="btn btn-primary w-100" type="button">
+                                    <button id="btnSearch" class="btn btn-primary btn-sm w-100" type="button">
                                         <i class="bi bi-search"></i>
                                     </button>
                                 </div>
                                 <div class="col-md-2">
-                                    <button id="btnReset" class="btn btn-outline-secondary w-100" type="button">Reset</button>
+                                    <button id="btnReset" class="btn btn-outline-secondary btn-sm w-100" type="button">Reset</button>
+                                </div>
+                                <div class="col-md-1">
+                                    <button id="btnAddData" class="btn btn-success btn-sm w-100" type="button" title="Tambah Data">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="table-responsive">
                     <table id="tblElectricity" class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Bulan</th>
+                                <th>No</th>
+                                <th>ID Pelanggan / Meter</th>
                                 <th>Entitas</th>
-                                <th>ID Meter</th>
-                                <th class="text-end">Awal</th>
-                                <th class="text-end">Akhir</th>
-                                <th class="text-end">kWh</th>
-                                <th class="text-end">Nominal</th>
-                                <th>Status</th>
+                                <th class="text-end">Awal Bulan (kWh)</th>
+                                <th class="text-end">Akhir Bulan (kWh)</th>
+                                <th class="text-end">Pemakaian (kWh)</th>
+                                <th class="text-end">Nominal (Rp)</th>
+                                <th>Keterangan</th>
                                 <th width="80">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Render JS -->
+                            <!-- Render by electricity.js -->
                         </tbody>
                     </table>
                 </div>
+
                 <div class="card-footer bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small id="tableInfo" class="text-muted">Menampilkan 0 data</small>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small">Tampilkan</span>
+                            <select id="cmbPageSize" class="form-select form-select-sm" style="width:70px;">
+                                <option value="5">5</option>
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                            <span class="text-muted small">/ halaman</span>
+                        </div>
                         <nav>
                             <ul id="pagination" class="pagination pagination-sm mb-0"></ul>
                         </nav>
@@ -416,21 +290,21 @@
             </div>
         </section>
 
-        <!-- =======================================================
+        <!-- ==================================================
              DETAIL METER MODAL
-        ======================================================== -->
+        ================================================== -->
         <div class="modal fade" id="meterDetailModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">
                             <i class="bi bi-lightning-charge-fill text-warning"></i>
-                            Meter Detail
+                            Detail Meter
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <!-- Header -->
+                        <!-- Summary -->
                         <div class="row mb-4">
                             <div class="col-md-3">
                                 <div class="border rounded p-3">
@@ -457,7 +331,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <!-- Chart -->
                         <div class="card shadow-sm mb-4">
                             <div class="card-header">Monthly History</div>
@@ -465,8 +338,7 @@
                                 <canvas id="detailChart"></canvas>
                             </div>
                         </div>
-
-                        <!-- History -->
+                        <!-- History Table -->
                         <div class="table-responsive">
                             <table class="table table-striped">
                                 <thead>
@@ -479,8 +351,7 @@
                                         <th>Status</th>
                                     </tr>
                                 </thead>
-                                <tbody id="detailTable">
-                                </tbody>
+                                <tbody id="detailTable"></tbody>
                             </table>
                         </div>
                     </div>
@@ -488,9 +359,9 @@
             </div>
         </div>
 
-        <!-- =======================================================
+        <!-- ==================================================
              LOADING OVERLAY
-        ======================================================== -->
+        ================================================== -->
         <div id="loadingOverlay" class="loading-overlay d-none" role="status" aria-live="polite">
             <div class="text-center">
                 <div class="spinner-border text-primary" role="status">
@@ -500,37 +371,34 @@
             </div>
         </div>
 
-        <!-- =======================================================
+        <!-- ==================================================
              EMPTY STATE
-        ======================================================== -->
+        ================================================== -->
         <div id="emptyState" class="d-none" role="alert">
             <div class="text-center py-5">
-                <i class="bi bi-lightning-charge" style="font-size:72px;color:#999"></i>
+                <i class="bi bi-lightning-charge" style="font-size:72px;color:#999;"></i>
                 <h4 class="mt-3">Belum Ada Data Listrik</h4>
-                <p class="text-muted">Silakan sinkronkan spreadsheet.</p>
+                <p class="text-muted">Silakan sinkronkan spreadsheet atau tambah data.</p>
             </div>
         </div>
 
-        <!-- =======================================================
+        <!-- ==================================================
              FOOTER
-        ======================================================== -->
-        <footer class="text-center text-muted py-4">
+        ================================================== -->
+        <footer class="text-center text-muted py-4 border-top">
             Building Care System Enterprise v4.3 | Electricity Management Module
         </footer>
 
     </main>
 </div>
 
-<!-- =======================================================
-     LIBRARY
-======================================================= -->
+<!-- ==================================================
+     SCRIPTS
+================================================== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- =======================================================
-     CORE
-======================================================= -->
-<script src="config/config.js"></script> <!-- TAMBAHKAN -->
+<script src="config/config.js"></script>
 <script src="assets/js/core/app.js"></script>
 <script src="assets/js/core/api.js"></script>
 <script src="assets/js/core/storage.js"></script>
@@ -538,9 +406,6 @@
 <script src="assets/js/core/ui.js"></script>
 <script src="assets/js/core/components/sidebar.js"></script>
 
-<!-- =======================================================
-     MODULE
-======================================================= -->
 <script src="assets/js/modules/electricity.js"></script>
 
 </body>

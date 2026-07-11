@@ -146,15 +146,66 @@ const Api = (() => {
     }
 
     // =============================================
-    // ELECTRICITY MANAGEMENT API
+    // ELECTRICITY MANAGEMENT API (dengan mapping)
     // =============================================
 
     async function getElectricityDashboard() {
-        return request('POST', 'getElectricityDashboard', {});
+        const response = await request('POST', 'getElectricityDashboard', {});
+        if (!response.success) return response;
+
+        const d = response.data || {};
+        const summary = d.summary || {};
+
+        // Mapping struktur backend → frontend
+        response.data = {
+            totalRecord: summary.totalRecord || 0,
+            totalMeter: summary.totalMeter || 0,
+            totalKwh: summary.totalKwh || 0,
+            totalNominal: summary.totalNominal || 0,
+            averageKwh: summary.averageKwhPerMeter || 0,
+            averageMonth: summary.averageKwhPerRecord || 0,
+            efficiency: summary.totalRecord > 0 ? Math.round((summary.totalMeter / summary.totalRecord) * 100) : 0,
+            growth: d.trend && d.trend.length > 1 ? (d.trend[d.trend.length-1].percentChange || 0) : 0,
+            highestMonth: d.chart && d.chart.length ? d.chart.reduce((a,b) => a.value > b.value ? a : b).month : '-',
+            lowestMonth: d.chart && d.chart.length ? d.chart.reduce((a,b) => a.value < b.value ? a : b).month : '-',
+            highestEntity: summary.entity && summary.entity.length ? summary.entity[0].entitas : '-',
+            lowestEntity: summary.entity && summary.entity.length ? summary.entity[summary.entity.length-1].entitas : '-',
+            monthly: d.chart || [],
+            trend: d.trend || [],
+            benchmark: d.benchmark || [],
+            entity: summary.entity || [],
+            topConsumer: (d.entityTop && d.entityTop.topUsage) || [],
+            alerts: d.latestAlerts || [],
+            records: []
+        };
+
+        return response;
     }
 
     async function getElectricityDetail(id) {
-        return request('POST', 'getElectricityDetail', { id });
+        const response = await request('POST', 'getElectricityDetail', { id });
+        if (!response.success) return response;
+
+        const data = response.data || {};
+        const history = data.history || [];
+
+        // Mapping
+        response.data = {
+            id: data.id || id,
+            entity: history.length ? history[0].entitas : '-',
+            totalKwh: history.reduce((s, r) => s + (r.pemakaian || 0), 0),
+            totalNominal: history.reduce((s, r) => s + (r.nominal || 0), 0),
+            history: history.map(r => ({
+                month: r.bulan,
+                awal: r.awal,
+                akhir: r.akhir,
+                kwh: r.pemakaian,
+                nominal: r.nominal,
+                status: r.status
+            }))
+        };
+
+        return response;
     }
 
     async function refreshElectricityCache() {
@@ -209,4 +260,4 @@ const Api = (() => {
 
 window.BCS.Api = Api;
 window.Api = Api;
-console.log("✅ [API] Core API loaded (Direct Google Script v6.6 + Device Identity/Public IP)");
+console.log("✅ [API] Core API loaded with Electricity mapping");

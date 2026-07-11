@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 1.1
+ * Version 1.0
  * =====================================================
  */
 
@@ -27,26 +27,14 @@ const ElectricityController = {
         }
     },
 
-    // ==========================================================
-    // LIFECYCLE
-    // ==========================================================
-
     init() {
         this.registerEvent();
         this.loadDashboard();
         this.startAutoRefresh();
     },
 
-    destroy() {
-        this.destroyCharts();
-        if (this.refreshTimer) {
-            clearInterval(this.refreshTimer);
-            this.refreshTimer = null;
-        }
-    },
-
     // ==========================================================
-    // LOADING / ERROR / TOAST
+    // LOADING / ERROR / NOTIFICATION
     // ==========================================================
 
     showLoading(show) {
@@ -64,7 +52,7 @@ const ElectricityController = {
             BCS.UI.toast(message, type);
             return;
         }
-        console.log(`[${type.toUpperCase()}]`, message);
+        console.log(type.toUpperCase(), message);
     },
 
     // ==========================================================
@@ -72,24 +60,29 @@ const ElectricityController = {
     // ==========================================================
 
     startAutoRefresh() {
-        if (this.refreshTimer) {
-            clearInterval(this.refreshTimer);
-        }
+        if (this.refreshTimer) clearInterval(this.refreshTimer);
         this.refreshTimer = setInterval(() => {
             this.loadDashboard(false);
         }, 300000); // 5 menit
     },
 
     // ==========================================================
-    // DATA FETCH
+    // LOAD DASHBOARD
     // ==========================================================
 
     async loadDashboard(forceRefresh = false) {
         try {
             this.showLoading(true);
-            const response = forceRefresh
-                ? await BCS.API.refreshElectricityCache()
-                : await BCS.API.getElectricityDashboard();
+            let response;
+            if (forceRefresh) {
+                response = await BCS.Api.refreshElectricityCache();
+                if (response.success) {
+                    // setelah refresh, ambil data baru
+                    response = await BCS.Api.getElectricityDashboard();
+                }
+            } else {
+                response = await BCS.Api.getElectricityDashboard();
+            }
 
             if (!response.success) {
                 this.showError(response.message || "Gagal memuat dashboard.");
@@ -127,6 +120,12 @@ const ElectricityController = {
         this.renderAlert();
         this.renderTable();
         this.updateLastUpdate();
+    },
+
+    updateLastUpdate() {
+        const el = document.getElementById("lblLastUpdate");
+        if (!el) return;
+        el.textContent = new Date().toLocaleString("id-ID");
     },
 
     // ==========================================================
@@ -178,27 +177,13 @@ const ElectricityController = {
 
     getStatusBadge(status) {
         switch (status) {
-            case "NORMAL":
-                return "badge-normal";
-            case "MAINTENANCE":
-                return "badge-warning";
-            case "NEGATIVE":
-                return "badge-danger";
-            case "NO_READING":
-                return "badge-info";
-            case "GANTI_METER":
-                return "badge-danger";
-            case "ALERT":
-                return "badge-warning";
-            default:
-                return "badge-secondary";
+            case "NORMAL": return "badge-normal";
+            case "MAINTENANCE": return "badge-warning";
+            case "NEGATIVE": return "badge-danger";
+            case "GANTI_METER": return "badge-danger";
+            case "NO_READING": return "badge-info";
+            default: return "badge-info";
         }
-    },
-
-    updateLastUpdate() {
-        const el = document.getElementById("lblLastUpdate");
-        if (!el) return;
-        el.textContent = new Date().toLocaleString("id-ID");
     },
 
     // ==========================================================
@@ -213,7 +198,7 @@ const ElectricityController = {
             this.chartMonthly.destroy();
         }
 
-        const monthly = this.state.dashboard?.monthly || [];
+        const monthly = this.state.dashboard.monthly || [];
         const labels = monthly.map(item => item.month);
         const values = monthly.map(item => item.kwh);
 
@@ -261,7 +246,7 @@ const ElectricityController = {
             this.chartEntity.destroy();
         }
 
-        const entity = this.state.dashboard?.entity || [];
+        const entity = this.state.dashboard.entity || [];
 
         this.chartEntity = new Chart(canvas, {
             type: "doughnut",
@@ -488,14 +473,15 @@ const ElectricityController = {
             rows = rows.filter(r => r.status === status);
         }
 
-        // Adjust page jika filter mengurangi halaman
-        const totalPage = Math.max(1, Math.ceil(rows.length / this.state.filter.pageSize));
+        // Pagination correction
+        const totalRows = rows.length;
+        const totalPage = Math.max(1, Math.ceil(totalRows / this.state.filter.pageSize));
         if (this.state.filter.page > totalPage) {
             this.state.filter.page = totalPage;
         }
 
         const start = (this.state.filter.page - 1) * this.state.filter.pageSize;
-        const end = start + this.state.filter.pageSize;
+        const end = Math.min(start + this.state.filter.pageSize, totalRows);
         const pageRows = rows.slice(start, end);
 
         if (!pageRows.length) {
@@ -506,12 +492,13 @@ const ElectricityController = {
                     </td>
                 </tr>
             `;
-            this.renderPagination(0);
             this.setText("tableInfo", "Menampilkan 0 data");
+            this.renderPagination(0);
             return;
         }
 
         pageRows.forEach(item => {
+            const badgeClass = this.getStatusBadge(item.status);
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
                     <td>${item.month}</td>
@@ -522,7 +509,7 @@ const ElectricityController = {
                     <td class="text-end">${this.formatNumber(item.kwh)}</td>
                     <td class="text-end">${this.formatCurrency(item.nominal)}</td>
                     <td>
-                        <span class="badge ${this.getStatusBadge(item.status)}">${item.status}</span>
+                        <span class="badge ${badgeClass}">${item.status}</span>
                     </td>
                     <td>
                         <button class="btn btn-sm btn-primary btn-detail" data-id="${item.id}">
@@ -535,9 +522,9 @@ const ElectricityController = {
 
         this.setText(
             "tableInfo",
-            `Menampilkan ${pageRows.length} dari ${rows.length} data`
+            `Menampilkan ${pageRows.length} dari ${totalRows} data`
         );
-        this.renderPagination(rows.length);
+        this.renderPagination(totalRows);
         this.bindDetailButton();
     },
 
@@ -588,7 +575,7 @@ const ElectricityController = {
     async showDetail(id) {
         try {
             this.showLoading(true);
-            const response = await BCS.API.getElectricityDetail(id);
+            const response = await BCS.Api.getElectricityDetail(id);
 
             if (!response.success) {
                 this.showToast(
@@ -671,7 +658,7 @@ const ElectricityController = {
         if (!history || !history.length) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="text-center text-muted">
+                    <td colspan="6" class="text-center">
                         Tidak ada histori.
                     </td>
                 </tr>
@@ -687,7 +674,7 @@ const ElectricityController = {
                     <td>${this.formatNumber(item.akhir)}</td>
                     <td>${this.formatNumber(item.kwh)}</td>
                     <td>${this.formatCurrency(item.nominal)}</td>
-                    <td><span class="badge ${this.getStatusBadge(item.status)}">${item.status}</span></td>
+                    <td>${item.status}</td>
                 </tr>
             `);
         });
@@ -708,7 +695,7 @@ const ElectricityController = {
             this.renderTable();
         });
 
-        // Search with Enter key
+        // Search dengan Enter
         document.getElementById("txtSearch")?.addEventListener("keydown", e => {
             if (e.key === "Enter") {
                 document.getElementById("btnSearch").click();
@@ -760,24 +747,15 @@ const ElectricityController = {
     }
 };
 
-// ==========================================================
-// AUTO INIT
-// ==========================================================
-
 window.addEventListener("beforeunload", () => {
-    ElectricityController.destroy();
+    ElectricityController.destroyCharts();
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Pastikan session/login sudah valid (opsional, karena sudah dicek di halaman)
-    if (typeof Session !== "undefined" && Session.isLoggedIn && !Session.isLoggedIn()) {
-        window.location.href = "login.html";
+    // Pastikan session valid (jika diperlukan)
+    if (window.Session && typeof Session.isLoggedIn === 'function' && !Session.isLoggedIn()) {
+        window.location.href = 'login.html';
         return;
     }
     ElectricityController.init();
 });
-
-// Expose untuk debugging
-window.Electricity = ElectricityController;
-
-console.log("✅ [Electricity] Module loaded successfully");

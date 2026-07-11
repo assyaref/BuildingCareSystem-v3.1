@@ -1,50 +1,52 @@
 /* ===========================================================
    Building Care System Enterprise
-   Electricity Module
-   Version : 1.3 (angka hitam jelas)
+   Electricity Module - UI Updated
 =========================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-    --elec-primary: #1565C0;
-    --elec-success: #2E7D32;
-    --elec-warning: #F9A825;
-    --elec-danger: #D32F2F;
-    --elec-info: #0288D1;
-    --elec-bg: #F4F6F9;
-    --elec-card: #FFFFFF;
-    --elec-border: #E5E7EB;
-    --elec-text: #374151;
-    --elec-radius: 16px;
-    --elec-shadow: 0 4px 18px rgba(0,0,0,.06);
-    --elec-shadow-hover: 0 12px 28px rgba(0,0,0,.10);
-    --elec-transition: .25s;
+    --elec-primary: #1a56db;
+    --elec-success: #0e9f6e;
+    --elec-warning: #ff5a1f; /* Orange/Yellow */
+    --elec-warning-alt: #faca15; 
+    --elec-danger: #f05252;
+    --elec-purple: #8b5cf6;
+    --elec-bg: #f3f4f6;
+    --elec-card: #ffffff;
+    --elec-border: #e5e7eb;
+    --elec-text-main: #111827;
+    --elec-text-muted: #6b7280;
+    --elec-radius: 12px;
+    --elec-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --elec-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 body {
-    background: var(--elec-bg);
+    background-color: var(--elec-bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--elec-text-main);
 }
 
 /* ===========================================================
    SCROLLBAR
 =========================================================== */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 20px;
+    background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: #CBD5E1;
-    border-radius: 20px;
+    background: #d1d5db;
+    border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #94A3B8;
+    background: #9ca3af;
 }
 
 /* ===========================================================
-   PAGE HEADER
+   HEADER & TOPBAR
 =========================================================== */
 .page-header {
     display: flex;
@@ -52,431 +54,260 @@ body {
     align-items: center;
     margin-bottom: 24px;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 16px;
 }
 
 .page-title {
     font-weight: 700;
-    color: var(--elec-text);
-    font-size: 1.5rem;
-}
-.page-title i {
-    margin-right: 8px;
+    color: var(--elec-text-main);
+    font-size: 1.25rem;
+    margin-bottom: 4px;
 }
 
 .breadcrumb-wrapper {
     margin-bottom: 20px;
+    font-size: 0.85rem;
 }
+.breadcrumb-item a { color: var(--elec-text-muted); text-decoration: none; }
+.breadcrumb-item.active { color: var(--elec-primary); font-weight: 500;}
+
+/* Last update pill */
+.update-pill {
+    background: #fff;
+    border: 1px solid var(--elec-border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.75rem;
+    box-shadow: var(--elec-shadow);
+}
+.update-pill i { font-size: 1.1rem; color: #9ca3af; }
+.update-pill strong { color: var(--elec-text-main); font-size: 0.8rem; display: block;}
 
 /* ===========================================================
-   CARDS
+   CARDS GENERAL
 =========================================================== */
 .electricity-card {
-    border: none;
+    background: var(--elec-card);
+    border: 1px solid var(--elec-border);
     border-radius: var(--elec-radius);
     box-shadow: var(--elec-shadow);
-    transition: all var(--elec-transition);
+    transition: all 0.2s;
+    height: 100%;
 }
-
-.electricity-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--elec-shadow-hover);
-}
-
 .card-header {
     border-bottom: 1px solid var(--elec-border);
-    background: #fff;
+    background: transparent;
     padding: 16px 20px;
 }
 .card-header h5 {
     font-weight: 600;
-    margin: 0;
     font-size: 1rem;
+    margin: 0;
 }
 
 /* ===========================================================
-   SUMMARY CARDS - ANGKA HITAM JELAS
+   SUMMARY CARDS (5 Kolom)
 =========================================================== */
 .summary-card {
     background: var(--elec-card);
+    border: 1px solid var(--elec-border);
     border-radius: var(--elec-radius);
     box-shadow: var(--elec-shadow);
-    padding: 22px 24px;
+    padding: 20px;
     display: flex;
-    align-items: center;
-    gap: 18px;
-    min-height: 120px;
-    transition: all .25s;
+    align-items: flex-start;
+    gap: 16px;
+    height: 100%;
 }
-.summary-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--elec-shadow-hover);
-}
-
 .summary-icon {
-    width: 62px;
-    height: 62px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #fff;
-    font-size: 28px;
-    flex-shrink: 0;
-}
-
-.summary-card small {
-    color: #6b7280;
-    font-size: 13px;
-    display: block;
-}
-
-/* 🔥 ANGKA UTAMA: hitam pekat, tebal, mudah dibaca */
-.summary-card h2 {
-    margin: 4px 0 2px;
-    font-weight: 700;
-    font-size: 28px;
-    line-height: 1.2;
-    color: #000000 !important; /* dipaksa hitam */
-}
-
-/* Badge trend (naik/turun) tetap warna sesuai */
-.summary-card .badge {
-    font-size: 12px;
-    font-weight: 600;
-}
-
-/* ===========================================================
-   CHART
-=========================================================== */
-canvas {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-}
-
-#monthlyChart {
-    width: 100% !important;
-    min-height: 300px;
-    max-height: 320px;
-}
-
-#entityChart {
-    width: 100% !important;
-    max-height: 220px;
-}
-
-#detailChart {
-    width: 100% !important;
-    min-height: 280px;
-}
-
-/* ===========================================================
-   MINI CARD (Informasi)
-=========================================================== */
-.mini-card {
-    background: #fff;
-    border-radius: 14px;
-    padding: 18px 22px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    border: 1px solid var(--elec-border);
-    transition: .25s;
-    min-height: 76px;
-}
-.mini-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--elec-shadow-hover);
-}
-
-.mini-icon {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    color: #fff;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
+    color: #fff;
     font-size: 20px;
     flex-shrink: 0;
 }
 
-.mini-card small {
+/* Icon Colors */
+.bg-icon-blue { background-color: var(--elec-primary); }
+.bg-icon-green { background-color: var(--elec-success); }
+.bg-icon-yellow { background-color: var(--elec-warning-alt); }
+.bg-icon-red { background-color: var(--elec-danger); }
+.bg-icon-purple { background-color: var(--elec-purple); }
+
+.summary-card small {
+    color: var(--elec-text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
     display: block;
-    color: #6b7280;
-    font-size: 13px;
+}
+
+.summary-card h2 {
+    margin: 4px 0 6px;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--elec-text-main);
+}
+
+.summary-card .badge-trend {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 6px;
+    border-radius: 4px;
+}
+.trend-up { background: #def7ec; color: var(--elec-success); }
+.trend-down { background: #fde8e8; color: var(--elec-danger); }
+
+/* Progress bar for Data Quality */
+.quality-progress {
+    height: 6px;
+    border-radius: 4px;
+    background: #e5e7eb;
+    margin-top: 8px;
+    width: 100%;
+    overflow: hidden;
+}
+.quality-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #8b5cf6, #c084fc);
+    border-radius: 4px;
+}
+
+/* ===========================================================
+   STATUS RINGKASAN LIST
+=========================================================== */
+.status-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.status-list-item:last-child { margin-bottom: 0; }
+.status-list-item i { margin-right: 12px; font-size: 1.1rem; }
+.status-normal { background: #f3faf7; color: var(--elec-success); }
+.status-maintenance { background: #fffbeb; color: #d97706; }
+.status-ganti { background: #fef2f2; color: var(--elec-danger); }
+.status-negatif { background: #f5f3ff; color: var(--elec-purple); }
+.status-list-item .count { color: var(--elec-text-main); font-weight: 700; font-size: 0.9rem;}
+
+/* ===========================================================
+   MINI CARDS (Info & System)
+=========================================================== */
+.mini-card {
+    background: var(--elec-card);
+    border-radius: var(--elec-radius);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid var(--elec-border);
+    box-shadow: var(--elec-shadow);
+    height: 100%;
+}
+.mini-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
 }
 .mini-card h5 {
     margin: 2px 0 0;
     font-weight: 700;
-    font-size: 16px;
-    color: #000000 !important; /* hitam */
+    font-size: 0.95rem;
+    color: var(--elec-text-main);
+}
+.system-tags .badge {
+    font-size: 0.7rem;
+    font-weight: 500;
+    background: #def7ec;
+    color: var(--elec-success);
+    border: 1px solid #bcf0da;
+    border-radius: 4px;
+    padding: 4px 8px;
 }
 
 /* ===========================================================
-   TABLE
+   TABLE & FILTER AREA
 =========================================================== */
-.table-responsive {
-    overflow-x: auto;
-}
-
-#tblElectricity {
-    margin-bottom: 0;
-    font-size: 14px;
-}
-#tblElectricity thead {
-    background: #F8FAFC;
-}
+.table-responsive { overflow-x: auto; }
+#tblElectricity { font-size: 0.85rem; margin-bottom: 0; }
+#tblElectricity thead { background: #f9fafb; border-bottom: 2px solid var(--elec-border); }
 #tblElectricity th {
-    white-space: nowrap;
-    font-size: 12px;
     font-weight: 600;
-    color: #64748B;
-    border-bottom: 1px solid var(--elec-border);
-    padding: 10px 14px;
+    color: var(--elec-text-muted);
+    padding: 12px 16px;
+    white-space: nowrap;
+    border: none;
 }
 #tblElectricity td {
     vertical-align: middle;
-    padding: 10px 14px;
-    color: #000000; /* teks hitam */
+    padding: 14px 16px;
+    color: var(--elec-text-main);
+    border-bottom: 1px solid var(--elec-border);
 }
-#tblElectricity tbody tr {
-    transition: .15s;
-}
-#tblElectricity tbody tr:hover {
-    background: #F8FAFC;
-}
-#tblElectricity .btn-sm {
-    padding: 2px 8px;
-    font-size: 12px;
-}
+#tblElectricity tbody tr:hover { background: #f9fafb; }
 
-/* Angka pada tabel (kolom nominal, pemakaian) tetap hitam */
-#tblElectricity td.text-end {
-    font-weight: 500;
-    color: #000000;
+.status-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
 }
-#tblElectricity td.text-danger {
-    color: #dc3545 !important; /* tetap merah jika negatif */
-}
+.status-badge.normal { color: var(--elec-success); background: #def7ec; }
+.status-badge.maintenance { color: #d97706; background: #fffbeb; }
 
-/* ===========================================================
-   BADGE STATUS
-=========================================================== */
-.badge-normal {
-    background: #E8F5E9;
-    color: #2E7D32;
-}
-.badge-warning {
-    background: #FFF8E1;
-    color: #F9A825;
-}
-.badge-danger {
-    background: #FFEBEE;
-    color: #D32F2F;
-}
-.badge-info {
-    background: #E3F2FD;
-    color: #1565C0;
-}
-.badge-secondary {
-    background: #ECEFF1;
-    color: #546E7A;
-}
-
-/* ===========================================================
-   SEARCH & FILTER
-=========================================================== */
-#txtSearch,
-#cmbStatus,
-#cmbPageSize {
+/* Filter Controls */
+.filter-control {
     border-radius: 8px;
     border: 1px solid var(--elec-border);
-    transition: .25s;
+    font-size: 0.85rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
-#txtSearch:focus {
+.filter-control:focus {
     border-color: var(--elec-primary);
-    box-shadow: 0 0 0 .15rem rgba(21,101,192,.15);
+    box-shadow: 0 0 0 2px rgba(26, 86, 219, 0.2);
 }
-#btnSearch,
-#btnReset,
-#btnAddData {
-    border-radius: 8px;
+
+.btn-detail {
+    background-color: var(--elec-primary);
+    color: white;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: none;
 }
+.btn-detail:hover { background-color: #1e40af; color: white;}
 
 /* ===========================================================
    PAGINATION
 =========================================================== */
-.pagination {
-    gap: 4px;
-}
+.pagination { gap: 4px; }
 .pagination .page-link {
-    border: none;
+    border: 1px solid var(--elec-border);
     border-radius: 6px;
-    color: var(--elec-primary);
-    box-shadow: none;
-    padding: 4px 10px;
-    font-size: 13px;
+    color: var(--elec-text-main);
+    padding: 4px 12px;
+    font-size: 0.85rem;
 }
-.pagination .page-link:hover {
-    background: #E3F2FD;
-}
-.pagination .active .page-link {
+.pagination .page-item.active .page-link {
     background: var(--elec-primary);
     color: #fff;
-}
-
-/* ===========================================================
-   TABLE INFO
-=========================================================== */
-#tableInfo {
-    font-size: 13px;
-    color: #6B7280;
-}
-
-/* ===========================================================
-   DETAIL MODAL
-=========================================================== */
-#meterDetailModal .modal-content {
-    border: none;
-    border-radius: 18px;
-    overflow: hidden;
-}
-#meterDetailModal .modal-header {
-    background: #fff;
-    border-bottom: 1px solid var(--elec-border);
-}
-#meterDetailModal .modal-title {
-    font-weight: 700;
-}
-#meterDetailModal .modal-body {
-    background: #FAFBFC;
-}
-#meterDetailModal .border {
-    border-color: var(--elec-border) !important;
-}
-#meterDetailModal h5 {
-    font-weight: 700;
-    color: #000000;
-}
-
-/* ===========================================================
-   LOADING OVERLAY
-=========================================================== */
-.loading-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(255,255,255,.82);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 99999;
-    backdrop-filter: blur(2px);
-}
-.loading-overlay .spinner-border {
-    width: 3rem;
-    height: 3rem;
-}
-
-/* ===========================================================
-   EMPTY STATE
-=========================================================== */
-#emptyState {
-    background: #fff;
-    border-radius: 18px;
-    border: 1px dashed var(--elec-border);
-    margin-top: 30px;
-}
-#emptyState h4 {
-    font-weight: 700;
-    color: #000000;
-}
-#emptyState p {
-    color: #6B7280;
-}
-
-/* ===========================================================
-   RESPONSIVE
-=========================================================== */
-@media(max-width: 992px) {
-    .summary-card {
-        padding: 18px;
-        min-height: 100px;
-    }
-    .summary-card h2 {
-        font-size: 22px;
-    }
-    .summary-icon {
-        width: 52px;
-        height: 52px;
-        font-size: 22px;
-    }
-}
-
-@media(max-width: 768px) {
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .summary-card {
-        flex-direction: column;
-        text-align: center;
-        min-height: auto;
-        padding: 16px;
-    }
-    .summary-icon {
-        margin-bottom: 6px;
-    }
-    #monthlyChart {
-        min-height: 220px;
-    }
-    #entityChart {
-        max-height: 180px;
-    }
-    .mini-card {
-        padding: 14px 16px;
-    }
-}
-
-@media(max-width: 576px) {
-    .card-header {
-        padding: 12px 14px;
-    }
-    .card-body {
-        padding: 12px 14px;
-    }
-    table {
-        font-size: 12px;
-    }
-    #tblElectricity th,
-    #tblElectricity td {
-        padding: 6px 8px;
-    }
-    .pagination .page-link {
-        padding: 2px 8px;
-        font-size: 12px;
-    }
-}
-
-/* ===========================================================
-   PRINT
-=========================================================== */
-@media print {
-    body { background: #fff; }
-    #sidebar,
-    .page-header button,
-    .breadcrumb-wrapper,
-    .pagination,
-    #btnSearch,
-    #btnReset,
-    #btnAddData {
-        display: none !important;
-    }
-    .electricity-card {
-        box-shadow: none;
-        border: 1px solid #ddd;
-        page-break-inside: avoid;
-    }
+    border-color: var(--elec-primary);
 }

@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 1.6 (Auto-fill Entitas + Datalist ID)
+ * Version 1.8 (Refresh Background + Toast)
  * =====================================================
  */
 
@@ -34,7 +34,8 @@ const ElectricityController = {
 
     init() {
         this.registerEvent();
-        this.loadDashboard();
+        // Inisialisasi pertama: tampilkan loading overlay
+        this.loadDashboard({ showLoading: true, showToast: false });
         this.startAutoRefresh();
         this.startClock();
     },
@@ -90,31 +91,25 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // AUTO REFRESH
+    // AUTO REFRESH (Background, tanpa loading)
     // ==========================================================
 
     startAutoRefresh() {
         if (this.refreshTimer) clearInterval(this.refreshTimer);
         this.refreshTimer = setInterval(() => {
-            this.loadDashboard(false);
+            this.loadDashboard({ showLoading: false, showToast: true });
         }, 300000);
     },
 
     // ==========================================================
-    // LOAD DASHBOARD
+    // LOAD DASHBOARD (dengan opsi)
     // ==========================================================
 
-    async loadDashboard(forceRefresh = false) {
-        try {
-            this.showLoading(true);
+    async loadDashboard(options = {}) {
+        const { showLoading = false, showToast = false } = options;
 
-            if (forceRefresh) {
-                const refreshRes = await BCS.Api.refreshElectricityCache();
-                if (!refreshRes.success) {
-                    this.showError(refreshRes.message || "Gagal refresh cache.");
-                    return;
-                }
-            }
+        try {
+            if (showLoading) this.showLoading(true);
 
             const dashboardRes = await BCS.Api.getElectricityDashboard();
             if (!dashboardRes.success) {
@@ -138,11 +133,20 @@ const ElectricityController = {
                 console.warn('[Electricity] List data gagal dimuat:', listRes.message);
             }
 
+            // Toast sukses jika diminta
+            if (showToast) {
+                this.showToast('Data berhasil diperbarui.', 'success');
+            }
+
         } catch (err) {
             console.error(err);
-            this.showError(err.message);
+            if (showToast) {
+                this.showError(err.message || 'Gagal memperbarui data.');
+            } else {
+                this.showError(err.message || 'Gagal memuat data.');
+            }
         } finally {
-            this.showLoading(false);
+            if (showLoading) this.showLoading(false);
         }
     },
 
@@ -571,7 +575,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // CRUD - TAMBAH / EDIT / HAPUS (dengan Auto-Fill Entitas)
+    // CRUD
     // ==========================================================
 
     openForm(data = null) {
@@ -579,21 +583,17 @@ const ElectricityController = {
         const title = document.getElementById('formModalTitle');
         const btnSave = document.getElementById('btnSaveRecord');
 
-        // --- Populasi datalist ID Pelanggan ---
         const datalist = document.getElementById('idPelangganList');
         if (datalist) {
             const ids = [...new Set(this.state.records.map(r => r.idPelanggan).filter(Boolean))];
             datalist.innerHTML = ids.map(id => `<option value="${id}">`).join('');
         }
 
-        // --- Event listener untuk auto-fill Entitas ---
         const idInput = document.getElementById('formIdPelanggan');
         if (idInput) {
-            // Hapus listener lama dengan clone & replace
             const newInput = idInput.cloneNode(true);
             idInput.parentNode.replaceChild(newInput, idInput);
             newInput.id = 'formIdPelanggan';
-            // Pasang listener baru
             newInput.addEventListener('input', function(e) {
                 const val = this.value.trim();
                 if (!val) return;
@@ -655,7 +655,8 @@ const ElectricityController = {
             if (response.success) {
                 this.showToast('Data berhasil disimpan.', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
-                this.loadDashboard(true);
+                // Refresh background tanpa loading
+                this.loadDashboard({ showLoading: false, showToast: true });
             } else {
                 this.showError(response.message || 'Gagal menyimpan data.');
             }
@@ -685,7 +686,8 @@ const ElectricityController = {
             const response = await BCS.Api.request('POST', 'deleteElectricityRecord', { id });
             if (response.success) {
                 this.showToast('Data berhasil dihapus.', 'success');
-                this.loadDashboard(true);
+                // Refresh background tanpa loading
+                this.loadDashboard({ showLoading: false, showToast: true });
             } else {
                 this.showError(response.message || 'Gagal menghapus data.');
             }
@@ -793,7 +795,8 @@ const ElectricityController = {
 
     registerEvent() {
         document.getElementById("btnRefresh")?.addEventListener("click", () => {
-            this.loadDashboard(true);
+            // Refresh manual: background + toast, tanpa loading
+            this.loadDashboard({ showLoading: false, showToast: true });
         });
 
         document.getElementById("btnSearch")?.addEventListener("click", () => {

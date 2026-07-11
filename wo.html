@@ -741,11 +741,7 @@ main.content,
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div class="report-result-info">
-                                        <span id="reportResultCount">0 Report OPEN</span>
-                                        <span><i class="bi bi-sort-down"></i> Terbaru di atas</span>
-                                    </div>
-                                    <small class="text-muted">Cari berdasarkan Report Number lalu filter kategori. Data WO akan terisi otomatis dan terhubung ke Report.</small>
+                                    <!-- HAPUS: report-result-info dan small.text-muted -->
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -1512,7 +1508,6 @@ main.content,
                 var keyword = String(document.getElementById('reportSearchInput').value || '').trim().toLowerCase();
                 var categoryFilter = String(document.getElementById('reportCategoryFilter').value || '').trim().toUpperCase();
                 var priorityFilter = String(document.getElementById('reportPriorityFilter').value || '').trim().toUpperCase();
-                var countEl = document.getElementById('reportResultCount');
 
                 var visibleReports = openReports.filter(function(r) {
                     var id = String(reportIdOf(r) || '').toLowerCase();
@@ -1554,7 +1549,6 @@ main.content,
                     });
                 }
                 if (selectedId) input.value = selectedId;
-                if (countEl) countEl.textContent = visibleReports.length + ' Report OPEN';
             }
 
             async function loadOpenReports(selectedId) {

@@ -1,23 +1,107 @@
-export function useElectricity(){
+// ======================================================
+// Building Care System Enterprise v4.3
+// useElectricity.ts
+// ======================================================
 
- const [loading,setLoading]=useState(true);
+import { useState, useEffect, useCallback } from "react";
 
- const [dashboard,setDashboard]=useState();
+import * as electricityService from "../services/electricityService";
 
- const load=async()=>{
+import { ElectricityDashboard } from "../types/electricity";
 
- ...
+export function useElectricity() {
 
- }
+  const [loading, setLoading] = useState(true);
 
- return{
+  const [refreshing, setRefreshing] = useState(false);
 
- loading,
+  const [dashboard, setDashboard] =
+    useState<ElectricityDashboard | null>(null);
 
- dashboard,
+  const [error, setError] =
+    useState<string | null>(null);
 
- refresh:load
+  //------------------------------------------------------
+  // Load Dashboard
+  //------------------------------------------------------
 
- }
+  const loadDashboard = useCallback(async () => {
+
+    try {
+
+      setLoading(true);
+
+      setError(null);
+
+      const response =
+        await electricityService.getDashboard();
+
+      if (!response.success) {
+
+        throw new Error(
+          response.message || "Unknown Error"
+        );
+
+      }
+
+      setDashboard(response.data);
+
+    } catch (err: any) {
+
+      setError(err.message);
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  }, []);
+
+  //------------------------------------------------------
+  // Refresh
+  //------------------------------------------------------
+
+  const refresh = useCallback(async () => {
+
+    try {
+
+      setRefreshing(true);
+
+      await electricityService.refreshCache();
+
+      await loadDashboard();
+
+    } finally {
+
+      setRefreshing(false);
+
+    }
+
+  }, [loadDashboard]);
+
+  //------------------------------------------------------
+  // First Load
+  //------------------------------------------------------
+
+  useEffect(() => {
+
+    loadDashboard();
+
+  }, [loadDashboard]);
+
+  return {
+
+    loading,
+
+    refreshing,
+
+    error,
+
+    dashboard,
+
+    refresh
+
+  };
 
 }

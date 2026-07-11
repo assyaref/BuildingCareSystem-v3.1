@@ -145,10 +145,65 @@ const Api = (() => {
         }
     }
 
+    // =============================================
+    // ELECTRICITY MANAGEMENT API
+    // =============================================
+
+    async function getElectricityDashboard() {
+        return request('POST', 'getElectricityDashboard', {});
+    }
+
+    async function getElectricityDetail(id) {
+        return request('POST', 'getElectricityDetail', { id });
+    }
+
+    async function refreshElectricityCache() {
+        return request('POST', 'refreshElectricityCache', {});
+    }
+
+    async function getElectricityList() {
+        return request('POST', 'getElectricityList', {});
+    }
+
+    async function getElectricitySummary() {
+        return request('POST', 'getElectricitySummary', {});
+    }
+
+    async function getElectricityChart() {
+        return request('POST', 'getElectricityChart', {});
+    }
+
+    async function getElectricityAlerts() {
+        return request('POST', 'getElectricityAlerts', {});
+    }
+
+    async function getElectricityBenchmark() {
+        return request('POST', 'getElectricityBenchmark', {});
+    }
+
+    async function getElectricityTopConsumer() {
+        return request('POST', 'getTopConsumer', {});
+    }
+
+    async function getElectricityTrend() {
+        return request('POST', 'getElectricityTrend', {});
+    }
+
     return {
         post:(action,data)=>request("POST",action,data),
         get:(action,data)=>request("GET",action,data),
-        request, heartbeat
+        request,
+        heartbeat,
+        getElectricityDashboard,
+        getElectricityDetail,
+        refreshElectricityCache,
+        getElectricityList,
+        getElectricitySummary,
+        getElectricityChart,
+        getElectricityAlerts,
+        getElectricityBenchmark,
+        getElectricityTopConsumer,
+        getElectricityTrend
     };
 })();
 

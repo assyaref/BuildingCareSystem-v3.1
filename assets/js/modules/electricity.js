@@ -28,7 +28,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // INIT
+    // LIFECYCLE
     // ==========================================================
 
     init() {
@@ -37,8 +37,16 @@ const ElectricityController = {
         this.startAutoRefresh();
     },
 
+    destroy() {
+        this.destroyCharts();
+        if (this.refreshTimer) {
+            clearInterval(this.refreshTimer);
+            this.refreshTimer = null;
+        }
+    },
+
     // ==========================================================
-    // LOADING & ERROR
+    // LOADING / ERROR / TOAST
     // ==========================================================
 
     showLoading(show) {
@@ -51,19 +59,29 @@ const ElectricityController = {
         this.showToast(message, "error");
     },
 
+    showToast(message, type = "info") {
+        if (window.BCS && BCS.UI && typeof BCS.UI.toast === "function") {
+            BCS.UI.toast(message, type);
+            return;
+        }
+        console.log(`[${type.toUpperCase()}]`, message);
+    },
+
     // ==========================================================
     // AUTO REFRESH
     // ==========================================================
 
     startAutoRefresh() {
-        if (this.refreshTimer) clearInterval(this.refreshTimer);
+        if (this.refreshTimer) {
+            clearInterval(this.refreshTimer);
+        }
         this.refreshTimer = setInterval(() => {
-            this.loadDashboard();
+            this.loadDashboard(false);
         }, 300000); // 5 menit
     },
 
     // ==========================================================
-    // LOAD DASHBOARD
+    // DATA FETCH
     // ==========================================================
 
     async loadDashboard(forceRefresh = false) {
@@ -78,12 +96,13 @@ const ElectricityController = {
                 return;
             }
 
-            this.state.dashboard = response.data;
-            this.state.records = response.data.records || [];
-            this.state.benchmark = response.data.benchmark || [];
-            this.state.alerts = response.data.alerts || [];
-            this.state.topConsumer = response.data.topConsumer || [];
-            this.state.trend = response.data.trend || [];
+            const data = response.data || {};
+            this.state.dashboard = data;
+            this.state.records = data.records ?? [];
+            this.state.benchmark = data.benchmark ?? [];
+            this.state.alerts = data.alerts ?? [];
+            this.state.topConsumer = data.topConsumer ?? [];
+            this.state.trend = data.trend ?? [];
 
             this.render();
         } catch (err) {
@@ -165,14 +184,14 @@ const ElectricityController = {
                 return "badge-warning";
             case "NEGATIVE":
                 return "badge-danger";
-            case "GANTI_METER":
-                return "badge-danger";
             case "NO_READING":
                 return "badge-info";
-            case "ALERT":
+            case "GANTI_METER":
                 return "badge-danger";
+            case "ALERT":
+                return "badge-warning";
             default:
-                return "badge-info";
+                return "badge-secondary";
         }
     },
 
@@ -194,7 +213,7 @@ const ElectricityController = {
             this.chartMonthly.destroy();
         }
 
-        const monthly = this.state.dashboard.monthly || [];
+        const monthly = this.state.dashboard?.monthly || [];
         const labels = monthly.map(item => item.month);
         const values = monthly.map(item => item.kwh);
 
@@ -242,7 +261,7 @@ const ElectricityController = {
             this.chartEntity.destroy();
         }
 
-        const entity = this.state.dashboard.entity || [];
+        const entity = this.state.dashboard?.entity || [];
 
         this.chartEntity = new Chart(canvas, {
             type: "doughnut",
@@ -469,6 +488,12 @@ const ElectricityController = {
             rows = rows.filter(r => r.status === status);
         }
 
+        // Adjust page jika filter mengurangi halaman
+        const totalPage = Math.max(1, Math.ceil(rows.length / this.state.filter.pageSize));
+        if (this.state.filter.page > totalPage) {
+            this.state.filter.page = totalPage;
+        }
+
         const start = (this.state.filter.page - 1) * this.state.filter.pageSize;
         const end = start + this.state.filter.pageSize;
         const pageRows = rows.slice(start, end);
@@ -481,13 +506,12 @@ const ElectricityController = {
                     </td>
                 </tr>
             `;
-            this.setText("tableInfo", "Menampilkan 0 data");
             this.renderPagination(0);
+            this.setText("tableInfo", "Menampilkan 0 data");
             return;
         }
 
         pageRows.forEach(item => {
-            const badgeClass = this.getStatusBadge(item.status);
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
                     <td>${item.month}</td>
@@ -498,7 +522,7 @@ const ElectricityController = {
                     <td class="text-end">${this.formatNumber(item.kwh)}</td>
                     <td class="text-end">${this.formatCurrency(item.nominal)}</td>
                     <td>
-                        <span class="badge ${badgeClass}">${item.status}</span>
+                        <span class="badge ${this.getStatusBadge(item.status)}">${item.status}</span>
                     </td>
                     <td>
                         <button class="btn btn-sm btn-primary btn-detail" data-id="${item.id}">
@@ -644,6 +668,17 @@ const ElectricityController = {
 
         tbody.innerHTML = "";
 
+        if (!history || !history.length) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-muted">
+                        Tidak ada histori.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
         history.forEach(item => {
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
@@ -652,7 +687,7 @@ const ElectricityController = {
                     <td>${this.formatNumber(item.akhir)}</td>
                     <td>${this.formatNumber(item.kwh)}</td>
                     <td>${this.formatCurrency(item.nominal)}</td>
-                    <td>${item.status}</td>
+                    <td><span class="badge ${this.getStatusBadge(item.status)}">${item.status}</span></td>
                 </tr>
             `);
         });
@@ -671,6 +706,13 @@ const ElectricityController = {
             this.state.filter.keyword = document.getElementById("txtSearch").value.trim();
             this.state.filter.page = 1;
             this.renderTable();
+        });
+
+        // Search with Enter key
+        document.getElementById("txtSearch")?.addEventListener("keydown", e => {
+            if (e.key === "Enter") {
+                document.getElementById("btnSearch").click();
+            }
         });
 
         document.getElementById("cmbStatus")?.addEventListener("change", e => {
@@ -692,18 +734,6 @@ const ElectricityController = {
 
             this.renderTable();
         });
-    },
-
-    // ==========================================================
-    // NOTIFICATION
-    // ==========================================================
-
-    showToast(message, type = "info") {
-        if (window.BCS && BCS.UI && typeof BCS.UI.toast === "function") {
-            BCS.UI.toast(message, type);
-            return;
-        }
-        console.log(type.toUpperCase(), message);
     },
 
     // ==========================================================
@@ -735,11 +765,19 @@ const ElectricityController = {
 // ==========================================================
 
 window.addEventListener("beforeunload", () => {
-    ElectricityController.destroyCharts();
+    ElectricityController.destroy();
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Pastikan session/login sudah valid (opsional, karena sudah dicek di halaman)
+    if (typeof Session !== "undefined" && Session.isLoggedIn && !Session.isLoggedIn()) {
+        window.location.href = "login.html";
+        return;
+    }
     ElectricityController.init();
 });
 
-console.log("✅ [Electricity] Module loaded successfully (v1.1)");
+// Expose untuk debugging
+window.Electricity = ElectricityController;
+
+console.log("✅ [Electricity] Module loaded successfully");

@@ -40,7 +40,7 @@
                 <small>
                     Last Update : <span id="lblLastUpdate">-</span>
                 </small>
-                <button id="btnRefresh" class="btn btn-primary">
+                <button id="btnRefresh" class="btn btn-primary" type="button">
                     <i class="bi bi-arrow-repeat"></i> Refresh
                 </button>
             </div>
@@ -374,12 +374,12 @@
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <button id="btnSearch" class="btn btn-primary w-100">
+                                    <button id="btnSearch" class="btn btn-primary w-100" type="button">
                                         <i class="bi bi-search"></i>
                                     </button>
                                 </div>
                                 <div class="col-md-2">
-                                    <button id="btnReset" class="btn btn-outline-secondary w-100">Reset</button>
+                                    <button id="btnReset" class="btn btn-outline-secondary w-100" type="button">Reset</button>
                                 </div>
                             </div>
                         </div>
@@ -491,7 +491,7 @@
         <!-- =======================================================
              LOADING OVERLAY
         ======================================================== -->
-        <div id="loadingOverlay" class="loading-overlay d-none">
+        <div id="loadingOverlay" class="loading-overlay d-none" role="status" aria-live="polite">
             <div class="text-center">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
@@ -503,7 +503,7 @@
         <!-- =======================================================
              EMPTY STATE
         ======================================================== -->
-        <div id="emptyState" class="d-none">
+        <div id="emptyState" class="d-none" role="alert">
             <div class="text-center py-5">
                 <i class="bi bi-lightning-charge" style="font-size:72px;color:#999"></i>
                 <h4 class="mt-3">Belum Ada Data Listrik</h4>

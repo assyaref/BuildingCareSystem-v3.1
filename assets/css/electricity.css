@@ -4,174 +4,857 @@
    Version : 1.0
 =========================================================== */
 
-:root{
-
-    --elec-primary:#1565C0;
-    --elec-success:#2E7D32;
-    --elec-warning:#F9A825;
-    --elec-danger:#D32F2F;
-
-    --elec-info:#0288D1;
-
-    --elec-bg:#F4F6F9;
-
-    --elec-card:#FFFFFF;
-
-    --elec-border:#E5E7EB;
-
-    --elec-text:#374151;
-
-    --elec-radius:16px;
-
-    --elec-shadow:
-        0 4px 18px rgba(0,0,0,.08);
-
-    --elec-transition:.25s;
-
+:root {
+    --elec-primary: #1565C0;
+    --elec-success: #2E7D32;
+    --elec-warning: #F9A825;
+    --elec-danger: #D32F2F;
+    --elec-info: #0288D1;
+    --elec-bg: #F4F6F9;
+    --elec-card: #FFFFFF;
+    --elec-border: #E5E7EB;
+    --elec-text: #374151;
+    --elec-radius: 16px;
+    --elec-shadow: 0 4px 18px rgba(0,0,0,.08);
+    --elec-transition: .25s;
 }
 
-body{
-
-    background:var(--elec-bg);
-
+body {
+    background: var(--elec-bg);
 }
 
 /* ===========================================================
    PAGE
 =========================================================== */
 
-.page-header{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-bottom:24px;
-
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
 }
 
-.page-title{
-
-    font-weight:700;
-
-    color:var(--elec-text);
-
+.page-title {
+    font-weight: 700;
+    color: var(--elec-text);
 }
 
-.breadcrumb-wrapper{
-
-    margin-bottom:20px;
-
+.breadcrumb-wrapper {
+    margin-bottom: 20px;
 }
 
 /* ===========================================================
    CARD
 =========================================================== */
 
-.electricity-card{
-
-    border:none;
-
-    border-radius:var(--elec-radius);
-
-    box-shadow:var(--elec-shadow);
-
-    transition:all var(--elec-transition);
-
+.electricity-card {
+    border: none;
+    border-radius: var(--elec-radius);
+    box-shadow: var(--elec-shadow);
+    transition: all var(--elec-transition);
 }
 
-.electricity-card:hover{
-
-    transform:translateY(-2px);
-
+.electricity-card:hover {
+    transform: translateY(-2px);
 }
 
-.card-header{
-
-    border-bottom:1px solid var(--elec-border);
-
-    background:#fff;
-
+.card-header {
+    border-bottom: 1px solid var(--elec-border);
+    background: #fff;
 }
 
-.card-header h5{
-
-    font-weight:600;
-
-    margin:0;
-
+.card-header h5 {
+    font-weight: 600;
+    margin: 0;
 }
 
 /* ===========================================================
    SUMMARY
 =========================================================== */
 
-.summary-card{
-
-    background:var(--elec-card);
-
-    border-radius:var(--elec-radius);
-
-    box-shadow:var(--elec-shadow);
-
-    padding:22px;
-
-    display:flex;
-
-    align-items:center;
-
-    gap:18px;
-
-    transition:all .25s;
-
+.summary-card {
+    background: var(--elec-card);
+    border-radius: var(--elec-radius);
+    box-shadow: var(--elec-shadow);
+    padding: 22px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    transition: all .25s;
 }
 
-.summary-card:hover{
-
-    transform:translateY(-4px);
-
+.summary-card:hover {
+    transform: translateY(-4px);
 }
 
-.summary-icon{
-
-    width:62px;
-
-    height:62px;
-
-    border-radius:50%;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    color:#fff;
-
-    font-size:28px;
-
+.summary-icon {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-size: 28px;
 }
 
-.summary-card small{
-
-    color:#6b7280;
-
+.summary-card small {
+    color: #6b7280;
 }
 
-.summary-card h2{
-
-    margin:4px 0;
-
-    font-weight:700;
-
+.summary-card h2 {
+    margin: 4px 0;
+    font-weight: 700;
 }
 
-.summary-card span{
+.summary-card span {
+    color: #9ca3af;
+    font-size: 13px;
+}
 
-    color:#9ca3af;
+/* ===========================================================
+   CHART
+=========================================================== */
 
-    font-size:13px;
+#monthlyChart {
+    width: 100% !important;
+    min-height: 380px;
+}
 
+#entityChart {
+    width: 100% !important;
+    max-height: 300px;
+}
+
+#detailChart {
+    width: 100% !important;
+    min-height: 320px;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    min-height: 380px;
+}
+
+/* ===========================================================
+   TREND
+=========================================================== */
+
+.electricity-trend {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.trend-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border: 1px solid var(--elec-border);
+    border-radius: 12px;
+    background: #fff;
+    transition: .25s;
+}
+
+.trend-item:hover {
+    background: #f8fafc;
+    transform: translateX(3px);
+}
+
+.trend-title {
+    font-weight: 600;
+    color: var(--elec-text);
+}
+
+.trend-value {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.trend-up {
+    color: var(--elec-success);
+}
+
+.trend-down {
+    color: var(--elec-danger);
+}
+
+.trend-flat {
+    color: var(--elec-warning);
+}
+
+/* ===========================================================
+   MINI CARD
+=========================================================== */
+
+.mini-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid var(--elec-border);
+    transition: .25s;
+}
+
+.mini-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--elec-shadow);
+}
+
+.mini-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+
+.mini-card small {
+    display: block;
+    color: #6b7280;
+}
+
+.mini-card h5 {
+    margin: 4px 0 0;
+    font-weight: 700;
+}
+
+/* ===========================================================
+   ENTITY CHART
+=========================================================== */
+
+.entity-wrapper {
+    position: relative;
+    height: 300px;
+}
+
+.entity-legend {
+    margin-top: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.entity-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.entity-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+}
+
+/* ===========================================================
+   BENCHMARK
+=========================================================== */
+
+#tblBenchmark {
+    margin-bottom: 0;
+}
+
+#tblBenchmark thead {
+    background: #F8FAFC;
+}
+
+#tblBenchmark th {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748B;
+    border-bottom: 1px solid var(--elec-border);
+}
+
+#tblBenchmark td {
+    vertical-align: middle;
+    padding: 14px 16px;
+}
+
+#tblBenchmark tbody tr {
+    transition: .25s;
+}
+
+#tblBenchmark tbody tr:hover {
+    background: #F8FAFC;
+}
+
+.benchmark-bar {
+    position: relative;
+    width: 100%;
+    height: 8px;
+    border-radius: 20px;
+    background: #E5E7EB;
+    overflow: hidden;
+}
+
+.benchmark-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    border-radius: 20px;
+    background: linear-gradient(
+        90deg,
+        var(--elec-primary),
+        var(--elec-success)
+    );
+    transition: width .4s ease;
+}
+
+.benchmark-value {
+    font-weight: 700;
+    text-align: right;
+}
+
+/* ===========================================================
+   TOP CONSUMER
+=========================================================== */
+
+#topConsumerContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.consumer-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--elec-border);
+    border-radius: 14px;
+    background: #fff;
+    transition: .25s;
+}
+
+.consumer-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--elec-shadow);
+}
+
+.consumer-rank {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-weight: 700;
+    background: linear-gradient(
+        135deg,
+        var(--elec-warning),
+        #FFB300
+    );
+}
+
+.consumer-info {
+    flex: 1;
+}
+
+.consumer-name {
+    font-weight: 700;
+    color: var(--elec-text);
+}
+
+.consumer-meter {
+    font-size: 13px;
+    color: #6B7280;
+}
+
+.consumer-value {
+    text-align: right;
+}
+
+.consumer-kwh {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--elec-primary);
+}
+
+.consumer-cost {
+    font-size: 13px;
+    color: #6B7280;
+}
+
+/* ===========================================================
+   BADGE
+=========================================================== */
+
+.badge-normal {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.badge-warning {
+    background: #FFF8E1;
+    color: #F9A825;
+}
+
+.badge-danger {
+    background: #FFEBEE;
+    color: #D32F2F;
+}
+
+.badge-info {
+    background: #E3F2FD;
+    color: #1565C0;
+}
+
+/* ===========================================================
+   PROGRESS BAR
+=========================================================== */
+
+.progress-electricity {
+    height: 10px;
+    border-radius: 20px;
+    background: #E5E7EB;
+    overflow: hidden;
+}
+
+.progress-electricity .progress-bar {
+    background: linear-gradient(
+        90deg,
+        var(--elec-primary),
+        var(--elec-success)
+    );
+}
+
+/* ===========================================================
+   ELECTRICITY ALERT
+=========================================================== */
+
+#alertContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 120px;
+}
+
+.alert-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    border-left: 5px solid var(--elec-danger);
+    background: #FFF5F5;
+    transition: .25s;
+}
+
+.alert-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--elec-shadow);
+}
+
+.alert-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: var(--elec-danger);
+    flex-shrink: 0;
+}
+
+.alert-title {
+    font-weight: 700;
+    color: var(--elec-danger);
+}
+
+.alert-description {
+    color: #6B7280;
+    font-size: 14px;
+}
+
+.alert-time {
+    font-size: 12px;
+    color: #9CA3AF;
+}
+
+/* ===========================================================
+   HISTORY TABLE
+=========================================================== */
+
+#tblElectricity {
+    margin-bottom: 0;
+}
+
+#tblElectricity thead {
+    background: #F8FAFC;
+}
+
+#tblElectricity th {
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748B;
+    border-bottom: 1px solid var(--elec-border);
+}
+
+#tblElectricity td {
+    vertical-align: middle;
+    padding: 14px 16px;
+}
+
+#tblElectricity tbody tr {
+    transition: .2s;
+}
+
+#tblElectricity tbody tr:hover {
+    background: #F8FAFC;
+}
+
+#tblElectricity .btn {
+    padding: 4px 10px;
+}
+
+/* ===========================================================
+   SEARCH
+=========================================================== */
+
+#txtSearch {
+    border-radius: 10px;
+    border: 1px solid var(--elec-border);
+    transition: .25s;
+}
+
+#txtSearch:focus {
+    border-color: var(--elec-primary);
+    box-shadow: 0 0 0 .2rem rgba(21,101,192,.15);
+}
+
+#cmbStatus {
+    border-radius: 10px;
+}
+
+#btnSearch {
+    border-radius: 10px;
+}
+
+#btnReset {
+    border-radius: 10px;
+}
+
+/* ===========================================================
+   PAGINATION
+=========================================================== */
+
+.pagination {
+    gap: 6px;
+}
+
+.pagination .page-link {
+    border: none;
+    border-radius: 8px;
+    color: var(--elec-primary);
+    box-shadow: none;
+}
+
+.pagination .page-link:hover {
+    background: #E3F2FD;
+}
+
+.pagination .active .page-link {
+    background: var(--elec-primary);
+    color: #fff;
+}
+
+/* ===========================================================
+   EMPTY TABLE
+=========================================================== */
+
+.table-empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: #9CA3AF;
+}
+
+.table-empty i {
+    font-size: 48px;
+    margin-bottom: 12px;
+    display: block;
+}
+
+/* ===========================================================
+   TABLE INFO
+=========================================================== */
+
+#tableInfo {
+    font-size: 13px;
+    color: #6B7280;
+}
+
+/* ===========================================================
+   DETAIL MODAL
+=========================================================== */
+
+#meterDetailModal .modal-content {
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+#meterDetailModal .modal-header {
+    background: #fff;
+    border-bottom: 1px solid var(--elec-border);
+}
+
+#meterDetailModal .modal-title {
+    font-weight: 700;
+}
+
+#meterDetailModal .modal-body {
+    background: #FAFBFC;
+}
+
+#meterDetailModal .border {
+    border-color: var(--elec-border) !important;
+}
+
+#meterDetailModal h5 {
+    font-weight: 700;
+}
+
+/* ===========================================================
+   LOADING OVERLAY
+=========================================================== */
+
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,.82);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    backdrop-filter: blur(2px);
+}
+
+.loading-overlay .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* ===========================================================
+   SKELETON
+=========================================================== */
+
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: #ECEFF1;
+    border-radius: 8px;
+}
+
+.skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.55),
+        transparent
+    );
+    animation: skeletonLoading 1.2s infinite;
+}
+
+@keyframes skeletonLoading {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* ===========================================================
+   EMPTY STATE
+=========================================================== */
+
+#emptyState {
+    background: #fff;
+    border-radius: 18px;
+    border: 1px dashed var(--elec-border);
+    margin-top: 30px;
+}
+
+#emptyState h4 {
+    font-weight: 700;
+}
+
+#emptyState p {
+    color: #6B7280;
+}
+
+/* ===========================================================
+   ANIMATION
+=========================================================== */
+
+.fade-up {
+    animation: fadeUp .35s ease;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.scale-in {
+    animation: scaleIn .25s ease;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(.96);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ===========================================================
+   RESPONSIVE
+=========================================================== */
+
+@media(max-width: 992px) {
+    .summary-card {
+        padding: 18px;
+    }
+    
+    .summary-card h2 {
+        font-size: 24px;
+    }
+    
+    .mini-card {
+        margin-bottom: 14px;
+    }
+    
+    .consumer-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media(max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+    }
+    
+    .summary-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .summary-icon {
+        margin-bottom: 8px;
+    }
+    
+    #monthlyChart {
+        min-height: 260px;
+    }
+    
+    #entityChart {
+        max-height: 220px;
+    }
+}
+
+@media(max-width: 576px) {
+    .card-header {
+        padding: 14px;
+    }
+    
+    .card-body {
+        padding: 14px;
+    }
+    
+    table {
+        font-size: 13px;
+    }
+    
+    .pagination {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+/* ===========================================================
+   PRINT
+=========================================================== */
+
+@media print {
+    body {
+        background: #fff;
+    }
+    
+    #sidebar,
+    .page-header button,
+    .breadcrumb-wrapper,
+    .pagination,
+    #btnSearch,
+    #btnReset {
+        display: none !important;
+    }
+    
+    .electricity-card {
+        box-shadow: none;
+        border: 1px solid #DDD;
+        page-break-inside: avoid;
+    }
+}
+
+/* ===========================================================
+   UTILITIES
+=========================================================== */
+
+.text-kwh {
+    color: var(--elec-primary);
+    font-weight: 700;
+}
+
+.text-cost {
+    color: var(--elec-success);
+    font-weight: 700;
+}
+
+.text-meter {
+    color: var(--elec-warning);
+    font-weight: 700;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.shadow-hover {
+    transition: .25s;
+}
+
+.shadow-hover:hover {
+    box-shadow: var(--elec-shadow);
+}
+
+.rounded-xl {
+    border-radius: 18px;
 }

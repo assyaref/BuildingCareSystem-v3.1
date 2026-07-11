@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 1.0
+ * Version 1.1 (kompatibel dengan mapping API)
  * =====================================================
  */
 
@@ -77,8 +77,10 @@ const ElectricityController = {
             if (forceRefresh) {
                 response = await BCS.Api.refreshElectricityCache();
                 if (response.success) {
-                    // setelah refresh, ambil data baru
                     response = await BCS.Api.getElectricityDashboard();
+                } else {
+                    this.showError(response.message || "Gagal refresh cache.");
+                    return;
                 }
             } else {
                 response = await BCS.Api.getElectricityDashboard();
@@ -200,7 +202,7 @@ const ElectricityController = {
 
         const monthly = this.state.dashboard.monthly || [];
         const labels = monthly.map(item => item.month);
-        const values = monthly.map(item => item.kwh);
+        const values = monthly.map(item => item.value);
 
         this.chartMonthly = new Chart(canvas, {
             type: "bar",
@@ -251,9 +253,9 @@ const ElectricityController = {
         this.chartEntity = new Chart(canvas, {
             type: "doughnut",
             data: {
-                labels: entity.map(item => item.name),
+                labels: entity.map(item => item.entitas),
                 datasets: [{
-                    data: entity.map(item => item.kwh),
+                    data: entity.map(item => item.totalKwh),
                     backgroundColor: [
                         "#1565C0", "#2E7D32", "#F9A825",
                         "#D32F2F", "#0288D1", "#8E24AA", "#546E7A"
@@ -300,12 +302,10 @@ const ElectricityController = {
             let cls = "trend-flat";
             let icon = "bi-dash-circle";
 
-            if (item.direction === "UP") {
+            if (item.trendType === "UP") {
                 cls = "trend-up";
                 icon = "bi-arrow-up-circle-fill";
-            }
-
-            if (item.direction === "DOWN") {
+            } else if (item.trendType === "DOWN") {
                 cls = "trend-down";
                 icon = "bi-arrow-down-circle-fill";
             }
@@ -313,16 +313,12 @@ const ElectricityController = {
             container.insertAdjacentHTML("beforeend", `
                 <div class="trend-item fade-up">
                     <div>
-                        <div class="trend-title">
-                            ${item.title}
-                        </div>
-                        <small class="text-muted">
-                            ${item.description || ""}
-                        </small>
+                        <div class="trend-title">${item.month}</div>
+                        <small class="text-muted">${item.value} kWh</small>
                     </div>
                     <div class="${cls}">
                         <i class="bi ${icon}"></i>
-                        ${item.value}
+                        ${item.change > 0 ? '+' : ''}${item.change} (${item.percentChange}%)
                     </div>
                 </div>
             `);
@@ -354,13 +350,13 @@ const ElectricityController = {
         rows.forEach(item => {
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
-                    <td><strong>${item.entity}</strong></td>
-                    <td class="text-end">${this.formatNumber(item.kwh)}</td>
-                    <td class="text-end">${item.meter}</td>
-                    <td class="text-end">${this.formatNumber(item.average)}</td>
+                    <td><strong>${item.entitas}</strong></td>
+                    <td class="text-end">${this.formatNumber(item.totalKwh)}</td>
+                    <td class="text-end">${item.totalMeter}</td>
+                    <td class="text-end">${this.formatNumber(item.avgPerMeter)}</td>
                     <td>
                         <div class="benchmark-bar">
-                            <div class="benchmark-fill" style="width:${item.percent}%"></div>
+                            <div class="benchmark-fill" style="width:${item.benchmark}%"></div>
                         </div>
                     </td>
                 </tr>
@@ -395,12 +391,12 @@ const ElectricityController = {
                 <div class="consumer-card fade-up">
                     <div class="consumer-rank">${index + 1}</div>
                     <div class="consumer-info">
-                        <div class="consumer-name">${item.entity}</div>
+                        <div class="consumer-name">${item.entitas}</div>
                         <div class="consumer-meter">Meter : ${item.id}</div>
                     </div>
                     <div class="consumer-value">
-                        <div class="consumer-kwh">${this.formatNumber(item.kwh)}</div>
-                        <div class="consumer-cost">${this.formatCurrency(item.nominal)}</div>
+                        <div class="consumer-kwh">${this.formatNumber(item.totalKwh)}</div>
+                        <div class="consumer-cost">${this.formatCurrency(item.totalNominal)}</div>
                     </div>
                 </div>
             `);
@@ -431,15 +427,17 @@ const ElectricityController = {
         }
 
         alerts.forEach(item => {
+            const title = item.idPelanggan || item.id || 'Meter';
+            const desc = `${item.entitas || ''} - ${item.keterangan || item.status || ''}`;
             container.insertAdjacentHTML("beforeend", `
                 <div class="alert-card fade-up">
                     <div class="alert-icon">
                         <i class="bi bi-exclamation-triangle-fill"></i>
                     </div>
                     <div class="flex-grow-1">
-                        <div class="alert-title">${item.title}</div>
-                        <div class="alert-description">${item.description}</div>
-                        <div class="alert-time">${item.time || ""}</div>
+                        <div class="alert-title">${title}</div>
+                        <div class="alert-description">${desc}</div>
+                        <div class="alert-time">${item.bulan || ''}</div>
                     </div>
                 </div>
             `);
@@ -463,8 +461,8 @@ const ElectricityController = {
         if (keyword) {
             rows = rows.filter(r => {
                 return (
-                    String(r.entity).toLowerCase().includes(keyword) ||
-                    String(r.id).toLowerCase().includes(keyword)
+                    String(r.entitas).toLowerCase().includes(keyword) ||
+                    String(r.idPelanggan).toLowerCase().includes(keyword)
                 );
             });
         }
@@ -473,7 +471,6 @@ const ElectricityController = {
             rows = rows.filter(r => r.status === status);
         }
 
-        // Pagination correction
         const totalRows = rows.length;
         const totalPage = Math.max(1, Math.ceil(totalRows / this.state.filter.pageSize));
         if (this.state.filter.page > totalPage) {
@@ -501,18 +498,18 @@ const ElectricityController = {
             const badgeClass = this.getStatusBadge(item.status);
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
-                    <td>${item.month}</td>
-                    <td>${item.entity}</td>
-                    <td>${item.id}</td>
+                    <td>${item.bulan}</td>
+                    <td>${item.entitas}</td>
+                    <td>${item.idPelanggan}</td>
                     <td class="text-end">${this.formatNumber(item.awal)}</td>
                     <td class="text-end">${this.formatNumber(item.akhir)}</td>
-                    <td class="text-end">${this.formatNumber(item.kwh)}</td>
+                    <td class="text-end">${this.formatNumber(item.pemakaian)}</td>
                     <td class="text-end">${this.formatCurrency(item.nominal)}</td>
                     <td>
                         <span class="badge ${badgeClass}">${item.status}</span>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-primary btn-detail" data-id="${item.id}">
+                        <button class="btn btn-sm btn-primary btn-detail" data-id="${item.idPelanggan}">
                             Detail
                         </button>
                     </td>
@@ -695,7 +692,6 @@ const ElectricityController = {
             this.renderTable();
         });
 
-        // Search dengan Enter
         document.getElementById("txtSearch")?.addEventListener("keydown", e => {
             if (e.key === "Enter") {
                 document.getElementById("btnSearch").click();
@@ -752,7 +748,6 @@ window.addEventListener("beforeunload", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Pastikan session valid (jika diperlukan)
     if (window.Session && typeof Session.isLoggedIn === 'function' && !Session.isLoggedIn()) {
         window.location.href = 'login.html';
         return;

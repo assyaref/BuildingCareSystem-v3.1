@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 1.1 (kompatibel dengan mapping API)
+ * Version 1.2 (dengan list terpisah)
  * =====================================================
  */
 
@@ -67,39 +67,47 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // LOAD DASHBOARD
+    // LOAD DASHBOARD (Dashboard + List terpisah)
     // ==========================================================
 
     async loadDashboard(forceRefresh = false) {
         try {
             this.showLoading(true);
-            let response;
+
+            // Jika force refresh, refresh cache dulu
             if (forceRefresh) {
-                response = await BCS.Api.refreshElectricityCache();
-                if (response.success) {
-                    response = await BCS.Api.getElectricityDashboard();
-                } else {
-                    this.showError(response.message || "Gagal refresh cache.");
+                const refreshRes = await BCS.Api.refreshElectricityCache();
+                if (!refreshRes.success) {
+                    this.showError(refreshRes.message || "Gagal refresh cache.");
                     return;
                 }
-            } else {
-                response = await BCS.Api.getElectricityDashboard();
             }
 
-            if (!response.success) {
-                this.showError(response.message || "Gagal memuat dashboard.");
+            // Ambil dashboard
+            const dashboardRes = await BCS.Api.getElectricityDashboard();
+            if (!dashboardRes.success) {
+                this.showError(dashboardRes.message || "Gagal memuat dashboard.");
                 return;
             }
 
-            const data = response.data || {};
+            // Ambil list record (tabel)
+            const listRes = await BCS.Api.getElectricityList();
+
+            const data = dashboardRes.data || {};
             this.state.dashboard = data;
-            this.state.records = data.records ?? [];
+            this.state.records = listRes.success ? listRes.data : [];
             this.state.benchmark = data.benchmark ?? [];
             this.state.alerts = data.alerts ?? [];
             this.state.topConsumer = data.topConsumer ?? [];
             this.state.trend = data.trend ?? [];
 
             this.render();
+
+            // Jika list gagal, tampilkan peringatan tapi dashboard tetap jalan
+            if (!listRes.success) {
+                console.warn('[Electricity] List data gagal dimuat:', listRes.message);
+            }
+
         } catch (err) {
             console.error(err);
             this.showError(err.message);
@@ -365,7 +373,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // TOP CONSUMER
+    // TOP CONSUMER (dengan ID meter)
     // ==========================================================
 
     renderTopConsumer() {
@@ -387,12 +395,14 @@ const ElectricityController = {
         }
 
         list.forEach((item, index) => {
+            // Ambil idPelanggan atau id
+            const meterId = item.idPelanggan || item.id || '-';
             container.insertAdjacentHTML("beforeend", `
                 <div class="consumer-card fade-up">
                     <div class="consumer-rank">${index + 1}</div>
                     <div class="consumer-info">
                         <div class="consumer-name">${item.entitas}</div>
-                        <div class="consumer-meter">Meter : ${item.id}</div>
+                        <div class="consumer-meter">Meter : ${meterId}</div>
                     </div>
                     <div class="consumer-value">
                         <div class="consumer-kwh">${this.formatNumber(item.totalKwh)}</div>
@@ -445,7 +455,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // TABLE
+    // TABLE (menggunakan state.records)
     // ==========================================================
 
     renderTable() {

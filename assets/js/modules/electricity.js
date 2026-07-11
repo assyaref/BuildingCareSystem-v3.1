@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 1.4 (CRUD + Real-time Clock)
+ * Version 1.5 (Data Quality + Status Dinamis)
  * =====================================================
  */
 
@@ -40,7 +40,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // CLOCK REAL-TIME (detik berjalan)
+    // CLOCK REAL-TIME
     // ==========================================================
 
     startClock() {
@@ -152,6 +152,7 @@ const ElectricityController = {
 
     render() {
         this.renderSummary();
+        this.renderStatusSummary(); // <-- DINAMIS
         this.renderMonthlyChart();
         this.renderEntityChart();
         this.renderTable();
@@ -180,6 +181,7 @@ const ElectricityController = {
         this.setText("lblGrowth", (data.growth || 0) + "%");
         this.setText("lblHighestEntity", data.highestEntity || "-");
         this.setText("lblLowestEntity", data.lowestEntity || "-");
+        this.setText("growthInfo", (data.growth || 0) + "%");
 
         // Update trend badges
         const growth = data.growth || 0;
@@ -202,6 +204,94 @@ const ElectricityController = {
         const avgLabel = document.getElementById("avgMonthLabel");
         if (avgLabel) {
             avgLabel.textContent = data.highestMonth || '-';
+        }
+    },
+
+    // ==========================================================
+    // STATUS SUMMARY (DINAMIS berdasarkan data)
+    // ==========================================================
+
+    renderStatusSummary() {
+        const records = this.state.records || [];
+        const total = records.length;
+
+        // Hitung status
+        const counts = {
+            'NORMAL': 0,
+            'MAINTENANCE': 0,
+            'GANTI_METER': 0,
+            'NEGATIVE': 0,
+            'NO_READING': 0,
+            'ALERT': 0
+        };
+
+        records.forEach(r => {
+            const status = r.status || 'NORMAL';
+            if (counts[status] !== undefined) {
+                counts[status]++;
+            } else {
+                counts['NORMAL']++;
+            }
+        });
+
+        const normal = counts['NORMAL'] || 0;
+        const quality = total > 0 ? Math.round((normal / total) * 100) : 100;
+
+        // Update Data Quality card
+        const qualityEl = document.getElementById('dataQuality');
+        const qualityBar = document.getElementById('qualityBar');
+        if (qualityEl) qualityEl.textContent = quality + '%';
+        if (qualityBar) qualityBar.style.width = quality + '%';
+
+        // Update badge status (Good / Fair / Poor)
+        const qualityBadge = document.querySelector('.summary-card .badge.bg-primary.bg-opacity-10');
+        if (qualityBadge) {
+            if (quality >= 90) {
+                qualityBadge.textContent = 'Excellent';
+                qualityBadge.className = 'badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill';
+            } else if (quality >= 70) {
+                qualityBadge.textContent = 'Good';
+                qualityBadge.className = 'badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill';
+            } else if (quality >= 50) {
+                qualityBadge.textContent = 'Fair';
+                qualityBadge.className = 'badge bg-warning bg-opacity-10 text-warning border border-warning-subtle rounded-pill';
+            } else {
+                qualityBadge.textContent = 'Poor';
+                qualityBadge.className = 'badge bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-pill';
+            }
+        }
+
+        // Update status list items
+        const statusItems = {
+            'Normal': counts['NORMAL'] || 0,
+            'Maintenance': counts['MAINTENANCE'] || 0,
+            'Ganti Meter': counts['GANTI_METER'] || 0,
+            'Negatif (kWh)': counts['NEGATIVE'] || 0
+        };
+
+        const statusList = document.querySelectorAll('.status-list-item .count');
+        if (statusList.length >= 4) {
+            const keys = ['Normal', 'Maintenance', 'Ganti Meter', 'Negatif (kWh)'];
+            statusList.forEach((el, idx) => {
+                if (idx < keys.length) {
+                    const key = keys[idx];
+                    const count = statusItems[key] || 0;
+                    el.innerHTML = `${count} <span class="fw-normal text-muted" style="font-size:0.75rem;">Meter →</span>`;
+                }
+            });
+        }
+
+        // Update alert summary (jumlah maintenance + ganti meter + negative + alert)
+        const totalAlert = counts['MAINTENANCE'] + counts['GANTI_METER'] + counts['NEGATIVE'] + counts['ALERT'] + counts['NO_READING'];
+        const alertEl = document.getElementById('alertSummary');
+        if (alertEl) {
+            alertEl.textContent = totalAlert > 0 ? totalAlert + ' Meter' : 'Tidak ada';
+        }
+
+        // Update decline info (negatif)
+        const declineEl = document.getElementById('declineInfo');
+        if (declineEl) {
+            declineEl.textContent = counts['NEGATIVE'] > 0 ? counts['NEGATIVE'] + ' Meter' : '0';
         }
     },
 
@@ -235,7 +325,8 @@ const ElectricityController = {
             'MAINTENANCE': 'badge-warning',
             'NEGATIVE': 'badge-danger',
             'GANTI_METER': 'badge-danger',
-            'NO_READING': 'badge-info'
+            'NO_READING': 'badge-info',
+            'ALERT': 'badge-dark'
         };
         return map[status] || 'badge-info';
     },

@@ -6,37 +6,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Building Care System Enterprise</title>
-    
-    <meta name="color-scheme" content="light">
-    
-    <!-- Hapus manifest.json jika tidak ada -->
-    <!-- <link rel="manifest" href="assets/pwa/manifest.json"> -->
-    <meta name="application-name" content="Building Care System Enterprise">
-    <meta name="theme-color" content="#0D6EFD">
-    
+
+    <!-- PWA Meta -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2563EB">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Building Care">
-    <link rel="apple-touch-icon" href="assets/pwa/icons/icon-192.png">
+    <meta name="apple-mobile-web-app-title" content="BCS">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link rel="apple-touch-startup-image" href="assets/splash/splash.png">
 
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/pwa/icons/icon-32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/pwa/icons/icon-16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/icon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/icon-16.png">
 
     <style>
+        /* Reset & Fullscreen */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
-        html, body {
-            width: 100%;
-            height: 100vh;
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background: #F5F7FA;
+            overscroll-behavior: none;
+            touch-action: manipulation;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
         }
-        
+
         /* Loader Style */
         #app-loader {
             display: flex;
@@ -47,38 +52,43 @@
             color: #333333;
             transition: opacity 0.3s ease;
         }
-        
+
         #app-loader.hidden {
             opacity: 0;
+            pointer-events: none;
         }
-        
+
         .loader {
             width: 48px;
             height: 48px;
             border: 4px solid #E5E5E5;
-            border-top-color: #0D6EFD;
+            border-top-color: #2563EB;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-bottom: 20px;
         }
-        
+
         h2 {
             margin: 0 0 8px 0;
             font-size: 22px;
             font-weight: 600;
-            color: #0D6EFD;
+            color: #2563EB;
         }
-        
+
         small {
             font-size: 14px;
             color: #6c757d;
         }
-        
+
         @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
         }
-        
+
         /* Error page */
         .error-page {
             display: none;
@@ -87,26 +97,26 @@
             height: 100vh;
             background: #F5F7FA;
         }
-        
+
         .error-page.active {
             display: flex;
         }
-        
+
         .error-container {
             padding: 40px;
             text-align: center;
             background: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             max-width: 400px;
             width: 90%;
         }
-        
+
         .error-container h2 {
             color: #DC3545;
             margin-bottom: 12px;
         }
-        
+
         .error-container p {
             color: #6c757d;
             font-size: 14px;
@@ -114,9 +124,9 @@
             margin-bottom: 24px;
             word-break: break-word;
         }
-        
+
         .error-container .btn-reload {
-            background: #0D6EFD;
+            background: #2563EB;
             color: #ffffff;
             border: none;
             padding: 10px 24px;
@@ -126,9 +136,37 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        
+
         .error-container .btn-reload:hover {
-            background: #0b5ed7;
+            background: #1d4ed8;
+        }
+
+        /* Install Button (PWA) */
+        #installButton {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2563EB;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            cursor: pointer;
+            z-index: 9999;
+            transition: opacity 0.3s;
+        }
+
+        #installButton:hover {
+            background: #1d4ed8;
+        }
+
+        #installButton:active {
+            transform: translateX(-50%) scale(0.96);
         }
     </style>
 </head>
@@ -139,7 +177,7 @@
     <div id="app-loader" role="status" aria-live="polite">
         <div class="loader"></div>
         <h2>Building Care System</h2>
-        <small>Redirecting to login page...</small>
+        <small>Menyiapkan aplikasi...</small>
     </div>
 
     <!-- ERROR PAGE -->
@@ -153,121 +191,214 @@
         </div>
     </div>
 
+    <!-- INSTALL BUTTON (PWA) -->
+    <button id="installButton">📲 Install Building Care System</button>
+
     <script>
-    (function() {
-        'use strict';
+        (function() {
+            'use strict';
 
-        // ============================================
-        // KONFIGURASI
-        // ============================================
-        const CONFIG = {
-            DEBUG: true,
-            LOGIN_URL: '/login',
-            DASHBOARD_URL: '/dashboard',
-            REDIRECT_DELAY: 1000 // ms
-        };
+            // ============================================
+            // KONFIGURASI
+            // ============================================
+            const CONFIG = {
+                DEBUG: true,
+                LOGIN_URL: '/login',
+                DASHBOARD_URL: '/dashboard',
+                REDIRECT_DELAY: 1000,
+                OFFLINE_PAGE: '/offline.html'
+            };
 
-        // ============================================
-        // DOM REFS
-        // ============================================
-        const loader = document.getElementById('app-loader');
-        const errorPage = document.getElementById('errorPage');
-        const errorMessage = document.getElementById('errorMessage');
+            // ============================================
+            // DOM REFS
+            // ============================================
+            const loader = document.getElementById('app-loader');
+            const errorPage = document.getElementById('errorPage');
+            const errorMessage = document.getElementById('errorMessage');
+            const installBtn = document.getElementById('installButton');
 
-        // ============================================
-        // UTILITY
-        // ============================================
-        function log(message, data) {
-            if (CONFIG.DEBUG) {
-                console.log('[BCS-Index]', message, data || '');
-            }
-        }
-
-        function showError(msg) {
-            loader.classList.add('hidden');
-            errorPage.classList.add('active');
-            errorMessage.textContent = msg || 'Gagal memuat sistem atau koneksi terputus.';
-        }
-
-        function redirectTo(url) {
-            log('Redirecting to:', url);
-            setTimeout(function() {
-                window.location.replace(url);
-            }, CONFIG.REDIRECT_DELAY);
-        }
-
-        // ============================================
-        // CHECK SESSION
-        // ============================================
-        function checkSession() {
-            try {
-                const user = localStorage.getItem('user');
-                const token = localStorage.getItem('token');
-                
-                if (user && token) {
-                    log('Session found, redirecting to dashboard...');
-                    redirectTo(CONFIG.DASHBOARD_URL);
-                    return true;
+            // ============================================
+            // UTILITY
+            // ============================================
+            function log(message, data) {
+                if (CONFIG.DEBUG) {
+                    console.log('[BCS-Index]', message, data || '');
                 }
-            } catch (error) {
-                log('Session check error:', error);
             }
-            return false;
-        }
 
-        // ============================================
-        // CHECK LOGIN PAGE
-        // ============================================
-        function checkLoginPage() {
-            // Cek apakah /login bisa diakses
-            fetch(CONFIG.LOGIN_URL, { method: 'HEAD' })
-                .then(function(response) {
-                    if (response.ok) {
-                        log('Login page found, redirecting...');
-                        redirectTo(CONFIG.LOGIN_URL);
-                    } else {
-                        log('Login page not found (status: ' + response.status + ')');
-                        // Coba fallback ke / sebagai login
-                        redirectTo('/?mode=login');
+            function showError(msg) {
+                loader.classList.add('hidden');
+                errorPage.classList.add('active');
+                errorMessage.textContent = msg || 'Gagal memuat sistem atau koneksi terputus.';
+            }
+
+            function redirectTo(url) {
+                log('Redirecting to:', url);
+                setTimeout(function() {
+                    window.location.replace(url);
+                }, CONFIG.REDIRECT_DELAY);
+            }
+
+            // ============================================
+            // CHECK SESSION
+            // ============================================
+            function checkSession() {
+                try {
+                    const user = localStorage.getItem('user');
+                    const token = localStorage.getItem('token');
+
+                    if (user && token) {
+                        log('Session found, redirecting to dashboard...');
+                        redirectTo(CONFIG.DASHBOARD_URL);
+                        return true;
                     }
-                })
-                .catch(function(error) {
-                    log('Error checking login page:', error);
-                    // Coba fallback
-                    showError('Halaman login tidak ditemukan. Pastikan file /login tersedia.');
-                });
-        }
-
-        // ============================================
-        // MAIN
-        // ============================================
-        log('Initializing...');
-
-        // Cek session dulu
-        const hasSession = checkSession();
-
-        if (!hasSession) {
-            log('No session found, redirecting to login page...');
-            
-            // Tampilkan loader dengan pesan
-            loader.querySelector('small').textContent = 'Mengarahkan ke halaman login...';
-            
-            // Cek dan redirect ke /login
-            checkLoginPage();
-        }
-
-        // Ekspos ke global
-        window.BCSIndex = {
-            redirectToLogin: function() {
-                redirectTo(CONFIG.LOGIN_URL);
-            },
-            redirectToDashboard: function() {
-                redirectTo(CONFIG.DASHBOARD_URL);
+                } catch (error) {
+                    log('Session check error:', error);
+                }
+                return false;
             }
-        };
 
-    })();
+            // ============================================
+            // CHECK LOGIN PAGE
+            // ============================================
+            function checkLoginPage() {
+                fetch(CONFIG.LOGIN_URL, { method: 'HEAD' })
+                    .then(function(response) {
+                        if (response.ok) {
+                            log('Login page found, redirecting...');
+                            redirectTo(CONFIG.LOGIN_URL);
+                        } else {
+                            log('Login page not found (status: ' + response.status + ')');
+                            redirectTo('/?mode=login');
+                        }
+                    })
+                    .catch(function(error) {
+                        log('Error checking login page:', error);
+                        showError('Halaman login tidak ditemukan. Pastikan file /login tersedia.');
+                    });
+            }
+
+            // ============================================
+            // REGISTER SERVICE WORKER
+            // ============================================
+            function registerServiceWorker() {
+                if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', function() {
+                        navigator.serviceWorker.register('/sw.js')
+                            .then(function(reg) {
+                                log('Service Worker registered with scope:', reg.scope);
+
+                                // Auto update: refresh ketika worker baru siap
+                                reg.addEventListener('updatefound', function() {
+                                    const worker = reg.installing;
+                                    worker.addEventListener('statechange', function() {
+                                        if (worker.state === 'installed') {
+                                            log('New Service Worker installed, reloading...');
+                                            // Tampilkan notifikasi atau reload otomatis
+                                            if (confirm('Aplikasi telah diperbarui. Reload sekarang?')) {
+                                                location.reload();
+                                            } else {
+                                                // Tawarkan nanti
+                                                document.getElementById('app-loader').querySelector('small')
+                                                    .textContent = 'Update tersedia. Refresh untuk versi terbaru.';
+                                            }
+                                        }
+                                    });
+                                });
+
+                                // Cek apakah ada update setiap 5 menit
+                                setInterval(function() {
+                                    reg.update();
+                                }, 5 * 60 * 1000);
+
+                            })
+                            .catch(function(error) {
+                                log('Service Worker registration failed:', error);
+                            });
+                    });
+                } else {
+                    log('Service Worker not supported in this browser.');
+                }
+            }
+
+            // ============================================
+            // INSTALL PROMPT (PWA)
+            // ============================================
+            let deferredPrompt;
+
+            window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                deferredPrompt = e;
+                installBtn.style.display = 'block';
+                log('Install prompt ready.');
+            });
+
+            installBtn.addEventListener('click', function() {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(function(choiceResult) {
+                        if (choiceResult.outcome === 'accepted') {
+                            log('User accepted the install prompt');
+                            installBtn.style.display = 'none';
+                        } else {
+                            log('User dismissed the install prompt');
+                        }
+                        deferredPrompt = null;
+                    });
+                } else {
+                    // Fallback: arahkan ke panduan instalasi
+                    alert('Instal PWA: Buka menu browser dan pilih "Add to Home Screen" atau "Install App".');
+                }
+            });
+
+            // Sembunyikan tombol jika sudah terinstal
+            window.addEventListener('appinstalled', function() {
+                log('App installed');
+                installBtn.style.display = 'none';
+            });
+
+            // ============================================
+            // OFFLINE DETECTION
+            // ============================================
+            window.addEventListener('offline', function() {
+                showError('Tidak ada koneksi internet. Silakan periksa jaringan Anda.');
+            });
+
+            window.addEventListener('online', function() {
+                log('Online again, reloading...');
+                location.reload();
+            });
+
+            // ============================================
+            // MAIN INIT
+            // ============================================
+            log('Initializing PWA...');
+
+            // Cek session
+            const hasSession = checkSession();
+
+            if (!hasSession) {
+                log('No session found, redirecting to login page...');
+                loader.querySelector('small').textContent = 'Mengarahkan ke halaman login...';
+                checkLoginPage();
+            }
+
+            // Register Service Worker
+            registerServiceWorker();
+
+            // Ekspos ke global
+            window.BCSIndex = {
+                redirectToLogin: function() {
+                    redirectTo(CONFIG.LOGIN_URL);
+                },
+                redirectToDashboard: function() {
+                    redirectTo(CONFIG.DASHBOARD_URL);
+                }
+            };
+
+        })();
     </script>
 
 </body>
+
 </html>

@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 1.9 (Posisi Meteran + Refresh Background)
+ * Version 2.0 (Toast Sukses + Auto Update)
  * =====================================================
  */
 
@@ -441,7 +441,7 @@ const ElectricityController = {
             rows = rows.filter(r =>
                 String(r.entitas).toLowerCase().includes(keyword) ||
                 String(r.idPelanggan).toLowerCase().includes(keyword) ||
-                String(r.no).toLowerCase().includes(keyword) // posisi meteran
+                String(r.no).toLowerCase().includes(keyword)
             );
         }
 
@@ -460,7 +460,7 @@ const ElectricityController = {
         const pageRows = rows.slice(start, end);
 
         if (!pageRows.length) {
-            tbody.innerHTML = `<tr><td colspan="10" class="table-empty">Tidak ada data.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="11" class="table-empty">Tidak ada data.</td></tr>`;
             this.setText("tableInfo", "Menampilkan 0 data");
             this.renderPagination(0);
             return;
@@ -661,7 +661,8 @@ const ElectricityController = {
             if (response.success) {
                 this.showToast('Data berhasil disimpan.', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
-                this.loadDashboard({ showLoading: false, showToast: true });
+                // Refresh data tanpa loading (auto update)
+                this.loadDashboard({ showLoading: false, showToast: false });
             } else {
                 this.showError(response.message || 'Gagal menyimpan data.');
             }
@@ -691,7 +692,7 @@ const ElectricityController = {
             const response = await BCS.Api.request('POST', 'deleteElectricityRecord', { id });
             if (response.success) {
                 this.showToast('Data berhasil dihapus.', 'success');
-                this.loadDashboard({ showLoading: false, showToast: true });
+                this.loadDashboard({ showLoading: false, showToast: false });
             } else {
                 this.showError(response.message || 'Gagal menghapus data.');
             }

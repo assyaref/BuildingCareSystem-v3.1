@@ -10,38 +10,22 @@ const CACHE_VERSION = "v2.3.11";
 const CACHE_PREFIX = "bcs-cache-";
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
 
-// ======================================================
-// APP SHELL
-// ======================================================
-
 const APP_SHELL = [
     "/",
     "/manifest.json",
     "/offline.html",
-
-    // CSS
     "/assets/css/style.css",
     "/assets/css/login.css",
-
-    // Core JS
     "/assets/js/core/session.js",
     "/assets/js/core/app.js",
     "/assets/js/core/api.js",
     "/assets/js/core/storage.js",
     "/assets/js/core/ui.js",
     "/assets/js/core/utils.js",
-
-    // Modules
     "/assets/js/modules/auth.js",
     "/assets/js/modules/firebase-config.js",
-
-    // Config
     "/config/config.js",
-
-    // Images
     "/assets/img/logo.png",
-
-    // Icons
     "/assets/icons/favicon.ico",
     "/assets/icons/icon-72.png",
     "/assets/icons/icon-96.png",
@@ -53,13 +37,8 @@ const APP_SHELL = [
     "/assets/icons/icon-512.png"
 ];
 
-// ======================================================
-// INSTALL
-// ======================================================
-
 self.addEventListener("install", event => {
     console.log(`[SW] Installing ${CACHE_NAME}...`);
-
     event.waitUntil(
         caches.open(CACHE_NAME)
         .then(async cache => {
@@ -77,7 +56,6 @@ self.addEventListener("install", event => {
                     }
                 })
             );
-
             const successCount = results.filter(item => item.status === "fulfilled").length;
             const failedCount = results.filter(item => item.status === "rejected").length;
             console.log(`[SW] Cache complete: ${successCount} success, ${failedCount} failed`);
@@ -86,13 +64,8 @@ self.addEventListener("install", event => {
     );
 });
 
-// ======================================================
-// ACTIVATE
-// ======================================================
-
 self.addEventListener("activate", event => {
     console.log(`[SW] Activating ${CACHE_NAME}...`);
-
     event.waitUntil(
         caches.keys()
         .then(cacheNames => {
@@ -110,27 +83,15 @@ self.addEventListener("activate", event => {
     );
 });
 
-// ======================================================
-// FETCH
-// ======================================================
-
 self.addEventListener("fetch", event => {
     const request = event.request;
-
     if (request.method !== "GET") return;
-
     const url = new URL(request.url);
-
-    // Jangan intercept Google Apps Script dan CDN
     if (url.hostname === "script.google.com" ||
         url.hostname === "script.googleusercontent.com" ||
         url.origin !== self.location.origin) {
         return;
     }
-
-    // ====================================================
-    // HTML / NAVIGATION = NETWORK FIRST
-    // ====================================================
 
     if (request.mode === "navigate" || request.destination === "document") {
         event.respondWith(
@@ -146,10 +107,8 @@ self.addEventListener("fetch", event => {
             .catch(async () => {
                 const cached = await caches.match(request);
                 if (cached) return cached;
-
                 const fallback = await caches.match("/offline.html");
                 if (fallback) return fallback;
-
                 return new Response("Offline - Building Care System tidak tersedia.", {
                     status: 503,
                     statusText: "Offline",
@@ -160,15 +119,10 @@ self.addEventListener("fetch", event => {
         return;
     }
 
-    // ====================================================
-    // STATIC ASSETS = CACHE FIRST
-    // ====================================================
-
     event.respondWith(
         caches.match(request)
         .then(cachedResponse => {
             if (cachedResponse) return cachedResponse;
-
             return fetch(request)
                 .then(response => {
                     if (!response || !response.ok) return response;
@@ -182,13 +136,9 @@ self.addEventListener("fetch", event => {
     );
 });
 
-// ======================================================
-// PUSH NOTIFICATION
-// ======================================================
-
+// Push Notification
 self.addEventListener("push", event => {
     console.log("🔔 [SW] Push event received");
-
     let payload = {};
     try {
         payload = event.data ? event.data.json() : {};
@@ -226,7 +176,7 @@ self.addEventListener("push", event => {
 
     const title = notification.title || defaultTitle;
     const body = notification.body || defaultBody;
-    const targetUrl = messageData.url || "/user-history";
+    const targetUrl = messageData.url || "/user-history"; // clean URL
 
     const options = {
         body: body,
@@ -258,14 +208,9 @@ self.addEventListener("push", event => {
     );
 });
 
-// ======================================================
-// NOTIFICATION CLICK
-// ======================================================
-
 self.addEventListener("notificationclick", event => {
     console.log("[SW] Notification clicked:", event.action);
     event.notification.close();
-
     if (event.action === "close") return;
 
     const targetUrl = event.notification.data?.url || "/user-history";
@@ -287,17 +232,9 @@ self.addEventListener("notificationclick", event => {
     );
 });
 
-// ======================================================
-// NOTIFICATION CLOSE
-// ======================================================
-
 self.addEventListener("notificationclose", event => {
     console.log("[SW] Notification closed:", event.notification.data?.status || "UNKNOWN");
 });
-
-// ======================================================
-// MESSAGE HANDLER (SKIP WAITING)
-// ======================================================
 
 self.addEventListener("message", event => {
     if (event.data === "skipWaiting") {

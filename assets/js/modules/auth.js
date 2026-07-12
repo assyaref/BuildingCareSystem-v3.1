@@ -45,7 +45,7 @@
     }
 
     // =============================================
-    // LOGIN - store email explicitly
+    // LOGIN - store email explicitly & use targetPage from backend
     // =============================================
     async function login(nikOrPayload, password) {
         let payload = {};
@@ -102,21 +102,29 @@
 
             await new Promise(resolve => setTimeout(resolve, 300));
 
-            // === PERUBAHAN UTAMA: clean URL tanpa .html ===
-            const role = sessionData.role || "USER";
-            const routeMap = {
-                "USER": "user-report",
-                "GENERAL AFFAIR": "user-report",
-                "TECHNICIAN": "workorder",
-                "ADMIN": "dashboard",
-                "ADMINISTRATOR": "dashboard"
-            };
-            const targetPage = routeMap[role.toUpperCase()] || "user-report";
+            // ===========================================
+            // 🔥 PRIORITAS: targetPage dari backend
+            // ===========================================
+            let targetPage = rawData.targetPage; // dari backend
+            if (!targetPage) {
+                // fallback ke routeMap lengkap
+                const routeMap = {
+                    "USER": "user-report.html",
+                    "GENERAL AFFAIR": "user-report.html",
+                    "TECHNICIAN": "workorder.html",
+                    "ADMIN": "dashboard.html",
+                    "ADMINISTRATOR": "dashboard.html",
+                    "SUPER ADMIN": "dashboard.html",
+                    "LEAD BRANCH SUPPORT": "dashboard.html"
+                };
+                const role = sessionData.role || "USER";
+                targetPage = routeMap[role.toUpperCase()] || "user-report.html";
+            }
 
             return {
                 ...response,
                 success: true,
-                targetPage: targetPage,  // clean URL
+                targetPage: targetPage,
                 user: userData,
                 session: sessionData
             };
@@ -224,7 +232,6 @@
 
         BCS.App.Toast.info("Anda telah keluar");
         if (redirectTo) {
-            // Pastikan redirectTo dimulai dengan '/'
             if (redirectTo.startsWith('/')) {
                 window.location.replace(redirectTo);
             } else {
@@ -252,7 +259,7 @@
     window.login = login;
     window.checkRole = checkRole;
 
-    console.log("✅ auth.js v7.8 with clean URL routeMap loaded");
+    console.log("✅ auth.js v7.8 with clean URL routeMap & backend targetPage loaded");
 })();
 
 // Fallback

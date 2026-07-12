@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 2.1 (Auto-calc + Dropdown Posisi)
+ * Version 2.2 (Auto-fill dari Posisi Meteran)
  * =====================================================
  */
 
@@ -614,6 +614,45 @@ const ElectricityController = {
         if (datalist) {
             const ids = [...new Set(this.state.records.map(r => r.idPelanggan).filter(Boolean))];
             datalist.innerHTML = ids.map(id => `<option value="${id}">`).join('');
+        }
+
+        // --- EVENT LISTENER: Posisi Meteran -> Auto-fill ID Pelanggan & Entitas ---
+        const posisiSelect2 = document.getElementById('formPosisi');
+        if (posisiSelect2) {
+            // Clone & replace untuk menghapus listener lama
+            const newPosisi = posisiSelect2.cloneNode(true);
+            posisiSelect2.parentNode.replaceChild(newPosisi, posisiSelect2);
+            newPosisi.id = 'formPosisi';
+
+            newPosisi.addEventListener('change', function(e) {
+                const selectedPosisi = this.value.trim();
+                if (!selectedPosisi) return;
+
+                // Cari record pertama dengan posisi yang sama
+                const record = ElectricityController.state.records.find(r => r.no === selectedPosisi);
+                if (record) {
+                    const idInput = document.getElementById('formIdPelanggan');
+                    const entitasSelect = document.getElementById('formEntitas');
+                    const bulanSelect = document.getElementById('formBulan');
+                    const awalInput = document.getElementById('formAwal');
+                    const akhirInput = document.getElementById('formAkhir');
+                    const pemakaianInput = document.getElementById('formPemakaian');
+                    const nominalInput = document.getElementById('formNominal');
+                    const keteranganInput = document.getElementById('formKeterangan');
+
+                    if (idInput) idInput.value = record.idPelanggan || '';
+                    if (entitasSelect) entitasSelect.value = record.entitas || '';
+                    if (bulanSelect) bulanSelect.value = record.bulan || '';
+                    if (awalInput) awalInput.value = record.awal || '';
+                    if (akhirInput) akhirInput.value = record.akhir || '';
+                    if (pemakaianInput) pemakaianInput.value = record.pemakaian || '';
+                    if (nominalInput) nominalInput.value = record.nominal || '';
+                    if (keteranganInput) keteranganInput.value = record.keterangan || '';
+
+                    // Trigger kalkulasi
+                    ElectricityController.calculateForm();
+                }
+            });
         }
 
         // --- Event listener untuk ID Pelanggan (auto-fill) ---

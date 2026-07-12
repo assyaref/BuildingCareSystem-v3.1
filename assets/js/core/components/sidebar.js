@@ -16,7 +16,7 @@
         { href: "report",     icon: "bi-file-earmark-plus-fill",  label: "Report",     tone: "green" },
         { href: "monitoring", icon: "bi-display-fill",            label: "Monitoring", tone: "purple" },
         { href: "history",    icon: "bi-clock-fill",              label: "History",    tone: "amber" },
-        { href: "electricity", icon: "bi-lightning-charge-fill",  label: "Electricity", tone: "yellow" }, // ← TAMBAHAN
+        { href: "electricity", icon: "bi-lightning-charge-fill",  label: "Electricity", tone: "yellow" },
         { divider: true },
         { href: "wo",         icon: "bi-clipboard2-check-fill",   label: "Work Order", tone: "blue", mobilePrimary: true },
         { href: "budget",     icon: "bi-wallet2",                 label: "Budget",     tone: "green" },
@@ -195,7 +195,7 @@
             .sb-tone-indigo { background: #e5e9ff; color: #6174ed; }
             .sb-tone-slate  { background: #edf2f7; color: #64748b; }
             .sb-tone-red    { background: #ffe7e7; color: #ef4444; }
-            .sb-tone-yellow { background: #fff3cd; color: #d39e00; } /* tambahan untuk electricity */
+            .sb-tone-yellow { background: #fff3cd; color: #d39e00; }
 
             .sb-menu-label {
                 flex: 1;
@@ -683,8 +683,12 @@
         return aliases[file] || file;
     }
 
-    function isAdmin(role) {
-        return ["ADMIN", "ADMINISTRATOR", "SUPERADMIN", "SUPER ADMIN"].includes(role);
+    // =====================================================
+    // PERUBAHAN: isSuperAdmin, bukan isAdmin
+    // =====================================================
+    function isSuperAdmin(role) {
+        var r = String(role || '').toUpperCase();
+        return r === 'SUPER ADMIN' || r === 'SUPER_ADMIN';
     }
 
     function navigateTo(href) {
@@ -704,7 +708,7 @@
         const current = getCurrentPage();
 
         return MENUS
-            .filter(menu => !menu.adminOnly || isAdmin(user.role))
+            .filter(menu => !menu.adminOnly || isSuperAdmin(user.role))
             .map(menu => {
                 if (menu.divider) return `<div class="sb-divider" aria-hidden="true"></div>`;
 
@@ -805,7 +809,7 @@
         const mobileMenus = [
             MENUS.find(x => x.href === "dashboard"),
             MENUS.find(x => x.href === "report"),
-            MENUS.find(x => x.href === "electricity"), // ← electricity masuk bottom nav
+            MENUS.find(x => x.href === "electricity"),
             MENUS.find(x => x.href === "wo"),
             MENUS.find(x => x.href === "history"),
             MENUS.find(x => x.href === "monitoring")
@@ -875,7 +879,7 @@
         } finally {
             ["BCS_SESSION", "bcs_session", "BCS_USER", "BCS_TOKEN"].forEach(key => localStorage.removeItem(key));
             sessionStorage.clear();
-            window.location.href = "https://bcs-radiant.vercel.app/login";
+            window.location.href = "login.html";
         }
     }
 

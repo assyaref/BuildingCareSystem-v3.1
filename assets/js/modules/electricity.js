@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 3.3 (Delete with all possible parameters)
+ * Version 3.4 (Delete warning: mass deletion by ID Pelanggan)
  * =====================================================
  */
 
@@ -508,7 +508,6 @@ const ElectricityController = {
         pageRows.forEach((item, idx) => {
             const isNegative = item.pemakaian < 0;
             const posisi = (item.no && item.no !== '-' && item.no !== 'null') ? item.no : '-';
-            // Buat recordId unik untuk setiap baris
             const recordId = item.id || item._id || 
                 `${item.idPelanggan}_${item.bulan}_${item.no}`.replace(/\s+/g, '_');
             tbody.insertAdjacentHTML("beforeend", `
@@ -904,82 +903,81 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // DELETE RECORD (mengirim semua kemungkinan parameter)
+    // DELETE RECORD (dengan peringatan massal)
     // ==========================================================
 
     async deleteRecord({ recordId, id, bulan, posisi }) {
         console.log('[Electricity] deleteRecord params:', { recordId, id, bulan, posisi });
 
-        if (!id || !bulan || !posisi) {
-            this.showToast('Data tidak lengkap untuk dihapus.', 'error');
+        if (!id) {
+            this.showToast('ID Pelanggan tidak ditemukan.', 'error');
             return;
         }
 
-        // Cari data untuk konfirmasi
-        let record = this.state.records.find(r =>
+        // Cari data yang akan dihapus
+        const record = this.state.records.find(r =>
             r.idPelanggan === id &&
             r.bulan === bulan &&
             r.no === posisi
         );
         if (!record) {
-            // Coba cari dengan recordId jika ada
-            if (recordId) {
-                record = this.state.records.find(r => {
-                    const rId = r.id || r._id || `${r.idPelanggan}_${r.bulan}_${r.no}`.replace(/\s+/g, '_');
-                    return rId === recordId;
-                });
-            }
-        }
-        if (!record) {
             this.showToast('Data tidak ditemukan.', 'error');
             return;
         }
 
+        // Cek apakah ada data lain dengan ID Pelanggan yang sama
+        const otherRecords = this.state.records.filter(r =>
+            r.idPelanggan === id &&
+            !(r.bulan === bulan && r.no === posisi)
+        );
+
+        let warningHtml = `
+            <p>Anda akan menghapus data:</p>
+            <ul style="text-align:left;">
+                <li><strong>ID Pelanggan:</strong> ${record.idPelanggan}</li>
+                <li><strong>Bulan:</strong> ${record.bulan}</li>
+                <li><strong>Posisi:</strong> ${record.no}</li>
+                <li><strong>Entitas:</strong> ${record.entitas}</li>
+                <li><strong>Pemakaian:</strong> ${this.formatNumber(record.pemakaian, 2)} kWh</li>
+            </ul>
+        `;
+
+        if (otherRecords.length > 0) {
+            warningHtml += `
+                <div class="text-danger mt-3" style="font-weight:bold; border:2px solid red; padding:10px; border-radius:5px;">
+                    ⚠️ PERINGATAN: Sistem saat ini hanya mendukung penghapusan berdasarkan ID Pelanggan.<br>
+                    Dengan menghapus data ini, <strong>SEMUA data dengan ID Pelanggan ${id}</strong> 
+                    (termasuk ${otherRecords.length} data lainnya) akan ikut terhapus.
+                    <br><br>
+                    <span style="font-size:0.9rem;">Untuk menghapus satu baris saja, tim backend perlu menambahkan endpoint delete dengan filter bulan dan posisi.</span>
+                </div>
+            `;
+        }
+
         const confirmed = await Swal.fire({
-            title: 'Hapus Data?',
-            html: `
-                <p>Anda akan menghapus data:</p>
-                <ul style="text-align:left;">
-                    <li><strong>ID Pelanggan:</strong> ${record.idPelanggan}</li>
-                    <li><strong>Bulan:</strong> ${record.bulan}</li>
-                    <li><strong>Posisi:</strong> ${record.no}</li>
-                    <li><strong>Entitas:</strong> ${record.entitas}</li>
-                    <li><strong>Pemakaian:</strong> ${this.formatNumber(record.pemakaian, 2)} kWh</li>
-                </ul>
-                <p class="text-danger">Data yang dihapus tidak dapat dikembalikan.</p>
-            `,
-            icon: 'warning',
+            title: otherRecords.length > 0 ? '⚠️ Hapus Massal?' : 'Hapus Data?',
+            html: warningHtml,
+            icon: otherRecords.length > 0 ? 'warning' : 'question',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            confirmButtonText: 'Ya, Hapus!',
+            confirmButtonText: otherRecords.length > 0 ? 'Ya, Hapus Semua' : 'Ya, Hapus!',
             cancelButtonText: 'Batal'
         });
         if (!confirmed.isConfirmed) return;
 
         try {
             this.showLoading(true);
-            // Kirim semua kemungkinan parameter agar backend dapat mengenali
-            const payload = {
-                // Primary identifier
-                id: id,                     // ID Pelanggan (fallback)
-                idPelanggan: id,
-                bulan: bulan,
-                posisi: posisi,             // dari data-posisi
-                no: posisi,                 // field di database kemungkinan 'no'
-                posisiMeteran: posisi       // alternatif lain
-            };
-            // Jika ada recordId, kirim sebagai tambahan
-            if (recordId) {
-                payload.recordId = recordId;
-                // Jangan timpa id dengan recordId, karena id mungkin digunakan untuk idPelanggan
-                // Kita kirim recordId sebagai parameter terpisah
-            }
+            // Kirim hanya ID Pelanggan (sesuai kemampuan backend saat ini)
+            const payload = { id: id };
             console.log('[Electricity] Delete payload:', payload);
             const response = await BCS.Api.request('POST', 'deleteElectricityRecord', payload);
             console.log('[Electricity] Delete response:', response);
 
             if (response.success) {
-                this.showToast(`Data ${record.bulan} (${record.no}) berhasil dihapus.`, 'success');
+                const message = otherRecords.length > 0
+                    ? `Semua data dengan ID Pelanggan ${id} (${otherRecords.length + 1} data) berhasil dihapus.`
+                    : `Data ${record.bulan} (${record.no}) berhasil dihapus.`;
+                this.showToast(message, 'success');
                 this.loadDashboard({ showLoading: false, showToast: false });
             } else {
                 this.showError(response.message || 'Gagal menghapus data.');

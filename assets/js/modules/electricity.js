@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 2.8 (Fix edit data salah bulan)
+ * Version 2.9 (Fix delete data ikut terhapus)
  * =====================================================
  */
 
@@ -525,7 +525,7 @@ const ElectricityController = {
                             <button class="btn btn-outline-warning btn-edit" data-unique="${uniqueId}" title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn btn-outline-danger btn-delete" data-id="${item.idPelanggan}" title="Hapus">
+                            <button class="btn btn-outline-danger btn-delete" data-unique="${uniqueId}" title="Hapus">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -613,7 +613,16 @@ const ElectricityController = {
 
     bindDeleteButton() {
         document.querySelectorAll(".btn-delete").forEach(btn => {
-            btn.onclick = () => this.deleteRecord(btn.dataset.id);
+            btn.onclick = () => {
+                const unique = btn.dataset.unique;
+                if (!unique) {
+                    // fallback ke id jika tidak ada unique (untuk kompatibilitas)
+                    const id = btn.dataset.id;
+                    if (id) this.deleteRecord(id);
+                    return;
+                }
+                this.deleteRecord(unique);
+            };
         });
     },
 
@@ -871,11 +880,52 @@ const ElectricityController = {
         }
     },
 
-    async deleteRecord(id) {
-        if (!id) return;
+    // ==========================================================
+    // DELETE RECORD (Perbaikan: Hanya hapus satu data spesifik)
+    // ==========================================================
+
+    async deleteRecord(identifier) {
+        // identifier bisa berupa string unique (bulan|posisi|idPelanggan)
+        // atau fallback idPelanggan (jika tidak ada unique)
+        if (!identifier) return;
+
+        let record = null;
+        let uniqueKey = identifier;
+
+        // Coba parse sebagai unique
+        const parts = identifier.split('|');
+        if (parts.length === 3) {
+            const [bulan, posisi, idPelanggan] = parts;
+            record = this.state.records.find(r =>
+                r.bulan === bulan &&
+                r.no === posisi &&
+                r.idPelanggan === idPelanggan
+            );
+        } else {
+            // Fallback: cari berdasarkan idPelanggan (tapi ini bisa menghapus banyak)
+            // Kita tetap pakai unique, tapi jika tidak ditemukan, kita cari pertama
+            record = this.state.records.find(r => r.idPelanggan === identifier);
+            if (record) {
+                // Tapi kita peringatkan bahwa akan hapus semua dengan ID tersebut?
+                // Lebih baik kita minta user memilih spesifik.
+                // Kita akan tampilkan daftar data dengan ID tersebut dan minta konfirmasi.
+                const recordsWithSameId = this.state.records.filter(r => r.idPelanggan === identifier);
+                if (recordsWithSameId.length > 1) {
+                    this.showToast('Terdapat lebih dari satu data dengan ID ini. Gunakan tombol hapus pada baris yang spesifik.', 'warning');
+                    return;
+                }
+            }
+        }
+
+        if (!record) {
+            this.showToast('Data tidak ditemukan.', 'error');
+            return;
+        }
+
+        // Konfirmasi hapus dengan menampilkan bulan dan posisi
         const confirmed = await Swal.fire({
             title: 'Hapus Data?',
-            text: 'Data yang dihapus tidak dapat dikembalikan.',
+            html: `Anda akan menghapus data:<br><b>${record.bulan}</b> - <b>${record.no || 'Tidak ada posisi'}</b> (ID: ${record.idPelanggan})<br><br>Data yang dihapus tidak dapat dikembalikan.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -886,7 +936,12 @@ const ElectricityController = {
 
         try {
             this.showLoading(true);
-            const response = await BCS.Api.request('POST', 'deleteElectricityRecord', { id });
+            // Kirim data unik ke API untuk menghapus satu record spesifik
+            const response = await BCS.Api.request('POST', 'deleteElectricityRecord', {
+                bulan: record.bulan,
+                posisi: record.no,
+                idPelanggan: record.idPelanggan
+            });
             if (response.success) {
                 this.showToast('Data berhasil dihapus.', 'success');
                 this.loadDashboard({ showLoading: false, showToast: false });

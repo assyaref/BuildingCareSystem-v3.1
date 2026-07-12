@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 2.0 (Toast Sukses + Auto Update)
+ * Version 2.1 (Auto-calc + Dropdown Posisi)
  * =====================================================
  */
 
@@ -424,7 +424,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // TABLE (dengan kolom Posisi Meteran)
+    // TABLE
     // ==========================================================
 
     renderTable() {
@@ -577,7 +577,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // CRUD
+    // CRUD (dengan dropdown posisi & auto-calc)
     // ==========================================================
 
     openForm(data = null) {
@@ -585,16 +585,41 @@ const ElectricityController = {
         const title = document.getElementById('formModalTitle');
         const btnSave = document.getElementById('btnSaveRecord');
 
-        // Populasi datalist ID Pelanggan
+        // --- Populasi dropdown posisi meteran ---
+        const posisiSelect = document.getElementById('formPosisi');
+        if (posisiSelect) {
+            // Ambil posisi unik dari records
+            const posisiSet = new Set();
+            this.state.records.forEach(r => {
+                if (r.no && r.no !== '-' && r.no !== 'null' && r.no.trim() !== '') {
+                    posisiSet.add(r.no);
+                }
+            });
+            const posisiList = [...posisiSet].sort();
+            // Simpan nilai saat ini (jika edit)
+            const currentVal = posisiSelect.value;
+            posisiSelect.innerHTML = '<option value="">Pilih Posisi</option>';
+            posisiList.forEach(p => {
+                posisiSelect.insertAdjacentHTML('beforeend', `<option value="${p}">${p}</option>`);
+            });
+            if (data && data.posisi) {
+                posisiSelect.value = data.posisi;
+            } else if (currentVal && posisiList.includes(currentVal)) {
+                posisiSelect.value = currentVal;
+            }
+        }
+
+        // --- Populasi datalist ID Pelanggan ---
         const datalist = document.getElementById('idPelangganList');
         if (datalist) {
             const ids = [...new Set(this.state.records.map(r => r.idPelanggan).filter(Boolean))];
             datalist.innerHTML = ids.map(id => `<option value="${id}">`).join('');
         }
 
-        // Event listener untuk auto-fill Entitas & Posisi
+        // --- Event listener untuk ID Pelanggan (auto-fill) ---
         const idInput = document.getElementById('formIdPelanggan');
         if (idInput) {
+            // Hapus listener lama dengan clone
             const newInput = idInput.cloneNode(true);
             idInput.parentNode.replaceChild(newInput, idInput);
             newInput.id = 'formIdPelanggan';
@@ -603,14 +628,48 @@ const ElectricityController = {
                 if (!val) return;
                 const record = ElectricityController.state.records.find(r => r.idPelanggan === val);
                 if (record) {
+                    // Isi field
+                    const bulanSelect = document.getElementById('formBulan');
                     const entitasSelect = document.getElementById('formEntitas');
+                    const posisiSelect = document.getElementById('formPosisi');
+                    const awalInput = document.getElementById('formAwal');
+                    const akhirInput = document.getElementById('formAkhir');
+                    const pemakaianInput = document.getElementById('formPemakaian');
+                    const nominalInput = document.getElementById('formNominal');
+                    const keteranganInput = document.getElementById('formKeterangan');
+
+                    if (bulanSelect) bulanSelect.value = record.bulan || '';
                     if (entitasSelect) entitasSelect.value = record.entitas || '';
-                    const posisiInput = document.getElementById('formPosisi');
-                    if (posisiInput) posisiInput.value = record.no || '';
+                    if (posisiSelect) posisiSelect.value = record.no || '';
+                    if (awalInput) awalInput.value = record.awal || '';
+                    if (akhirInput) akhirInput.value = record.akhir || '';
+                    if (pemakaianInput) pemakaianInput.value = record.pemakaian || '';
+                    if (nominalInput) nominalInput.value = record.nominal || '';
+                    if (keteranganInput) keteranganInput.value = record.keterangan || '';
+
+                    // Trigger kalkulasi
+                    ElectricityController.calculateForm();
                 }
             });
         }
 
+        // --- Event listener untuk auto-calc ---
+        const awalInput = document.getElementById('formAwal');
+        const akhirInput = document.getElementById('formAkhir');
+        if (awalInput && akhirInput) {
+            // Hapus listener lama
+            const newAwal = awalInput.cloneNode(true);
+            awalInput.parentNode.replaceChild(newAwal, awalInput);
+            newAwal.id = 'formAwal';
+            newAwal.addEventListener('input', () => this.calculateForm());
+
+            const newAkhir = akhirInput.cloneNode(true);
+            akhirInput.parentNode.replaceChild(newAkhir, akhirInput);
+            newAkhir.id = 'formAkhir';
+            newAkhir.addEventListener('input', () => this.calculateForm());
+        }
+
+        // --- Isi data jika edit ---
         if (data) {
             title.innerHTML = `<i class="bi bi-pencil-square text-warning me-2"></i> Edit Data`;
             btnSave.textContent = 'Update';
@@ -624,6 +683,7 @@ const ElectricityController = {
             document.getElementById('formPemakaian').value = data.pemakaian || '';
             document.getElementById('formNominal').value = data.nominal || '';
             document.getElementById('formKeterangan').value = data.keterangan || '';
+            this.calculateForm();
         } else {
             title.innerHTML = `<i class="bi bi-plus-circle text-success me-2"></i> Tambah Data`;
             btnSave.textContent = 'Simpan';
@@ -631,9 +691,57 @@ const ElectricityController = {
             document.getElementById('formId').value = '';
             document.getElementById('formPosisi').value = '';
             document.getElementById('formIdPelanggan').value = '';
+            this.calculateForm();
         }
 
         modal.show();
+    },
+
+    // ==========================================================
+    // AUTO-CALCULATE: Pemakaian = Akhir - Awal, Nominal = Pemakaian * Harga
+    // ==========================================================
+
+    calculateForm() {
+        const awal = parseFloat(document.getElementById('formAwal')?.value) || 0;
+        const akhir = parseFloat(document.getElementById('formAkhir')?.value) || 0;
+        const pemakaian = akhir - awal;
+        const hargaPerKwh = 1480; // Bisa ambil dari CONFIG jika tersedia
+
+        const pemakaianInput = document.getElementById('formPemakaian');
+        const nominalInput = document.getElementById('formNominal');
+        const notesEl = document.getElementById('calcNotes');
+
+        if (pemakaianInput) {
+            pemakaianInput.value = pemakaian.toFixed(2);
+        }
+
+        const nominal = pemakaian * hargaPerKwh;
+        if (nominalInput) {
+            nominalInput.value = nominal.toFixed(0);
+        }
+
+        // Notes
+        if (notesEl) {
+            if (pemakaian !== 0) {
+                const formattedKwh = pemakaian.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                const formattedNominal = nominal.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                notesEl.innerHTML = `
+                    <div class="alert alert-info mt-2 mb-0 py-2">
+                        <i class="bi bi-calculator me-1"></i>
+                        <strong>Perhitungan:</strong>
+                        ${formattedKwh} kWh × Rp ${hargaPerKwh.toLocaleString('id-ID')} = 
+                        <strong>Rp ${formattedNominal}</strong>
+                    </div>
+                `;
+            } else {
+                notesEl.innerHTML = `
+                    <div class="alert alert-secondary mt-2 mb-0 py-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Masukkan Awal dan Akhir untuk menghitung otomatis.
+                    </div>
+                `;
+            }
+        }
     },
 
     async saveRecord() {
@@ -662,7 +770,7 @@ const ElectricityController = {
             if (response.success) {
                 this.showToast('Data berhasil disimpan.', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
-                // Refresh data tanpa loading (auto update)
+                // Refresh data tanpa loading
                 this.loadDashboard({ showLoading: false, showToast: false });
             } else {
                 this.showError(response.message || 'Gagal menyimpan data.');

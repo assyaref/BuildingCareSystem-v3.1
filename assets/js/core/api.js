@@ -188,8 +188,9 @@ const Api = (() => {
         const list = response.data || [];
         response.data = list.map(item => ({
             bulan: item.bulan || item.month || '',
-            entitas: item.entitas || item.entity || '',
+            no: item.no || item.posisi || item.posisiMeteran || '', // <-- PASTIKAN no
             idPelanggan: item.idPelanggan || item.id || '',
+            entitas: item.entitas || item.entity || '',
             awal: item.awal || 0,
             akhir: item.akhir || 0,
             pemakaian: item.pemakaian || item.kwh || 0,

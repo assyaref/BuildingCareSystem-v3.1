@@ -31,9 +31,7 @@
     <!-- MAIN CONTENT -->
     <main id="main-content" class="content p-4">
 
-        <!-- ==================================================
-             TOPBAR
-        ================================================== -->
+        <!-- TOPBAR -->
         <header class="page-header">
             <div>
                 <h3 class="page-title">Utility Management / Listrik</h3>
@@ -58,9 +56,7 @@
             </div>
         </header>
 
-        <!-- ==================================================
-             BREADCRUMB
-        ================================================== -->
+        <!-- BREADCRUMB -->
         <nav class="breadcrumb-wrapper">
             <ol class="breadcrumb m-0">
                 <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
@@ -68,9 +64,7 @@
             </ol>
         </nav>
 
-        <!-- ==================================================
-             SUMMARY CARDS
-        ================================================== -->
+        <!-- SUMMARY CARDS -->
         <section class="summary-section mb-4">
             <div class="row g-3 row-cols-1 row-cols-md-3 row-cols-xl-5">
                 <div class="col">
@@ -127,7 +121,7 @@
                                 <small>Data Quality</small>
                                 <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill" style="font-size:0.65rem;">Good</span>
                             </div>
-                            <h2 id="dataQuality">0%</h2>
+                            <h2 id="dataQuality">81%</h2>
                             <div class="quality-progress">
                                 <div class="quality-progress-bar" id="qualityBar" style="width:81%;"></div>
                             </div>
@@ -137,9 +131,7 @@
             </div>
         </section>
 
-        <!-- ==================================================
-             CHART + ENTITY + STATUS
-        ================================================== -->
+        <!-- CHART + ENTITY + STATUS -->
         <section class="mb-4">
             <div class="row g-4">
                 <div class="col-xl-6 col-lg-12">
@@ -178,9 +170,7 @@
             </div>
         </section>
 
-        <!-- ==================================================
-             QUICK INFO
-        ================================================== -->
+        <!-- QUICK INFO -->
         <section class="mb-4">
             <div class="row g-3 row-cols-1 row-cols-md-2 row-cols-xl-4">
                 <div class="col">
@@ -229,9 +219,7 @@
             </div>
         </section>
 
-        <!-- ==================================================
-             TABLE HISTORY
-        ================================================== -->
+        <!-- TABLE HISTORY -->
         <section class="mb-5">
             <div class="electricity-card overflow-hidden">
                 <div class="p-3 bg-white border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3">
@@ -263,9 +251,10 @@
                     <table id="tblElectricity" class="table align-middle text-center mb-0">
                         <thead>
                             <tr>
-                                <th class="text-start ps-4">No <i class="bi bi-arrow-down-up ms-1" style="font-size:0.6rem"></i></th>
+                                <th class="text-start ps-4">No</th>
                                 <th class="text-start">Bulan</th>
-                                <th class="text-start">ID Pelanggan / Meter</th>
+                                <th class="text-start">Posisi Meteran</th>
+                                <th class="text-start">ID Pelanggan</th>
                                 <th class="text-start">Entitas</th>
                                 <th class="text-end">Awal Bulan (kWh)</th>
                                 <th class="text-end">Akhir Bulan (kWh)</th>
@@ -295,9 +284,7 @@
             </div>
         </section>
 
-        <!-- ==================================================
-             FORM MODAL (TAMBAH / EDIT) dengan DATALIST ID
-        ================================================== -->
+        <!-- FORM MODAL (TAMBAH / EDIT) dengan POSISI METERAN -->
         <div class="modal fade" id="formModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -328,6 +315,10 @@
                                         <option value="November">November</option>
                                         <option value="Desember">Desember</option>
                                     </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Posisi Meteran <span class="text-danger">*</span></label>
+                                    <input id="formPosisi" class="form-control" placeholder="RUANGAN MEETING / POS SECURITY / LANTAI SATU" required>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold">ID Pelanggan <span class="text-danger">*</span></label>
@@ -376,9 +367,7 @@
             </div>
         </div>
 
-        <!-- ==================================================
-             DETAIL METER MODAL
-        ================================================== -->
+        <!-- DETAIL METER MODAL -->
         <div class="modal fade" id="meterDetailModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
@@ -408,9 +397,7 @@
             </div>
         </div>
 
-        <!-- ==================================================
-             LOADING OVERLAY
-        ================================================== -->
+        <!-- LOADING OVERLAY -->
         <div id="loadingOverlay" class="loading-overlay d-none" role="status" aria-live="polite">
             <div class="text-center">
                 <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
@@ -418,9 +405,7 @@
             </div>
         </div>
 
-        <!-- ==================================================
-             EMPTY STATE
-        ================================================== -->
+        <!-- EMPTY STATE -->
         <div id="emptyState" class="d-none" role="alert">
             <div class="text-center py-5">
                 <i class="bi bi-lightning-charge" style="font-size:72px;color:#999;"></i>

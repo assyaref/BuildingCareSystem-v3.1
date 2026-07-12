@@ -875,7 +875,7 @@
         } finally {
             ["BCS_SESSION", "bcs_session", "BCS_USER", "BCS_TOKEN"].forEach(key => localStorage.removeItem(key));
             sessionStorage.clear();
-            window.location.href = "login.html";
+            window.location.href = "https://bcs-radiant.vercel.app/login";
         }
     }
 

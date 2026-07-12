@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 2.8 (Fixed edit data mismatch)
+ * Version 2.9 (Fixed delete: hapus per record spesifik)
  * =====================================================
  */
 
@@ -532,7 +532,11 @@ const ElectricityController = {
                                     title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn btn-outline-danger btn-delete" data-id="${item.idPelanggan}" title="Hapus">
+                            <button class="btn btn-outline-danger btn-delete" 
+                                    data-id="${item.idPelanggan}"
+                                    data-bulan="${item.bulan}"
+                                    data-posisi="${item.no}"
+                                    title="Hapus">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -594,7 +598,6 @@ const ElectricityController = {
                 const bulan = btn.dataset.bulan;
                 const posisi = btn.dataset.posisi;
 
-                // Cari record berdasarkan kombinasi idPelanggan, bulan, dan posisi
                 const record = this.state.records.find(r =>
                     r.idPelanggan === id &&
                     r.bulan === bulan &&
@@ -623,7 +626,12 @@ const ElectricityController = {
 
     bindDeleteButton() {
         document.querySelectorAll(".btn-delete").forEach(btn => {
-            btn.onclick = () => this.deleteRecord(btn.dataset.id);
+            btn.onclick = () => {
+                const id = btn.dataset.id;
+                const bulan = btn.dataset.bulan;
+                const posisi = btn.dataset.posisi;
+                this.deleteRecord({ id, bulan, posisi });
+            };
         });
     },
 
@@ -890,11 +898,19 @@ const ElectricityController = {
         }
     },
 
-    async deleteRecord(id) {
-        if (!id) return;
+    // ==========================================================
+    // DELETE RECORD (spesifik per kombinasi id, bulan, posisi)
+    // ==========================================================
+
+    async deleteRecord({ id, bulan, posisi }) {
+        if (!id || !bulan || !posisi) {
+            this.showToast('Data tidak lengkap untuk dihapus.', 'error');
+            return;
+        }
+
         const confirmed = await Swal.fire({
             title: 'Hapus Data?',
-            text: 'Data yang dihapus tidak dapat dikembalikan.',
+            text: `Anda akan menghapus data untuk bulan ${bulan} (${posisi}). Data yang dihapus tidak dapat dikembalikan.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -905,7 +921,11 @@ const ElectricityController = {
 
         try {
             this.showLoading(true);
-            const response = await BCS.Api.request('POST', 'deleteElectricityRecord', { id });
+            const response = await BCS.Api.request('POST', 'deleteElectricityRecord', {
+                idPelanggan: id,
+                bulan: bulan,
+                posisi: posisi
+            });
             if (response.success) {
                 this.showToast('Data berhasil dihapus.', 'success');
                 this.loadDashboard({ showLoading: false, showToast: false });

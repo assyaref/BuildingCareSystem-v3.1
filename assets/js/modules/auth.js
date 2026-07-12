@@ -23,7 +23,7 @@
         try {
             var session = BCS.Storage.getSession();
             if (!session || !session.token) {
-                window.location.href = 'login.html';
+                window.location.href = 'login';
                 return false;
             }
             var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
@@ -32,16 +32,16 @@
             if (!allowedRoles.includes(role)) {
                 // Jika role adalah admin dan mencoba akses halaman user, arahkan ke admin.html
                 if (allowedRoles.includes('USER') && ['ADMINISTRATOR','SUPER ADMIN','LEAD BRANCH SUPPORT'].includes(role)) {
-                    window.location.href = 'admin.html';
+                    window.location.href = 'admin';
                 } else {
-                    window.location.href = 'login.html';
+                    window.location.href = 'login';
                 }
                 return false;
             }
             return true;
         } catch (e) {
             console.warn('[checkRole] Error:', e);
-            window.location.href = 'login.html';
+            window.location.href = 'login';
             return false;
         }
     }
@@ -106,13 +106,13 @@
 
             const role = sessionData.role || "USER";
             const routeMap = {
-                "USER": "user-report.html",
-                "GENERAL AFFAIR": "user-report.html",
-                "TECHNICIAN": "wo.html,
-                "ADMIN": "dashboard.html",
-                "ADMINISTRATOR": "dashboard.html"
+                "USER": "user-report",
+                "GENERAL AFFAIR": "user-report",
+                "TECHNICIAN": "workorder",
+                "ADMIN": "dashboard",
+                "ADMINISTRATOR": "dashboard"
             };
-            const targetPage = routeMap[role.toUpperCase()] || "user-report.html";
+            const targetPage = routeMap[role.toUpperCase()] || "user-report";
 
             return {
                 ...response,
@@ -134,7 +134,7 @@
     // =============================================
     // LOGOUT - ULTRA ROBUST EMAIL CAPTURE
     // =============================================
-    async function logout(redirectTo = "login.html") {
+    async function logout(redirectTo = "login") {
         BCS.Logger.info("Logout");
 
         let email = '';
@@ -259,7 +259,7 @@ if (typeof window.auth === 'undefined') {
             console.warn('⚠️ Fallback logout');
             localStorage.clear();
             sessionStorage.clear();
-            window.location.href = redirectTo || 'login.html';
+            window.location.href = redirectTo || 'login';
         },
         isLoggedIn: function() { return false; },
         getSession: function() { return null; },

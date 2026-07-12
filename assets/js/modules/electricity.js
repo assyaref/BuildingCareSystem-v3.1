@@ -61,11 +61,12 @@ const ElectricityController = {
         el.textContent = now.toLocaleString('id-ID', options);
     },
 
+    // ========== OVERLAY DINONAKTIFKAN ==========
     showLoading(show) {
-        const el = document.getElementById("loadingOverlay");
-        if (!el) return;
-        el.classList.toggle("d-none", !show);
+        // Overlay dihilangkan – tidak melakukan apapun
+        return;
     },
+    // ==========================================
 
     showError(message) {
         this.showToast(message, "error");
@@ -454,7 +455,6 @@ const ElectricityController = {
         pageRows.forEach((item, idx) => {
             const isNegative = item.pemakaian < 0;
             const posisi = (item.no && item.no !== '-' && item.no !== 'null') ? item.no : '-';
-            // Gunakan btoa untuk encoding aman (base64)
             const uniqueKey = `${item.bulan}|${item.no}|${item.idPelanggan}`;
             const uniqueId = btoa(uniqueKey);
             tbody.insertAdjacentHTML("beforeend", `
@@ -569,7 +569,6 @@ const ElectricityController = {
         const title = document.getElementById('formModalTitle');
         const btnSave = document.getElementById('btnSaveRecord');
 
-        // Isi dropdown posisi dari data existing
         const posisiSelect = document.getElementById('formPosisi');
         if (posisiSelect) {
             const posisiSet = new Set();
@@ -591,7 +590,6 @@ const ElectricityController = {
             }
         }
 
-        // Isi datalist ID Pelanggan
         const datalist = document.getElementById('idPelangganList');
         if (datalist) {
             const ids = [...new Set(this.state.records.map(r => r.idPelanggan).filter(Boolean))];
@@ -600,7 +598,6 @@ const ElectricityController = {
 
         this._suppressAutoFill = true;
 
-        // Re-attach event listeners untuk posisi dan ID (clone untuk menghindari duplikasi)
         const posisiSelect2 = document.getElementById('formPosisi');
         if (posisiSelect2) {
             const newPosisi = posisiSelect2.cloneNode(true);
@@ -673,7 +670,6 @@ const ElectricityController = {
             });
         }
 
-        // Re-attach event untuk perhitungan otomatis
         const awalInput = document.getElementById('formAwal');
         const akhirInput = document.getElementById('formAkhir');
         if (awalInput && akhirInput) {
@@ -701,7 +697,6 @@ const ElectricityController = {
             document.getElementById('formPemakaian').value = data.pemakaian || '';
             document.getElementById('formNominal').value = data.nominal || '';
             document.getElementById('formKeterangan').value = data.keterangan || '';
-            // Simpan posisi lama
             document.getElementById('formPosisiLama').value = data.posisi || '';
             this.calculateForm();
         } else {
@@ -773,7 +768,6 @@ const ElectricityController = {
             pemakaian: parseFloat(document.getElementById('formPemakaian').value) || 0,
             nominal: parseFloat(document.getElementById('formNominal').value) || 0,
             keterangan: document.getElementById('formKeterangan').value,
-            // Kirim posisi lama untuk update
             posisiLama: document.getElementById('formPosisiLama').value || ''
         };
 
@@ -807,7 +801,6 @@ const ElectricityController = {
             return;
         }
 
-        // Cari record untuk ditampilkan di konfirmasi
         const record = this.state.records.find(r =>
             r.bulan === bulan &&
             r.no === posisi &&

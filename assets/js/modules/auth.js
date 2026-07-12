@@ -106,11 +106,11 @@
 
             const role = sessionData.role || "USER";
             const routeMap = {
-                "USER": "user-report.html",
-                "GENERAL AFFAIR": "user-report.html",
-                "TECHNICIAN": "workorder.html",
-                "ADMIN": "dashboard.html",
-                "ADMINISTRATOR": "dashboard.html"
+                "USER": "user-report",
+                "GENERAL AFFAIR": "user-report",
+                "TECHNICIAN": "workorder,
+                "ADMIN": "dashboard",
+                "ADMINISTRATOR": "dashboard"
             };
             const targetPage = routeMap[role.toUpperCase()] || "user-report.html";
 

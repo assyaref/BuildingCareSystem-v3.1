@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 2.2 (Auto-fill dari Posisi Meteran)
+ * Version 2.4 (Posisi: isi ID & Entitas, kosongkan yang lain)
  * =====================================================
  */
 
@@ -614,10 +614,9 @@ const ElectricityController = {
             datalist.innerHTML = ids.map(id => `<option value="${id}">`).join('');
         }
 
-        // --- EVENT: Posisi Meteran -> Auto-fill ID Pelanggan & Entitas ---
+        // --- EVENT: Posisi Meteran -> Auto-fill ---
         const posisiSelect2 = document.getElementById('formPosisi');
         if (posisiSelect2) {
-            // Clone & replace untuk menghapus listener lama
             const newPosisi = posisiSelect2.cloneNode(true);
             posisiSelect2.parentNode.replaceChild(newPosisi, posisiSelect2);
             newPosisi.id = 'formPosisi';
@@ -626,30 +625,58 @@ const ElectricityController = {
                 const selectedPosisi = this.value.trim();
                 if (!selectedPosisi) return;
 
-                // Cari record dengan posisi yang sama (ambil yang pertama)
-                const record = ElectricityController.state.records.find(r => r.no === selectedPosisi);
-                if (record) {
-                    const idInput = document.getElementById('formIdPelanggan');
-                    const entitasSelect = document.getElementById('formEntitas');
-                    const bulanSelect = document.getElementById('formBulan');
-                    const awalInput = document.getElementById('formAwal');
-                    const akhirInput = document.getElementById('formAkhir');
-                    const pemakaianInput = document.getElementById('formPemakaian');
-                    const nominalInput = document.getElementById('formNominal');
-                    const keteranganInput = document.getElementById('formKeterangan');
+                const bulanSelect = document.getElementById('formBulan');
+                const selectedBulan = bulanSelect ? bulanSelect.value.trim() : '';
 
+                // Cari record dengan kombinasi posisi + bulan
+                let record = ElectricityController.state.records.find(r => 
+                    r.no === selectedPosisi && r.bulan === selectedBulan
+                );
+
+                const idInput = document.getElementById('formIdPelanggan');
+                const entitasSelect = document.getElementById('formEntitas');
+                const awalInput = document.getElementById('formAwal');
+                const akhirInput = document.getElementById('formAkhir');
+                const pemakaianInput = document.getElementById('formPemakaian');
+                const nominalInput = document.getElementById('formNominal');
+                const keteranganInput = document.getElementById('formKeterangan');
+
+                if (record) {
+                    // Jika ada data dengan bulan yang sama, isi semua
                     if (idInput) idInput.value = record.idPelanggan || '';
                     if (entitasSelect) entitasSelect.value = record.entitas || '';
-                    if (bulanSelect) bulanSelect.value = record.bulan || '';
                     if (awalInput) awalInput.value = record.awal || '';
                     if (akhirInput) akhirInput.value = record.akhir || '';
                     if (pemakaianInput) pemakaianInput.value = record.pemakaian || '';
                     if (nominalInput) nominalInput.value = record.nominal || '';
                     if (keteranganInput) keteranganInput.value = record.keterangan || '';
-
-                    // Trigger kalkulasi
-                    ElectricityController.calculateForm();
+                } else {
+                    // Cari record dengan posisi saja (fallback) untuk ID & Entitas
+                    const fallbackRecord = ElectricityController.state.records.find(r => r.no === selectedPosisi);
+                    if (fallbackRecord) {
+                        // Isi ID Pelanggan dan Entitas
+                        if (idInput) idInput.value = fallbackRecord.idPelanggan || '';
+                        if (entitasSelect) entitasSelect.value = fallbackRecord.entitas || '';
+                        // Kosongkan field lainnya
+                        if (awalInput) awalInput.value = '';
+                        if (akhirInput) akhirInput.value = '';
+                        if (pemakaianInput) pemakaianInput.value = '';
+                        if (nominalInput) nominalInput.value = '';
+                        if (keteranganInput) keteranganInput.value = '';
+                    } else {
+                        // Tidak ada data sama sekali, kosongkan semua
+                        if (idInput) idInput.value = '';
+                        if (entitasSelect) entitasSelect.value = '';
+                        if (awalInput) awalInput.value = '';
+                        if (akhirInput) akhirInput.value = '';
+                        if (pemakaianInput) pemakaianInput.value = '';
+                        if (nominalInput) nominalInput.value = '';
+                        if (keteranganInput) keteranganInput.value = '';
+                    }
                 }
+
+                // Trigger kalkulasi
+                ElectricityController.calculateForm();
             });
         }
 

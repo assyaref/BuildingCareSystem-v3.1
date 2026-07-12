@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 3.1 FINAL (Fix delete + edit)
+ * Version 3.0 FINAL (Fix delete & edit)
  * =====================================================
  */
 
@@ -30,20 +30,12 @@ const ElectricityController = {
         }
     },
 
-    // ==========================================================
-    // INIT
-    // ==========================================================
-
     init() {
         this.registerEvent();
         this.loadDashboard({ showLoading: true, showToast: false });
         this.startAutoRefresh();
         this.startClock();
     },
-
-    // ==========================================================
-    // CLOCK
-    // ==========================================================
 
     startClock() {
         if (this.clockInterval) clearInterval(this.clockInterval);
@@ -69,10 +61,6 @@ const ElectricityController = {
         el.textContent = now.toLocaleString('id-ID', options);
     },
 
-    // ==========================================================
-    // LOADING / NOTIFICATION
-    // ==========================================================
-
     showLoading(show) {
         const el = document.getElementById("loadingOverlay");
         if (!el) return;
@@ -90,6 +78,7 @@ const ElectricityController = {
             warning: 'warning',
             info: 'info'
         };
+
         const titleMap = {
             success: 'Berhasil!',
             error: 'Gagal!',
@@ -117,12 +106,9 @@ const ElectricityController = {
             });
             return;
         }
+
         console.log(`[${type.toUpperCase()}] ${message}`);
     },
-
-    // ==========================================================
-    // AUTO REFRESH
-    // ==========================================================
 
     startAutoRefresh() {
         if (this.refreshTimer) clearInterval(this.refreshTimer);
@@ -131,20 +117,20 @@ const ElectricityController = {
         }, 300000);
     },
 
-    // ==========================================================
-    // LOAD DASHBOARD
-    // ==========================================================
-
     async loadDashboard(options = {}) {
         const { showLoading = false, showToast = false } = options;
+
         try {
             if (showLoading) this.showLoading(true);
+
             const dashboardRes = await BCS.Api.getElectricityDashboard();
             if (!dashboardRes.success) {
                 this.showError(dashboardRes.message || "Gagal memuat dashboard.");
                 return;
             }
+
             const listRes = await BCS.Api.getElectricityList();
+
             const data = dashboardRes.data || {};
             this.state.dashboard = data;
             this.state.records = listRes.success ? listRes.data : [];
@@ -152,13 +138,17 @@ const ElectricityController = {
             this.state.alerts = data.alerts ?? [];
             this.state.topConsumer = data.topConsumer ?? [];
             this.state.trend = data.trend ?? [];
+
             this.render();
+
             if (!listRes.success) {
                 console.warn('[Electricity] List data gagal dimuat:', listRes.message);
             }
+
             if (showToast) {
                 this.showToast('Data berhasil diperbarui.', 'success');
             }
+
         } catch (err) {
             console.error(err);
             if (showToast) {
@@ -171,10 +161,6 @@ const ElectricityController = {
         }
     },
 
-    // ==========================================================
-    // RENDER
-    // ==========================================================
-
     render() {
         this.renderSummary();
         this.renderStatusSummary();
@@ -183,16 +169,14 @@ const ElectricityController = {
         this.renderTable();
     },
 
-    // ==========================================================
-    // SUMMARY
-    // ==========================================================
-
     renderSummary() {
         const data = this.state.dashboard || {};
+
         this.setText("totalKwh", this.formatNumber(data.totalKwh || 0));
         this.setText("totalNominal", this.formatCurrency(data.totalNominal || 0));
         this.setText("totalMeter", this.formatNumber(data.totalMeter || 0));
         this.setText("avgKwh", this.formatNumber(data.averageKwh || 0));
+
         this.renderQuickInformation(data);
     },
 
@@ -214,6 +198,7 @@ const ElectricityController = {
             trendEl.className = `badge-trend ${cls}`;
             trendEl.innerHTML = `<i class="bi ${icon}"></i> ${growth.toFixed(1)}%`;
         }
+
         const nominalTrend = document.getElementById("nominalTrend");
         if (nominalTrend) {
             const icon = growth >= 0 ? 'bi-arrow-up-short' : 'bi-arrow-down-short';
@@ -221,17 +206,17 @@ const ElectricityController = {
             nominalTrend.className = `badge-trend ${cls}`;
             nominalTrend.innerHTML = `<i class="bi ${icon}"></i> ${growth.toFixed(1)}%`;
         }
-        const avgLabel = document.getElementById("avgMonthLabel");
-        if (avgLabel) avgLabel.textContent = data.highestMonth || '-';
-    },
 
-    // ==========================================================
-    // STATUS SUMMARY
-    // ==========================================================
+        const avgLabel = document.getElementById("avgMonthLabel");
+        if (avgLabel) {
+            avgLabel.textContent = data.highestMonth || '-';
+        }
+    },
 
     renderStatusSummary() {
         const records = this.state.records || [];
         const total = records.length;
+
         const counts = {
             'NORMAL': 0,
             'MAINTENANCE': 0,
@@ -240,13 +225,19 @@ const ElectricityController = {
             'NO_READING': 0,
             'ALERT': 0
         };
+
         records.forEach(r => {
             const status = r.status || 'NORMAL';
-            if (counts[status] !== undefined) counts[status]++;
-            else counts['NORMAL']++;
+            if (counts[status] !== undefined) {
+                counts[status]++;
+            } else {
+                counts['NORMAL']++;
+            }
         });
+
         const normal = counts['NORMAL'] || 0;
         const quality = total > 0 ? Math.round((normal / total) * 100) : 100;
+
         const qualityEl = document.getElementById('dataQuality');
         const qualityBar = document.getElementById('qualityBar');
         if (qualityEl) qualityEl.textContent = quality + '%';
@@ -275,6 +266,7 @@ const ElectricityController = {
             'Ganti Meter': counts['GANTI_METER'] || 0,
             'Negatif (kWh)': counts['NEGATIVE'] || 0
         };
+
         const statusList = document.querySelectorAll('.status-list-item .count');
         if (statusList.length >= 4) {
             const keys = ['Normal', 'Maintenance', 'Ganti Meter', 'Negatif (kWh)'];
@@ -286,16 +278,18 @@ const ElectricityController = {
                 }
             });
         }
+
         const totalAlert = counts['MAINTENANCE'] + counts['GANTI_METER'] + counts['NEGATIVE'] + counts['ALERT'] + counts['NO_READING'];
         const alertEl = document.getElementById('alertSummary');
-        if (alertEl) alertEl.textContent = totalAlert > 0 ? totalAlert + ' Meter' : 'Tidak ada';
-        const declineEl = document.getElementById('declineInfo');
-        if (declineEl) declineEl.textContent = counts['NEGATIVE'] > 0 ? counts['NEGATIVE'] + ' Meter' : '0';
-    },
+        if (alertEl) {
+            alertEl.textContent = totalAlert > 0 ? totalAlert + ' Meter' : 'Tidak ada';
+        }
 
-    // ==========================================================
-    // HELPER
-    // ==========================================================
+        const declineEl = document.getElementById('declineInfo');
+        if (declineEl) {
+            declineEl.textContent = counts['NEGATIVE'] > 0 ? counts['NEGATIVE'] + ' Meter' : '0';
+        }
+    },
 
     setText(id, value) {
         const el = document.getElementById(id);
@@ -329,19 +323,18 @@ const ElectricityController = {
         return map[status] || 'badge-info';
     },
 
-    // ==========================================================
-    // CHARTS
-    // ==========================================================
-
     renderMonthlyChart() {
         const canvas = document.getElementById("monthlyChart");
         if (!canvas) return;
+
         if (this.chartMonthly) {
             this.chartMonthly.destroy();
         }
+
         const monthly = this.state.dashboard.monthly || [];
         const labels = monthly.map(item => item.month);
         const values = monthly.map(item => item.value);
+
         this.chartMonthly = new Chart(canvas, {
             type: "bar",
             data: {
@@ -358,7 +351,9 @@ const ElectricityController = {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: { duration: 600 },
-                plugins: { legend: { display: false } },
+                plugins: {
+                    legend: { display: false }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -374,12 +369,15 @@ const ElectricityController = {
     renderEntityChart() {
         const canvas = document.getElementById("entityChart");
         if (!canvas) return;
+
         if (this.chartEntity) {
             this.chartEntity.destroy();
         }
+
         const entity = this.state.dashboard.entity || [];
         const total = entity.reduce((sum, item) => sum + item.totalKwh, 0);
         const colors = ['#1565C0', '#2E7D32', '#F9A825', '#D32F2F', '#0288D1', '#8E24AA', '#546E7A'];
+
         this.chartEntity = new Chart(canvas, {
             type: "doughnut",
             data: {
@@ -395,9 +393,12 @@ const ElectricityController = {
                 maintainAspectRatio: false,
                 cutout: "65%",
                 animation: { animateRotate: true },
-                plugins: { legend: { display: false } }
+                plugins: {
+                    legend: { display: false }
+                }
             }
         });
+
         const legendContainer = document.getElementById('entityLegend');
         if (legendContainer) {
             legendContainer.innerHTML = entity.map((item, idx) => `
@@ -411,17 +412,16 @@ const ElectricityController = {
         }
     },
 
-    // ==========================================================
-    // TABLE
-    // ==========================================================
-
     renderTable() {
         const tbody = document.querySelector("#tblElectricity tbody");
         if (!tbody) return;
+
         tbody.innerHTML = "";
         let rows = [...this.state.records];
+
         const keyword = this.state.filter.keyword.toLowerCase();
         const status = this.state.filter.status;
+
         if (keyword) {
             rows = rows.filter(r =>
                 String(r.entitas).toLowerCase().includes(keyword) ||
@@ -429,14 +429,17 @@ const ElectricityController = {
                 String(r.no).toLowerCase().includes(keyword)
             );
         }
+
         if (status !== "ALL") {
             rows = rows.filter(r => r.status === status);
         }
+
         const totalRows = rows.length;
         const totalPage = Math.max(1, Math.ceil(totalRows / this.state.filter.pageSize));
         if (this.state.filter.page > totalPage) {
             this.state.filter.page = totalPage;
         }
+
         const start = (this.state.filter.page - 1) * this.state.filter.pageSize;
         const end = Math.min(start + this.state.filter.pageSize, totalRows);
         const pageRows = rows.slice(start, end);
@@ -492,8 +495,10 @@ const ElectricityController = {
         const ul = document.getElementById("pagination");
         if (!ul) return;
         ul.innerHTML = "";
+
         const pageSize = this.state.filter.pageSize;
         const totalPage = Math.ceil(total / pageSize);
+
         for (let i = 1; i <= totalPage; i++) {
             ul.insertAdjacentHTML("beforeend", `
                 <li class="page-item ${i === this.state.filter.page ? "active" : ""}">
@@ -501,6 +506,7 @@ const ElectricityController = {
                 </li>
             `);
         }
+
         ul.querySelectorAll(".page-link").forEach(btn => {
             btn.onclick = (e) => {
                 e.preventDefault();
@@ -509,10 +515,6 @@ const ElectricityController = {
             };
         });
     },
-
-    // ==========================================================
-    // BIND BUTTONS
-    // ==========================================================
 
     bindDetailButton() {
         document.querySelectorAll(".btn-detail").forEach(btn => {
@@ -564,16 +566,11 @@ const ElectricityController = {
         });
     },
 
-    // ==========================================================
-    // CRUD (Form)
-    // ==========================================================
-
     openForm(data = null) {
         const modal = new bootstrap.Modal(document.getElementById('formModal'));
         const title = document.getElementById('formModalTitle');
         const btnSave = document.getElementById('btnSaveRecord');
 
-        // Populasi posisi
         const posisiSelect = document.getElementById('formPosisi');
         if (posisiSelect) {
             const posisiSet = new Set();
@@ -595,7 +592,6 @@ const ElectricityController = {
             }
         }
 
-        // Populasi datalist ID
         const datalist = document.getElementById('idPelangganList');
         if (datalist) {
             const ids = [...new Set(this.state.records.map(r => r.idPelanggan).filter(Boolean))];
@@ -604,12 +600,12 @@ const ElectricityController = {
 
         this._suppressAutoFill = true;
 
-        // Event listener posisi
         const posisiSelect2 = document.getElementById('formPosisi');
         if (posisiSelect2) {
             const newPosisi = posisiSelect2.cloneNode(true);
             posisiSelect2.parentNode.replaceChild(newPosisi, posisiSelect2);
             newPosisi.id = 'formPosisi';
+
             newPosisi.addEventListener('change', function(e) {
                 if (ElectricityController._suppressAutoFill) return;
                 const selectedPosisi = this.value.trim();
@@ -622,6 +618,7 @@ const ElectricityController = {
                 const pemakaianInput = document.getElementById('formPemakaian');
                 const nominalInput = document.getElementById('formNominal');
                 const keteranganInput = document.getElementById('formKeterangan');
+
                 if (record) {
                     if (idInput) idInput.value = record.idPelanggan || '';
                     if (entitasSelect) entitasSelect.value = record.entitas || '';
@@ -643,7 +640,6 @@ const ElectricityController = {
             });
         }
 
-        // Event listener ID
         const idInput = document.getElementById('formIdPelanggan');
         if (idInput) {
             const newInput = idInput.cloneNode(true);
@@ -662,6 +658,7 @@ const ElectricityController = {
                     const pemakaianInput = document.getElementById('formPemakaian');
                     const nominalInput = document.getElementById('formNominal');
                     const keteranganInput = document.getElementById('formKeterangan');
+
                     if (entitasSelect) entitasSelect.value = record.entitas || '';
                     if (posisiSelect) posisiSelect.value = record.no || '';
                     if (awalInput) awalInput.value = record.awal || '';
@@ -669,12 +666,12 @@ const ElectricityController = {
                     if (pemakaianInput) pemakaianInput.value = record.pemakaian || '';
                     if (nominalInput) nominalInput.value = record.nominal || '';
                     if (keteranganInput) keteranganInput.value = record.keterangan || '';
+
                     ElectricityController.calculateForm();
                 }
             });
         }
 
-        // Auto calc
         const awalInput = document.getElementById('formAwal');
         const akhirInput = document.getElementById('formAkhir');
         if (awalInput && akhirInput) {
@@ -682,13 +679,13 @@ const ElectricityController = {
             awalInput.parentNode.replaceChild(newAwal, awalInput);
             newAwal.id = 'formAwal';
             newAwal.addEventListener('input', () => this.calculateForm());
+
             const newAkhir = akhirInput.cloneNode(true);
             akhirInput.parentNode.replaceChild(newAkhir, akhirInput);
             newAkhir.id = 'formAkhir';
             newAkhir.addEventListener('input', () => this.calculateForm());
         }
 
-        // Isi data
         if (data) {
             title.innerHTML = `<i class="bi bi-pencil-square text-warning me-2"></i> Edit Data`;
             btnSave.textContent = 'Update';
@@ -722,12 +719,20 @@ const ElectricityController = {
         const akhir = parseFloat(document.getElementById('formAkhir')?.value) || 0;
         const pemakaian = akhir - awal;
         const hargaPerKwh = 1480;
+
         const pemakaianInput = document.getElementById('formPemakaian');
         const nominalInput = document.getElementById('formNominal');
         const notesEl = document.getElementById('calcNotes');
-        if (pemakaianInput) pemakaianInput.value = pemakaian.toFixed(2);
+
+        if (pemakaianInput) {
+            pemakaianInput.value = pemakaian.toFixed(2);
+        }
+
         const nominal = pemakaian * hargaPerKwh;
-        if (nominalInput) nominalInput.value = nominal.toFixed(0);
+        if (nominalInput) {
+            nominalInput.value = nominal.toFixed(0);
+        }
+
         if (notesEl) {
             if (pemakaian !== 0) {
                 const formattedKwh = pemakaian.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -764,10 +769,12 @@ const ElectricityController = {
             nominal: parseFloat(document.getElementById('formNominal').value) || 0,
             keterangan: document.getElementById('formKeterangan').value
         };
+
         if (!formData.bulan || !formData.posisiMeteran || !formData.idPelanggan || !formData.entitas) {
             this.showToast('Bulan, Posisi Meteran, ID Pelanggan, dan Entitas wajib diisi.', 'warning');
             return;
         }
+
         try {
             this.showLoading(true);
             const action = formData.id ? 'updateElectricityRecord' : 'createElectricityRecord';
@@ -787,10 +794,6 @@ const ElectricityController = {
         }
     },
 
-    // ==========================================================
-    // DELETE RECORD (Hanya hapus satu data)
-    // ==========================================================
-
     async deleteRecord(identifier) {
         if (!identifier) return;
 
@@ -804,13 +807,14 @@ const ElectricityController = {
                 r.idPelanggan === idPelanggan
             );
         } else {
-            // Fallback: cari berdasarkan idPelanggan (peringatan jika lebih dari satu)
-            const recordsWithSameId = this.state.records.filter(r => r.idPelanggan === identifier);
-            if (recordsWithSameId.length > 1) {
-                this.showToast('Terdapat lebih dari satu data dengan ID ini. Gunakan tombol hapus pada baris yang spesifik.', 'warning');
-                return;
+            record = this.state.records.find(r => r.idPelanggan === identifier);
+            if (record) {
+                const recordsWithSameId = this.state.records.filter(r => r.idPelanggan === identifier);
+                if (recordsWithSameId.length > 1) {
+                    this.showToast('Terdapat lebih dari satu data dengan ID ini. Gunakan tombol hapus pada baris yang spesifik.', 'warning');
+                    return;
+                }
             }
-            record = recordsWithSameId[0];
         }
 
         if (!record) {
@@ -831,15 +835,15 @@ const ElectricityController = {
 
         try {
             this.showLoading(true);
-            const payload = {
+            // Kirim kombinasi unik ke backend
+            const response = await BCS.Api.request('POST', 'deleteElectricityRecord', {
                 bulan: record.bulan,
                 posisi: record.no,
                 idPelanggan: record.idPelanggan
-            };
-            const response = await BCS.Api.request('POST', 'deleteElectricityRecord', payload);
+            });
             if (response.success) {
                 this.showToast('Data berhasil dihapus.', 'success');
-                await this.loadDashboard({ showLoading: false, showToast: false });
+                this.loadDashboard({ showLoading: false, showToast: false });
             } else {
                 this.showError(response.message || 'Gagal menghapus data.');
             }
@@ -851,27 +855,31 @@ const ElectricityController = {
         }
     },
 
-    // ==========================================================
-    // DETAIL METER
-    // ==========================================================
-
     async showDetail(id) {
         try {
             this.showLoading(true);
             const response = await BCS.Api.getElectricityDetail(id);
+
             if (!response.success) {
                 this.showToast(response.message || "Data tidak ditemukan.", "error");
                 return;
             }
+
             const data = response.data || {};
+
             this.setText("detailMeterId", data.id || "-");
             this.setText("detailEntity", data.entity || "-");
             this.setText("detailTotalKwh", this.formatNumber(data.totalKwh || 0));
             this.setText("detailTotalNominal", this.formatCurrency(data.totalNominal || 0));
+
             this.renderDetailChart(data.history || []);
             this.renderDetailTable(data.history || []);
-            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("meterDetailModal"));
+
+            const modal = bootstrap.Modal.getOrCreateInstance(
+                document.getElementById("meterDetailModal")
+            );
             modal.show();
+
         } catch (err) {
             console.error(err);
             this.showToast(err.message, "error");
@@ -883,9 +891,11 @@ const ElectricityController = {
     renderDetailChart(history) {
         const canvas = document.getElementById("detailChart");
         if (!canvas) return;
+
         if (this.chartDetail) {
             this.chartDetail.destroy();
         }
+
         this.chartDetail = new Chart(canvas, {
             type: "line",
             data: {
@@ -911,10 +921,12 @@ const ElectricityController = {
         const tbody = document.getElementById("detailTable");
         if (!tbody) return;
         tbody.innerHTML = "";
+
         if (!history || !history.length) {
             tbody.innerHTML = `<tr><td colspan="6" class="text-center">Tidak ada histori.</td></tr>`;
             return;
         }
+
         history.forEach(item => {
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
@@ -929,51 +941,50 @@ const ElectricityController = {
         });
     },
 
-    // ==========================================================
-    // EVENT
-    // ==========================================================
-
     registerEvent() {
         document.getElementById("btnRefresh")?.addEventListener("click", () => {
             this.loadDashboard({ showLoading: false, showToast: true });
         });
+
         document.getElementById("btnSearch")?.addEventListener("click", () => {
             this.state.filter.keyword = document.getElementById("txtSearch").value.trim();
             this.state.filter.page = 1;
             this.renderTable();
         });
+
         document.getElementById("txtSearch")?.addEventListener("keydown", e => {
             if (e.key === "Enter") {
                 document.getElementById("btnSearch").click();
             }
         });
+
         document.getElementById("cmbStatus")?.addEventListener("change", e => {
             this.state.filter.status = e.target.value;
             this.state.filter.page = 1;
             this.renderTable();
         });
+
         document.getElementById("btnReset")?.addEventListener("click", () => {
             document.getElementById("txtSearch").value = "";
             document.getElementById("cmbStatus").value = "ALL";
             this.state.filter = { keyword: "", status: "ALL", page: 1, pageSize: 10 };
             this.renderTable();
         });
+
         document.getElementById("cmbPageSize")?.addEventListener("change", (e) => {
             this.state.filter.pageSize = parseInt(e.target.value, 10);
             this.state.filter.page = 1;
             this.renderTable();
         });
+
         document.getElementById("btnAddData")?.addEventListener("click", () => {
             this.openForm(null);
         });
+
         document.getElementById("btnSaveRecord")?.addEventListener("click", () => {
             this.saveRecord();
         });
     },
-
-    // ==========================================================
-    // DESTROY
-    // ==========================================================
 
     destroyCharts() {
         if (this.chartMonthly) {

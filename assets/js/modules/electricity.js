@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 3.1 (Delete with detailed confirmation & logging)
+ * Version 3.2 (Delete using unique record ID if available)
  * =====================================================
  */
 
@@ -508,6 +508,9 @@ const ElectricityController = {
         pageRows.forEach((item, idx) => {
             const isNegative = item.pemakaian < 0;
             const posisi = (item.no && item.no !== '-' && item.no !== 'null') ? item.no : '-';
+            // Cari ID unik record - gunakan properti id atau _id jika ada, fallback ke kombinasi
+            const recordId = item.id || item._id || 
+                `${item.idPelanggan}_${item.bulan}_${item.no}`.replace(/\s+/g, '_');
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
                     <td class="text-start ps-4">${start + idx + 1}</td>
@@ -533,9 +536,10 @@ const ElectricityController = {
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button class="btn btn-outline-danger btn-delete" 
-                                    data-id="${item.idPelanggan}"
-                                    data-bulan="${item.bulan}"
-                                    data-posisi="${item.no}"
+                                    data-record-id="${recordId}"
+                                    data-id="${item.idPelanggan}" 
+                                    data-bulan="${item.bulan}" 
+                                    data-posisi="${item.no}" 
                                     title="Hapus">
                                 <i class="bi bi-trash"></i>
                             </button>
@@ -627,10 +631,11 @@ const ElectricityController = {
     bindDeleteButton() {
         document.querySelectorAll(".btn-delete").forEach(btn => {
             btn.onclick = () => {
+                const recordId = btn.dataset.recordId;
                 const id = btn.dataset.id;
                 const bulan = btn.dataset.bulan;
                 const posisi = btn.dataset.posisi;
-                this.deleteRecord({ id, bulan, posisi });
+                this.deleteRecord({ recordId, id, bulan, posisi });
             };
         });
     },
@@ -899,31 +904,33 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // DELETE RECORD (spesifik per kombinasi id, bulan, posisi)
+    // DELETE RECORD (menggunakan recordId unik jika tersedia)
     // ==========================================================
 
-    async deleteRecord({ id, bulan, posisi }) {
-        console.log('[Electricity] deleteRecord called with:', { id, bulan, posisi });
+    async deleteRecord({ recordId, id, bulan, posisi }) {
+        console.log('[Electricity] deleteRecord params:', { recordId, id, bulan, posisi });
 
-        if (!id) {
-            this.showToast('ID Pelanggan tidak ditemukan.', 'error');
-            return;
-        }
-        if (!bulan) {
-            this.showToast('Bulan tidak ditemukan.', 'error');
-            return;
-        }
-        if (!posisi) {
-            this.showToast('Posisi meteran tidak ditemukan.', 'error');
+        if (!recordId && (!id || !bulan || !posisi)) {
+            this.showToast('Data tidak lengkap untuk dihapus.', 'error');
             return;
         }
 
         // Cari data yang akan dihapus untuk ditampilkan di konfirmasi
-        const record = this.state.records.find(r =>
-            r.idPelanggan === id &&
-            r.bulan === bulan &&
-            r.no === posisi
-        );
+        let record = null;
+        if (recordId) {
+            // Cari berdasarkan recordId jika ada (dengan asumsi recordId adalah kombinasi atau ID unik)
+            record = this.state.records.find(r => {
+                const rId = r.id || r._id || `${r.idPelanggan}_${r.bulan}_${r.no}`.replace(/\s+/g, '_');
+                return rId === recordId;
+            });
+        }
+        if (!record && id && bulan && posisi) {
+            record = this.state.records.find(r =>
+                r.idPelanggan === id &&
+                r.bulan === bulan &&
+                r.no === posisi
+            );
+        }
         if (!record) {
             this.showToast('Data tidak ditemukan.', 'error');
             return;
@@ -934,9 +941,9 @@ const ElectricityController = {
             html: `
                 <p>Anda akan menghapus data:</p>
                 <ul style="text-align:left;">
-                    <li><strong>ID Pelanggan:</strong> ${id}</li>
-                    <li><strong>Bulan:</strong> ${bulan}</li>
-                    <li><strong>Posisi:</strong> ${posisi}</li>
+                    <li><strong>ID Pelanggan:</strong> ${record.idPelanggan}</li>
+                    <li><strong>Bulan:</strong> ${record.bulan}</li>
+                    <li><strong>Posisi:</strong> ${record.no}</li>
                     <li><strong>Entitas:</strong> ${record.entitas}</li>
                     <li><strong>Pemakaian:</strong> ${this.formatNumber(record.pemakaian, 2)} kWh</li>
                 </ul>
@@ -952,19 +959,28 @@ const ElectricityController = {
 
         try {
             this.showLoading(true);
-            // Kirim data lengkap (gunakan kedua varian untuk kompatibilitas)
+            // Kirim payload dengan semua kemungkinan parameter
             const payload = {
-                id: id,
+                id: id,                     // ID Pelanggan (fallback)
                 idPelanggan: id,
                 bulan: bulan,
                 posisi: posisi
             };
-            console.log('[Electricity] Sending delete payload:', payload);
+            // Jika ada recordId unik, kirim sebagai 'recordId' atau 'id' (primary key)
+            if (recordId) {
+                payload.recordId = recordId;
+                // Beberapa backend mungkin menggunakan 'id' sebagai primary key
+                // Jika recordId berbeda dari idPelanggan, kirim sebagai 'id' juga
+                if (recordId !== id) {
+                    payload.id = recordId;
+                }
+            }
+            console.log('[Electricity] Delete payload:', payload);
             const response = await BCS.Api.request('POST', 'deleteElectricityRecord', payload);
             console.log('[Electricity] Delete response:', response);
 
             if (response.success) {
-                this.showToast(`Data ${bulan} (${posisi}) berhasil dihapus.`, 'success');
+                this.showToast(`Data ${record.bulan} (${record.no}) berhasil dihapus.`, 'success');
                 this.loadDashboard({ showLoading: false, showToast: false });
             } else {
                 this.showError(response.message || 'Gagal menghapus data.');

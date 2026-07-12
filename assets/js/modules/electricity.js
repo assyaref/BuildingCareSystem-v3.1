@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 1.8 (Refresh Background + Toast)
+ * Version 1.9 (Posisi Meteran + Refresh Background)
  * =====================================================
  */
 
@@ -34,7 +34,6 @@ const ElectricityController = {
 
     init() {
         this.registerEvent();
-        // Inisialisasi pertama: tampilkan loading overlay
         this.loadDashboard({ showLoading: true, showToast: false });
         this.startAutoRefresh();
         this.startClock();
@@ -91,7 +90,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // AUTO REFRESH (Background, tanpa loading)
+    // AUTO REFRESH (Background)
     // ==========================================================
 
     startAutoRefresh() {
@@ -102,7 +101,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // LOAD DASHBOARD (dengan opsi)
+    // LOAD DASHBOARD
     // ==========================================================
 
     async loadDashboard(options = {}) {
@@ -133,7 +132,6 @@ const ElectricityController = {
                 console.warn('[Electricity] List data gagal dimuat:', listRes.message);
             }
 
-            // Toast sukses jika diminta
             if (showToast) {
                 this.showToast('Data berhasil diperbarui.', 'success');
             }
@@ -426,7 +424,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // TABLE
+    // TABLE (dengan kolom Posisi Meteran)
     // ==========================================================
 
     renderTable() {
@@ -442,7 +440,8 @@ const ElectricityController = {
         if (keyword) {
             rows = rows.filter(r =>
                 String(r.entitas).toLowerCase().includes(keyword) ||
-                String(r.idPelanggan).toLowerCase().includes(keyword)
+                String(r.idPelanggan).toLowerCase().includes(keyword) ||
+                String(r.no).toLowerCase().includes(keyword) // posisi meteran
             );
         }
 
@@ -474,6 +473,7 @@ const ElectricityController = {
                 <tr>
                     <td class="text-start ps-4">${start + idx + 1}</td>
                     <td class="text-start">${item.bulan}</td>
+                    <td class="text-start"><strong>${item.no || '-'}</strong></td>
                     <td class="text-start">${item.idPelanggan}</td>
                     <td class="text-start">${item.entitas}</td>
                     <td class="text-end">${this.formatNumber(item.awal, 2)}</td>
@@ -553,6 +553,7 @@ const ElectricityController = {
                     this.openForm({
                         id: record.idPelanggan,
                         bulan: record.bulan,
+                        posisi: record.no || '',
                         idPelanggan: record.idPelanggan,
                         entitas: record.entitas,
                         awal: record.awal,
@@ -583,12 +584,14 @@ const ElectricityController = {
         const title = document.getElementById('formModalTitle');
         const btnSave = document.getElementById('btnSaveRecord');
 
+        // Populasi datalist ID Pelanggan
         const datalist = document.getElementById('idPelangganList');
         if (datalist) {
             const ids = [...new Set(this.state.records.map(r => r.idPelanggan).filter(Boolean))];
             datalist.innerHTML = ids.map(id => `<option value="${id}">`).join('');
         }
 
+        // Event listener untuk auto-fill Entitas & Posisi
         const idInput = document.getElementById('formIdPelanggan');
         if (idInput) {
             const newInput = idInput.cloneNode(true);
@@ -598,9 +601,11 @@ const ElectricityController = {
                 const val = this.value.trim();
                 if (!val) return;
                 const record = ElectricityController.state.records.find(r => r.idPelanggan === val);
-                const entitasSelect = document.getElementById('formEntitas');
-                if (record && entitasSelect) {
-                    entitasSelect.value = record.entitas || '';
+                if (record) {
+                    const entitasSelect = document.getElementById('formEntitas');
+                    if (entitasSelect) entitasSelect.value = record.entitas || '';
+                    const posisiInput = document.getElementById('formPosisi');
+                    if (posisiInput) posisiInput.value = record.no || '';
                 }
             });
         }
@@ -610,8 +615,8 @@ const ElectricityController = {
             btnSave.textContent = 'Update';
             document.getElementById('formId').value = data.id || '';
             document.getElementById('formBulan').value = data.bulan || '';
-            const idField = document.getElementById('formIdPelanggan');
-            if (idField) idField.value = data.idPelanggan || '';
+            document.getElementById('formPosisi').value = data.posisi || '';
+            document.getElementById('formIdPelanggan').value = data.idPelanggan || '';
             document.getElementById('formEntitas').value = data.entitas || '';
             document.getElementById('formAwal').value = data.awal || '';
             document.getElementById('formAkhir').value = data.akhir || '';
@@ -623,8 +628,8 @@ const ElectricityController = {
             btnSave.textContent = 'Simpan';
             document.getElementById('electricityForm').reset();
             document.getElementById('formId').value = '';
-            const idField = document.getElementById('formIdPelanggan');
-            if (idField) idField.value = '';
+            document.getElementById('formPosisi').value = '';
+            document.getElementById('formIdPelanggan').value = '';
         }
 
         modal.show();
@@ -634,6 +639,7 @@ const ElectricityController = {
         const formData = {
             id: document.getElementById('formId').value,
             bulan: document.getElementById('formBulan').value,
+            posisiMeteran: document.getElementById('formPosisi').value,
             idPelanggan: document.getElementById('formIdPelanggan').value,
             entitas: document.getElementById('formEntitas').value,
             awal: parseFloat(document.getElementById('formAwal').value) || 0,
@@ -643,8 +649,8 @@ const ElectricityController = {
             keterangan: document.getElementById('formKeterangan').value
         };
 
-        if (!formData.bulan || !formData.idPelanggan || !formData.entitas) {
-            this.showToast('Bulan, ID Pelanggan, dan Entitas wajib diisi.', 'warning');
+        if (!formData.bulan || !formData.posisiMeteran || !formData.idPelanggan || !formData.entitas) {
+            this.showToast('Bulan, Posisi Meteran, ID Pelanggan, dan Entitas wajib diisi.', 'warning');
             return;
         }
 
@@ -655,7 +661,6 @@ const ElectricityController = {
             if (response.success) {
                 this.showToast('Data berhasil disimpan.', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
-                // Refresh background tanpa loading
                 this.loadDashboard({ showLoading: false, showToast: true });
             } else {
                 this.showError(response.message || 'Gagal menyimpan data.');
@@ -686,7 +691,6 @@ const ElectricityController = {
             const response = await BCS.Api.request('POST', 'deleteElectricityRecord', { id });
             if (response.success) {
                 this.showToast('Data berhasil dihapus.', 'success');
-                // Refresh background tanpa loading
                 this.loadDashboard({ showLoading: false, showToast: true });
             } else {
                 this.showError(response.message || 'Gagal menghapus data.');
@@ -795,7 +799,6 @@ const ElectricityController = {
 
     registerEvent() {
         document.getElementById("btnRefresh")?.addEventListener("click", () => {
-            // Refresh manual: background + toast, tanpa loading
             this.loadDashboard({ showLoading: false, showToast: true });
         });
 

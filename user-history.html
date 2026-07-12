@@ -241,13 +241,61 @@
       font-size: 16px;
     }
 
-    /* Custom Toast Logout Style */
-    #logoutToast {
-      transform: translateY(100%);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    /* === LOGOUT OVERLAY & TOAST (di tengah) === */
+    #logoutOverlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    #logoutToast.show {
-      transform: translateY(0);
+    #logoutOverlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #logoutToast {
+      width: 90%;
+      max-width: 400px;
+      background: #fff;
+      border-radius: 28px;
+      padding: 24px 24px 32px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+      transform: scale(0.9);
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    }
+    #logoutOverlay.show #logoutToast {
+      transform: scale(1);
+      opacity: 1;
+    }
+    .logout-icon {
+      width: 64px;
+      height: 64px;
+      background: #fef2f2;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 28px;
+      color: #ef4444;
+      animation: bounce 1.2s infinite;
+    }
+    @keyframes bounce {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-6px);
+      }
     }
 
     /* Smartphone Push Notification Card */
@@ -309,9 +357,7 @@
       opacity: 0.65;
     }
 
-    /* ==================================================
-       FINAL COLORFUL PUSH NOTIFICATION TOAST
-       ================================================== */
+    /* Push Notification Success Toast (sama seperti user-report) */
     .swal-push-success {
       width: min(370px, calc(100vw - 32px)) !important;
       padding: 0 !important;
@@ -674,20 +720,16 @@
     <a href="#" id="navHistory" class="text-[#1e5eff]"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
   </div>
 
-  <!-- Modern Interactive Logout Toast Overlay -->
-  <div id="logoutOverlay" class="absolute inset-0 bg-black/40 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-end">
-    <div id="logoutToast" class="w-full bg-white rounded-t-3xl p-6 shadow-2xl space-y-5">
-      <div class="flex justify-center">
-        <div class="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+  <!-- Logout Overlay (Toast di tengah) -->
+  <div id="logoutOverlay">
+    <div id="logoutToast">
+      <!-- handle dihilangkan karena modal tengah -->
+      <div class="logout-icon">
+        <i class="fa-solid fa-right-from-bracket"></i>
       </div>
-      <div class="text-center space-y-2">
-        <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-2 animate-bounce">
-          <i class="fa-solid fa-right-from-bracket"></i>
-        </div>
-        <h3 class="text-gray-800 font-bold text-lg">Ingin Keluar Aplikasi?</h3>
-        <p class="text-gray-500 text-sm max-w-xs mx-auto">Anda perlu memasukkan ulang kredensial untuk mengakses data kembali.</p>
-      </div>
-      <div class="grid grid-cols-2 gap-3 pt-2">
+      <h3 class="text-center text-gray-800 font-bold text-lg mb-1">Ingin Keluar Aplikasi?</h3>
+      <p class="text-center text-gray-500 text-sm max-w-xs mx-auto mb-6">Anda perlu memasukkan ulang kredensial untuk mengakses data kembali.</p>
+      <div class="grid grid-cols-2 gap-3">
         <button id="cancelLogoutBtn" class="py-3.5 rounded-xl border border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 active:scale-[0.98] transition-all text-sm">
           Batal
         </button>
@@ -726,13 +768,11 @@
   // =============================================
   (function checkUserAccess() {
     try {
-      // Tunggu sesaat agar BCS.Storage siap
       if (typeof BCS === 'undefined' || typeof BCS.Storage === 'undefined') {
         console.warn('BCS belum siap, menunggu 200ms...');
         setTimeout(function() { checkUserAccess(); }, 200);
         return;
       }
-
       var session = BCS.Storage.getSession();
       if (!session || !session.token) {
         window.location.href = '/login';
@@ -740,7 +780,6 @@
       }
       var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
       if (role !== 'USER' && role !== 'TECHNICIAN') {
-        // Jika role adalah admin, arahkan ke /admin
         if (['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'].includes(role)) {
           window.location.href = '/admin';
         } else {
@@ -761,6 +800,29 @@
     let allReports = [];
     let currentStatusFilter = 'ALL';
 
+    // =============================================
+    // SMARTPHONE PUSH NOTIFICATION (sama seperti user-report)
+    // =============================================
+    const enableNotificationBtn = document.getElementById('enableNotificationBtn');
+    const pushNotificationText = document.getElementById('pushNotificationText');
+
+    function setPushButtonActive() {
+      enableNotificationBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Nonaktifkan';
+      enableNotificationBtn.classList.remove('active');
+      enableNotificationBtn.classList.add('deactivate');
+      enableNotificationBtn.disabled = false;
+      enableNotificationBtn.dataset.pushState = 'active';
+      pushNotificationText.textContent = 'Notifikasi aktif. Tekan Nonaktifkan untuk berhenti menerima update di perangkat ini.';
+    }
+
+    function setPushButtonInactive() {
+      enableNotificationBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Aktifkan';
+      enableNotificationBtn.classList.remove('active', 'deactivate');
+      enableNotificationBtn.disabled = false;
+      enableNotificationBtn.dataset.pushState = 'inactive';
+      pushNotificationText.textContent = 'Terima update status laporan langsung di HP.';
+    }
+
     function showPushNotificationSuccess() {
       Swal.fire({
         html: `
@@ -768,76 +830,31 @@
             <span class="push-toast-spark p1"><i class="fa-solid fa-star"></i></span>
             <span class="push-toast-spark p2"><i class="fa-solid fa-sparkles"></i></span>
             <span class="push-toast-spark p3"><i class="fa-solid fa-circle"></i></span>
-
-            <div class="push-success-icon">
-              <i class="fa-solid fa-bell"></i>
-            </div>
-
+            <div class="push-success-icon"><i class="fa-solid fa-bell"></i></div>
             <h3 class="push-success-title">Notifikasi Berhasil Diaktifkan!</h3>
-            <p class="push-success-message">
-              Smartphone ini sekarang siap menerima update status laporan secara langsung.
-            </p>
-
-            <div class="push-success-status">
-              <i class="fa-solid fa-circle-check"></i>
-              Perangkat terhubung ke BCS
-            </div>
-
+            <p class="push-success-message">Smartphone ini sekarang siap menerima update status laporan secara langsung.</p>
+            <div class="push-success-status"><i class="fa-solid fa-circle-check"></i> Perangkat terhubung ke BCS</div>
             <div class="push-success-progress"></div>
           </div>
         `,
         showConfirmButton: false,
         timer: 2800,
         timerProgressBar: false,
-        backdrop: 'rgba(15, 23, 42, .44)',
+        backdrop: 'rgba(15,23,42,.44)',
         customClass: { popup: 'swal-push-success' },
         showClass: { popup: 'animate__animated animate__zoomIn animate__faster' },
         hideClass: { popup: 'animate__animated animate__fadeOutUp animate__faster' }
       });
     }
 
-    // =============================================
-    // SMARTPHONE PUSH NOTIFICATION
-    // =============================================
-    const enableNotificationBtn = document.getElementById('enableNotificationBtn');
-    const pushNotificationText = document.getElementById('pushNotificationText');
-
-    function setPushButtonActive() {
-      enableNotificationBtn.innerHTML =
-        '<i class="fa-solid fa-bell-slash"></i> Nonaktifkan';
-      enableNotificationBtn.classList.remove('active');
-      enableNotificationBtn.classList.add('deactivate');
-      enableNotificationBtn.disabled = false;
-      enableNotificationBtn.dataset.pushState = 'active';
-      pushNotificationText.textContent =
-        'Notifikasi aktif. Tekan Nonaktifkan untuk berhenti menerima update di perangkat ini.';
-    }
-
-    function setPushButtonInactive() {
-      enableNotificationBtn.innerHTML =
-        '<i class="fa-solid fa-bell"></i> Aktifkan';
-      enableNotificationBtn.classList.remove('active', 'deactivate');
-      enableNotificationBtn.disabled = false;
-      enableNotificationBtn.dataset.pushState = 'inactive';
-      pushNotificationText.textContent =
-        'Terima update status laporan langsung di HP.';
-    }
-
     function showPushDisableSuccess() {
       Swal.fire({
         html: `
           <div class="push-disable-toast">
-            <div class="push-disable-icon">
-              <i class="fa-solid fa-bell-slash"></i>
-            </div>
+            <div class="push-disable-icon"><i class="fa-solid fa-bell-slash"></i></div>
             <h3 class="push-disable-title">Notifikasi Dinonaktifkan</h3>
-            <p class="push-disable-message">
-              Smartphone ini tidak akan menerima update status laporan sampai notifikasi diaktifkan kembali.
-            </p>
-            <div class="push-disable-status">
-              <i class="fa-solid fa-circle-minus"></i>
-              Perangkat terputus dari notifikasi BCS
-            </div>
+            <p class="push-disable-message">Smartphone ini tidak akan menerima update status laporan sampai notifikasi diaktifkan kembali.</p>
+            <div class="push-disable-status"><i class="fa-solid fa-circle-minus"></i> Perangkat terputus dari notifikasi BCS</div>
             <div class="push-disable-progress"></div>
           </div>
         `,
@@ -853,12 +870,7 @@
 
     async function disablePushNotification() {
       const fcmToken = localStorage.getItem('BCS_FCM_TOKEN');
-
-      if (!fcmToken) {
-        setPushButtonInactive();
-        return;
-      }
-
+      if (!fcmToken) { setPushButtonInactive(); return; }
       const confirm = await Swal.fire({
         icon: 'warning',
         title: 'Nonaktifkan Notifikasi?',
@@ -871,38 +883,25 @@
         cancelButtonColor: '#64748b',
         customClass: { popup: 'rounded-3xl' }
       });
-
       if (!confirm.isConfirmed) return;
-
       enableNotificationBtn.disabled = true;
-      enableNotificationBtn.innerHTML =
-        '<i class="fa-solid fa-spinner fa-spin"></i> Menonaktifkan...';
-
-      const result = await BCS.Api.post('unregisterPushToken', {
-        fcmToken: fcmToken
-      });
-
-      if (!result || result.success !== true) {
-        throw new Error(result?.message || 'Gagal menonaktifkan token notifikasi.');
-      }
-
+      enableNotificationBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menonaktifkan...';
+      const result = await BCS.Api.post('unregisterPushToken', { fcmToken: fcmToken });
+      if (!result || result.success !== true) { throw new Error(result?.message || 'Gagal menonaktifkan token notifikasi.'); }
       localStorage.removeItem('BCS_FCM_TOKEN');
       localStorage.removeItem('BCS_FCM_REGISTERED_AT');
-
       setPushButtonInactive();
       showPushDisableSuccess();
     }
 
     function updatePushNotificationUI() {
       if (!enableNotificationBtn || !pushNotificationText) return;
-
       if (!('Notification' in window)) {
         enableNotificationBtn.textContent = 'Tidak didukung';
         enableNotificationBtn.disabled = true;
         pushNotificationText.textContent = 'Browser ini belum mendukung notifikasi.';
         return;
       }
-
       if (Notification.permission === 'granted' && localStorage.getItem('BCS_FCM_TOKEN')) {
         setPushButtonActive();
       } else if (Notification.permission === 'denied') {
@@ -914,55 +913,28 @@
 
     enableNotificationBtn?.addEventListener('click', async function() {
       if (this.dataset.pushState === 'active') {
-        try {
-          await disablePushNotification();
-        } catch (error) {
+        try { await disablePushNotification(); } catch (error) {
           console.error('[Push Notification Disable]', error);
           setPushButtonActive();
-          Swal.fire({
-            icon: 'error',
-            title: 'Gagal Menonaktifkan',
-            text: error.message || 'Terjadi kesalahan saat menonaktifkan notifikasi.',
-            confirmButtonColor: '#ef4444'
-          });
+          Swal.fire({ icon: 'error', title: 'Gagal Menonaktifkan', text: error.message || 'Terjadi kesalahan.', confirmButtonColor: '#ef4444' });
         }
         return;
       }
-
       const oldText = this.innerHTML;
       this.disabled = true;
       this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-
       try {
-        if (!window.BCSPush) {
-          throw new Error('Modul notifikasi belum siap. Muat ulang halaman.');
-        }
-
+        if (!window.BCSPush) throw new Error('Modul notifikasi belum siap. Muat ulang halaman.');
         const result = await window.BCSPush.enable();
-
-        if (result?.success) {
-          setPushButtonActive();
-
-          showPushNotificationSuccess();
-        } else {
-          this.textContent = oldText;
-          this.disabled = false;
-          pushNotificationText.textContent = 'Izin notifikasi belum diberikan.';
+        if (result?.success) { setPushButtonActive(); showPushNotificationSuccess(); } else {
+          this.textContent = oldText; this.disabled = false; pushNotificationText.textContent = 'Izin notifikasi belum diberikan.';
         }
       } catch (error) {
         console.error('[Push Notification]', error);
-        this.textContent = oldText;
-        this.disabled = false;
-        pushNotificationText.textContent = 'Gagal mengaktifkan. Coba lagi.';
-
-        if (typeof showCenterAlert === 'function') {
-          showCenterAlert('error', '❌ ' + error.message);
-        } else {
-          alert(error.message);
-        }
+        this.textContent = oldText; this.disabled = false; pushNotificationText.textContent = 'Gagal mengaktifkan. Coba lagi.';
+        if (typeof showCenterAlert === 'function') { showCenterAlert('error', '❌ ' + error.message); } else { alert(error.message); }
       }
     });
-
     updatePushNotificationUI();
 
     // =============================================
@@ -975,12 +947,10 @@
         const nama = user.nama || user.name || 'User';
         const dept = user.departemen || user.department || '';
         const nik = session?.nik || user.nik || '';
-
         document.getElementById('userName').textContent = `Halo ${nama} 👋`;
         document.getElementById('userDept').textContent = dept || nik || 'Building Care';
         const avatar = document.getElementById('userAvatar');
         avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
-
         window._user = { nama: nama.toLowerCase().trim(), nik: nik.trim(), dept };
       } catch (e) {
         console.warn('Gagal load user:', e);
@@ -994,23 +964,19 @@
     async function loadHistory() {
       const list = document.getElementById('historyList');
       list.innerHTML = '<div class="text-center text-gray-400 py-8"><i class="fa-regular fa-clock text-3xl block mb-2"></i><span>Memuat data...</span></div>';
-
       try {
         const response = await BCS.Api.post('getReport', {});
         if (!response || !response.success) {
           list.innerHTML = `<div class="text-center text-red-400 py-8">Gagal memuat data: ${response?.message || 'Unknown error'}</div>`;
           return;
         }
-
         const reports = response.data?.reports || [];
         if (!reports.length) {
           list.innerHTML = `<div class="text-center text-gray-400 py-8"><i class="fa-regular fa-file-lines text-3xl block mb-2"></i><span>Belum ada laporan</span></div>`;
           return;
         }
-
         const userNik = window._user?.nik || '';
         const userNama = window._user?.nama || '';
-
         allReports = reports.filter(r => {
           const reportNik = String(r.nik || '').trim();
           const reportNama = String(r.nama || r.pelapor || '').toLowerCase().trim();
@@ -1018,9 +984,7 @@
           if (userNama && reportNama) return reportNama === userNama;
           return false;
         });
-
         applyFilter();
-
       } catch (err) {
         console.error('Load history error:', err);
         list.innerHTML = `<div class="text-center text-red-400 py-8">Terjadi kesalahan: ${err.message}</div>`;
@@ -1036,19 +1000,16 @@
         list.innerHTML = `<div class="text-center text-gray-400 py-8"><i class="fa-regular fa-file-lines text-3xl block mb-2"></i><span>Tidak ada laporan yang cocok</span></div>`;
         return;
       }
-
       let html = '';
       reports.forEach(r => {
         const status = r.status || 'OPEN';
         let statusClass = 'status-open';
         if (status === 'DONE') statusClass = 'status-done';
         else if (status === 'PROGRESS') statusClass = 'status-progress';
-
         const foto = r.foto || '';
         const fotoHtml = foto ? `<img src="${foto}" alt="foto" />` : `<i class="fa-regular fa-image"></i>`;
         const tanggal = r.tanggal || r.createdAt || '';
         const formattedDate = tanggal ? new Date(tanggal).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-
         html += `
           <div class="history-item border border-gray-100 rounded-2xl p-4 flex items-center justify-between shadow-sm bg-white mb-3" data-report-id="${String(r.id || r.reportId || r.report_id || r.ID || '')}">
             <div class="space-y-1 flex-1 pr-2">
@@ -1077,40 +1038,27 @@
     function focusTargetReport() {
       const targetId = new URLSearchParams(window.location.search).get('reportId');
       if (!targetId) return;
-
       const cards = [...document.querySelectorAll('.history-item')];
       const target = cards.find(card =>
         String(card.dataset.reportId || '').trim().toLowerCase() ===
         String(targetId).trim().toLowerCase()
       );
-
       if (!target) return;
-
       target.classList.add('target-report');
-      setTimeout(() => {
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 180);
-
+      setTimeout(() => { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 180);
       setTimeout(() => target.classList.remove('target-report'), 4200);
-
-      // Bersihkan query agar refresh berikutnya tidak terus menyorot kartu.
-      try {
-        history.replaceState({}, '', '/user-history');
-      } catch (e) {}
+      try { history.replaceState({}, '', '/user-history'); } catch (e) {}
     }
 
     // =============================================
-    // 4. COMBINED SEARCH & STATUS FILTER SYSTEM
+    // 4. FILTER
     // =============================================
     function applyFilter() {
       const keyword = document.getElementById('searchHistory').value.toLowerCase().trim();
-
       let filtered = allReports;
-
       if (currentStatusFilter !== 'ALL') {
         filtered = filtered.filter(r => (r.status || '').toUpperCase() === currentStatusFilter);
       }
-
       if (keyword) {
         filtered = filtered.filter(r =>
           (r.lokasi || '').toLowerCase().includes(keyword) ||
@@ -1118,17 +1066,14 @@
           (r.deskripsi || '').toLowerCase().includes(keyword)
         );
       }
-
       renderReports(filtered);
     }
 
     document.getElementById('searchHistory').addEventListener('input', applyFilter);
-
     document.querySelectorAll('.filter-chip').forEach(chip => {
       chip.addEventListener('click', function() {
         document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
         this.classList.add('active');
-
         currentStatusFilter = this.getAttribute('data-status');
         applyFilter();
       });
@@ -1139,50 +1084,34 @@
     // =============================================
     window.openPhoto = function(el) {
       const foto = el.dataset.foto;
-      if (!foto) {
-        alert('Tidak ada foto untuk laporan ini');
-        return;
-      }
+      if (!foto) { alert('Tidak ada foto untuk laporan ini'); return; }
       const modal = document.getElementById('photoModal');
       const img = document.getElementById('photoPreview');
       img.src = foto;
       modal.style.display = 'flex';
-      try {
-        const bsModal = new bootstrap.Modal(modal);
-        bsModal.show();
-      } catch (e) {
-        modal.style.display = 'flex';
-      }
+      try { const bsModal = new bootstrap.Modal(modal); bsModal.show(); } catch (e) { modal.style.display = 'flex'; }
     };
-
-    document.getElementById('photoModal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        this.style.display = 'none';
-      }
-    });
+    document.getElementById('photoModal').addEventListener('click', function(e) { if (e.target === this) this.style.display = 'none'; });
 
     // =============================================
-    // 6. NAVIGASI, NOTIF & MODERN TOAST LOGOUT
+    // 6. NAVIGASI
     // =============================================
-    document.getElementById('navReport').addEventListener('click', function(e) { e.preventDefault();
-      window.location.href = '/user-report'; });
-    document.getElementById('navHistory').addEventListener('click', function(e) { e.preventDefault();
-      window.location.href = '/user-history'; });
-    document.getElementById('notifBtn').addEventListener('click', function() {
-      window.location.href = '/user-report#notifications';
-    });
+    document.getElementById('navReport').addEventListener('click', function(e) { e.preventDefault(); window.location.href = '/user-report'; });
+    document.getElementById('navHistory').addEventListener('click', function(e) { e.preventDefault(); window.location.href = '/user-history'; });
+    document.getElementById('notifBtn').addEventListener('click', function() { window.location.href = '/user-report#notifications'; });
 
+    // =============================================
+    // 7. LOGOUT — CENTERED TOAST
+    // =============================================
     const logoutOverlay = document.getElementById('logoutOverlay');
     const logoutToast = document.getElementById('logoutToast');
 
     function openLogoutToast() {
-      logoutOverlay.classList.remove('opacity-0', 'pointer-events-none');
-      logoutToast.classList.add('show');
+      logoutOverlay.classList.add('show');
     }
 
     function closeLogoutToast() {
-      logoutOverlay.classList.add('opacity-0', 'pointer-events-none');
-      logoutToast.classList.remove('show');
+      logoutOverlay.classList.remove('show');
     }
 
     document.getElementById('logoutBtn').addEventListener('click', function(e) {
@@ -1196,18 +1125,13 @@
     });
 
     document.getElementById('confirmLogoutBtn').addEventListener('click', function() {
-      // Menambahkan feedback loading saat keluar
       this.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Memproses...</span>';
       this.disabled = true;
-
       setTimeout(() => {
         if (window.auth && typeof window.auth.logout === 'function') { window.auth.logout(); return; }
-        try {
-          if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') { BCS.Storage.removeSession(); }
-        } catch (e) {}
+        try { if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') { BCS.Storage.removeSession(); } } catch (e) {}
         const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
-        keys.forEach(key => { localStorage.removeItem(key);
-          sessionStorage.removeItem(key); });
+        keys.forEach(key => { localStorage.removeItem(key); sessionStorage.removeItem(key); });
         window.location.href = '/login';
       }, 600);
     });

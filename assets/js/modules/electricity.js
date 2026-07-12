@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 3.4 (Delete warning: mass deletion by ID Pelanggan)
+ * Version 3.5 (FIXED DELETE - hanya satu baris sesuai filter)
  * =====================================================
  */
 
@@ -903,18 +903,27 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // DELETE RECORD (dengan peringatan massal)
+    // DELETE RECORD - HANYA SATU BARIS DENGAN FILTER LENGKAP
     // ==========================================================
 
     async deleteRecord({ recordId, id, bulan, posisi }) {
         console.log('[Electricity] deleteRecord params:', { recordId, id, bulan, posisi });
 
+        // Validasi semua parameter harus ada
         if (!id) {
             this.showToast('ID Pelanggan tidak ditemukan.', 'error');
             return;
         }
+        if (!bulan) {
+            this.showToast('Bulan tidak ditemukan.', 'error');
+            return;
+        }
+        if (!posisi) {
+            this.showToast('Posisi meteran tidak ditemukan.', 'error');
+            return;
+        }
 
-        // Cari data yang akan dihapus
+        // Cari data yang akan dihapus untuk ditampilkan di konfirmasi
         const record = this.state.records.find(r =>
             r.idPelanggan === id &&
             r.bulan === bulan &&
@@ -925,59 +934,42 @@ const ElectricityController = {
             return;
         }
 
-        // Cek apakah ada data lain dengan ID Pelanggan yang sama
-        const otherRecords = this.state.records.filter(r =>
-            r.idPelanggan === id &&
-            !(r.bulan === bulan && r.no === posisi)
-        );
-
-        let warningHtml = `
-            <p>Anda akan menghapus data:</p>
-            <ul style="text-align:left;">
-                <li><strong>ID Pelanggan:</strong> ${record.idPelanggan}</li>
-                <li><strong>Bulan:</strong> ${record.bulan}</li>
-                <li><strong>Posisi:</strong> ${record.no}</li>
-                <li><strong>Entitas:</strong> ${record.entitas}</li>
-                <li><strong>Pemakaian:</strong> ${this.formatNumber(record.pemakaian, 2)} kWh</li>
-            </ul>
-        `;
-
-        if (otherRecords.length > 0) {
-            warningHtml += `
-                <div class="text-danger mt-3" style="font-weight:bold; border:2px solid red; padding:10px; border-radius:5px;">
-                    ⚠️ PERINGATAN: Sistem saat ini hanya mendukung penghapusan berdasarkan ID Pelanggan.<br>
-                    Dengan menghapus data ini, <strong>SEMUA data dengan ID Pelanggan ${id}</strong> 
-                    (termasuk ${otherRecords.length} data lainnya) akan ikut terhapus.
-                    <br><br>
-                    <span style="font-size:0.9rem;">Untuk menghapus satu baris saja, tim backend perlu menambahkan endpoint delete dengan filter bulan dan posisi.</span>
-                </div>
-            `;
-        }
-
+        // Konfirmasi dengan detail lengkap
         const confirmed = await Swal.fire({
-            title: otherRecords.length > 0 ? '⚠️ Hapus Massal?' : 'Hapus Data?',
-            html: warningHtml,
-            icon: otherRecords.length > 0 ? 'warning' : 'question',
+            title: 'Hapus Data?',
+            html: `
+                <p>Anda akan menghapus data:</p>
+                <ul style="text-align:left;">
+                    <li><strong>ID Pelanggan:</strong> ${record.idPelanggan}</li>
+                    <li><strong>Bulan:</strong> ${record.bulan}</li>
+                    <li><strong>Posisi:</strong> ${record.no}</li>
+                    <li><strong>Entitas:</strong> ${record.entitas}</li>
+                    <li><strong>Pemakaian:</strong> ${this.formatNumber(record.pemakaian, 2)} kWh</li>
+                </ul>
+                <p class="text-danger">Data yang dihapus tidak dapat dikembalikan.</p>
+            `,
+            icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            confirmButtonText: otherRecords.length > 0 ? 'Ya, Hapus Semua' : 'Ya, Hapus!',
+            confirmButtonText: 'Ya, Hapus!',
             cancelButtonText: 'Batal'
         });
         if (!confirmed.isConfirmed) return;
 
         try {
             this.showLoading(true);
-            // Kirim hanya ID Pelanggan (sesuai kemampuan backend saat ini)
-            const payload = { id: id };
+            // Kirim id (ID Pelanggan) + bulan + posisi agar backend hapus spesifik
+            const payload = {
+                id: id,
+                bulan: bulan,
+                posisi: posisi
+            };
             console.log('[Electricity] Delete payload:', payload);
             const response = await BCS.Api.request('POST', 'deleteElectricityRecord', payload);
             console.log('[Electricity] Delete response:', response);
 
             if (response.success) {
-                const message = otherRecords.length > 0
-                    ? `Semua data dengan ID Pelanggan ${id} (${otherRecords.length + 1} data) berhasil dihapus.`
-                    : `Data ${record.bulan} (${record.no}) berhasil dihapus.`;
-                this.showToast(message, 'success');
+                this.showToast(`Data ${record.bulan} (${record.no}) berhasil dihapus.`, 'success');
                 this.loadDashboard({ showLoading: false, showToast: false });
             } else {
                 this.showError(response.message || 'Gagal menghapus data.');

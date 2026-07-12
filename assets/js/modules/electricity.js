@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 2.6 (Toast Tengah + Overlay)
+ * Version 2.7 (Fix auto-fill override bulan)
  * =====================================================
  */
 
@@ -12,6 +12,9 @@ const ElectricityController = {
     chartDetail: null,
     refreshTimer: null,
     clockInterval: null,
+
+    // Flag untuk menonaktifkan auto-fill sementara
+    _suppressAutoFill: false,
 
     state: {
         dashboard: null,
@@ -81,11 +84,6 @@ const ElectricityController = {
         this.showToast(message, "error");
     },
 
-    /**
-     * Toast dengan SweetAlert2 - tengah layar + overlay
-     * @param {string} message - Pesan yang ditampilkan
-     * @param {string} type - success | error | warning | info
-     */
     showToast(message, type = "info") {
         const iconMap = {
             success: 'success',
@@ -101,7 +99,6 @@ const ElectricityController = {
             info: 'Informasi'
         };
 
-        // Jika SweetAlert2 tersedia, gunakan sebagai toast tengah
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 icon: iconMap[type] || 'info',
@@ -123,12 +120,11 @@ const ElectricityController = {
             return;
         }
 
-        // Fallback ke console jika SweetAlert2 tidak tersedia
         console.log(`[${type.toUpperCase()}] ${message}`);
     },
 
     // ==========================================================
-    // AUTO REFRESH (Background)
+    // AUTO REFRESH
     // ==========================================================
 
     startAutoRefresh() {
@@ -247,7 +243,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // STATUS SUMMARY (DINAMIS)
+    // STATUS SUMMARY
     // ==========================================================
 
     renderStatusSummary() {
@@ -652,7 +648,12 @@ const ElectricityController = {
             datalist.innerHTML = ids.map(id => `<option value="${id}">`).join('');
         }
 
-        // --- EVENT: Posisi Meteran -> Auto-fill ---
+        // ==========================================================
+        // PERBAIKAN: Gunakan flag untuk menonaktifkan auto-fill sementara
+        // ==========================================================
+        this._suppressAutoFill = true;
+
+        // --- EVENT: Posisi Meteran -> Auto-fill (TIDAK MENGUBAH BULAN) ---
         const posisiSelect2 = document.getElementById('formPosisi');
         if (posisiSelect2) {
             const newPosisi = posisiSelect2.cloneNode(true);
@@ -660,16 +661,27 @@ const ElectricityController = {
             newPosisi.id = 'formPosisi';
 
             newPosisi.addEventListener('change', function(e) {
+                // Abaikan jika sedang suppress
+                if (ElectricityController._suppressAutoFill) return;
+
                 const selectedPosisi = this.value.trim();
                 if (!selectedPosisi) return;
 
                 const bulanSelect = document.getElementById('formBulan');
                 const selectedBulan = bulanSelect ? bulanSelect.value.trim() : '';
 
-                // Cari record dengan kombinasi posisi + bulan
-                let record = ElectricityController.state.records.find(r => 
-                    r.no === selectedPosisi && r.bulan === selectedBulan
-                );
+                // Cari record dengan kombinasi posisi + bulan (jika bulan terisi)
+                let record = null;
+                if (selectedBulan) {
+                    record = ElectricityController.state.records.find(r => 
+                        r.no === selectedPosisi && r.bulan === selectedBulan
+                    );
+                }
+
+                // Jika tidak ditemukan, cari record dengan posisi saja (untuk ID & Entitas)
+                if (!record) {
+                    record = ElectricityController.state.records.find(r => r.no === selectedPosisi);
+                }
 
                 const idInput = document.getElementById('formIdPelanggan');
                 const entitasSelect = document.getElementById('formEntitas');
@@ -680,7 +692,7 @@ const ElectricityController = {
                 const keteranganInput = document.getElementById('formKeterangan');
 
                 if (record) {
-                    // Jika ada data dengan bulan yang sama, isi semua
+                    // Isi field lain, tapi JANGAN sentuh bulan (biarkan tetap)
                     if (idInput) idInput.value = record.idPelanggan || '';
                     if (entitasSelect) entitasSelect.value = record.entitas || '';
                     if (awalInput) awalInput.value = record.awal || '';
@@ -689,28 +701,14 @@ const ElectricityController = {
                     if (nominalInput) nominalInput.value = record.nominal || '';
                     if (keteranganInput) keteranganInput.value = record.keterangan || '';
                 } else {
-                    // Cari record dengan posisi saja (fallback) untuk ID & Entitas
-                    const fallbackRecord = ElectricityController.state.records.find(r => r.no === selectedPosisi);
-                    if (fallbackRecord) {
-                        // Isi ID Pelanggan dan Entitas
-                        if (idInput) idInput.value = fallbackRecord.idPelanggan || '';
-                        if (entitasSelect) entitasSelect.value = fallbackRecord.entitas || '';
-                        // Kosongkan field lainnya
-                        if (awalInput) awalInput.value = '';
-                        if (akhirInput) akhirInput.value = '';
-                        if (pemakaianInput) pemakaianInput.value = '';
-                        if (nominalInput) nominalInput.value = '';
-                        if (keteranganInput) keteranganInput.value = '';
-                    } else {
-                        // Tidak ada data sama sekali, kosongkan semua
-                        if (idInput) idInput.value = '';
-                        if (entitasSelect) entitasSelect.value = '';
-                        if (awalInput) awalInput.value = '';
-                        if (akhirInput) akhirInput.value = '';
-                        if (pemakaianInput) pemakaianInput.value = '';
-                        if (nominalInput) nominalInput.value = '';
-                        if (keteranganInput) keteranganInput.value = '';
-                    }
+                    // Tidak ada data, kosongkan field lain (bulan tetap)
+                    if (idInput) idInput.value = '';
+                    if (entitasSelect) entitasSelect.value = '';
+                    if (awalInput) awalInput.value = '';
+                    if (akhirInput) akhirInput.value = '';
+                    if (pemakaianInput) pemakaianInput.value = '';
+                    if (nominalInput) nominalInput.value = '';
+                    if (keteranganInput) keteranganInput.value = '';
                 }
 
                 // Trigger kalkulasi
@@ -718,13 +716,15 @@ const ElectricityController = {
             });
         }
 
-        // --- EVENT: ID Pelanggan -> Auto-fill ---
+        // --- EVENT: ID Pelanggan -> Auto-fill (TIDAK MENGUBAH BULAN) ---
         const idInput = document.getElementById('formIdPelanggan');
         if (idInput) {
             const newInput = idInput.cloneNode(true);
             idInput.parentNode.replaceChild(newInput, idInput);
             newInput.id = 'formIdPelanggan';
             newInput.addEventListener('input', function(e) {
+                if (ElectricityController._suppressAutoFill) return;
+
                 const val = this.value.trim();
                 if (!val) return;
                 const record = ElectricityController.state.records.find(r => r.idPelanggan === val);
@@ -738,7 +738,7 @@ const ElectricityController = {
                     const nominalInput = document.getElementById('formNominal');
                     const keteranganInput = document.getElementById('formKeterangan');
 
-                    if (bulanSelect) bulanSelect.value = record.bulan || '';
+                    // Isi field, tapi JANGAN sentuh bulan
                     if (entitasSelect) entitasSelect.value = record.entitas || '';
                     if (posisiSelect) posisiSelect.value = record.no || '';
                     if (awalInput) awalInput.value = record.awal || '';
@@ -752,7 +752,7 @@ const ElectricityController = {
             });
         }
 
-        // --- Event listener untuk auto-calc ---
+        // --- Event listener untuk auto-calc (awal & akhir) ---
         const awalInput = document.getElementById('formAwal');
         const akhirInput = document.getElementById('formAkhir');
         if (awalInput && akhirInput) {
@@ -767,7 +767,9 @@ const ElectricityController = {
             newAkhir.addEventListener('input', () => this.calculateForm());
         }
 
-        // --- Isi data jika edit ---
+        // ==========================================================
+        // ISI DATA (dengan suppress aktif, agar event tidak terpicu)
+        // ==========================================================
         if (data) {
             title.innerHTML = `<i class="bi bi-pencil-square text-warning me-2"></i> Edit Data`;
             btnSave.textContent = 'Update';
@@ -792,11 +794,14 @@ const ElectricityController = {
             this.calculateForm();
         }
 
+        // Aktifkan kembali auto-fill setelah selesai mengisi
+        this._suppressAutoFill = false;
+
         modal.show();
     },
 
     // ==========================================================
-    // AUTO-CALCULATE: Pemakaian = Akhir - Awal, Nominal = Pemakaian * Harga
+    // AUTO-CALCULATE
     // ==========================================================
 
     calculateForm() {

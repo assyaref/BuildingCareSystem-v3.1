@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 2.4 (Posisi: isi ID & Entitas, kosongkan yang lain)
+ * Version 2.5 (Toast lengkap + Dropdown Posisi)
  * =====================================================
  */
 

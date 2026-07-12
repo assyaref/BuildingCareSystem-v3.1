@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 3.1 FINAL (Fix delete & edit dengan posisi)
+ * Version 2.7 (Fixed openForm null errors)
  * =====================================================
  */
 
@@ -12,8 +12,6 @@ const ElectricityController = {
     chartDetail: null,
     refreshTimer: null,
     clockInterval: null,
-
-    _suppressAutoFill: false,
 
     state: {
         dashboard: null,
@@ -30,12 +28,20 @@ const ElectricityController = {
         }
     },
 
+    // ==========================================================
+    // INIT
+    // ==========================================================
+
     init() {
         this.registerEvent();
         this.loadDashboard({ showLoading: true, showToast: false });
         this.startAutoRefresh();
         this.startClock();
     },
+
+    // ==========================================================
+    // CLOCK REAL-TIME
+    // ==========================================================
 
     startClock() {
         if (this.clockInterval) clearInterval(this.clockInterval);
@@ -61,17 +67,23 @@ const ElectricityController = {
         el.textContent = now.toLocaleString('id-ID', options);
     },
 
-    // ========== OVERLAY DINONAKTIFKAN ==========
+    // ==========================================================
+    // LOADING / ERROR / NOTIFICATION (Toast Tengah + Overlay)
+    // ==========================================================
+
     showLoading(show) {
-        // Overlay dihilangkan – tidak melakukan apapun
-        return;
+        const el = document.getElementById("loadingOverlay");
+        if (!el) return;
+        el.classList.toggle("d-none", !show);
     },
-    // ==========================================
 
     showError(message) {
         this.showToast(message, "error");
     },
 
+    /**
+     * Toast dengan SweetAlert2 - tengah layar + overlay
+     */
     showToast(message, type = "info") {
         const iconMap = {
             success: 'success',
@@ -111,12 +123,20 @@ const ElectricityController = {
         console.log(`[${type.toUpperCase()}] ${message}`);
     },
 
+    // ==========================================================
+    // AUTO REFRESH (Background)
+    // ==========================================================
+
     startAutoRefresh() {
         if (this.refreshTimer) clearInterval(this.refreshTimer);
         this.refreshTimer = setInterval(() => {
             this.loadDashboard({ showLoading: false, showToast: true });
         }, 300000);
     },
+
+    // ==========================================================
+    // LOAD DASHBOARD
+    // ==========================================================
 
     async loadDashboard(options = {}) {
         const { showLoading = false, showToast = false } = options;
@@ -162,6 +182,10 @@ const ElectricityController = {
         }
     },
 
+    // ==========================================================
+    // RENDER
+    // ==========================================================
+
     render() {
         this.renderSummary();
         this.renderStatusSummary();
@@ -169,6 +193,10 @@ const ElectricityController = {
         this.renderEntityChart();
         this.renderTable();
     },
+
+    // ==========================================================
+    // SUMMARY
+    // ==========================================================
 
     renderSummary() {
         const data = this.state.dashboard || {};
@@ -213,6 +241,10 @@ const ElectricityController = {
             avgLabel.textContent = data.highestMonth || '-';
         }
     },
+
+    // ==========================================================
+    // STATUS SUMMARY (DINAMIS)
+    // ==========================================================
 
     renderStatusSummary() {
         const records = this.state.records || [];
@@ -292,6 +324,10 @@ const ElectricityController = {
         }
     },
 
+    // ==========================================================
+    // HELPER
+    // ==========================================================
+
     setText(id, value) {
         const el = document.getElementById(id);
         if (!el) return;
@@ -323,6 +359,22 @@ const ElectricityController = {
         };
         return map[status] || 'badge-info';
     },
+
+    /**
+     * Safely set value of an element by ID. Logs warning if not found.
+     */
+    _safeSetValue(id, value) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.value = value;
+        } else {
+            console.warn(`[Electricity] Element with id "${id}" not found.`);
+        }
+    },
+
+    // ==========================================================
+    // MONTHLY CHART
+    // ==========================================================
 
     renderMonthlyChart() {
         const canvas = document.getElementById("monthlyChart");
@@ -366,6 +418,10 @@ const ElectricityController = {
             }
         });
     },
+
+    // ==========================================================
+    // ENTITY CHART
+    // ==========================================================
 
     renderEntityChart() {
         const canvas = document.getElementById("entityChart");
@@ -413,6 +469,10 @@ const ElectricityController = {
         }
     },
 
+    // ==========================================================
+    // TABLE
+    // ==========================================================
+
     renderTable() {
         const tbody = document.querySelector("#tblElectricity tbody");
         if (!tbody) return;
@@ -453,10 +513,9 @@ const ElectricityController = {
         }
 
         pageRows.forEach((item, idx) => {
+            const badgeClass = this.getStatusBadge(item.status);
             const isNegative = item.pemakaian < 0;
             const posisi = (item.no && item.no !== '-' && item.no !== 'null') ? item.no : '-';
-            const uniqueKey = `${item.bulan}|${item.no}|${item.idPelanggan}`;
-            const uniqueId = btoa(uniqueKey);
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
                     <td class="text-start ps-4">${start + idx + 1}</td>
@@ -474,10 +533,10 @@ const ElectricityController = {
                             <button class="btn btn-outline-primary btn-detail" data-id="${item.idPelanggan}" title="Detail">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <button class="btn btn-outline-warning btn-edit" data-unique="${uniqueId}" title="Edit">
+                            <button class="btn btn-outline-warning btn-edit" data-id="${item.idPelanggan}" title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn btn-outline-danger btn-delete" data-unique="${uniqueId}" title="Hapus">
+                            <button class="btn btn-outline-danger btn-delete" data-id="${item.idPelanggan}" title="Hapus">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -492,6 +551,10 @@ const ElectricityController = {
         this.bindEditButton();
         this.bindDeleteButton();
     },
+
+    // ==========================================================
+    // PAGINATION
+    // ==========================================================
 
     renderPagination(total) {
         const ul = document.getElementById("pagination");
@@ -518,6 +581,10 @@ const ElectricityController = {
         });
     },
 
+    // ==========================================================
+    // BIND BUTTONS
+    // ==========================================================
+
     bindDetailButton() {
         document.querySelectorAll(".btn-detail").forEach(btn => {
             btn.onclick = () => this.showDetail(btn.dataset.id);
@@ -527,13 +594,8 @@ const ElectricityController = {
     bindEditButton() {
         document.querySelectorAll(".btn-edit").forEach(btn => {
             btn.onclick = () => {
-                const unique = atob(btn.dataset.unique);
-                const [bulan, posisi, idPelanggan] = unique.split('|');
-                const record = this.state.records.find(r =>
-                    r.bulan === bulan &&
-                    r.no === posisi &&
-                    r.idPelanggan === idPelanggan
-                );
+                const id = btn.dataset.id;
+                const record = this.state.records.find(r => r.idPelanggan === id);
                 if (record) {
                     this.openForm({
                         id: record.idPelanggan,
@@ -556,19 +618,25 @@ const ElectricityController = {
 
     bindDeleteButton() {
         document.querySelectorAll(".btn-delete").forEach(btn => {
-            btn.onclick = () => {
-                const unique = atob(btn.dataset.unique);
-                const [bulan, posisi, idPelanggan] = unique.split('|');
-                this.deleteRecord({ bulan, posisi, idPelanggan });
-            };
+            btn.onclick = () => this.deleteRecord(btn.dataset.id);
         });
     },
 
+    // ==========================================================
+    // CRUD (dengan dropdown posisi & auto-calc)
+    // ==========================================================
+
     openForm(data = null) {
-        const modal = new bootstrap.Modal(document.getElementById('formModal'));
+        const modalElement = document.getElementById('formModal');
+        if (!modalElement) {
+            console.error('Modal #formModal not found.');
+            return;
+        }
+        const modal = new bootstrap.Modal(modalElement);
         const title = document.getElementById('formModalTitle');
         const btnSave = document.getElementById('btnSaveRecord');
 
+        // --- Populasi dropdown posisi meteran ---
         const posisiSelect = document.getElementById('formPosisi');
         if (posisiSelect) {
             const posisiSet = new Set();
@@ -590,14 +658,14 @@ const ElectricityController = {
             }
         }
 
+        // --- Populasi datalist ID Pelanggan ---
         const datalist = document.getElementById('idPelangganList');
         if (datalist) {
             const ids = [...new Set(this.state.records.map(r => r.idPelanggan).filter(Boolean))];
             datalist.innerHTML = ids.map(id => `<option value="${id}">`).join('');
         }
 
-        this._suppressAutoFill = true;
-
+        // --- EVENT: Posisi Meteran -> Auto-fill ---
         const posisiSelect2 = document.getElementById('formPosisi');
         if (posisiSelect2) {
             const newPosisi = posisiSelect2.cloneNode(true);
@@ -605,10 +673,16 @@ const ElectricityController = {
             newPosisi.id = 'formPosisi';
 
             newPosisi.addEventListener('change', function(e) {
-                if (ElectricityController._suppressAutoFill) return;
                 const selectedPosisi = this.value.trim();
                 if (!selectedPosisi) return;
-                const record = ElectricityController.state.records.find(r => r.no === selectedPosisi);
+
+                const bulanSelect = document.getElementById('formBulan');
+                const selectedBulan = bulanSelect ? bulanSelect.value.trim() : '';
+
+                let record = ElectricityController.state.records.find(r => 
+                    r.no === selectedPosisi && r.bulan === selectedBulan
+                );
+
                 const idInput = document.getElementById('formIdPelanggan');
                 const entitasSelect = document.getElementById('formEntitas');
                 const awalInput = document.getElementById('formAwal');
@@ -626,29 +700,41 @@ const ElectricityController = {
                     if (nominalInput) nominalInput.value = record.nominal || '';
                     if (keteranganInput) keteranganInput.value = record.keterangan || '';
                 } else {
-                    if (idInput) idInput.value = '';
-                    if (entitasSelect) entitasSelect.value = '';
-                    if (awalInput) awalInput.value = '';
-                    if (akhirInput) akhirInput.value = '';
-                    if (pemakaianInput) pemakaianInput.value = '';
-                    if (nominalInput) nominalInput.value = '';
-                    if (keteranganInput) keteranganInput.value = '';
+                    const fallbackRecord = ElectricityController.state.records.find(r => r.no === selectedPosisi);
+                    if (fallbackRecord) {
+                        if (idInput) idInput.value = fallbackRecord.idPelanggan || '';
+                        if (entitasSelect) entitasSelect.value = fallbackRecord.entitas || '';
+                        if (awalInput) awalInput.value = '';
+                        if (akhirInput) akhirInput.value = '';
+                        if (pemakaianInput) pemakaianInput.value = '';
+                        if (nominalInput) nominalInput.value = '';
+                        if (keteranganInput) keteranganInput.value = '';
+                    } else {
+                        if (idInput) idInput.value = '';
+                        if (entitasSelect) entitasSelect.value = '';
+                        if (awalInput) awalInput.value = '';
+                        if (akhirInput) akhirInput.value = '';
+                        if (pemakaianInput) pemakaianInput.value = '';
+                        if (nominalInput) nominalInput.value = '';
+                        if (keteranganInput) keteranganInput.value = '';
+                    }
                 }
                 ElectricityController.calculateForm();
             });
         }
 
+        // --- EVENT: ID Pelanggan -> Auto-fill ---
         const idInput = document.getElementById('formIdPelanggan');
         if (idInput) {
             const newInput = idInput.cloneNode(true);
             idInput.parentNode.replaceChild(newInput, idInput);
             newInput.id = 'formIdPelanggan';
             newInput.addEventListener('input', function(e) {
-                if (ElectricityController._suppressAutoFill) return;
                 const val = this.value.trim();
                 if (!val) return;
                 const record = ElectricityController.state.records.find(r => r.idPelanggan === val);
                 if (record) {
+                    const bulanSelect = document.getElementById('formBulan');
                     const entitasSelect = document.getElementById('formEntitas');
                     const posisiSelect = document.getElementById('formPosisi');
                     const awalInput = document.getElementById('formAwal');
@@ -657,6 +743,7 @@ const ElectricityController = {
                     const nominalInput = document.getElementById('formNominal');
                     const keteranganInput = document.getElementById('formKeterangan');
 
+                    if (bulanSelect) bulanSelect.value = record.bulan || '';
                     if (entitasSelect) entitasSelect.value = record.entitas || '';
                     if (posisiSelect) posisiSelect.value = record.no || '';
                     if (awalInput) awalInput.value = record.awal || '';
@@ -670,6 +757,7 @@ const ElectricityController = {
             });
         }
 
+        // --- Event listener untuk auto-calc ---
         const awalInput = document.getElementById('formAwal');
         const akhirInput = document.getElementById('formAkhir');
         if (awalInput && akhirInput) {
@@ -684,35 +772,38 @@ const ElectricityController = {
             newAkhir.addEventListener('input', () => this.calculateForm());
         }
 
+        // --- Isi data jika edit ---
         if (data) {
             title.innerHTML = `<i class="bi bi-pencil-square text-warning me-2"></i> Edit Data`;
             btnSave.textContent = 'Update';
-            document.getElementById('formId').value = data.id || '';
-            document.getElementById('formBulan').value = data.bulan || '';
-            document.getElementById('formPosisi').value = data.posisi || '';
-            document.getElementById('formIdPelanggan').value = data.idPelanggan || '';
-            document.getElementById('formEntitas').value = data.entitas || '';
-            document.getElementById('formAwal').value = data.awal || '';
-            document.getElementById('formAkhir').value = data.akhir || '';
-            document.getElementById('formPemakaian').value = data.pemakaian || '';
-            document.getElementById('formNominal').value = data.nominal || '';
-            document.getElementById('formKeterangan').value = data.keterangan || '';
-            document.getElementById('formPosisiLama').value = data.posisi || '';
+            this._safeSetValue('formId', data.id || '');
+            this._safeSetValue('formBulan', data.bulan || '');
+            this._safeSetValue('formPosisi', data.posisi || '');
+            this._safeSetValue('formIdPelanggan', data.idPelanggan || '');
+            this._safeSetValue('formEntitas', data.entitas || '');
+            this._safeSetValue('formAwal', data.awal || '');
+            this._safeSetValue('formAkhir', data.akhir || '');
+            this._safeSetValue('formPemakaian', data.pemakaian || '');
+            this._safeSetValue('formNominal', data.nominal || '');
+            this._safeSetValue('formKeterangan', data.keterangan || '');
             this.calculateForm();
         } else {
             title.innerHTML = `<i class="bi bi-plus-circle text-success me-2"></i> Tambah Data`;
             btnSave.textContent = 'Simpan';
-            document.getElementById('electricityForm').reset();
-            document.getElementById('formId').value = '';
-            document.getElementById('formPosisi').value = '';
-            document.getElementById('formIdPelanggan').value = '';
-            document.getElementById('formPosisiLama').value = '';
+            const form = document.getElementById('electricityForm');
+            if (form) form.reset();
+            this._safeSetValue('formId', '');
+            this._safeSetValue('formPosisi', '');
+            this._safeSetValue('formIdPelanggan', '');
             this.calculateForm();
         }
 
-        this._suppressAutoFill = false;
         modal.show();
     },
+
+    // ==========================================================
+    // AUTO-CALCULATE: Pemakaian = Akhir - Awal, Nominal = Pemakaian * Harga
+    // ==========================================================
 
     calculateForm() {
         const awal = parseFloat(document.getElementById('formAwal')?.value) || 0;
@@ -767,8 +858,7 @@ const ElectricityController = {
             akhir: parseFloat(document.getElementById('formAkhir').value) || 0,
             pemakaian: parseFloat(document.getElementById('formPemakaian').value) || 0,
             nominal: parseFloat(document.getElementById('formNominal').value) || 0,
-            keterangan: document.getElementById('formKeterangan').value,
-            posisiLama: document.getElementById('formPosisiLama').value || ''
+            keterangan: document.getElementById('formKeterangan').value
         };
 
         if (!formData.bulan || !formData.posisiMeteran || !formData.idPelanggan || !formData.entitas) {
@@ -795,50 +885,22 @@ const ElectricityController = {
         }
     },
 
-    async deleteRecord({ bulan, posisi, idPelanggan }) {
-        if (!idPelanggan || !bulan) {
-            this.showToast('Data tidak valid untuk dihapus.', 'error');
-            return;
-        }
-
-        const record = this.state.records.find(r =>
-            r.bulan === bulan &&
-            r.no === posisi &&
-            r.idPelanggan === idPelanggan
-        );
-
-        if (!record) {
-            this.showToast('Data tidak ditemukan.', 'error');
-            return;
-        }
-
+    async deleteRecord(id) {
+        if (!id) return;
         const confirmed = await Swal.fire({
             title: 'Hapus Data?',
-            html: `
-                <div class="text-start">
-                    <p><strong>Bulan:</strong> ${record.bulan}</p>
-                    <p><strong>Posisi:</strong> ${record.no || '-'}</p>
-                    <p><strong>ID Pelanggan:</strong> ${record.idPelanggan}</p>
-                    <p><strong>Pemakaian:</strong> ${record.pemakaian} kWh</p>
-                </div>
-                <p class="text-danger mt-2">Data yang dihapus tidak dapat dikembalikan.</p>
-            `,
+            text: 'Data yang dihapus tidak dapat dikembalikan.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             confirmButtonText: 'Ya, Hapus!',
             cancelButtonText: 'Batal'
         });
-
         if (!confirmed.isConfirmed) return;
 
         try {
             this.showLoading(true);
-            const response = await BCS.Api.request('POST', 'deleteElectricityRecord', {
-                idPelanggan: record.idPelanggan,
-                bulan: record.bulan,
-                posisi: record.no
-            });
+            const response = await BCS.Api.request('POST', 'deleteElectricityRecord', { id });
             if (response.success) {
                 this.showToast('Data berhasil dihapus.', 'success');
                 this.loadDashboard({ showLoading: false, showToast: false });
@@ -852,6 +914,10 @@ const ElectricityController = {
             this.showLoading(false);
         }
     },
+
+    // ==========================================================
+    // DETAIL METER
+    // ==========================================================
 
     async showDetail(id) {
         try {
@@ -939,6 +1005,10 @@ const ElectricityController = {
         });
     },
 
+    // ==========================================================
+    // EVENT
+    // ==========================================================
+
     registerEvent() {
         document.getElementById("btnRefresh")?.addEventListener("click", () => {
             this.loadDashboard({ showLoading: false, showToast: true });
@@ -983,6 +1053,10 @@ const ElectricityController = {
             this.saveRecord();
         });
     },
+
+    // ==========================================================
+    // DESTROY
+    // ==========================================================
 
     destroyCharts() {
         if (this.chartMonthly) {

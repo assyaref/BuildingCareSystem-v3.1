@@ -469,11 +469,12 @@ const ElectricityController = {
         pageRows.forEach((item, idx) => {
             const badgeClass = this.getStatusBadge(item.status);
             const isNegative = item.pemakaian < 0;
+            const posisi = (item.no && item.no !== '-' && item.no !== 'null') ? item.no : '-';
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
                     <td class="text-start ps-4">${start + idx + 1}</td>
                     <td class="text-start">${item.bulan}</td>
-                    <td class="text-start"><strong>${item.no || '-'}</strong></td>
+                    <td class="text-start"><strong>${posisi}</strong></td>
                     <td class="text-start">${item.idPelanggan}</td>
                     <td class="text-start">${item.entitas}</td>
                     <td class="text-end">${this.formatNumber(item.awal, 2)}</td>

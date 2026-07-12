@@ -284,7 +284,9 @@
             </div>
         </section>
 
-        <!-- FORM MODAL (TAMBAH / EDIT) dengan POSISI METERAN -->
+        <!-- ==================================================
+             FORM MODAL (TAMBAH / EDIT) dengan DROPDOWN POSISI & NOTES
+        ================================================== -->
         <div class="modal fade" id="formModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -298,6 +300,7 @@
                         <form id="electricityForm">
                             <input type="hidden" id="formId" value="">
                             <div class="row g-3">
+                                <!-- Bulan -->
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold">Bulan <span class="text-danger">*</span></label>
                                     <select id="formBulan" class="form-select" required>
@@ -316,15 +319,24 @@
                                         <option value="Desember">Desember</option>
                                     </select>
                                 </div>
+
+                                <!-- Posisi Meteran - DROPDOWN -->
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold">Posisi Meteran <span class="text-danger">*</span></label>
-                                    <input id="formPosisi" class="form-control" placeholder="RUANGAN MEETING / POS SECURITY / LANTAI SATU" required>
+                                    <select id="formPosisi" class="form-select" required>
+                                        <option value="">Pilih Posisi</option>
+                                        <!-- Opsi akan diisi oleh JavaScript dari data existing -->
+                                    </select>
                                 </div>
+
+                                <!-- ID Pelanggan - DATALIST -->
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold">ID Pelanggan <span class="text-danger">*</span></label>
                                     <input id="formIdPelanggan" list="idPelangganList" class="form-control" placeholder="Cari atau pilih ID Pelanggan..." required autocomplete="off">
                                     <datalist id="idPelangganList"></datalist>
                                 </div>
+
+                                <!-- Entitas -->
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold">Entitas <span class="text-danger">*</span></label>
                                     <select id="formEntitas" class="form-select" required>
@@ -334,25 +346,40 @@
                                         <option value="SPC">SPC</option>
                                     </select>
                                 </div>
+
+                                <!-- Awal -->
                                 <div class="col-md-3">
                                     <label class="form-label">Awal Bulan (kWh)</label>
                                     <input id="formAwal" type="number" step="0.01" class="form-control" placeholder="0.00">
                                 </div>
+
+                                <!-- Akhir -->
                                 <div class="col-md-3">
                                     <label class="form-label">Akhir Bulan (kWh)</label>
                                     <input id="formAkhir" type="number" step="0.01" class="form-control" placeholder="0.00">
                                 </div>
+
+                                <!-- Pemakaian (otomatis) -->
                                 <div class="col-md-3">
                                     <label class="form-label">Pemakaian (kWh)</label>
-                                    <input id="formPemakaian" type="number" step="0.01" class="form-control" placeholder="0.00">
+                                    <input id="formPemakaian" type="number" step="0.01" class="form-control" placeholder="0.00" readonly>
                                 </div>
+
+                                <!-- Nominal (otomatis) -->
                                 <div class="col-md-3">
                                     <label class="form-label">Nominal (Rp)</label>
-                                    <input id="formNominal" type="number" step="1" class="form-control" placeholder="0">
+                                    <input id="formNominal" type="number" step="1" class="form-control" placeholder="0" readonly>
                                 </div>
+
+                                <!-- Keterangan -->
                                 <div class="col-md-12">
                                     <label class="form-label">Keterangan</label>
                                     <input id="formKeterangan" class="form-control" placeholder="Ganti Meteran baru">
+                                </div>
+
+                                <!-- NOTES PERHITUNGAN -->
+                                <div class="col-md-12 mt-2">
+                                    <div id="calcNotes"></div>
                                 </div>
                             </div>
                         </form>

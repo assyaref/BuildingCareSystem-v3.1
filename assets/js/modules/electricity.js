@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 3.2 (Delete using unique record ID if available)
+ * Version 3.3 (Delete with all possible parameters)
  * =====================================================
  */
 
@@ -508,7 +508,7 @@ const ElectricityController = {
         pageRows.forEach((item, idx) => {
             const isNegative = item.pemakaian < 0;
             const posisi = (item.no && item.no !== '-' && item.no !== 'null') ? item.no : '-';
-            // Cari ID unik record - gunakan properti id atau _id jika ada, fallback ke kombinasi
+            // Buat recordId unik untuk setiap baris
             const recordId = item.id || item._id || 
                 `${item.idPelanggan}_${item.bulan}_${item.no}`.replace(/\s+/g, '_');
             tbody.insertAdjacentHTML("beforeend", `
@@ -904,32 +904,31 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // DELETE RECORD (menggunakan recordId unik jika tersedia)
+    // DELETE RECORD (mengirim semua kemungkinan parameter)
     // ==========================================================
 
     async deleteRecord({ recordId, id, bulan, posisi }) {
         console.log('[Electricity] deleteRecord params:', { recordId, id, bulan, posisi });
 
-        if (!recordId && (!id || !bulan || !posisi)) {
+        if (!id || !bulan || !posisi) {
             this.showToast('Data tidak lengkap untuk dihapus.', 'error');
             return;
         }
 
-        // Cari data yang akan dihapus untuk ditampilkan di konfirmasi
-        let record = null;
-        if (recordId) {
-            // Cari berdasarkan recordId jika ada (dengan asumsi recordId adalah kombinasi atau ID unik)
-            record = this.state.records.find(r => {
-                const rId = r.id || r._id || `${r.idPelanggan}_${r.bulan}_${r.no}`.replace(/\s+/g, '_');
-                return rId === recordId;
-            });
-        }
-        if (!record && id && bulan && posisi) {
-            record = this.state.records.find(r =>
-                r.idPelanggan === id &&
-                r.bulan === bulan &&
-                r.no === posisi
-            );
+        // Cari data untuk konfirmasi
+        let record = this.state.records.find(r =>
+            r.idPelanggan === id &&
+            r.bulan === bulan &&
+            r.no === posisi
+        );
+        if (!record) {
+            // Coba cari dengan recordId jika ada
+            if (recordId) {
+                record = this.state.records.find(r => {
+                    const rId = r.id || r._id || `${r.idPelanggan}_${r.bulan}_${r.no}`.replace(/\s+/g, '_');
+                    return rId === recordId;
+                });
+            }
         }
         if (!record) {
             this.showToast('Data tidak ditemukan.', 'error');
@@ -959,21 +958,21 @@ const ElectricityController = {
 
         try {
             this.showLoading(true);
-            // Kirim payload dengan semua kemungkinan parameter
+            // Kirim semua kemungkinan parameter agar backend dapat mengenali
             const payload = {
+                // Primary identifier
                 id: id,                     // ID Pelanggan (fallback)
                 idPelanggan: id,
                 bulan: bulan,
-                posisi: posisi
+                posisi: posisi,             // dari data-posisi
+                no: posisi,                 // field di database kemungkinan 'no'
+                posisiMeteran: posisi       // alternatif lain
             };
-            // Jika ada recordId unik, kirim sebagai 'recordId' atau 'id' (primary key)
+            // Jika ada recordId, kirim sebagai tambahan
             if (recordId) {
                 payload.recordId = recordId;
-                // Beberapa backend mungkin menggunakan 'id' sebagai primary key
-                // Jika recordId berbeda dari idPelanggan, kirim sebagai 'id' juga
-                if (recordId !== id) {
-                    payload.id = recordId;
-                }
+                // Jangan timpa id dengan recordId, karena id mungkin digunakan untuk idPelanggan
+                // Kita kirim recordId sebagai parameter terpisah
             }
             console.log('[Electricity] Delete payload:', payload);
             const response = await BCS.Api.request('POST', 'deleteElectricityRecord', payload);

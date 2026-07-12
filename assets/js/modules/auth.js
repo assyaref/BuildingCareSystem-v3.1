@@ -1,5 +1,5 @@
-// auth.js - Building Care System v7.7 FINAL
-// Centralized role-based access control
+// auth.js - Building Care System v7.8 FINAL
+// Centralized role-based access control with clean URLs
 
 (function() {
     "use strict";
@@ -23,25 +23,23 @@
         try {
             var session = BCS.Storage.getSession();
             if (!session || !session.token) {
-                window.location.href = 'login.html';
+                window.location.href = '/login';
                 return false;
             }
             var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
             
-            // Jika role tidak diizinkan
             if (!allowedRoles.includes(role)) {
-                // Jika role adalah admin dan mencoba akses halaman user, arahkan ke admin.html
                 if (allowedRoles.includes('USER') && ['ADMINISTRATOR','SUPER ADMIN','LEAD BRANCH SUPPORT'].includes(role)) {
-                    window.location.href = 'admin.html';
+                    window.location.href = '/dashboard';
                 } else {
-                    window.location.href = 'login.html';
+                    window.location.href = '/login';
                 }
                 return false;
             }
             return true;
         } catch (e) {
             console.warn('[checkRole] Error:', e);
-            window.location.href = 'login.html';
+            window.location.href = '/login';
             return false;
         }
     }
@@ -104,20 +102,21 @@
 
             await new Promise(resolve => setTimeout(resolve, 300));
 
+            // === PERUBAHAN UTAMA: clean URL tanpa .html ===
             const role = sessionData.role || "USER";
             const routeMap = {
-                "USER": "user-report.html",
-                "GENERAL AFFAIR": "user-report.html",
-                "TECHNICIAN": "workorder.html",
-                "ADMIN": "dashboard.html",
-                "ADMINISTRATOR": "dashboard.html"
+                "USER": "user-report",
+                "GENERAL AFFAIR": "user-report",
+                "TECHNICIAN": "workorder",
+                "ADMIN": "dashboard",
+                "ADMINISTRATOR": "dashboard"
             };
-            const targetPage = routeMap[role.toUpperCase()] || "user-report.html";
+            const targetPage = routeMap[role.toUpperCase()] || "user-report";
 
             return {
                 ...response,
                 success: true,
-                targetPage: targetPage,
+                targetPage: targetPage,  // clean URL
                 user: userData,
                 session: sessionData
             };
@@ -134,7 +133,7 @@
     // =============================================
     // LOGOUT - ULTRA ROBUST EMAIL CAPTURE
     // =============================================
-    async function logout(redirectTo = "login.html") {
+    async function logout(redirectTo = "/login") {
         BCS.Logger.info("Logout");
 
         let email = '';
@@ -225,7 +224,12 @@
 
         BCS.App.Toast.info("Anda telah keluar");
         if (redirectTo) {
-            window.location.replace(redirectTo);
+            // Pastikan redirectTo dimulai dengan '/'
+            if (redirectTo.startsWith('/')) {
+                window.location.replace(redirectTo);
+            } else {
+                window.location.replace('/' + redirectTo);
+            }
         }
     }
 
@@ -248,7 +252,7 @@
     window.login = login;
     window.checkRole = checkRole;
 
-    console.log("✅ auth.js v7.7 with checkRole() loaded");
+    console.log("✅ auth.js v7.8 with clean URL routeMap loaded");
 })();
 
 // Fallback
@@ -259,7 +263,7 @@ if (typeof window.auth === 'undefined') {
             console.warn('⚠️ Fallback logout');
             localStorage.clear();
             sessionStorage.clear();
-            window.location.href = redirectTo || 'login.html';
+            window.location.href = redirectTo || '/login';
         },
         isLoggedIn: function() { return false; },
         getSession: function() { return null; },

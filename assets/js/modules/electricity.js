@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 2.7 (Fixed openForm null errors)
+ * Version 2.8 (Fixed edit data mismatch)
  * =====================================================
  */
 
@@ -81,9 +81,6 @@ const ElectricityController = {
         this.showToast(message, "error");
     },
 
-    /**
-     * Toast dengan SweetAlert2 - tengah layar + overlay
-     */
     showToast(message, type = "info") {
         const iconMap = {
             success: 'success',
@@ -119,12 +116,11 @@ const ElectricityController = {
             });
             return;
         }
-
         console.log(`[${type.toUpperCase()}] ${message}`);
     },
 
     // ==========================================================
-    // AUTO REFRESH (Background)
+    // AUTO REFRESH
     // ==========================================================
 
     startAutoRefresh() {
@@ -243,7 +239,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // STATUS SUMMARY (DINAMIS)
+    // STATUS SUMMARY
     // ==========================================================
 
     renderStatusSummary() {
@@ -360,9 +356,6 @@ const ElectricityController = {
         return map[status] || 'badge-info';
     },
 
-    /**
-     * Safely set value of an element by ID. Logs warning if not found.
-     */
     _safeSetValue(id, value) {
         const el = document.getElementById(id);
         if (el) {
@@ -513,7 +506,6 @@ const ElectricityController = {
         }
 
         pageRows.forEach((item, idx) => {
-            const badgeClass = this.getStatusBadge(item.status);
             const isNegative = item.pemakaian < 0;
             const posisi = (item.no && item.no !== '-' && item.no !== 'null') ? item.no : '-';
             tbody.insertAdjacentHTML("beforeend", `
@@ -533,7 +525,11 @@ const ElectricityController = {
                             <button class="btn btn-outline-primary btn-detail" data-id="${item.idPelanggan}" title="Detail">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <button class="btn btn-outline-warning btn-edit" data-id="${item.idPelanggan}" title="Edit">
+                            <button class="btn btn-outline-warning btn-edit" 
+                                    data-id="${item.idPelanggan}" 
+                                    data-bulan="${item.bulan}" 
+                                    data-posisi="${item.no}" 
+                                    title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button class="btn btn-outline-danger btn-delete" data-id="${item.idPelanggan}" title="Hapus">
@@ -595,12 +591,21 @@ const ElectricityController = {
         document.querySelectorAll(".btn-edit").forEach(btn => {
             btn.onclick = () => {
                 const id = btn.dataset.id;
-                const record = this.state.records.find(r => r.idPelanggan === id);
+                const bulan = btn.dataset.bulan;
+                const posisi = btn.dataset.posisi;
+
+                // Cari record berdasarkan kombinasi idPelanggan, bulan, dan posisi
+                const record = this.state.records.find(r =>
+                    r.idPelanggan === id &&
+                    r.bulan === bulan &&
+                    r.no === posisi
+                );
+
                 if (record) {
                     this.openForm({
                         id: record.idPelanggan,
                         bulan: record.bulan,
-                        posisi: record.no || '',
+                        posisi: record.no,
                         idPelanggan: record.idPelanggan,
                         entitas: record.entitas,
                         awal: record.awal,
@@ -802,7 +807,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // AUTO-CALCULATE: Pemakaian = Akhir - Awal, Nominal = Pemakaian * Harga
+    // AUTO-CALCULATE
     // ==========================================================
 
     calculateForm() {

@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 2.5 (Toast lengkap + Dropdown Posisi)
+ * Version 2.6 (Toast Tengah + Overlay)
  * =====================================================
  */
 
@@ -68,7 +68,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // LOADING / ERROR / NOTIFICATION
+    // LOADING / ERROR / NOTIFICATION (Toast Tengah + Overlay)
     // ==========================================================
 
     showLoading(show) {
@@ -81,12 +81,50 @@ const ElectricityController = {
         this.showToast(message, "error");
     },
 
+    /**
+     * Toast dengan SweetAlert2 - tengah layar + overlay
+     * @param {string} message - Pesan yang ditampilkan
+     * @param {string} type - success | error | warning | info
+     */
     showToast(message, type = "info") {
-        if (window.BCS && BCS.UI && typeof BCS.UI.toast === "function") {
-            BCS.UI.toast(message, type);
+        const iconMap = {
+            success: 'success',
+            error: 'error',
+            warning: 'warning',
+            info: 'info'
+        };
+
+        const titleMap = {
+            success: 'Berhasil!',
+            error: 'Gagal!',
+            warning: 'Perhatian!',
+            info: 'Informasi'
+        };
+
+        // Jika SweetAlert2 tersedia, gunakan sebagai toast tengah
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: iconMap[type] || 'info',
+                title: titleMap[type] || 'Informasi',
+                text: message,
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                position: 'center',
+                backdrop: 'rgba(0,0,0,0.4)',
+                width: '420px',
+                padding: '1.5rem',
+                customClass: {
+                    popup: 'rounded-4 shadow-lg',
+                    title: 'fw-bold fs-5',
+                    htmlContainer: 'text-muted'
+                }
+            });
             return;
         }
-        console.log(type.toUpperCase(), message);
+
+        // Fallback ke console jika SweetAlert2 tidak tersedia
+        console.log(`[${type.toUpperCase()}] ${message}`);
     },
 
     // ==========================================================

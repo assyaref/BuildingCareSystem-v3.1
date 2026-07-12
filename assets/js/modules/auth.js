@@ -1,5 +1,5 @@
-// auth.js - Building Care System v7.8 FINAL
-// Centralized role-based access control with clean URLs
+// auth.js - Building Care System v7.7 FINAL
+// Centralized role-based access control
 
 (function() {
     "use strict";
@@ -23,29 +23,31 @@
         try {
             var session = BCS.Storage.getSession();
             if (!session || !session.token) {
-                window.location.href = '/login';
+                window.location.href = 'login.html';
                 return false;
             }
             var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
             
+            // Jika role tidak diizinkan
             if (!allowedRoles.includes(role)) {
+                // Jika role adalah admin dan mencoba akses halaman user, arahkan ke admin.html
                 if (allowedRoles.includes('USER') && ['ADMINISTRATOR','SUPER ADMIN','LEAD BRANCH SUPPORT'].includes(role)) {
-                    window.location.href = '/dashboard';
+                    window.location.href = 'admin.html';
                 } else {
-                    window.location.href = '/login';
+                    window.location.href = 'login.html';
                 }
                 return false;
             }
             return true;
         } catch (e) {
             console.warn('[checkRole] Error:', e);
-            window.location.href = '/login';
+            window.location.href = 'login.html';
             return false;
         }
     }
 
     // =============================================
-    // LOGIN - store email explicitly & use targetPage from backend
+    // LOGIN - store email explicitly
     // =============================================
     async function login(nikOrPayload, password) {
         let payload = {};
@@ -102,24 +104,15 @@
 
             await new Promise(resolve => setTimeout(resolve, 300));
 
-            // ===========================================
-            // 🔥 PRIORITAS: targetPage dari backend
-            // ===========================================
-            let targetPage = rawData.targetPage; // dari backend
-            if (!targetPage) {
-                // fallback ke routeMap lengkap
-                const routeMap = {
-                    "USER": "user-report.html",
-                    "GENERAL AFFAIR": "user-report.html",
-                    "TECHNICIAN": "wo.html",
-                    "ADMIN": "electricity.html",
-                    "ADMINISTRATOR": "dashboard.html",
-                    "SUPER ADMIN": "admin.html",
-                    "LEAD BRANCH SUPPORT": "monitoring.html"
-                };
-                const role = sessionData.role || "USER";
-                targetPage = routeMap[role.toUpperCase()] || "user-report.html";
-            }
+            const role = sessionData.role || "USER";
+            const routeMap = {
+                "USER": "user-report.html",
+                "GENERAL AFFAIR": "user-report.html",
+                "TECHNICIAN": "workorder.html",
+                "ADMIN": "dashboard.html",
+                "ADMINISTRATOR": "dashboard.html"
+            };
+            const targetPage = routeMap[role.toUpperCase()] || "user-report.html";
 
             return {
                 ...response,
@@ -141,7 +134,7 @@
     // =============================================
     // LOGOUT - ULTRA ROBUST EMAIL CAPTURE
     // =============================================
-    async function logout(redirectTo = "/login") {
+    async function logout(redirectTo = "login.html") {
         BCS.Logger.info("Logout");
 
         let email = '';
@@ -232,11 +225,7 @@
 
         BCS.App.Toast.info("Anda telah keluar");
         if (redirectTo) {
-            if (redirectTo.startsWith('/')) {
-                window.location.replace(redirectTo);
-            } else {
-                window.location.replace('/' + redirectTo);
-            }
+            window.location.replace(redirectTo);
         }
     }
 
@@ -259,7 +248,7 @@
     window.login = login;
     window.checkRole = checkRole;
 
-    console.log("✅ auth.js v7.8 with clean URL routeMap & backend targetPage loaded");
+    console.log("✅ auth.js v7.7 with checkRole() loaded");
 })();
 
 // Fallback
@@ -270,7 +259,7 @@ if (typeof window.auth === 'undefined') {
             console.warn('⚠️ Fallback logout');
             localStorage.clear();
             sessionStorage.clear();
-            window.location.href = redirectTo || '/login';
+            window.location.href = redirectTo || 'login.html';
         },
         isLoggedIn: function() { return false; },
         getSession: function() { return null; },

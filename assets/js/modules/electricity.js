@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 3.0 (Fixed delete: sends both id and idPelanggan)
+ * Version 3.1 (Delete with detailed confirmation & logging)
  * =====================================================
  */
 
@@ -68,7 +68,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // LOADING / ERROR / NOTIFICATION (Toast Tengah + Overlay)
+    // LOADING / ERROR / NOTIFICATION
     // ==========================================================
 
     showLoading(show) {
@@ -903,6 +903,8 @@ const ElectricityController = {
     // ==========================================================
 
     async deleteRecord({ id, bulan, posisi }) {
+        console.log('[Electricity] deleteRecord called with:', { id, bulan, posisi });
+
         if (!id) {
             this.showToast('ID Pelanggan tidak ditemukan.', 'error');
             return;
@@ -916,9 +918,30 @@ const ElectricityController = {
             return;
         }
 
+        // Cari data yang akan dihapus untuk ditampilkan di konfirmasi
+        const record = this.state.records.find(r =>
+            r.idPelanggan === id &&
+            r.bulan === bulan &&
+            r.no === posisi
+        );
+        if (!record) {
+            this.showToast('Data tidak ditemukan.', 'error');
+            return;
+        }
+
         const confirmed = await Swal.fire({
             title: 'Hapus Data?',
-            text: `Anda akan menghapus data untuk bulan ${bulan} (${posisi}). Data yang dihapus tidak dapat dikembalikan.`,
+            html: `
+                <p>Anda akan menghapus data:</p>
+                <ul style="text-align:left;">
+                    <li><strong>ID Pelanggan:</strong> ${id}</li>
+                    <li><strong>Bulan:</strong> ${bulan}</li>
+                    <li><strong>Posisi:</strong> ${posisi}</li>
+                    <li><strong>Entitas:</strong> ${record.entitas}</li>
+                    <li><strong>Pemakaian:</strong> ${this.formatNumber(record.pemakaian, 2)} kWh</li>
+                </ul>
+                <p class="text-danger">Data yang dihapus tidak dapat dikembalikan.</p>
+            `,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -929,21 +952,25 @@ const ElectricityController = {
 
         try {
             this.showLoading(true);
-            // Kirim kedua varian agar server menerima salah satu
-            const response = await BCS.Api.request('POST', 'deleteElectricityRecord', {
-                id: id,                     // untuk kompatibilitas dengan server yang pakai 'id'
-                idPelanggan: id,            // untuk kompatibilitas dengan server yang pakai 'idPelanggan'
+            // Kirim data lengkap (gunakan kedua varian untuk kompatibilitas)
+            const payload = {
+                id: id,
+                idPelanggan: id,
                 bulan: bulan,
                 posisi: posisi
-            });
+            };
+            console.log('[Electricity] Sending delete payload:', payload);
+            const response = await BCS.Api.request('POST', 'deleteElectricityRecord', payload);
+            console.log('[Electricity] Delete response:', response);
+
             if (response.success) {
-                this.showToast('Data berhasil dihapus.', 'success');
+                this.showToast(`Data ${bulan} (${posisi}) berhasil dihapus.`, 'success');
                 this.loadDashboard({ showLoading: false, showToast: false });
             } else {
                 this.showError(response.message || 'Gagal menghapus data.');
             }
         } catch (err) {
-            console.error(err);
+            console.error('[Electricity] Delete error:', err);
             this.showError(err.message);
         } finally {
             this.showLoading(false);

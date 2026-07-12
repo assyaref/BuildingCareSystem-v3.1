@@ -588,7 +588,6 @@ const ElectricityController = {
         // --- Populasi dropdown posisi meteran ---
         const posisiSelect = document.getElementById('formPosisi');
         if (posisiSelect) {
-            // Ambil posisi unik dari records
             const posisiSet = new Set();
             this.state.records.forEach(r => {
                 if (r.no && r.no !== '-' && r.no !== 'null' && r.no.trim() !== '') {
@@ -596,7 +595,6 @@ const ElectricityController = {
                 }
             });
             const posisiList = [...posisiSet].sort();
-            // Simpan nilai saat ini (jika edit)
             const currentVal = posisiSelect.value;
             posisiSelect.innerHTML = '<option value="">Pilih Posisi</option>';
             posisiList.forEach(p => {
@@ -616,7 +614,7 @@ const ElectricityController = {
             datalist.innerHTML = ids.map(id => `<option value="${id}">`).join('');
         }
 
-        // --- EVENT LISTENER: Posisi Meteran -> Auto-fill ID Pelanggan & Entitas ---
+        // --- EVENT: Posisi Meteran -> Auto-fill ID Pelanggan & Entitas ---
         const posisiSelect2 = document.getElementById('formPosisi');
         if (posisiSelect2) {
             // Clone & replace untuk menghapus listener lama
@@ -628,7 +626,7 @@ const ElectricityController = {
                 const selectedPosisi = this.value.trim();
                 if (!selectedPosisi) return;
 
-                // Cari record pertama dengan posisi yang sama
+                // Cari record dengan posisi yang sama (ambil yang pertama)
                 const record = ElectricityController.state.records.find(r => r.no === selectedPosisi);
                 if (record) {
                     const idInput = document.getElementById('formIdPelanggan');
@@ -655,10 +653,9 @@ const ElectricityController = {
             });
         }
 
-        // --- Event listener untuk ID Pelanggan (auto-fill) ---
+        // --- EVENT: ID Pelanggan -> Auto-fill ---
         const idInput = document.getElementById('formIdPelanggan');
         if (idInput) {
-            // Hapus listener lama dengan clone
             const newInput = idInput.cloneNode(true);
             idInput.parentNode.replaceChild(newInput, idInput);
             newInput.id = 'formIdPelanggan';
@@ -667,7 +664,6 @@ const ElectricityController = {
                 if (!val) return;
                 const record = ElectricityController.state.records.find(r => r.idPelanggan === val);
                 if (record) {
-                    // Isi field
                     const bulanSelect = document.getElementById('formBulan');
                     const entitasSelect = document.getElementById('formEntitas');
                     const posisiSelect = document.getElementById('formPosisi');
@@ -686,7 +682,6 @@ const ElectricityController = {
                     if (nominalInput) nominalInput.value = record.nominal || '';
                     if (keteranganInput) keteranganInput.value = record.keterangan || '';
 
-                    // Trigger kalkulasi
                     ElectricityController.calculateForm();
                 }
             });
@@ -696,7 +691,6 @@ const ElectricityController = {
         const awalInput = document.getElementById('formAwal');
         const akhirInput = document.getElementById('formAkhir');
         if (awalInput && akhirInput) {
-            // Hapus listener lama
             const newAwal = awalInput.cloneNode(true);
             awalInput.parentNode.replaceChild(newAwal, awalInput);
             newAwal.id = 'formAwal';
@@ -744,7 +738,7 @@ const ElectricityController = {
         const awal = parseFloat(document.getElementById('formAwal')?.value) || 0;
         const akhir = parseFloat(document.getElementById('formAkhir')?.value) || 0;
         const pemakaian = akhir - awal;
-        const hargaPerKwh = 1480; // Bisa ambil dari CONFIG jika tersedia
+        const hargaPerKwh = 1480;
 
         const pemakaianInput = document.getElementById('formPemakaian');
         const nominalInput = document.getElementById('formNominal');
@@ -759,7 +753,6 @@ const ElectricityController = {
             nominalInput.value = nominal.toFixed(0);
         }
 
-        // Notes
         if (notesEl) {
             if (pemakaian !== 0) {
                 const formattedKwh = pemakaian.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -809,7 +802,6 @@ const ElectricityController = {
             if (response.success) {
                 this.showToast('Data berhasil disimpan.', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
-                // Refresh data tanpa loading
                 this.loadDashboard({ showLoading: false, showToast: false });
             } else {
                 this.showError(response.message || 'Gagal menyimpan data.');

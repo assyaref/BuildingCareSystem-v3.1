@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 2.9 (Fixed delete: hapus per record spesifik)
+ * Version 3.0 (Fixed delete: sends both id and idPelanggan)
  * =====================================================
  */
 
@@ -903,8 +903,16 @@ const ElectricityController = {
     // ==========================================================
 
     async deleteRecord({ id, bulan, posisi }) {
-        if (!id || !bulan || !posisi) {
-            this.showToast('Data tidak lengkap untuk dihapus.', 'error');
+        if (!id) {
+            this.showToast('ID Pelanggan tidak ditemukan.', 'error');
+            return;
+        }
+        if (!bulan) {
+            this.showToast('Bulan tidak ditemukan.', 'error');
+            return;
+        }
+        if (!posisi) {
+            this.showToast('Posisi meteran tidak ditemukan.', 'error');
             return;
         }
 
@@ -921,8 +929,10 @@ const ElectricityController = {
 
         try {
             this.showLoading(true);
+            // Kirim kedua varian agar server menerima salah satu
             const response = await BCS.Api.request('POST', 'deleteElectricityRecord', {
-                idPelanggan: id,
+                id: id,                     // untuk kompatibilitas dengan server yang pakai 'id'
+                idPelanggan: id,            // untuk kompatibilitas dengan server yang pakai 'idPelanggan'
                 bulan: bulan,
                 posisi: posisi
             });

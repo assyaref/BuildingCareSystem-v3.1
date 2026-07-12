@@ -7,10 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Animate.css untuk animasi tambahan -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
   <style>
     * { box-sizing: border-box; }
@@ -54,11 +52,9 @@
       scroll-behavior: smooth;
       -ms-overflow-style: none;
       scrollbar-width: none;
-      padding-bottom: 90px; /* agar konten tidak tertutup bottom nav */
+      padding-bottom: 90px;
     }
-    .scroll-content::-webkit-scrollbar {
-      display: none;
-    }
+    .scroll-content::-webkit-scrollbar { display: none; }
     .bottom-nav {
       background: #fff;
       border-top: 1px solid rgba(0, 0, 0, 0.05);
@@ -84,9 +80,7 @@
       font-weight: 700;
       transition: color 0.2s;
     }
-    .bottom-nav a i {
-      font-size: 20px;
-    }
+    .bottom-nav a i { font-size: 20px; }
     .cat-card {
       transition: all 0.2s;
       cursor: pointer;
@@ -98,9 +92,7 @@
       text-align: center;
       background: #fff;
     }
-    .cat-card:active {
-      transform: scale(0.97);
-    }
+    .cat-card:active { transform: scale(0.97); }
     .cat-card.selected {
       border-color: #1e5eff;
       background: #f0f4ff;
@@ -135,7 +127,7 @@
       position: absolute;
       top: 8px;
       right: 8px;
-      background: rgba(239, 68, 68, 0.9);
+      background: rgba(239,68,68,0.9);
       color: #fff;
       border: none;
       border-radius: 50%;
@@ -163,26 +155,14 @@
       cursor: pointer;
       transition: background 0.2s;
     }
-    .submit-btn:active {
-      transform: scale(0.97);
-      background: #1a4fd6;
-    }
-    .submit-btn:disabled {
-      opacity: 0.6;
-      pointer-events: none;
-    }
-    input:focus,
-    textarea:focus {
+    .submit-btn:active { transform: scale(0.97); background: #1a4fd6; }
+    .submit-btn:disabled { opacity: 0.6; pointer-events: none; }
+    input:focus, textarea:focus {
       outline: none;
       border-color: #1e5eff !important;
-      box-shadow: 0 0 0 3px rgba(30, 94, 255, 0.12);
+      box-shadow: 0 0 0 3px rgba(30,94,255,0.12);
     }
-    .char-counter {
-      font-size: 11px;
-      color: #9ca3af;
-      margin-top: 4px;
-      text-align: right;
-    }
+    .char-counter { font-size: 11px; color: #9ca3af; margin-top: 4px; text-align: right; }
     .avatar-circle {
       width: 36px;
       height: 36px;
@@ -204,12 +184,8 @@
       font-size: 18px;
       transition: opacity 0.2s;
     }
-    .header-btn:hover {
-      opacity: 0.8;
-    }
-    .header-btn:active {
-      transform: scale(0.95);
-    }
+    .header-btn:hover { opacity: 0.8; }
+    .header-btn:active { transform: scale(0.95); }
     .photo-btn {
       padding: 12px;
       border-radius: 14px;
@@ -224,33 +200,19 @@
       transition: all 0.2s;
       -webkit-tap-highlight-color: transparent;
     }
-    .photo-btn:active {
-      transform: scale(0.96);
-    }
-    .photo-btn.primary {
-      background: #1e5eff;
-      color: #fff;
-    }
-    .photo-btn.secondary {
-      background: #f3f4f6;
-      color: #4b5563;
-    }
-    #priorityBadge {
-      transition: all 0.2s;
-    }
+    .photo-btn:active { transform: scale(0.96); }
+    .photo-btn.primary { background: #1e5eff; color: #fff; }
+    .photo-btn.secondary { background: #f3f4f6; color: #4b5563; }
+    #priorityBadge { transition: all 0.2s; }
 
-    /* Custom Style untuk Swal Center Modal */
+    /* Custom SweetAlert2 */
     .swal2-popup {
       border-radius: 24px !important;
-      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15) !important;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.15) !important;
       padding: 24px !important;
     }
-    .swal2-title {
-      font-weight: 700 !important;
-      font-size: 18px !important;
-    }
-    .swal2-confirm,
-    .swal2-cancel {
+    .swal2-title { font-weight: 700 !important; font-size: 18px !important; }
+    .swal2-confirm, .swal2-cancel {
       border-radius: 12px !important;
       padding: 10px 28px !important;
       font-weight: 600 !important;
@@ -258,46 +220,23 @@
     .swal2-confirm {
       background: linear-gradient(145deg, #1e5eff, #1557e8) !important;
       border: none !important;
-      box-shadow: 0 8px 24px rgba(30, 94, 255, 0.3) !important;
-      transition: all 0.2s !important;
+      box-shadow: 0 8px 24px rgba(30,94,255,0.3) !important;
     }
-    .swal2-confirm:hover {
-      transform: translateY(-2px) !important;
-      box-shadow: 0 12px 32px rgba(30, 94, 255, 0.4) !important;
-    }
-    .swal2-confirm:active {
-      transform: translateY(0) !important;
-    }
+    .swal2-confirm:hover { transform: translateY(-2px) !important; box-shadow: 0 12px 32px rgba(30,94,255,0.4) !important; }
+    .swal2-confirm:active { transform: translateY(0) !important; }
     .swal2-confirm.btn-danger {
       background: linear-gradient(145deg, #ef4444, #dc2626) !important;
-      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3) !important;
+      box-shadow: 0 8px 24px rgba(239,68,68,0.3) !important;
     }
-    .swal2-confirm.btn-danger:hover {
-      box-shadow: 0 12px 32px rgba(239, 68, 68, 0.4) !important;
-    }
-    .swal2-cancel {
-      background: #e5e7eb !important;
-      border: none !important;
-      color: #374151 !important;
-    }
-    .swal2-cancel:hover {
-      background: #d1d5db !important;
-    }
-    .swal2-icon {
-      border-width: 0 !important;
-      background: transparent !important;
-    }
-    .swal2-icon .swal2-icon-content {
-      font-size: 48px !important;
-    }
-    .swal2-icon.swal2-success .swal2-success-ring {
-      border-color: #22c55e !important;
-    }
-    .swal2-icon.swal2-error .swal2-x-mark {
-      display: none;
-    }
+    .swal2-confirm.btn-danger:hover { box-shadow: 0 12px 32px rgba(239,68,68,0.4) !important; }
+    .swal2-cancel { background: #e5e7eb !important; border: none !important; color: #374151 !important; }
+    .swal2-cancel:hover { background: #d1d5db !important; }
+    .swal2-icon { border-width: 0 !important; background: transparent !important; }
+    .swal2-icon .swal2-icon-content { font-size: 48px !important; }
+    .swal2-icon.swal2-success .swal2-success-ring { border-color: #22c55e !important; }
+    .swal2-icon.swal2-error .swal2-x-mark { display: none; }
 
-    /* Colorful Success Toast */
+    /* Colorful Success Report Toast */
     .swal-report-success {
       width: min(360px, calc(100vw - 36px)) !important;
       padding: 0 !important;
@@ -305,12 +244,9 @@
       border: 0 !important;
       border-radius: 26px !important;
       background: linear-gradient(145deg, #ffffff 0%, #f4fff8 100%) !important;
-      box-shadow: 0 28px 80px rgba(16, 185, 129, 0.28) !important;
+      box-shadow: 0 28px 80px rgba(16,185,129,0.28) !important;
     }
-    .swal-report-success .swal2-html-container {
-      margin: 0 !important;
-      padding: 0 !important;
-    }
+    .swal-report-success .swal2-html-container { margin: 0 !important; padding: 0 !important; }
     .report-success-card {
       position: relative;
       padding: 30px 24px 24px;
@@ -325,7 +261,7 @@
       left: -85px;
       top: -105px;
       border-radius: 50%;
-      background: rgba(34, 197, 94, 0.12);
+      background: rgba(34,197,94,0.12);
     }
     .report-success-card::after {
       content: "";
@@ -335,7 +271,7 @@
       right: -80px;
       bottom: -95px;
       border-radius: 50%;
-      background: rgba(30, 94, 255, 0.10);
+      background: rgba(30,94,255,0.10);
     }
     .success-icon-wrap {
       position: relative;
@@ -350,14 +286,14 @@
       color: #fff;
       font-size: 39px;
       background: linear-gradient(145deg, #22c55e, #10b981);
-      box-shadow: 0 16px 34px rgba(16, 185, 129, 0.34);
-      animation: successPop 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 16px 34px rgba(16,185,129,0.34);
+      animation: successPop 0.55s cubic-bezier(0.16,1,0.3,1);
     }
     .success-icon-wrap::after {
       content: "";
       position: absolute;
       inset: -8px;
-      border: 2px solid rgba(34, 197, 94, 0.18);
+      border: 2px solid rgba(34,197,94,0.18);
       border-radius: 32px;
       animation: successPulse 1.6s ease-out infinite;
     }
@@ -367,118 +303,30 @@
       font-size: 15px;
       animation: sparkle 1.5s ease-in-out infinite;
     }
-    .success-spark.s1 {
-      top: 23px;
-      left: 56px;
-      color: #f59e0b;
-    }
-    .success-spark.s2 {
-      top: 46px;
-      right: 50px;
-      color: #1e5eff;
-      animation-delay: 0.25s;
-    }
-    .success-spark.s3 {
-      top: 91px;
-      left: 43px;
-      color: #ec4899;
-      animation-delay: 0.5s;
-    }
-    .success-title {
-      position: relative;
-      z-index: 2;
-      margin: 0;
-      color: #0f172a;
-      font-size: 21px;
-      font-weight: 800;
-      letter-spacing: -0.4px;
-    }
-    .success-message {
-      position: relative;
-      z-index: 2;
-      margin: 7px auto 0;
-      max-width: 260px;
-      color: #64748b;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-    .success-status {
-      position: relative;
-      z-index: 2;
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      margin-top: 17px;
-      padding: 8px 13px;
-      border-radius: 999px;
-      background: #dcfce7;
-      color: #15803d;
-      font-size: 11px;
-      font-weight: 800;
-    }
-    .success-progress {
-      position: absolute;
-      z-index: 3;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 5px;
-      background: #dcfce7;
-      overflow: hidden;
-    }
-    .success-progress::after {
-      content: "";
-      display: block;
-      width: 100%;
-      height: 100%;
-      transform-origin: left;
-      background: linear-gradient(90deg, #22c55e, #1e5eff);
-      animation: successTimer 2.8s linear forwards;
-    }
+    .success-spark.s1 { top: 23px; left: 56px; color: #f59e0b; }
+    .success-spark.s2 { top: 46px; right: 50px; color: #1e5eff; animation-delay: 0.25s; }
+    .success-spark.s3 { top: 91px; left: 43px; color: #ec4899; animation-delay: 0.5s; }
+    .success-title { position: relative; z-index: 2; margin: 0; color: #0f172a; font-size: 21px; font-weight: 800; letter-spacing: -0.4px; }
+    .success-message { position: relative; z-index: 2; margin: 7px auto 0; max-width: 260px; color: #64748b; font-size: 13px; line-height: 1.6; }
+    .success-status { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 7px; margin-top: 17px; padding: 8px 13px; border-radius: 999px; background: #dcfce7; color: #15803d; font-size: 11px; font-weight: 800; }
+    .success-progress { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; height: 5px; background: #dcfce7; overflow: hidden; }
+    .success-progress::after { content: ""; display: block; width: 100%; height: 100%; transform-origin: left; background: linear-gradient(90deg, #22c55e, #1e5eff); animation: successTimer 2.8s linear forwards; }
     @keyframes successPop {
-      0% {
-        transform: scale(0.55) rotate(-8deg);
-        opacity: 0;
-      }
-      70% {
-        transform: scale(1.08) rotate(2deg);
-      }
-      100% {
-        transform: scale(1) rotate(0);
-        opacity: 1;
-      }
+      0% { transform: scale(0.55) rotate(-8deg); opacity: 0; }
+      70% { transform: scale(1.08) rotate(2deg); }
+      100% { transform: scale(1) rotate(0); opacity: 1; }
     }
     @keyframes successPulse {
-      0% {
-        transform: scale(0.88);
-        opacity: 0.8;
-      }
-      100% {
-        transform: scale(1.25);
-        opacity: 0;
-      }
+      0% { transform: scale(0.88); opacity: 0.8; }
+      100% { transform: scale(1.25); opacity: 0; }
     }
     @keyframes sparkle {
-      0%,
-      100% {
-        transform: scale(0.7) rotate(0);
-        opacity: 0.35;
-      }
-      50% {
-        transform: scale(1.25) rotate(18deg);
-        opacity: 1;
-      }
+      0%,100% { transform: scale(0.7) rotate(0); opacity: 0.35; }
+      50% { transform: scale(1.25) rotate(18deg); opacity: 1; }
     }
-    @keyframes successTimer {
-      from {
-        transform: scaleX(1);
-      }
-      to {
-        transform: scaleX(0);
-      }
-    }
+    @keyframes successTimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
-    /* Colorful Logout Success Toast */
+    /* Colorful Logout Success Toast (SweetAlert2) */
     .swal-logout-success {
       width: min(360px, calc(100vw - 36px)) !important;
       padding: 0 !important;
@@ -486,12 +334,9 @@
       border: 0 !important;
       border-radius: 26px !important;
       background: linear-gradient(145deg, #ffffff 0%, #f7f5ff 100%) !important;
-      box-shadow: 0 28px 80px rgba(99, 102, 241, 0.30) !important;
+      box-shadow: 0 28px 80px rgba(99,102,241,0.30) !important;
     }
-    .swal-logout-success .swal2-html-container {
-      margin: 0 !important;
-      padding: 0 !important;
-    }
+    .swal-logout-success .swal2-html-container { margin: 0 !important; padding: 0 !important; }
     .logout-success-card {
       position: relative;
       padding: 30px 24px 25px;
@@ -506,7 +351,7 @@
       left: -90px;
       top: -110px;
       border-radius: 50%;
-      background: rgba(99, 102, 241, 0.13);
+      background: rgba(99,102,241,0.13);
     }
     .logout-success-card::after {
       content: "";
@@ -516,7 +361,7 @@
       right: -85px;
       bottom: -100px;
       border-radius: 50%;
-      background: rgba(236, 72, 153, 0.10);
+      background: rgba(236,72,153,0.10);
     }
     .logout-success-icon {
       position: relative;
@@ -531,14 +376,14 @@
       color: #fff;
       font-size: 35px;
       background: linear-gradient(145deg, #6366f1, #8b5cf6 55%, #ec4899);
-      box-shadow: 0 16px 36px rgba(99, 102, 241, 0.35);
-      animation: logoutPop 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 16px 36px rgba(99,102,241,0.35);
+      animation: logoutPop 0.6s cubic-bezier(0.16,1,0.3,1);
     }
     .logout-success-icon::after {
       content: "";
       position: absolute;
       inset: -8px;
-      border: 2px solid rgba(139, 92, 246, 0.20);
+      border: 2px solid rgba(139,92,246,0.20);
       border-radius: 32px;
       animation: logoutPulse 1.6s ease-out infinite;
     }
@@ -548,126 +393,31 @@
       font-size: 14px;
       animation: logoutSpark 1.5s ease-in-out infinite;
     }
-    .logout-success-spark.l1 {
-      top: 28px;
-      left: 54px;
-      color: #f59e0b;
-    }
-    .logout-success-spark.l2 {
-      top: 52px;
-      right: 49px;
-      color: #22c55e;
-      animation-delay: 0.25s;
-    }
-    .logout-success-spark.l3 {
-      top: 99px;
-      left: 43px;
-      color: #ec4899;
-      animation-delay: 0.5s;
-    }
-    .logout-success-title {
-      position: relative;
-      z-index: 2;
-      margin: 0;
-      color: #0f172a;
-      font-size: 21px;
-      font-weight: 800;
-      letter-spacing: -0.4px;
-    }
-    .logout-success-message {
-      position: relative;
-      z-index: 2;
-      margin: 7px auto 0;
-      max-width: 270px;
-      color: #64748b;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-    .logout-success-status {
-      position: relative;
-      z-index: 2;
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      margin-top: 17px;
-      padding: 8px 13px;
-      border-radius: 999px;
-      background: #ede9fe;
-      color: #6d28d9;
-      font-size: 11px;
-      font-weight: 800;
-    }
-    .logout-success-progress {
-      position: absolute;
-      z-index: 3;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 5px;
-      background: #ede9fe;
-      overflow: hidden;
-    }
-    .logout-success-progress::after {
-      content: "";
-      display: block;
-      width: 100%;
-      height: 100%;
-      transform-origin: left;
-      background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
-      animation: logoutTimer 1.7s linear forwards;
-    }
+    .logout-success-spark.l1 { top: 28px; left: 54px; color: #f59e0b; }
+    .logout-success-spark.l2 { top: 52px; right: 49px; color: #22c55e; animation-delay: 0.25s; }
+    .logout-success-spark.l3 { top: 99px; left: 43px; color: #ec4899; animation-delay: 0.5s; }
+    .logout-success-title { position: relative; z-index: 2; margin: 0; color: #0f172a; font-size: 21px; font-weight: 800; letter-spacing: -0.4px; }
+    .logout-success-message { position: relative; z-index: 2; margin: 7px auto 0; max-width: 270px; color: #64748b; font-size: 13px; line-height: 1.6; }
+    .logout-success-status { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 7px; margin-top: 17px; padding: 8px 13px; border-radius: 999px; background: #ede9fe; color: #6d28d9; font-size: 11px; font-weight: 800; }
+    .logout-success-progress { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; height: 5px; background: #ede9fe; overflow: hidden; }
+    .logout-success-progress::after { content: ""; display: block; width: 100%; height: 100%; transform-origin: left; background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899); animation: logoutTimer 1.7s linear forwards; }
     @keyframes logoutPop {
-      0% {
-        transform: scale(0.55) rotate(-9deg);
-        opacity: 0;
-      }
-      70% {
-        transform: scale(1.08) rotate(2deg);
-      }
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
+      0% { transform: scale(0.55) rotate(-9deg); opacity: 0; }
+      70% { transform: scale(1.08) rotate(2deg); }
+      100% { transform: scale(1); opacity: 1; }
     }
     @keyframes logoutPulse {
-      0% {
-        transform: scale(0.88);
-        opacity: 0.8;
-      }
-      100% {
-        transform: scale(1.25);
-        opacity: 0;
-      }
+      0% { transform: scale(0.88); opacity: 0.8; }
+      100% { transform: scale(1.25); opacity: 0; }
     }
     @keyframes logoutSpark {
-      0%,
-      100% {
-        transform: scale(0.7) rotate(0);
-        opacity: 0.35;
-      }
-      50% {
-        transform: scale(1.25) rotate(20deg);
-        opacity: 1;
-      }
+      0%,100% { transform: scale(0.7) rotate(0); opacity: 0.35; }
+      50% { transform: scale(1.25) rotate(20deg); opacity: 1; }
     }
-    @keyframes logoutTimer {
-      from {
-        transform: scaleX(1);
-      }
-      to {
-        transform: scaleX(0);
-      }
-    }
+    @keyframes logoutTimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
     /* Notification Center */
-    .notif-button {
-      position: relative;
-      width: 38px;
-      height: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    .notif-button { position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
     .notif-badge {
       position: absolute;
       top: 0;
@@ -690,16 +440,13 @@
       z-index: 60;
       display: flex;
       align-items: flex-end;
-      background: rgba(15, 23, 42, 0.42);
+      background: rgba(15,23,42,0.42);
       backdrop-filter: blur(4px);
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.28s;
     }
-    #notificationOverlay.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    #notificationOverlay.show { opacity: 1; pointer-events: auto; }
     #notificationSheet {
       width: 100%;
       max-height: 78%;
@@ -708,54 +455,17 @@
       background: #fff;
       border-radius: 28px 28px 0 0;
       transform: translateY(100%);
-      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
       overflow: hidden;
     }
-    #notificationOverlay.show #notificationSheet {
-      transform: translateY(0);
-    }
-    .notif-sheet-head {
-      padding: 10px 20px 14px;
-      border-bottom: 1px solid #f1f5f9;
-    }
-    .notif-handle {
-      width: 46px;
-      height: 5px;
-      margin: 0 auto 16px;
-      border-radius: 99px;
-      background: #e2e8f0;
-    }
-    .notif-head-row {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .notif-title {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 800;
-      color: #0f172a;
-    }
-    .notif-subtitle {
-      margin: 3px 0 0;
-      font-size: 12px;
-      color: #94a3b8;
-    }
-    .notif-read-all {
-      border: 0;
-      background: #eff6ff;
-      color: #1e5eff;
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 11px;
-      font-weight: 800;
-    }
-    .notif-list {
-      overflow-y: auto;
-      padding: 10px 14px 22px;
-      background: #f8fafc;
-    }
+    #notificationOverlay.show #notificationSheet { transform: translateY(0); }
+    .notif-sheet-head { padding: 10px 20px 14px; border-bottom: 1px solid #f1f5f9; }
+    .notif-handle { width: 46px; height: 5px; margin: 0 auto 16px; border-radius: 99px; background: #e2e8f0; }
+    .notif-head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .notif-title { margin: 0; font-size: 18px; font-weight: 800; color: #0f172a; }
+    .notif-subtitle { margin: 3px 0 0; font-size: 12px; color: #94a3b8; }
+    .notif-read-all { border: 0; background: #eff6ff; color: #1e5eff; border-radius: 10px; padding: 8px 10px; font-size: 11px; font-weight: 800; }
+    .notif-list { overflow-y: auto; padding: 10px 14px 22px; background: #f8fafc; }
     .notif-item {
       display: grid;
       grid-template-columns: 46px 1fr auto;
@@ -769,87 +479,24 @@
       background: #fff;
       text-align: left;
     }
-    .notif-item.unread {
-      border-color: #dbeafe;
-      background: #f8fbff;
-      box-shadow: 0 7px 22px rgba(30, 94, 255, 0.07);
-    }
-    .notif-icon {
-      width: 46px;
-      height: 46px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
-    .notif-icon.progress {
-      background: #eaf2ff;
-      color: #1e5eff;
-    }
-    .notif-icon.done {
-      background: #dcfce7;
-      color: #16a34a;
-    }
-    .notif-icon.info {
-      background: #f1f5f9;
-      color: #64748b;
-    }
-    .notif-content {
-      min-width: 0;
-    }
-    .notif-item-title {
-      display: block;
-      margin: 0 0 4px;
-      font-size: 13px;
-      font-weight: 800;
-      color: #0f172a;
-    }
-    .notif-message {
-      display: -webkit-box;
-      font-size: 12px;
-      line-height: 1.5;
-      color: #64748b;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .notif-time {
-      display: block;
-      margin-top: 7px;
-      font-size: 10px;
-      color: #94a3b8;
-    }
-    .notif-dot {
-      width: 8px;
-      height: 8px;
-      margin-top: 5px;
-      border-radius: 50%;
-      background: #1e5eff;
-    }
-    .notif-empty {
-      padding: 44px 20px;
-      text-align: center;
-      color: #94a3b8;
-    }
-    .notif-empty-icon {
-      width: 64px;
-      height: 64px;
-      margin: 0 auto 14px;
-      border-radius: 20px;
-      background: #eef4ff;
-      color: #1e5eff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 25px;
-    }
+    .notif-item.unread { border-color: #dbeafe; background: #f8fbff; box-shadow: 0 7px 22px rgba(30,94,255,0.07); }
+    .notif-icon { width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .notif-icon.progress { background: #eaf2ff; color: #1e5eff; }
+    .notif-icon.done { background: #dcfce7; color: #16a34a; }
+    .notif-icon.info { background: #f1f5f9; color: #64748b; }
+    .notif-content { min-width: 0; }
+    .notif-item-title { display: block; margin: 0 0 4px; font-size: 13px; font-weight: 800; color: #0f172a; }
+    .notif-message { display: -webkit-box; font-size: 12px; line-height: 1.5; color: #64748b; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .notif-time { display: block; margin-top: 7px; font-size: 10px; color: #94a3b8; }
+    .notif-dot { width: 8px; height: 8px; margin-top: 5px; border-radius: 50%; background: #1e5eff; }
+    .notif-empty { padding: 44px 20px; text-align: center; color: #94a3b8; }
+    .notif-empty-icon { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 20px; background: #eef4ff; color: #1e5eff; display: flex; align-items: center; justify-content: center; font-size: 25px; }
 
-    /* Modern Interactive Logout Toast Overlay */
+    /* === LOGOUT OVERLAY & TOAST (di tengah) === */
     #logoutOverlay {
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0,0,0,0.4);
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
       z-index: 50;
@@ -857,30 +504,27 @@
       pointer-events: none;
       transition: opacity 0.3s ease;
       display: flex;
-      align-items: flex-end;
+      align-items: center;
+      justify-content: center;
     }
     #logoutOverlay.show {
       opacity: 1;
       pointer-events: auto;
     }
     #logoutToast {
-      width: 100%;
+      width: 90%;
+      max-width: 400px;
       background: #fff;
-      border-radius: 28px 28px 0 0;
+      border-radius: 28px;
       padding: 24px 24px 32px;
-      box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.12);
-      transform: translateY(100%);
-      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      transform: scale(0.9);
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease;
     }
     #logoutOverlay.show #logoutToast {
-      transform: translateY(0);
-    }
-    .toast-handle {
-      width: 48px;
-      height: 5px;
-      background: #e5e7eb;
-      border-radius: 8px;
-      margin: 0 auto 20px;
+      transform: scale(1);
+      opacity: 1;
     }
     .logout-icon {
       width: 64px;
@@ -896,13 +540,8 @@
       animation: bounce 1.2s infinite;
     }
     @keyframes bounce {
-      0%,
-      100% {
-        transform: translateY(0);
-      }
-      50% {
-        transform: translateY(-6px);
-      }
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
     }
 
     /* Smartphone Push Notification Card */
@@ -913,11 +552,7 @@
       border-radius: 16px;
       background: linear-gradient(145deg, #f8fbff, #eef4ff);
     }
-    .push-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .push-row { display: flex; align-items: center; gap: 12px; }
     .push-icon {
       width: 44px;
       height: 44px;
@@ -929,23 +564,11 @@
       background: #1e5eff;
       color: #fff;
       font-size: 18px;
-      box-shadow: 0 8px 20px rgba(30, 94, 255, 0.22);
+      box-shadow: 0 8px 20px rgba(30,94,255,0.22);
     }
-    .push-info {
-      min-width: 0;
-      flex: 1;
-    }
-    .push-title {
-      font-size: 13px;
-      font-weight: 800;
-      color: #0f172a;
-    }
-    .push-desc {
-      margin-top: 2px;
-      font-size: 10px;
-      line-height: 1.45;
-      color: #64748b;
-    }
+    .push-info { min-width: 0; flex: 1; }
+    .push-title { font-size: 13px; font-weight: 800; color: #0f172a; }
+    .push-desc { margin-top: 2px; font-size: 10px; line-height: 1.45; color: #64748b; }
     .push-btn {
       border: 0;
       border-radius: 11px;
@@ -956,17 +579,10 @@
       font-weight: 800;
       white-space: nowrap;
     }
-    .push-btn.active {
-      background: #dcfce7;
-      color: #15803d;
-    }
-    .push-btn:disabled {
-      opacity: 0.65;
-    }
+    .push-btn.active { background: #dcfce7; color: #15803d; }
+    .push-btn:disabled { opacity: 0.65; }
 
-    /* ==================================================
-       FINAL COLORFUL PUSH NOTIFICATION TOAST
-       ================================================== */
+    /* Push Notification Success Toast */
     .swal-push-success {
       width: min(370px, calc(100vw - 32px)) !important;
       padding: 0 !important;
@@ -974,20 +590,16 @@
       border: 0 !important;
       border-radius: 26px !important;
       background: linear-gradient(145deg, #ffffff 0%, #f3f8ff 52%, #f5fff9 100%) !important;
-      box-shadow: 0 28px 80px rgba(30, 94, 255, 0.28) !important;
+      box-shadow: 0 28px 80px rgba(30,94,255,0.28) !important;
     }
-    .swal-push-success .swal2-html-container {
-      margin: 0 !important;
-      padding: 0 !important;
-    }
+    .swal-push-success .swal2-html-container { margin: 0 !important; padding: 0 !important; }
     .push-success-toast {
       position: relative;
       padding: 30px 24px 25px;
       text-align: center;
       overflow: hidden;
     }
-    .push-success-toast::before,
-    .push-success-toast::after {
+    .push-success-toast::before, .push-success-toast::after {
       content: "";
       position: absolute;
       border-radius: 50%;
@@ -998,14 +610,14 @@
       height: 190px;
       left: -95px;
       top: -110px;
-      background: rgba(30, 94, 255, 0.13);
+      background: rgba(30,94,255,0.13);
     }
     .push-success-toast::after {
       width: 170px;
       height: 170px;
       right: -90px;
       bottom: -105px;
-      background: rgba(34, 197, 94, 0.12);
+      background: rgba(34,197,94,0.12);
     }
     .push-toast-spark {
       position: absolute;
@@ -1013,23 +625,9 @@
       font-size: 14px;
       animation: pushSparkle 1.5s ease-in-out infinite;
     }
-    .push-toast-spark.p1 {
-      top: 30px;
-      left: 54px;
-      color: #f59e0b;
-    }
-    .push-toast-spark.p2 {
-      top: 54px;
-      right: 48px;
-      color: #ec4899;
-      animation-delay: 0.25s;
-    }
-    .push-toast-spark.p3 {
-      top: 104px;
-      left: 44px;
-      color: #22c55e;
-      animation-delay: 0.5s;
-    }
+    .push-toast-spark.p1 { top: 30px; left: 54px; color: #f59e0b; }
+    .push-toast-spark.p2 { top: 54px; right: 48px; color: #ec4899; animation-delay: 0.25s; }
+    .push-toast-spark.p3 { top: 104px; left: 44px; color: #22c55e; animation-delay: 0.5s; }
     .push-success-icon {
       position: relative;
       z-index: 2;
@@ -1043,130 +641,48 @@
       color: #fff;
       font-size: 38px;
       background: linear-gradient(145deg, #1e5eff, #6366f1 58%, #22c55e);
-      box-shadow: 0 17px 38px rgba(30, 94, 255, 0.35);
-      animation: pushToastPop 0.58s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 17px 38px rgba(30,94,255,0.35);
+      animation: pushToastPop 0.58s cubic-bezier(0.16,1,0.3,1);
     }
     .push-success-icon::after {
       content: "";
       position: absolute;
       inset: -8px;
-      border: 2px solid rgba(30, 94, 255, 0.18);
+      border: 2px solid rgba(30,94,255,0.18);
       border-radius: 34px;
       animation: pushToastPulse 1.6s ease-out infinite;
     }
-    .push-success-title {
-      position: relative;
-      z-index: 2;
-      margin: 0;
-      color: #0f172a;
-      font-size: 21px;
-      font-weight: 800;
-      letter-spacing: -0.4px;
-    }
-    .push-success-message {
-      position: relative;
-      z-index: 2;
-      max-width: 285px;
-      margin: 8px auto 0;
-      color: #64748b;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-    .push-success-status {
-      position: relative;
-      z-index: 2;
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      margin-top: 17px;
-      padding: 8px 13px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #dbeafe, #dcfce7);
-      color: #166534;
-      font-size: 11px;
-      font-weight: 800;
-    }
-    .push-success-progress {
-      position: absolute;
-      z-index: 3;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 5px;
-      background: #e0e7ff;
-      overflow: hidden;
-    }
-    .push-success-progress::after {
-      content: "";
-      display: block;
-      width: 100%;
-      height: 100%;
-      transform-origin: left;
-      background: linear-gradient(90deg, #1e5eff, #6366f1, #22c55e);
-      animation: pushToastTimer 2.8s linear forwards;
-    }
+    .push-success-title { position: relative; z-index: 2; margin: 0; color: #0f172a; font-size: 21px; font-weight: 800; letter-spacing: -0.4px; }
+    .push-success-message { position: relative; z-index: 2; max-width: 285px; margin: 8px auto 0; color: #64748b; font-size: 13px; line-height: 1.6; }
+    .push-success-status { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 7px; margin-top: 17px; padding: 8px 13px; border-radius: 999px; background: linear-gradient(90deg, #dbeafe, #dcfce7); color: #166534; font-size: 11px; font-weight: 800; }
+    .push-success-progress { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; height: 5px; background: #e0e7ff; overflow: hidden; }
+    .push-success-progress::after { content: ""; display: block; width: 100%; height: 100%; transform-origin: left; background: linear-gradient(90deg, #1e5eff, #6366f1, #22c55e); animation: pushToastTimer 2.8s linear forwards; }
     @keyframes pushToastPop {
-      0% {
-        transform: scale(0.55) rotate(-9deg);
-        opacity: 0;
-      }
-      70% {
-        transform: scale(1.08) rotate(2deg);
-      }
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
+      0% { transform: scale(0.55) rotate(-9deg); opacity: 0; }
+      70% { transform: scale(1.08) rotate(2deg); }
+      100% { transform: scale(1); opacity: 1; }
     }
     @keyframes pushToastPulse {
-      0% {
-        transform: scale(0.88);
-        opacity: 0.8;
-      }
-      100% {
-        transform: scale(1.25);
-        opacity: 0;
-      }
+      0% { transform: scale(0.88); opacity: 0.8; }
+      100% { transform: scale(1.25); opacity: 0; }
     }
     @keyframes pushSparkle {
-      0%,
-      100% {
-        transform: scale(0.7) rotate(0);
-        opacity: 0.35;
-      }
-      50% {
-        transform: scale(1.25) rotate(20deg);
-        opacity: 1;
-      }
+      0%,100% { transform: scale(0.7) rotate(0); opacity: 0.35; }
+      50% { transform: scale(1.25) rotate(20deg); opacity: 1; }
     }
-    @keyframes pushToastTimer {
-      from {
-        transform: scaleX(1);
-      }
-      to {
-        transform: scaleX(0);
-      }
-    }
+    @keyframes pushToastTimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
-    /* Disable Notification Confirmation + Success Toast */
+    /* Push Disable Toast */
     .swal-push-disable {
       width: min(370px, calc(100vw - 32px)) !important;
       border-radius: 26px !important;
       padding: 0 !important;
       overflow: hidden !important;
       background: linear-gradient(145deg, #fff 0%, #fff7f7 100%) !important;
-      box-shadow: 0 28px 80px rgba(239, 68, 68, 0.24) !important;
+      box-shadow: 0 28px 80px rgba(239,68,68,0.24) !important;
     }
-    .swal-push-disable .swal2-html-container {
-      margin: 0 !important;
-      padding: 0 !important;
-    }
-    .push-disable-toast {
-      position: relative;
-      padding: 30px 24px 26px;
-      text-align: center;
-      overflow: hidden;
-    }
+    .swal-push-disable .swal2-html-container { margin: 0 !important; padding: 0 !important; }
+    .push-disable-toast { position: relative; padding: 30px 24px 26px; text-align: center; overflow: hidden; }
     .push-disable-icon {
       width: 86px;
       height: 86px;
@@ -1178,79 +694,21 @@
       background: linear-gradient(145deg, #fb7185, #ef4444, #f97316);
       color: #fff;
       font-size: 36px;
-      box-shadow: 0 17px 38px rgba(239, 68, 68, 0.30);
-      animation: pushDisablePop 0.58s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 17px 38px rgba(239,68,68,0.30);
+      animation: pushDisablePop 0.58s cubic-bezier(0.16,1,0.3,1);
     }
-    .push-disable-title {
-      margin: 0;
-      color: #0f172a;
-      font-size: 21px;
-      font-weight: 800;
-      letter-spacing: -0.4px;
-    }
-    .push-disable-message {
-      max-width: 285px;
-      margin: 8px auto 0;
-      color: #64748b;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-    .push-disable-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      margin-top: 17px;
-      padding: 8px 13px;
-      border-radius: 999px;
-      background: #fee2e2;
-      color: #b91c1c;
-      font-size: 11px;
-      font-weight: 800;
-    }
-    .push-disable-progress {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 5px;
-      background: #fee2e2;
-      overflow: hidden;
-    }
-    .push-disable-progress::after {
-      content: "";
-      display: block;
-      width: 100%;
-      height: 100%;
-      transform-origin: left;
-      background: linear-gradient(90deg, #fb7185, #ef4444, #f97316);
-      animation: pushDisableTimer 2.8s linear forwards;
-    }
-    .push-btn.deactivate {
-      background: linear-gradient(135deg, #fee2e2, #fff1f2);
-      color: #dc2626;
-      border: 1px solid #fecaca;
-    }
+    .push-disable-title { margin: 0; color: #0f172a; font-size: 21px; font-weight: 800; letter-spacing: -0.4px; }
+    .push-disable-message { max-width: 285px; margin: 8px auto 0; color: #64748b; font-size: 13px; line-height: 1.6; }
+    .push-disable-status { display: inline-flex; align-items: center; gap: 7px; margin-top: 17px; padding: 8px 13px; border-radius: 999px; background: #fee2e2; color: #b91c1c; font-size: 11px; font-weight: 800; }
+    .push-disable-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: #fee2e2; overflow: hidden; }
+    .push-disable-progress::after { content: ""; display: block; width: 100%; height: 100%; transform-origin: left; background: linear-gradient(90deg, #fb7185, #ef4444, #f97316); animation: pushDisableTimer 2.8s linear forwards; }
+    .push-btn.deactivate { background: linear-gradient(135deg, #fee2e2, #fff1f2); color: #dc2626; border: 1px solid #fecaca; }
     @keyframes pushDisablePop {
-      0% {
-        transform: scale(0.55) rotate(9deg);
-        opacity: 0;
-      }
-      70% {
-        transform: scale(1.08) rotate(-2deg);
-      }
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
+      0% { transform: scale(0.55) rotate(9deg); opacity: 0; }
+      70% { transform: scale(1.08) rotate(-2deg); }
+      100% { transform: scale(1); opacity: 1; }
     }
-    @keyframes pushDisableTimer {
-      from {
-        transform: scaleX(1);
-      }
-      to {
-        transform: scaleX(0);
-      }
-    }
+    @keyframes pushDisableTimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
   </style>
 </head>
 <body>
@@ -1365,7 +823,6 @@
     <a href="#" class="text-gray-400" id="navHistory"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
   </div>
 
-
   <!-- Notification Center -->
   <div id="notificationOverlay">
     <section id="notificationSheet">
@@ -1380,10 +837,10 @@
     </section>
   </div>
 
-  <!-- Modern Interactive Logout Toast Overlay (sama persis seperti di /user-history) -->
+  <!-- Logout Overlay (Toast di tengah) -->
   <div id="logoutOverlay">
     <div id="logoutToast">
-      <div class="toast-handle"></div>
+      <!-- handle dihilangkan karena modal tengah -->
       <div class="logout-icon">
         <i class="fa-solid fa-right-from-bracket"></i>
       </div>
@@ -1401,9 +858,7 @@
   </div>
 </div>
 
-<!-- ============================================ -->
-<!-- SCRIPT ENTERPRISE                            -->
-<!-- ============================================ -->
+<!-- ========== SCRIPTS ========== -->
 <script src="config/config.js"></script>
 <script src="assets/js/core/session.js"></script>
 <script src="assets/js/core/app.js"></script>
@@ -1417,13 +872,11 @@
   // =============================================
   (function checkUserAccess() {
     try {
-      // Tunggu sesaat agar BCS.Storage siap
       if (typeof BCS === 'undefined' || typeof BCS.Storage === 'undefined') {
         console.warn('BCS belum siap, menunggu 200ms...');
         setTimeout(function() { checkUserAccess(); }, 200);
         return;
       }
-
       var session = BCS.Storage.getSession();
       if (!session || !session.token) {
         window.location.href = '/login';
@@ -1431,7 +884,6 @@
       }
       var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
       if (role !== 'USER' && role !== 'TECHNICIAN') {
-        // Jika role adalah admin, arahkan ke /admin
         if (['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'].includes(role)) {
           window.location.href = '/admin';
         } else {
@@ -1450,7 +902,7 @@
     'use strict';
 
     // =============================================
-    // Custom Center Toast (Modal Kecil di Tengah)
+    // Custom Center Alert
     // =============================================
     function showCenterAlert(icon, title, options = {}) {
       const config = {
@@ -1463,70 +915,15 @@
         timer: options.timer || null,
         timerProgressBar: options.timer ? true : false,
         backdrop: 'rgba(0,0,0,0.3)',
-        showClass: {
-          popup: 'animate__animated animate__fadeInUp animate__faster'
-        },
-        hideClass: {
-          popup: 'animate__animated animate__fadeOutDown animate__faster'
-        },
-        customClass: {
-          popup: 'swal2-popup',
-          confirmButton: 'swal2-confirm'
-        }
+        showClass: { popup: 'animate__animated animate__fadeInUp animate__faster' },
+        hideClass: { popup: 'animate__animated animate__fadeOutDown animate__faster' },
+        customClass: { popup: 'swal2-popup', confirmButton: 'swal2-confirm' }
       };
-
-      if (icon === 'success') {
-        config.showConfirmButton = false;
-        config.timer = 2000;
-        config.timerProgressBar = true;
-        config.confirmButtonColor = '#22c55e';
-      }
-      if (icon === 'warning') {
-        config.confirmButtonColor = '#f59e0b';
-      }
-      if (icon === 'error') {
-        config.confirmButtonColor = '#ef4444';
-      }
-      if (icon === 'info') {
-        config.confirmButtonColor = '#3b82f6';
-      }
-
+      if (icon === 'success') { config.showConfirmButton = false; config.timer = 2000; config.timerProgressBar = true; config.confirmButtonColor = '#22c55e'; }
+      if (icon === 'warning') { config.confirmButtonColor = '#f59e0b'; }
+      if (icon === 'error') { config.confirmButtonColor = '#ef4444'; }
+      if (icon === 'info') { config.confirmButtonColor = '#3b82f6'; }
       Swal.fire(config);
-    }
-
-    function showPushNotificationSuccess() {
-      Swal.fire({
-        html: `
-          <div class="push-success-toast">
-            <span class="push-toast-spark p1"><i class="fa-solid fa-star"></i></span>
-            <span class="push-toast-spark p2"><i class="fa-solid fa-sparkles"></i></span>
-            <span class="push-toast-spark p3"><i class="fa-solid fa-circle"></i></span>
-
-            <div class="push-success-icon">
-              <i class="fa-solid fa-bell"></i>
-            </div>
-
-            <h3 class="push-success-title">Notifikasi Berhasil Diaktifkan!</h3>
-            <p class="push-success-message">
-              Smartphone ini sekarang siap menerima update status laporan secara langsung.
-            </p>
-
-            <div class="push-success-status">
-              <i class="fa-solid fa-circle-check"></i>
-              Perangkat terhubung ke BCS
-            </div>
-
-            <div class="push-success-progress"></div>
-          </div>
-        `,
-        showConfirmButton: false,
-        timer: 2800,
-        timerProgressBar: false,
-        backdrop: 'rgba(15, 23, 42, .44)',
-        customClass: { popup: 'swal-push-success' },
-        showClass: { popup: 'animate__animated animate__zoomIn animate__faster' },
-        hideClass: { popup: 'animate__animated animate__fadeOutUp animate__faster' }
-      });
     }
 
     // =============================================
@@ -1536,41 +933,54 @@
     const pushNotificationText = document.getElementById('pushNotificationText');
 
     function setPushButtonActive() {
-      enableNotificationBtn.innerHTML =
-        '<i class="fa-solid fa-bell-slash"></i> Nonaktifkan';
+      enableNotificationBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Nonaktifkan';
       enableNotificationBtn.classList.remove('active');
       enableNotificationBtn.classList.add('deactivate');
       enableNotificationBtn.disabled = false;
       enableNotificationBtn.dataset.pushState = 'active';
-      pushNotificationText.textContent =
-        'Notifikasi aktif. Tekan Nonaktifkan untuk berhenti menerima update di perangkat ini.';
+      pushNotificationText.textContent = 'Notifikasi aktif. Tekan Nonaktifkan untuk berhenti menerima update di perangkat ini.';
     }
 
     function setPushButtonInactive() {
-      enableNotificationBtn.innerHTML =
-        '<i class="fa-solid fa-bell"></i> Aktifkan';
+      enableNotificationBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Aktifkan';
       enableNotificationBtn.classList.remove('active', 'deactivate');
       enableNotificationBtn.disabled = false;
       enableNotificationBtn.dataset.pushState = 'inactive';
-      pushNotificationText.textContent =
-        'Terima update status laporan langsung di HP.';
+      pushNotificationText.textContent = 'Terima update status laporan langsung di HP.';
+    }
+
+    function showPushNotificationSuccess() {
+      Swal.fire({
+        html: `
+          <div class="push-success-toast">
+            <span class="push-toast-spark p1"><i class="fa-solid fa-star"></i></span>
+            <span class="push-toast-spark p2"><i class="fa-solid fa-sparkles"></i></span>
+            <span class="push-toast-spark p3"><i class="fa-solid fa-circle"></i></span>
+            <div class="push-success-icon"><i class="fa-solid fa-bell"></i></div>
+            <h3 class="push-success-title">Notifikasi Berhasil Diaktifkan!</h3>
+            <p class="push-success-message">Smartphone ini sekarang siap menerima update status laporan secara langsung.</p>
+            <div class="push-success-status"><i class="fa-solid fa-circle-check"></i> Perangkat terhubung ke BCS</div>
+            <div class="push-success-progress"></div>
+          </div>
+        `,
+        showConfirmButton: false,
+        timer: 2800,
+        timerProgressBar: false,
+        backdrop: 'rgba(15,23,42,.44)',
+        customClass: { popup: 'swal-push-success' },
+        showClass: { popup: 'animate__animated animate__zoomIn animate__faster' },
+        hideClass: { popup: 'animate__animated animate__fadeOutUp animate__faster' }
+      });
     }
 
     function showPushDisableSuccess() {
       Swal.fire({
         html: `
           <div class="push-disable-toast">
-            <div class="push-disable-icon">
-              <i class="fa-solid fa-bell-slash"></i>
-            </div>
+            <div class="push-disable-icon"><i class="fa-solid fa-bell-slash"></i></div>
             <h3 class="push-disable-title">Notifikasi Dinonaktifkan</h3>
-            <p class="push-disable-message">
-              Smartphone ini tidak akan menerima update status laporan sampai notifikasi diaktifkan kembali.
-            </p>
-            <div class="push-disable-status">
-              <i class="fa-solid fa-circle-minus"></i>
-              Perangkat terputus dari notifikasi BCS
-            </div>
+            <p class="push-disable-message">Smartphone ini tidak akan menerima update status laporan sampai notifikasi diaktifkan kembali.</p>
+            <div class="push-disable-status"><i class="fa-solid fa-circle-minus"></i> Perangkat terputus dari notifikasi BCS</div>
             <div class="push-disable-progress"></div>
           </div>
         `,
@@ -1586,12 +996,7 @@
 
     async function disablePushNotification() {
       const fcmToken = localStorage.getItem('BCS_FCM_TOKEN');
-
-      if (!fcmToken) {
-        setPushButtonInactive();
-        return;
-      }
-
+      if (!fcmToken) { setPushButtonInactive(); return; }
       const confirm = await Swal.fire({
         icon: 'warning',
         title: 'Nonaktifkan Notifikasi?',
@@ -1604,38 +1009,25 @@
         cancelButtonColor: '#64748b',
         customClass: { popup: 'rounded-3xl' }
       });
-
       if (!confirm.isConfirmed) return;
-
       enableNotificationBtn.disabled = true;
-      enableNotificationBtn.innerHTML =
-        '<i class="fa-solid fa-spinner fa-spin"></i> Menonaktifkan...';
-
-      const result = await BCS.Api.post('unregisterPushToken', {
-        fcmToken: fcmToken
-      });
-
-      if (!result || result.success !== true) {
-        throw new Error(result?.message || 'Gagal menonaktifkan token notifikasi.');
-      }
-
+      enableNotificationBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menonaktifkan...';
+      const result = await BCS.Api.post('unregisterPushToken', { fcmToken: fcmToken });
+      if (!result || result.success !== true) { throw new Error(result?.message || 'Gagal menonaktifkan token notifikasi.'); }
       localStorage.removeItem('BCS_FCM_TOKEN');
       localStorage.removeItem('BCS_FCM_REGISTERED_AT');
-
       setPushButtonInactive();
       showPushDisableSuccess();
     }
 
     function updatePushNotificationUI() {
       if (!enableNotificationBtn || !pushNotificationText) return;
-
       if (!('Notification' in window)) {
         enableNotificationBtn.textContent = 'Tidak didukung';
         enableNotificationBtn.disabled = true;
         pushNotificationText.textContent = 'Browser ini belum mendukung notifikasi.';
         return;
       }
-
       if (Notification.permission === 'granted' && localStorage.getItem('BCS_FCM_TOKEN')) {
         setPushButtonActive();
       } else if (Notification.permission === 'denied') {
@@ -1647,55 +1039,28 @@
 
     enableNotificationBtn?.addEventListener('click', async function() {
       if (this.dataset.pushState === 'active') {
-        try {
-          await disablePushNotification();
-        } catch (error) {
+        try { await disablePushNotification(); } catch (error) {
           console.error('[Push Notification Disable]', error);
           setPushButtonActive();
-          Swal.fire({
-            icon: 'error',
-            title: 'Gagal Menonaktifkan',
-            text: error.message || 'Terjadi kesalahan saat menonaktifkan notifikasi.',
-            confirmButtonColor: '#ef4444'
-          });
+          Swal.fire({ icon: 'error', title: 'Gagal Menonaktifkan', text: error.message || 'Terjadi kesalahan.', confirmButtonColor: '#ef4444' });
         }
         return;
       }
-
       const oldText = this.innerHTML;
       this.disabled = true;
       this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-
       try {
-        if (!window.BCSPush) {
-          throw new Error('Modul notifikasi belum siap. Muat ulang halaman.');
-        }
-
+        if (!window.BCSPush) throw new Error('Modul notifikasi belum siap. Muat ulang halaman.');
         const result = await window.BCSPush.enable();
-
-        if (result?.success) {
-          setPushButtonActive();
-
-          showPushNotificationSuccess();
-        } else {
-          this.textContent = oldText;
-          this.disabled = false;
-          pushNotificationText.textContent = 'Izin notifikasi belum diberikan.';
+        if (result?.success) { setPushButtonActive(); showPushNotificationSuccess(); } else {
+          this.textContent = oldText; this.disabled = false; pushNotificationText.textContent = 'Izin notifikasi belum diberikan.';
         }
       } catch (error) {
         console.error('[Push Notification]', error);
-        this.textContent = oldText;
-        this.disabled = false;
-        pushNotificationText.textContent = 'Gagal mengaktifkan. Coba lagi.';
-
-        if (typeof showCenterAlert === 'function') {
-          showCenterAlert('error', '❌ ' + error.message);
-        } else {
-          alert(error.message);
-        }
+        this.textContent = oldText; this.disabled = false; pushNotificationText.textContent = 'Gagal mengaktifkan. Coba lagi.';
+        if (typeof showCenterAlert === 'function') { showCenterAlert('error', '❌ ' + error.message); } else { alert(error.message); }
       }
     });
-
     updatePushNotificationUI();
 
     // =============================================
@@ -1708,19 +1073,13 @@
         const nama = user.nama || user.name || 'User';
         const dept = user.departemen || user.department || '';
         const nik = session?.nik || user.nik || '';
-
         document.getElementById('userName').textContent = `Halo ${nama} 👋`;
         document.getElementById('userDept').textContent = dept || nik || 'Building Care';
         const avatar = document.getElementById('userAvatar');
         avatar.textContent = nama.charAt(0).toUpperCase() || 'U';
-
         const deptInput = document.getElementById('departemen');
-        if (deptInput && dept) {
-          deptInput.value = dept;
-        }
-      } catch (e) {
-        console.warn('Gagal load user:', e);
-      }
+        if (deptInput && dept) { deptInput.value = dept; }
+      } catch (e) { console.warn('Gagal load user:', e); }
     }
 
     // =============================================
@@ -1728,23 +1087,18 @@
     // =============================================
     const prioritySelect = document.getElementById('prioritySelect');
     const priorityBadge = document.getElementById('priorityBadge');
-
     const priorityColors = {
       'NORMAL': { bg: '#dcfce7', text: '#16a34a', label: 'NORMAL' },
-      'HIGH': { bg: '#fef3c7', text: '#d97706', label: 'HIGH' },
+      'HIGH':   { bg: '#fef3c7', text: '#d97706', label: 'HIGH' },
       'URGENT': { bg: '#fee2e2', text: '#dc2626', label: 'URGENT' }
     };
-
     function updatePriorityBadge(value) {
       const color = priorityColors[value] || priorityColors['NORMAL'];
       priorityBadge.textContent = color.label;
       priorityBadge.style.backgroundColor = color.bg;
       priorityBadge.style.color = color.text;
     }
-
-    prioritySelect.addEventListener('change', function() {
-      updatePriorityBadge(this.value);
-    });
+    prioritySelect.addEventListener('change', function() { updatePriorityBadge(this.value); });
     updatePriorityBadge(prioritySelect.value);
 
     // =============================================
@@ -1752,7 +1106,6 @@
     // =============================================
     const categoryCards = document.querySelectorAll('.cat-card');
     const hiddenCategory = document.getElementById('selectedCategory');
-
     function updateCategoryUI(value) {
       categoryCards.forEach(card => {
         const val = card.dataset.value;
@@ -1767,11 +1120,8 @@
       });
       hiddenCategory.value = value;
     }
-
     categoryCards.forEach(card => {
-      card.addEventListener('click', function() {
-        updateCategoryUI(this.dataset.value);
-      });
+      card.addEventListener('click', function() { updateCategoryUI(this.dataset.value); });
     });
     updateCategoryUI('LISTRIK');
 
@@ -1781,14 +1131,12 @@
     const photoInput = document.getElementById('photo');
     const cameraBtn = document.getElementById('cameraBtn');
     const galleryBtn = document.getElementById('galleryBtn');
-
     cameraBtn.addEventListener('click', function(e) {
       e.preventDefault();
       photoInput.setAttribute('capture', 'environment');
       photoInput.click();
       setTimeout(() => photoInput.removeAttribute('capture'), 100);
     });
-
     galleryBtn.addEventListener('click', function(e) {
       e.preventDefault();
       photoInput.removeAttribute('capture');
@@ -1802,7 +1150,6 @@
     const previewPlaceholder = document.getElementById('previewPlaceholder');
     const previewWrapper = document.getElementById('previewWrapper');
     const removePhotoBtn = document.getElementById('photoRemove');
-
     let currentFile = null;
 
     function showPreview(file) {
@@ -1858,37 +1205,20 @@
             <span class="success-spark s1"><i class="fa-solid fa-star"></i></span>
             <span class="success-spark s2"><i class="fa-solid fa-sparkles"></i></span>
             <span class="success-spark s3"><i class="fa-solid fa-circle"></i></span>
-
-            <div class="success-icon-wrap">
-              <i class="fa-solid fa-check"></i>
-            </div>
-
+            <div class="success-icon-wrap"><i class="fa-solid fa-check"></i></div>
             <h3 class="success-title">Report Berhasil Dikirim!</h3>
-            <p class="success-message">
-              Laporan kerusakan sudah masuk ke sistem dan akan segera ditindaklanjuti.
-            </p>
-
-            <div class="success-status">
-              <i class="fa-solid fa-circle-check"></i>
-              Berhasil tercatat di sistem
-            </div>
-
+            <p class="success-message">Laporan kerusakan sudah masuk ke sistem dan akan segera ditindaklanjuti.</p>
+            <div class="success-status"><i class="fa-solid fa-circle-check"></i> Berhasil tercatat di sistem</div>
             <div class="success-progress"></div>
           </div>
         `,
         showConfirmButton: false,
         timer: 2800,
         timerProgressBar: false,
-        backdrop: 'rgba(15, 23, 42, .42)',
-        customClass: {
-          popup: 'swal-report-success'
-        },
-        showClass: {
-          popup: 'animate__animated animate__zoomIn animate__faster'
-        },
-        hideClass: {
-          popup: 'animate__animated animate__fadeOutUp animate__faster'
-        }
+        backdrop: 'rgba(15,23,42,.42)',
+        customClass: { popup: 'swal-report-success' },
+        showClass: { popup: 'animate__animated animate__zoomIn animate__faster' },
+        hideClass: { popup: 'animate__animated animate__fadeOutUp animate__faster' }
       });
     }
 
@@ -1896,44 +1226,21 @@
     // 6. SUBMIT REPORT
     // =============================================
     const submitBtn = document.getElementById('submitReport');
-
     async function submitReport() {
       const lokasi = document.getElementById('lokasi').value.trim();
-      if (!lokasi) {
-        showCenterAlert('warning', '⚠️ Lokasi kerusakan wajib diisi');
-        document.getElementById('lokasi').focus();
-        return;
-      }
-
+      if (!lokasi) { showCenterAlert('warning', '⚠️ Lokasi kerusakan wajib diisi'); document.getElementById('lokasi').focus(); return; }
       const departemen = document.getElementById('departemen').value.trim();
-      if (!departemen) {
-        showCenterAlert('warning', '⚠️ Departemen wajib diisi');
-        document.getElementById('departemen').focus();
-        return;
-      }
-
+      if (!departemen) { showCenterAlert('warning', '⚠️ Departemen wajib diisi'); document.getElementById('departemen').focus(); return; }
       const kategori = document.getElementById('selectedCategory').value;
-      if (!kategori) {
-        showCenterAlert('warning', '⚠️ Pilih kategori kerusakan');
-        return;
-      }
-
+      if (!kategori) { showCenterAlert('warning', '⚠️ Pilih kategori kerusakan'); return; }
       const deskripsi = document.getElementById('deskripsi').value.trim();
-      if (!deskripsi || deskripsi.length < 5) {
-        showCenterAlert('warning', '⚠️ Deskripsi minimal 5 karakter');
-        document.getElementById('deskripsi').focus();
-        return;
-      }
-
+      if (!deskripsi || deskripsi.length < 5) { showCenterAlert('warning', '⚠️ Deskripsi minimal 5 karakter'); document.getElementById('deskripsi').focus(); return; }
       const prioritas = document.getElementById('prioritySelect').value;
-
       const session = BCS.Storage.getSession();
       const user = session?.user || {};
       const nama = user.nama || user.name || 'User';
       const nik = session?.nik || user.nik || '';
-
-      let photoBase64 = '';
-      let filename = '';
+      let photoBase64 = '', filename = '';
       if (currentFile) {
         try {
           const reader = new FileReader();
@@ -1949,28 +1256,11 @@
           return;
         }
       }
-
-      const payload = {
-        nama: nama,
-        nik: nik,
-        departemen: departemen,
-        lokasi: lokasi,
-        kategori: kategori,
-        prioritas: prioritas,
-        deskripsi: deskripsi,
-        photo: photoBase64,
-        filename: filename
-      };
-
-      console.log('📤 Payload:', payload);
-
+      const payload = { nama, nik, departemen, lokasi, kategori, prioritas, deskripsi, photo: photoBase64, filename };
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...';
-
       try {
         const response = await BCS.Api.post('saveReport', payload);
-        console.log('📥 Response:', response);
-
         if (response && response.success) {
           showReportSuccess();
           document.getElementById('lokasi').value = '';
@@ -1992,7 +1282,6 @@
         submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane text-sm"></i> Kirim Report';
       }
     }
-
     submitBtn.addEventListener('click', submitReport);
 
     // =============================================
@@ -2005,15 +1294,8 @@
     // =============================================
     // 8. NAVIGASI
     // =============================================
-    document.getElementById('navHistory').addEventListener('click', function(e) {
-      e.preventDefault();
-      window.location.href = '/user-history';
-    });
-
-    document.getElementById('navReport').addEventListener('click', function(e) {
-      e.preventDefault();
-      window.location.href = '/user-report';
-    });
+    document.getElementById('navHistory').addEventListener('click', function(e) { e.preventDefault(); window.location.href = '/user-history'; });
+    document.getElementById('navReport').addEventListener('click', function(e) { e.preventDefault(); window.location.href = '/user-report'; });
 
     // =============================================
     // 9. NOTIFICATION CENTER
@@ -2029,7 +1311,7 @@
     const getReadIds = () => { try { return JSON.parse(localStorage.getItem(READ_KEY) || '[]') } catch (e) { return [] } };
     const saveReadIds = ids => localStorage.setItem(READ_KEY, JSON.stringify([...new Set(ids)]));
     const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' } [c]));
-    const statusOf = v => { const s = String(v || '').trim().toUpperCase(); return ['DONE', 'SELESAI', 'CLOSED'].includes(s) ? 'DONE' : ['PROGRESS', 'IN PROGRESS', 'DIPROSES', 'PROCESS'].includes(s) ? 'PROGRESS' : 'OPEN' };
+    const statusOf = v => { const s = String(v || '').trim().toUpperCase(); return ['DONE','SELESAI','CLOSED'].includes(s) ? 'DONE' : ['PROGRESS','IN PROGRESS','DIPROSES','PROCESS'].includes(s) ? 'PROGRESS' : 'OPEN'; };
     const reportId = r => r.id || r.reportId || r.report_id || r.ID || '';
     const reportDate = r => r.updatedAt || r.updated_at || r.createdAt || r.created_at || r.tanggal || r.date || '';
 
@@ -2037,9 +1319,7 @@
       if (!value) return 'Baru saja';
       const d = new Date(value);
       if (Number.isNaN(d.getTime())) return String(value);
-      const m = Math.floor((Date.now() - d) / 60000),
-        h = Math.floor(m / 60),
-        day = Math.floor(h / 24);
+      const m = Math.floor((Date.now() - d) / 60000), h = Math.floor(m / 60), day = Math.floor(h / 24);
       if (m < 1) return 'Baru saja';
       if (m < 60) return `${m} menit lalu`;
       if (h < 24) return `${h} jam lalu`;
@@ -2048,24 +1328,16 @@
     }
 
     function ownReport(r) {
-      const s = BCS.Storage.getSession(),
-        u = s?.user || {};
-      const myNik = String(s?.nik || u.nik || '').toLowerCase(),
-        myName = String(u.nama || u.name || '').toLowerCase();
-      const nik = String(r.nik || r.userNik || '').toLowerCase(),
-        name = String(r.nama || r.name || r.pelapor || '').toLowerCase();
+      const s = BCS.Storage.getSession(), u = s?.user || {};
+      const myNik = String(s?.nik || u.nik || '').toLowerCase(), myName = String(u.nama || u.name || '').toLowerCase();
+      const nik = String(r.nik || r.userNik || '').toLowerCase(), name = String(r.nama || r.name || r.pelapor || '').toLowerCase();
       if (myNik && nik) return myNik === nik;
       if (myName && name) return myName === name;
       return true;
     }
 
     function makeNotification(r) {
-      const status = statusOf(r.status),
-        id = String(reportId(r)),
-        category = r.kategori || r.category || 'Laporan',
-        location = r.lokasi || r.location || '',
-        suffix = location ? ` • ${location}` : '',
-        date = reportDate(r);
+      const status = statusOf(r.status), id = String(reportId(r)), category = r.kategori || r.category || 'Laporan', location = r.lokasi || r.location || '', suffix = location ? ` • ${location}` : '', date = reportDate(r);
       if (status === 'DONE') return { id: `DONE-${id}`, reportId: id, type: 'done', icon: 'fa-circle-check', title: 'Perbaikan Selesai', message: `${category}${suffix} telah selesai diperbaiki.`, date, report: r };
       if (status === 'PROGRESS') return { id: `PROGRESS-${id}`, reportId: id, type: 'progress', icon: 'fa-screwdriver-wrench', title: 'Laporan Sedang Diproses', message: `${category}${suffix} sedang ditangani.`, date, report: r };
       return { id: `OPEN-${id}`, reportId: id, type: 'info', icon: 'fa-file-circle-check', title: 'Laporan Diterima', message: `${category}${suffix} sudah tercatat dan menunggu proses.`, date, report: r };
@@ -2080,65 +1352,47 @@
     }
 
     function renderNotifications() {
-      const read = getReadIds(),
-        unread = notifications.filter(n => !read.includes(n.id));
+      const read = getReadIds(), unread = notifications.filter(n => !read.includes(n.id));
       notifBadge.textContent = unread.length > 99 ? '99+' : unread.length;
       notifBadge.style.display = unread.length ? 'block' : 'none';
       notifSubtitle.textContent = unread.length ? `${unread.length} belum dibaca` : 'Semua notifikasi sudah dibaca';
       markAllReadBtn.style.display = notifications.length ? 'block' : 'none';
-      if (!notifications.length) { notificationList.innerHTML = '<div class="notif-empty"><div class="notif-empty-icon"><i class="fa-regular fa-bell-slash"></i></div><b style="color:#475569">Belum ada notifikasi</b><div style="font-size:12px;margin-top:5px">Update laporan Anda akan muncul di sini.</div></div>'; return }
+      if (!notifications.length) { notificationList.innerHTML = '<div class="notif-empty"><div class="notif-empty-icon"><i class="fa-regular fa-bell-slash"></i></div><b style="color:#475569">Belum ada notifikasi</b><div style="font-size:12px;margin-top:5px">Update laporan Anda akan muncul di sini.</div></div>'; return; }
       notificationList.innerHTML = notifications.map(n => `<button class="notif-item ${read.includes(n.id) ? '' : 'unread'}" data-id="${esc(n.id)}" data-report-id="${esc(n.reportId)}"><span class="notif-icon ${esc(n.type)}"><i class="fa-solid ${esc(n.icon)}"></i></span><span class="notif-content"><span class="notif-item-title">${esc(n.title)}</span><span class="notif-message">${esc(n.message)}</span><span class="notif-time">${esc(timeAgo(n.date))}</span></span>${read.includes(n.id) ? '' : '<span class="notif-dot"></span>'}</button>`).join('');
     }
 
     async function loadNotifications() {
       try {
         let res;
-        try { res = await BCS.Api.post('getReports', {}) } catch (e) { res = await BCS.Api.post('reports', {}) }
+        try { res = await BCS.Api.post('getReports', {}); } catch (e) { res = await BCS.Api.post('reports', {}); }
         notifications = extractReports(res).filter(ownReport).sort((a, b) => new Date(reportDate(b) || 0) - new Date(reportDate(a) || 0)).slice(0, 30).map(makeNotification);
         renderNotifications();
-      } catch (e) { console.warn('Gagal memuat notifikasi:', e);
-        notifications = [];
-        renderNotifications() }
+      } catch (e) { console.warn('Gagal memuat notifikasi:', e); notifications = []; renderNotifications(); }
     }
 
-    document.getElementById('notifBtn').addEventListener('click', () => { notificationOverlay.classList.add('show');
-      loadNotifications() });
-    notificationOverlay.addEventListener('click', e => { if (e.target === notificationOverlay) notificationOverlay.classList.remove('show') });
-    markAllReadBtn.addEventListener('click', () => { saveReadIds(notifications.map(n => n.id));
-      renderNotifications() });
+    document.getElementById('notifBtn').addEventListener('click', () => { notificationOverlay.classList.add('show'); loadNotifications(); });
+    notificationOverlay.addEventListener('click', e => { if (e.target === notificationOverlay) notificationOverlay.classList.remove('show'); });
+    markAllReadBtn.addEventListener('click', () => { saveReadIds(notifications.map(n => n.id)); renderNotifications(); });
 
     function formatDetailDate(value) {
       if (!value) return '-';
       const d = new Date(value);
-      return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString('id-ID', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
     function downloadReportPdf(report) {
-      if (!window.jspdf || !window.jspdf.jsPDF) {
-        showCenterAlert('error', 'PDF belum siap. Silakan coba lagi.');
-        return;
-      }
-
+      if (!window.jspdf || !window.jspdf.jsPDF) { showCenterAlert('error', 'PDF belum siap. Silakan coba lagi.'); return; }
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       const id = reportId(report) || 'REPORT';
       const status = statusOf(report.status);
-
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(18);
       doc.text('BUILDING CARE SYSTEM', 20, 22);
       doc.setFontSize(12);
       doc.text('Detail Laporan Kerusakan', 20, 31);
-
       doc.setDrawColor(220);
       doc.line(20, 37, 190, 37);
-
       const rows = [
         ['ID Laporan', id],
         ['Status', status],
@@ -2152,7 +1406,6 @@
         ['Deskripsi', report.deskripsi || report.description || '-'],
         ['Catatan Teknisi', report.catatanTeknisi || report.catatan || report.technicianNote || '-']
       ];
-
       let y = 48;
       doc.setFontSize(10);
       rows.forEach(([label, value]) => {
@@ -2162,25 +1415,18 @@
         doc.setFont('helvetica', 'normal');
         doc.text(wrapped, 70, y);
         y += Math.max(8, wrapped.length * 6);
-        if (y > 275) { doc.addPage();
-          y = 24; }
+        if (y > 275) { doc.addPage(); y = 24; }
       });
-
-      // Footer + link developer
       const developerUrl = 'https://api.whatsapp.com/send?phone=6282167472765&text=Haii%20..%F0%9F%91%8B';
-
       doc.setFontSize(8);
       doc.setTextColor(120);
       doc.text('Dokumen dibuat dari Building Care System', 20, 284);
-
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100);
       doc.text('System developed by ', 20, 290);
-
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 94, 255);
       doc.textWithLink('assyaref.dev', 49, 290, { url: developerUrl });
-
       doc.save(`${id}.pdf`);
     }
 
@@ -2189,9 +1435,7 @@
       const id = notification.reportId || reportId(r) || '-';
       const status = statusOf(r.status);
       const priority = r.prioritas || r.priority || 'NORMAL';
-
       notificationOverlay.classList.remove('show');
-
       Swal.fire({
         title: 'Detail Laporan',
         width: 390,
@@ -2220,21 +1464,15 @@
           </div>
         `
       }).then(result => {
-        if (result.isConfirmed) {
-          downloadReportPdf(r);
-        } else if (result.isDenied) {
-          location.href = id !== '-' ? `/user-history?reportId=${encodeURIComponent(id)}` : '/user-history';
-        }
+        if (result.isConfirmed) { downloadReportPdf(r); } else if (result.isDenied) { location.href = id !== '-' ? `/user-history?reportId=${encodeURIComponent(id)}` : '/user-history'; }
       });
     }
 
     notificationList.addEventListener('click', e => {
       const item = e.target.closest('.notif-item');
       if (!item) return;
-
       saveReadIds([...getReadIds(), item.dataset.id]);
       renderNotifications();
-
       const notification = notifications.find(n => n.id === item.dataset.id);
       if (notification) openNotificationDetail(notification);
     });
@@ -2256,21 +1494,10 @@
             <span class="logout-success-spark l1"><i class="fa-solid fa-star"></i></span>
             <span class="logout-success-spark l2"><i class="fa-solid fa-sparkles"></i></span>
             <span class="logout-success-spark l3"><i class="fa-solid fa-circle"></i></span>
-
-            <div class="logout-success-icon">
-              <i class="fa-solid fa-door-open"></i>
-            </div>
-
+            <div class="logout-success-icon"><i class="fa-solid fa-door-open"></i></div>
             <h3 class="logout-success-title">Anda Telah Keluar</h3>
-            <p class="logout-success-message">
-              Sesi berhasil diakhiri dengan aman. Sampai jumpa kembali!
-            </p>
-
-            <div class="logout-success-status">
-              <i class="fa-solid fa-shield-check"></i>
-              Sesi ditutup dengan aman
-            </div>
-
+            <p class="logout-success-message">Sesi berhasil diakhiri dengan aman. Sampai jumpa kembali!</p>
+            <div class="logout-success-status"><i class="fa-solid fa-shield-check"></i> Sesi ditutup dengan aman</div>
             <div class="logout-success-progress"></div>
           </div>
         `,
@@ -2279,21 +1506,15 @@
         timerProgressBar: false,
         allowOutsideClick: false,
         allowEscapeKey: false,
-        backdrop: 'rgba(15, 23, 42, .46)',
-        customClass: {
-          popup: 'swal-logout-success'
-        },
-        showClass: {
-          popup: 'animate__animated animate__zoomIn animate__faster'
-        },
-        hideClass: {
-          popup: 'animate__animated animate__fadeOutUp animate__faster'
-        }
+        backdrop: 'rgba(15,23,42,.46)',
+        customClass: { popup: 'swal-logout-success' },
+        showClass: { popup: 'animate__animated animate__zoomIn animate__faster' },
+        hideClass: { popup: 'animate__animated animate__fadeOutUp animate__faster' }
       });
     }
 
     // =============================================
-    // 10. LOGOUT — MODERN TOAST SAMA SEPERTI /user-history
+    // 10. LOGOUT — CENTERED TOAST
     // =============================================
     const logoutOverlay = document.getElementById('logoutOverlay');
     const logoutToast = document.getElementById('logoutToast');
@@ -2319,22 +1540,15 @@
     document.getElementById('confirmLogoutBtn').addEventListener('click', async function() {
       this.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Memproses...</span>';
       this.disabled = true;
-
       await new Promise(resolve => setTimeout(resolve, 500));
       closeLogoutToast();
-
       try {
         if (window.BCS && BCS.Storage && typeof BCS.Storage.removeSession === 'function') {
           BCS.Storage.removeSession();
         }
       } catch (e) {}
-
       const keys = ['BCS_SESSION', 'token', 'user', 'nik', 'role', 'session_timestamp', 'BCS_REMEMBER'];
-      keys.forEach(key => {
-        localStorage.removeItem(key);
-        sessionStorage.removeItem(key);
-      });
-
+      keys.forEach(key => { localStorage.removeItem(key); sessionStorage.removeItem(key); });
       await showLogoutSuccess();
       window.location.href = '/login';
     });

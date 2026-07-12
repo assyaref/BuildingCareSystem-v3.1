@@ -1098,10 +1098,11 @@ main.content,
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                     </div>
-                                    <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#excelModal">
+                                    <!-- Tombol Upload Excel dan Tambah User akan disembunyikan jika bukan Super Admin -->
+                                    <button class="btn btn-outline-success btn-sm" id="btnUploadExcel" data-bs-toggle="modal" data-bs-target="#excelModal">
                                         <i class="bi bi-file-earmark-excel"></i> Upload Excel
                                     </button>
-                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#userModal">
+                                    <button class="btn btn-primary btn-sm" id="btnTambahUser" data-bs-toggle="modal" data-bs-target="#userModal">
                                         <i class="bi bi-person-plus"></i> Tambah User
                                     </button>
                                     <button class="btn btn-sm btn-outline-secondary" id="refreshUsers" title="Refresh">
@@ -1119,7 +1120,7 @@ main.content,
                                                 <th style="padding:12px 16px;">Email</th>
                                                 <th style="padding:12px 16px;">Role</th>
                                                 <th style="padding:12px 16px;">Status</th>
-                                                <th style="padding:12px 16px;text-align:center;">Action</th>
+                                                <th style="padding:12px 16px;text-align:center;" id="actionHeader">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody id="userTableBody">
@@ -1307,7 +1308,7 @@ main.content,
             'use strict';
 
             // =============================================
-            // GUARD: Hanya ADMINISTRATOR, SUPER ADMIN, atau LEAD BRANCH SUPPORT
+            // GUARD: Hanya SUPER ADMIN yang boleh
             // =============================================
             function checkAccess() {
                 try {
@@ -1317,7 +1318,8 @@ main.content,
                         return false;
                     }
                     var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
-                    if (role !== 'ADMINISTRATOR' && role !== 'SUPER ADMIN' && role !== 'LEAD BRANCH SUPPORT') {
+                    // Hanya SUPER ADMIN
+                    if (role !== 'SUPER ADMIN' && role !== 'SUPER_ADMIN') {
                         window.location.href = 'dashboard.html';
                         return false;
                     }
@@ -1360,7 +1362,7 @@ main.content,
             }
 
             // =============================================
-            // LOAD USER INFO
+            // LOAD USER INFO & SET FLAG SUPER ADMIN
             // =============================================
             function loadUserInfo() {
                 try {
@@ -1369,6 +1371,26 @@ main.content,
                         var user = session.user || session;
                         document.getElementById('userName').textContent = user.nama || user.name || 'Super Admin';
                         document.getElementById('userRole').textContent = user.role || 'ADMINISTRATOR';
+
+                        // Tentukan apakah Super Admin
+                        var role = (user.role || '').toUpperCase();
+                        var isSuper = (role === 'SUPER ADMIN' || role === 'SUPER_ADMIN');
+                        window.__isSuperAdmin = isSuper;
+
+                        // Sembunyikan tombol aksi jika bukan Super Admin
+                        if (!isSuper) {
+                            document.getElementById('btnTambahUser').style.display = 'none';
+                            document.getElementById('btnUploadExcel').style.display = 'none';
+                            // Sembunyikan kolom Action header
+                            var actionHeader = document.getElementById('actionHeader');
+                            if (actionHeader) actionHeader.style.display = 'none';
+                            // Sembunyikan tombol Clear Activities? (Opsional)
+                            // document.getElementById('clearActivitiesBtn').style.display = 'none';
+                        } else {
+                            document.getElementById('btnTambahUser').style.display = 'inline-flex';
+                            document.getElementById('btnUploadExcel').style.display = 'inline-flex';
+                            if (actionHeader) actionHeader.style.display = 'table-cell';
+                        }
                     }
                 } catch (e) {
                     console.warn(e);
@@ -1803,6 +1825,9 @@ main.content,
                 }
             }
 
+            // =============================================
+            // RENDER USER TABLE - dengan kontrol akses Super Admin
+            // =============================================
             function renderUserTable(users) {
                 var tbody = document.getElementById('userTableBody');
                 if (!tbody) return;
@@ -1811,6 +1836,8 @@ main.content,
                     tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4" style="color:var(--text-muted);">Belum ada user terdaftar</td></tr>';
                     return;
                 }
+
+                var isSuper = window.__isSuperAdmin || false;
 
                 var html = '';
                 users.forEach(function(user) {
@@ -1836,47 +1863,59 @@ main.content,
                     var nikDisplay = user.nik || '-';
                     var roleDisplay = formatRoleDisplay(role);
 
+                    // Kolom aksi hanya jika Super Admin
+                    var actionColumn = '';
+                    if (isSuper) {
+                        actionColumn = `
+                            <td style="padding:10px 16px;text-align:center;">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <button class="btn-action edit edit-user" data-email="${user.email}" data-nik="${user.nik}" title="Edit"><i class="bi bi-pencil"></i></button>
+                                    ${!isSuperAdmin ? `<button class="btn-action delete delete-user" data-email="${user.email}" title="Hapus"><i class="bi bi-trash"></i></button>` : ''}
+                                </div>
+                            </td>
+                        `;
+                    } else {
+                        actionColumn = `<td style="padding:10px 16px;text-align:center;"><span class="text-muted">—</span></td>`;
+                    }
+
                     html += `
-                                <tr class="user-row">
-                                    <td style="padding:12px 16px;">
-                                        <div class="user-name-cell">
-                                            <div class="avatar-circle" style="background:${isSuperAdmin ? '#7c3aed' : '#4b7bec'}">${initial}</div>
-                                            <div>
-                                                <div class="user-primary-name">${user.nama || '-'}</div>
-                                                <div class="user-email-mobile">${user.email || '-'}</div>
-                                                ${isSuperAdmin ? '<span class="badge" style="font-size:8px;background:#7c3aed;color:#fff;padding:2px 4px;">SUPER</span>' : ''}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td style="padding:10px 16px;font-size:13px;" class="nik-cell"><span class="nik-chip">${nikDisplay}</span></td>
-                                    <td style="padding:10px 16px;font-size:13px;color:var(--text-secondary);">${user.email || '-'}</td>
-                                    <td style="padding:10px 16px;"><span class="badge-role ${roleClass}">${roleDisplay}</span></td>
-                                    <td style="padding:10px 16px;"><span class="status-badge ${statusClass}">${user.status || 'INACTIVE'}</span></td>
-                                    <td style="padding:10px 16px;text-align:center;">
-                                        <div class="d-flex justify-content-center gap-1">
-                                            <button class="btn-action edit edit-user" data-email="${user.email}" data-nik="${user.nik}" title="Edit"><i class="bi bi-pencil"></i></button>
-                                            ${!isSuperAdmin ? `<button class="btn-action delete delete-user" data-email="${user.email}" title="Hapus"><i class="bi bi-trash"></i></button>` : ''}
-                                        </div>
-                                    </td>
-                                </tr>
-                            `;
+                        <tr class="user-row">
+                            <td style="padding:12px 16px;">
+                                <div class="user-name-cell">
+                                    <div class="avatar-circle" style="background:${isSuperAdmin ? '#7c3aed' : '#4b7bec'}">${initial}</div>
+                                    <div>
+                                        <div class="user-primary-name">${user.nama || '-'}</div>
+                                        <div class="user-email-mobile">${user.email || '-'}</div>
+                                        ${isSuperAdmin ? '<span class="badge" style="font-size:8px;background:#7c3aed;color:#fff;padding:2px 4px;">SUPER</span>' : ''}
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding:10px 16px;font-size:13px;" class="nik-cell"><span class="nik-chip">${nikDisplay}</span></td>
+                            <td style="padding:10px 16px;font-size:13px;color:var(--text-secondary);">${user.email || '-'}</td>
+                            <td style="padding:10px 16px;"><span class="badge-role ${roleClass}">${roleDisplay}</span></td>
+                            <td style="padding:10px 16px;"><span class="status-badge ${statusClass}">${user.status || 'INACTIVE'}</span></td>
+                            ${actionColumn}
+                        </tr>
+                    `;
                 });
                 tbody.innerHTML = html;
 
-                // Event listener untuk tombol edit
-                document.querySelectorAll('.edit-user').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        var email = this.dataset.email;
-                        var nik = this.dataset.nik;
-                        openEditUser(email, nik);
+                // Event listener untuk tombol edit (hanya jika Super Admin)
+                if (isSuper) {
+                    document.querySelectorAll('.edit-user').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            var email = this.dataset.email;
+                            var nik = this.dataset.nik;
+                            openEditUser(email, nik);
+                        });
                     });
-                });
 
-                document.querySelectorAll('.delete-user').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        deleteUser(this.dataset.email);
+                    document.querySelectorAll('.delete-user').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            deleteUser(this.dataset.email);
+                        });
                     });
-                });
+                }
             }
 
             // =============================================
@@ -2051,14 +2090,14 @@ main.content,
                     var timestamp = act.timestamp || '';
                     var formatted = formatActivityTimestamp(timestamp);
                     html += `
-                                <tr>
-                                    <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.user || act.Email || '-'}</td>
-                                    <td style="padding:10px 16px;font-weight:500;color:var(--text-primary);font-size:13px;">${act.action || '-'}</td>
-                                    <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.module || '-'}</td>
-                                    <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.description || '-'}</td>
-                                    <td style="padding:10px 16px;color:var(--text-muted);font-size:12px;">${formatted}</td>
-                                </tr>
-                            `;
+                        <tr>
+                            <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.user || act.Email || '-'}</td>
+                            <td style="padding:10px 16px;font-weight:500;color:var(--text-primary);font-size:13px;">${act.action || '-'}</td>
+                            <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.module || '-'}</td>
+                            <td style="padding:10px 16px;color:var(--text-secondary);font-size:13px;">${act.description || '-'}</td>
+                            <td style="padding:10px 16px;color:var(--text-muted);font-size:12px;">${formatted}</td>
+                        </tr>
+                    `;
                 });
                 tbody.innerHTML = html;
             }
@@ -2379,7 +2418,7 @@ main.content,
             // =============================================
             async function init() {
                 initDarkMode();
-            initUserSearch();
+                initUserSearch();
                 loadUserInfo();
                 await loadOnlineStats();
                 await loadStats();

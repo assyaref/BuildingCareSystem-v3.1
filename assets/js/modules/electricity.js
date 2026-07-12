@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 3.0 FINAL (Fix delete & edit)
+ * Version 3.1 FINAL (Fix delete & edit dengan posisi)
  * =====================================================
  */
 
@@ -454,7 +454,9 @@ const ElectricityController = {
         pageRows.forEach((item, idx) => {
             const isNegative = item.pemakaian < 0;
             const posisi = (item.no && item.no !== '-' && item.no !== 'null') ? item.no : '-';
-            const uniqueId = `${item.bulan}|${item.no}|${item.idPelanggan}`;
+            // Gunakan btoa untuk encoding aman (base64)
+            const uniqueKey = `${item.bulan}|${item.no}|${item.idPelanggan}`;
+            const uniqueId = btoa(uniqueKey);
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
                     <td class="text-start ps-4">${start + idx + 1}</td>
@@ -525,7 +527,7 @@ const ElectricityController = {
     bindEditButton() {
         document.querySelectorAll(".btn-edit").forEach(btn => {
             btn.onclick = () => {
-                const unique = btn.dataset.unique;
+                const unique = atob(btn.dataset.unique);
                 const [bulan, posisi, idPelanggan] = unique.split('|');
                 const record = this.state.records.find(r =>
                     r.bulan === bulan &&
@@ -555,13 +557,9 @@ const ElectricityController = {
     bindDeleteButton() {
         document.querySelectorAll(".btn-delete").forEach(btn => {
             btn.onclick = () => {
-                const unique = btn.dataset.unique;
-                if (!unique) {
-                    const id = btn.dataset.id;
-                    if (id) this.deleteRecord(id);
-                    return;
-                }
-                this.deleteRecord(unique);
+                const unique = atob(btn.dataset.unique);
+                const [bulan, posisi, idPelanggan] = unique.split('|');
+                this.deleteRecord({ bulan, posisi, idPelanggan });
             };
         });
     },
@@ -571,6 +569,7 @@ const ElectricityController = {
         const title = document.getElementById('formModalTitle');
         const btnSave = document.getElementById('btnSaveRecord');
 
+        // Isi dropdown posisi dari data existing
         const posisiSelect = document.getElementById('formPosisi');
         if (posisiSelect) {
             const posisiSet = new Set();
@@ -592,6 +591,7 @@ const ElectricityController = {
             }
         }
 
+        // Isi datalist ID Pelanggan
         const datalist = document.getElementById('idPelangganList');
         if (datalist) {
             const ids = [...new Set(this.state.records.map(r => r.idPelanggan).filter(Boolean))];
@@ -600,6 +600,7 @@ const ElectricityController = {
 
         this._suppressAutoFill = true;
 
+        // Re-attach event listeners untuk posisi dan ID (clone untuk menghindari duplikasi)
         const posisiSelect2 = document.getElementById('formPosisi');
         if (posisiSelect2) {
             const newPosisi = posisiSelect2.cloneNode(true);
@@ -672,6 +673,7 @@ const ElectricityController = {
             });
         }
 
+        // Re-attach event untuk perhitungan otomatis
         const awalInput = document.getElementById('formAwal');
         const akhirInput = document.getElementById('formAkhir');
         if (awalInput && akhirInput) {
@@ -699,6 +701,8 @@ const ElectricityController = {
             document.getElementById('formPemakaian').value = data.pemakaian || '';
             document.getElementById('formNominal').value = data.nominal || '';
             document.getElementById('formKeterangan').value = data.keterangan || '';
+            // Simpan posisi lama
+            document.getElementById('formPosisiLama').value = data.posisi || '';
             this.calculateForm();
         } else {
             title.innerHTML = `<i class="bi bi-plus-circle text-success me-2"></i> Tambah Data`;
@@ -707,6 +711,7 @@ const ElectricityController = {
             document.getElementById('formId').value = '';
             document.getElementById('formPosisi').value = '';
             document.getElementById('formIdPelanggan').value = '';
+            document.getElementById('formPosisiLama').value = '';
             this.calculateForm();
         }
 
@@ -767,7 +772,9 @@ const ElectricityController = {
             akhir: parseFloat(document.getElementById('formAkhir').value) || 0,
             pemakaian: parseFloat(document.getElementById('formPemakaian').value) || 0,
             nominal: parseFloat(document.getElementById('formNominal').value) || 0,
-            keterangan: document.getElementById('formKeterangan').value
+            keterangan: document.getElementById('formKeterangan').value,
+            // Kirim posisi lama untuk update
+            posisiLama: document.getElementById('formPosisiLama').value || ''
         };
 
         if (!formData.bulan || !formData.posisiMeteran || !formData.idPelanggan || !formData.entitas) {
@@ -794,28 +801,18 @@ const ElectricityController = {
         }
     },
 
-    async deleteRecord(identifier) {
-        if (!identifier) return;
-
-        let record = null;
-        const parts = identifier.split('|');
-        if (parts.length === 3) {
-            const [bulan, posisi, idPelanggan] = parts;
-            record = this.state.records.find(r =>
-                r.bulan === bulan &&
-                r.no === posisi &&
-                r.idPelanggan === idPelanggan
-            );
-        } else {
-            record = this.state.records.find(r => r.idPelanggan === identifier);
-            if (record) {
-                const recordsWithSameId = this.state.records.filter(r => r.idPelanggan === identifier);
-                if (recordsWithSameId.length > 1) {
-                    this.showToast('Terdapat lebih dari satu data dengan ID ini. Gunakan tombol hapus pada baris yang spesifik.', 'warning');
-                    return;
-                }
-            }
+    async deleteRecord({ bulan, posisi, idPelanggan }) {
+        if (!idPelanggan || !bulan) {
+            this.showToast('Data tidak valid untuk dihapus.', 'error');
+            return;
         }
+
+        // Cari record untuk ditampilkan di konfirmasi
+        const record = this.state.records.find(r =>
+            r.bulan === bulan &&
+            r.no === posisi &&
+            r.idPelanggan === idPelanggan
+        );
 
         if (!record) {
             this.showToast('Data tidak ditemukan.', 'error');
@@ -824,22 +821,30 @@ const ElectricityController = {
 
         const confirmed = await Swal.fire({
             title: 'Hapus Data?',
-            html: `Anda akan menghapus data:<br><b>${record.bulan}</b> - <b>${record.no || 'Tidak ada posisi'}</b> (ID: ${record.idPelanggan})<br><br>Data yang dihapus tidak dapat dikembalikan.`,
+            html: `
+                <div class="text-start">
+                    <p><strong>Bulan:</strong> ${record.bulan}</p>
+                    <p><strong>Posisi:</strong> ${record.no || '-'}</p>
+                    <p><strong>ID Pelanggan:</strong> ${record.idPelanggan}</p>
+                    <p><strong>Pemakaian:</strong> ${record.pemakaian} kWh</p>
+                </div>
+                <p class="text-danger mt-2">Data yang dihapus tidak dapat dikembalikan.</p>
+            `,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             confirmButtonText: 'Ya, Hapus!',
             cancelButtonText: 'Batal'
         });
+
         if (!confirmed.isConfirmed) return;
 
         try {
             this.showLoading(true);
-            // Kirim kombinasi unik ke backend
             const response = await BCS.Api.request('POST', 'deleteElectricityRecord', {
+                idPelanggan: record.idPelanggan,
                 bulan: record.bulan,
-                posisi: record.no,
-                idPelanggan: record.idPelanggan
+                posisi: record.no
             });
             if (response.success) {
                 this.showToast('Data berhasil dihapus.', 'success');

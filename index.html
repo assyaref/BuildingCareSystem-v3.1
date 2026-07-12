@@ -27,31 +27,37 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         html {
             height: 100%;
         }
+
         body {
             height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background: #F5F7FA;
             overscroll-behavior: none;
             touch-action: manipulation;
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
         }
+
+        /* Loader Style */
         #app-loader {
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             height: 100vh;
-            color: #333;
+            color: #333333;
             transition: opacity 0.3s ease;
         }
+
         #app-loader.hidden {
             opacity: 0;
             pointer-events: none;
         }
+
         .loader {
             width: 48px;
             height: 48px;
@@ -61,20 +67,29 @@
             animation: spin 0.8s linear infinite;
             margin-bottom: 20px;
         }
+
         h2 {
-            margin: 0 0 8px;
+            margin: 0 0 8px 0;
             font-size: 22px;
             font-weight: 600;
             color: #2563EB;
         }
+
         small {
             font-size: 14px;
             color: #6c757d;
         }
+
         @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
         }
+
+        /* Error page */
         .error-page {
             display: none;
             justify-content: center;
@@ -82,40 +97,51 @@
             height: 100vh;
             background: #F5F7FA;
         }
+
         .error-page.active {
             display: flex;
         }
+
         .error-container {
             padding: 40px;
             text-align: center;
-            background: #fff;
+            background: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             max-width: 400px;
             width: 90%;
         }
+
         .error-container h2 {
             color: #DC3545;
             margin-bottom: 12px;
         }
+
         .error-container p {
             color: #6c757d;
             font-size: 14px;
             line-height: 1.5;
             margin-bottom: 24px;
+            word-break: break-word;
         }
+
         .error-container .btn-reload {
             background: #2563EB;
-            color: #fff;
+            color: #ffffff;
             border: none;
             padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
             border-radius: 4px;
             cursor: pointer;
             transition: background 0.2s;
         }
+
         .error-container .btn-reload:hover {
             background: #1d4ed8;
         }
+
+        /* Install Button (PWA) */
         #installButton {
             display: none;
             position: fixed;
@@ -129,14 +155,16 @@
             border-radius: 50px;
             font-size: 16px;
             font-weight: 600;
-            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
             cursor: pointer;
             z-index: 9999;
             transition: opacity 0.3s;
         }
+
         #installButton:hover {
             background: #1d4ed8;
         }
+
         #installButton:active {
             transform: translateX(-50%) scale(0.96);
         }
@@ -145,26 +173,34 @@
 
 <body>
 
-    <div id="app-loader" role="status">
+    <!-- LOADER -->
+    <div id="app-loader" role="status" aria-live="polite">
         <div class="loader"></div>
         <h2>Building Care System</h2>
         <small>Menyiapkan aplikasi...</small>
     </div>
 
+    <!-- ERROR PAGE -->
     <div id="errorPage" class="error-page">
         <div class="error-container">
             <h2>Building Care System</h2>
             <p id="errorMessage">Gagal memuat sistem atau koneksi terputus.</p>
-            <button class="btn-reload" onclick="location.reload()">Muat Ulang</button>
+            <button class="btn-reload" onclick="location.reload()">
+                Muat Ulang
+            </button>
         </div>
     </div>
 
+    <!-- INSTALL BUTTON (PWA) -->
     <button id="installButton">📲 Install Building Care System</button>
 
     <script>
         (function() {
             'use strict';
 
+            // ============================================
+            // KONFIGURASI
+            // ============================================
             const CONFIG = {
                 DEBUG: true,
                 LOGIN_URL: '/login',
@@ -173,13 +209,21 @@
                 OFFLINE_PAGE: '/offline.html'
             };
 
+            // ============================================
+            // DOM REFS
+            // ============================================
             const loader = document.getElementById('app-loader');
             const errorPage = document.getElementById('errorPage');
             const errorMessage = document.getElementById('errorMessage');
             const installBtn = document.getElementById('installButton');
 
+            // ============================================
+            // UTILITY
+            // ============================================
             function log(message, data) {
-                if (CONFIG.DEBUG) console.log('[BCS-Index]', message, data || '');
+                if (CONFIG.DEBUG) {
+                    console.log('[BCS-Index]', message, data || '');
+                }
             }
 
             function showError(msg) {
@@ -195,19 +239,28 @@
                 }, CONFIG.REDIRECT_DELAY);
             }
 
+            // ============================================
+            // CHECK SESSION
+            // ============================================
             function checkSession() {
                 try {
                     const user = localStorage.getItem('user');
                     const token = localStorage.getItem('token');
+
                     if (user && token) {
                         log('Session found, redirecting to dashboard...');
                         redirectTo(CONFIG.DASHBOARD_URL);
                         return true;
                     }
-                } catch (error) { log('Session check error:', error); }
+                } catch (error) {
+                    log('Session check error:', error);
+                }
                 return false;
             }
 
+            // ============================================
+            // CHECK LOGIN PAGE
+            // ============================================
             function checkLoginPage() {
                 fetch(CONFIG.LOGIN_URL, { method: 'HEAD' })
                     .then(function(response) {
@@ -221,43 +274,58 @@
                     })
                     .catch(function(error) {
                         log('Error checking login page:', error);
-                        showError('Halaman login tidak ditemukan.');
+                        showError('Halaman login tidak ditemukan. Pastikan file /login tersedia.');
                     });
             }
 
+            // ============================================
+            // REGISTER SERVICE WORKER
+            // ============================================
             function registerServiceWorker() {
                 if ('serviceWorker' in navigator) {
                     window.addEventListener('load', function() {
                         navigator.serviceWorker.register('/sw.js')
                             .then(function(reg) {
                                 log('Service Worker registered with scope:', reg.scope);
+
+                                // Auto update: refresh ketika worker baru siap
                                 reg.addEventListener('updatefound', function() {
                                     const worker = reg.installing;
                                     worker.addEventListener('statechange', function() {
                                         if (worker.state === 'installed') {
                                             log('New Service Worker installed, reloading...');
+                                            // Tampilkan notifikasi atau reload otomatis
                                             if (confirm('Aplikasi telah diperbarui. Reload sekarang?')) {
                                                 location.reload();
                                             } else {
-                                                document.querySelector('#app-loader small').textContent =
-                                                    'Update tersedia. Refresh untuk versi terbaru.';
+                                                // Tawarkan nanti
+                                                document.getElementById('app-loader').querySelector('small')
+                                                    .textContent = 'Update tersedia. Refresh untuk versi terbaru.';
                                             }
                                         }
                                     });
                                 });
-                                setInterval(function() { reg.update(); }, 5 * 60 * 1000);
+
+                                // Cek apakah ada update setiap 5 menit
+                                setInterval(function() {
+                                    reg.update();
+                                }, 5 * 60 * 1000);
+
                             })
                             .catch(function(error) {
                                 log('Service Worker registration failed:', error);
                             });
                     });
                 } else {
-                    log('Service Worker not supported.');
+                    log('Service Worker not supported in this browser.');
                 }
             }
 
-            // Install Prompt
+            // ============================================
+            // INSTALL PROMPT (PWA)
+            // ============================================
             let deferredPrompt;
+
             window.addEventListener('beforeinstallprompt', function(e) {
                 e.preventDefault();
                 deferredPrompt = e;
@@ -270,45 +338,62 @@
                     deferredPrompt.prompt();
                     deferredPrompt.userChoice.then(function(choiceResult) {
                         if (choiceResult.outcome === 'accepted') {
-                            log('User accepted install');
+                            log('User accepted the install prompt');
                             installBtn.style.display = 'none';
                         } else {
-                            log('User dismissed install');
+                            log('User dismissed the install prompt');
                         }
                         deferredPrompt = null;
                     });
                 } else {
-                    alert('Instal PWA: Buka menu browser dan pilih "Add to Home Screen".');
+                    // Fallback: arahkan ke panduan instalasi
+                    alert('Instal PWA: Buka menu browser dan pilih "Add to Home Screen" atau "Install App".');
                 }
             });
 
+            // Sembunyikan tombol jika sudah terinstal
             window.addEventListener('appinstalled', function() {
                 log('App installed');
                 installBtn.style.display = 'none';
             });
 
-            // Offline detection
+            // ============================================
+            // OFFLINE DETECTION
+            // ============================================
             window.addEventListener('offline', function() {
                 showError('Tidak ada koneksi internet. Silakan periksa jaringan Anda.');
             });
+
             window.addEventListener('online', function() {
                 log('Online again, reloading...');
                 location.reload();
             });
 
-            // MAIN
+            // ============================================
+            // MAIN INIT
+            // ============================================
             log('Initializing PWA...');
+
+            // Cek session
             const hasSession = checkSession();
+
             if (!hasSession) {
-                log('No session found, redirecting to login...');
+                log('No session found, redirecting to login page...');
                 loader.querySelector('small').textContent = 'Mengarahkan ke halaman login...';
                 checkLoginPage();
             }
+
+            // Register Service Worker
             registerServiceWorker();
 
+            // Ekspos ke global
             window.BCSIndex = {
-                redirectToLogin: function() { redirectTo(CONFIG.LOGIN_URL); },
-                redirectToDashboard: function() { redirectTo(CONFIG.DASHBOARD_URL); }
+                redirectToLogin: function() {
+                    redirectTo(CONFIG.LOGIN_URL);
+                },
+                redirectToDashboard: function() {
+                    redirectTo(CONFIG.DASHBOARD_URL);
+                }
             };
 
         })();

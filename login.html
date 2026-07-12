@@ -1048,16 +1048,11 @@
                     nikInput.value ||
                     'Pengguna';
 
-                // PERUBAHAN: pastikan targetPage clean URL
-                let targetPage = result?.targetPage || result?.redirectUrl || result?.data?.targetPage || '/user-report';
-                // Jika masih ada .html di akhir, hilangkan
-                if (targetPage.endsWith('.html')) {
-                    targetPage = targetPage.replace(/\.html$/, '');
-                }
-                // Pastikan dimulai dengan '/'
-                if (!targetPage.startsWith('/')) {
-                    targetPage = '/' + targetPage;
-                }
+                const targetPage =
+                    result?.targetPage ||
+                    result?.redirectUrl ||
+                    result?.data?.targetPage ||
+                    '/user-report';
 
                 hideLoading();
 
@@ -1081,7 +1076,6 @@
                     successOverlay.classList.add('closing');
 
                     setTimeout(function() {
-                        console.log('🚀 Redirecting to clean URL:', targetPage);
                         window.location.replace(targetPage);
                     }, 430);
                 }, 7000);
@@ -1213,7 +1207,7 @@
                 });
             });
 
-            console.log('✅ Login page initialized — clean URL redirect');
+            console.log('✅ Login page initialized — header white UI');
         });
     </script>
 

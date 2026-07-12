@@ -11,8 +11,11 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
   <style>
-    * { box-sizing: border-box; }
-    html, body {
+    * {
+      box-sizing: border-box;
+    }
+    html,
+    body {
       margin: 0;
       padding: 0;
       min-height: 100%;
@@ -54,7 +57,9 @@
       scrollbar-width: none;
       padding-bottom: 90px;
     }
-    .scroll-content::-webkit-scrollbar { display: none; }
+    .scroll-content::-webkit-scrollbar {
+      display: none;
+    }
     .bottom-nav {
       background: #fff;
       border-top: 1px solid rgba(0, 0, 0, 0.05);
@@ -80,7 +85,9 @@
       font-weight: 700;
       transition: color 0.2s;
     }
-    .bottom-nav a i { font-size: 20px; }
+    .bottom-nav a i {
+      font-size: 20px;
+    }
 
     /* Status Badges */
     .status-badge {
@@ -91,11 +98,20 @@
       display: inline-block;
       letter-spacing: 0.3px;
     }
-    .status-done { background: #dcfce7; color: #16a34a; }
-    .status-progress { background: #fef3c7; color: #d97706; }
-    .status-open { background: #fee2e2; color: #dc2626; }
+    .status-done {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+    .status-progress {
+      background: #fef3c7;
+      color: #d97706;
+    }
+    .status-open {
+      background: #fee2e2;
+      color: #dc2626;
+    }
 
-    /* Filter Chips */
+    /* Filter Chips Styles */
     .filter-chip {
       font-size: 12px;
       font-weight: 600;
@@ -107,26 +123,50 @@
       border: 1px solid transparent;
       cursor: pointer;
     }
-    .filter-chip:active { transform: scale(0.95); }
-    .filter-chip.active[data-status="ALL"] { background: #1e5eff; color: #fff; }
-    .filter-chip.active[data-status="OPEN"] { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
-    .filter-chip.active[data-status="PROGRESS"] { background: #fef3c7; color: #d97706; border-color: #fde047; }
-    .filter-chip.active[data-status="DONE"] { background: #dcfce7; color: #16a34a; border-color: #86efac; }
+    .filter-chip:active {
+      transform: scale(0.95);
+    }
+    .filter-chip.active[data-status="ALL"] {
+      background: #1e5eff;
+      color: #fff;
+    }
+    .filter-chip.active[data-status="OPEN"] {
+      background: #fee2e2;
+      color: #dc2626;
+      border-color: #fca5a5;
+    }
+    .filter-chip.active[data-status="PROGRESS"] {
+      background: #fef3c7;
+      color: #d97706;
+      border-color: #fde047;
+    }
+    .filter-chip.active[data-status="DONE"] {
+      background: #dcfce7;
+      color: #16a34a;
+      border-color: #86efac;
+    }
 
     .history-item {
       transition: all 0.2s;
       cursor: default;
       -webkit-tap-highlight-color: transparent;
     }
-    .history-item:active { transform: scale(0.99); }
+    .history-item:active {
+      transform: scale(0.99);
+    }
     .history-item.target-report {
       border-color: #1e5eff !important;
-      box-shadow: 0 0 0 4px rgba(30,94,255,.12), 0 12px 28px rgba(30,94,255,.16) !important;
+      box-shadow: 0 0 0 4px rgba(30, 94, 255, .12), 0 12px 28px rgba(30, 94, 255, .16) !important;
       animation: targetPulse 1.4s ease 2;
     }
     @keyframes targetPulse {
-      0%,100% { transform: scale(1); }
-      50% { transform: scale(1.015); }
+      0%,
+      100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.015);
+      }
     }
     .img-thumb {
       width: 60px;
@@ -142,7 +182,11 @@
       overflow: hidden;
       cursor: pointer;
     }
-    .img-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .img-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
     .search-wrap {
       background: #f3f4f6;
@@ -161,8 +205,13 @@
       font-size: 14px;
       color: #1f2937;
     }
-    .search-wrap input::placeholder { color: #9ca3af; font-weight: 400; }
-    .search-wrap input:focus { outline: none; }
+    .search-wrap input::placeholder {
+      color: #9ca3af;
+      font-weight: 400;
+    }
+    .search-wrap input:focus {
+      outline: none;
+    }
 
     .header-btn {
       background: transparent;
@@ -173,8 +222,12 @@
       font-size: 18px;
       transition: opacity 0.2s;
     }
-    .header-btn:hover { opacity: 0.8; }
-    .header-btn:active { transform: scale(0.95); }
+    .header-btn:hover {
+      opacity: 0.8;
+    }
+    .header-btn:active {
+      transform: scale(0.95);
+    }
     .avatar-circle {
       width: 36px;
       height: 36px;
@@ -188,11 +241,11 @@
       font-size: 16px;
     }
 
-    /* LOGOUT OVERLAY & TOAST (di tengah) */
+    /* === LOGOUT OVERLAY & TOAST (di tengah) === */
     #logoutOverlay {
       position: absolute;
       inset: 0;
-      background: rgba(0,0,0,0.4);
+      background: rgba(0, 0, 0, 0.4);
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
       z-index: 50;
@@ -213,10 +266,10 @@
       background: #fff;
       border-radius: 28px;
       padding: 24px 24px 32px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
       transform: scale(0.9);
       opacity: 0;
-      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
     }
     #logoutOverlay.show #logoutToast {
       transform: scale(1);
@@ -236,11 +289,16 @@
       animation: bounce 1.2s infinite;
     }
     @keyframes bounce {
-      0%,100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-6px);
+      }
     }
 
-    /* Push Notification Card (sama seperti user-report) */
+    /* Smartphone Push Notification Card */
     .push-card {
       margin-bottom: 18px;
       padding: 14px;
@@ -248,7 +306,11 @@
       border-radius: 16px;
       background: linear-gradient(145deg, #f8fbff, #eef4ff);
     }
-    .push-row { display: flex; align-items: center; gap: 12px; }
+    .push-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
     .push-icon {
       width: 44px;
       height: 44px;
@@ -260,11 +322,23 @@
       background: #1e5eff;
       color: #fff;
       font-size: 18px;
-      box-shadow: 0 8px 20px rgba(30,94,255,0.22);
+      box-shadow: 0 8px 20px rgba(30, 94, 255, 0.22);
     }
-    .push-info { min-width: 0; flex: 1; }
-    .push-title { font-size: 13px; font-weight: 800; color: #0f172a; }
-    .push-desc { margin-top: 2px; font-size: 10px; line-height: 1.45; color: #64748b; }
+    .push-info {
+      min-width: 0;
+      flex: 1;
+    }
+    .push-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .push-desc {
+      margin-top: 2px;
+      font-size: 10px;
+      line-height: 1.45;
+      color: #64748b;
+    }
     .push-btn {
       border: 0;
       border-radius: 11px;
@@ -275,10 +349,15 @@
       font-weight: 800;
       white-space: nowrap;
     }
-    .push-btn.active { background: #dcfce7; color: #15803d; }
-    .push-btn:disabled { opacity: 0.65; }
+    .push-btn.active {
+      background: #dcfce7;
+      color: #15803d;
+    }
+    .push-btn:disabled {
+      opacity: 0.65;
+    }
 
-    /* Push Notification Toast (sama seperti user-report) */
+    /* Push Notification Success Toast (sama seperti user-report) */
     .swal-push-success {
       width: min(370px, calc(100vw - 32px)) !important;
       padding: 0 !important;
@@ -286,16 +365,20 @@
       border: 0 !important;
       border-radius: 26px !important;
       background: linear-gradient(145deg, #ffffff 0%, #f3f8ff 52%, #f5fff9 100%) !important;
-      box-shadow: 0 28px 80px rgba(30,94,255,0.28) !important;
+      box-shadow: 0 28px 80px rgba(30, 94, 255, 0.28) !important;
     }
-    .swal-push-success .swal2-html-container { margin: 0 !important; padding: 0 !important; }
+    .swal-push-success .swal2-html-container {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
     .push-success-toast {
       position: relative;
       padding: 30px 24px 25px;
       text-align: center;
       overflow: hidden;
     }
-    .push-success-toast::before, .push-success-toast::after {
+    .push-success-toast::before,
+    .push-success-toast::after {
       content: "";
       position: absolute;
       border-radius: 50%;
@@ -306,14 +389,14 @@
       height: 190px;
       left: -95px;
       top: -110px;
-      background: rgba(30,94,255,0.13);
+      background: rgba(30, 94, 255, 0.13);
     }
     .push-success-toast::after {
       width: 170px;
       height: 170px;
       right: -90px;
       bottom: -105px;
-      background: rgba(34,197,94,0.12);
+      background: rgba(34, 197, 94, 0.12);
     }
     .push-toast-spark {
       position: absolute;
@@ -321,9 +404,23 @@
       font-size: 14px;
       animation: pushSparkle 1.5s ease-in-out infinite;
     }
-    .push-toast-spark.p1 { top: 30px; left: 54px; color: #f59e0b; }
-    .push-toast-spark.p2 { top: 54px; right: 48px; color: #ec4899; animation-delay: 0.25s; }
-    .push-toast-spark.p3 { top: 104px; left: 44px; color: #22c55e; animation-delay: 0.5s; }
+    .push-toast-spark.p1 {
+      top: 30px;
+      left: 54px;
+      color: #f59e0b;
+    }
+    .push-toast-spark.p2 {
+      top: 54px;
+      right: 48px;
+      color: #ec4899;
+      animation-delay: 0.25s;
+    }
+    .push-toast-spark.p3 {
+      top: 104px;
+      left: 44px;
+      color: #22c55e;
+      animation-delay: 0.5s;
+    }
     .push-success-icon {
       position: relative;
       z-index: 2;
@@ -337,48 +434,130 @@
       color: #fff;
       font-size: 38px;
       background: linear-gradient(145deg, #1e5eff, #6366f1 58%, #22c55e);
-      box-shadow: 0 17px 38px rgba(30,94,255,0.35);
-      animation: pushToastPop 0.58s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 17px 38px rgba(30, 94, 255, 0.35);
+      animation: pushToastPop 0.58s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .push-success-icon::after {
       content: "";
       position: absolute;
       inset: -8px;
-      border: 2px solid rgba(30,94,255,0.18);
+      border: 2px solid rgba(30, 94, 255, 0.18);
       border-radius: 34px;
       animation: pushToastPulse 1.6s ease-out infinite;
     }
-    .push-success-title { position: relative; z-index: 2; margin: 0; color: #0f172a; font-size: 21px; font-weight: 800; letter-spacing: -0.4px; }
-    .push-success-message { position: relative; z-index: 2; max-width: 285px; margin: 8px auto 0; color: #64748b; font-size: 13px; line-height: 1.6; }
-    .push-success-status { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 7px; margin-top: 17px; padding: 8px 13px; border-radius: 999px; background: linear-gradient(90deg, #dbeafe, #dcfce7); color: #166534; font-size: 11px; font-weight: 800; }
-    .push-success-progress { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; height: 5px; background: #e0e7ff; overflow: hidden; }
-    .push-success-progress::after { content: ""; display: block; width: 100%; height: 100%; transform-origin: left; background: linear-gradient(90deg, #1e5eff, #6366f1, #22c55e); animation: pushToastTimer 2.8s linear forwards; }
+    .push-success-title {
+      position: relative;
+      z-index: 2;
+      margin: 0;
+      color: #0f172a;
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+    }
+    .push-success-message {
+      position: relative;
+      z-index: 2;
+      max-width: 285px;
+      margin: 8px auto 0;
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .push-success-status {
+      position: relative;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 17px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #dbeafe, #dcfce7);
+      color: #166534;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .push-success-progress {
+      position: absolute;
+      z-index: 3;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 5px;
+      background: #e0e7ff;
+      overflow: hidden;
+    }
+    .push-success-progress::after {
+      content: "";
+      display: block;
+      width: 100%;
+      height: 100%;
+      transform-origin: left;
+      background: linear-gradient(90deg, #1e5eff, #6366f1, #22c55e);
+      animation: pushToastTimer 2.8s linear forwards;
+    }
     @keyframes pushToastPop {
-      0% { transform: scale(0.55) rotate(-9deg); opacity: 0; }
-      70% { transform: scale(1.08) rotate(2deg); }
-      100% { transform: scale(1); opacity: 1; }
+      0% {
+        transform: scale(0.55) rotate(-9deg);
+        opacity: 0;
+      }
+      70% {
+        transform: scale(1.08) rotate(2deg);
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
     @keyframes pushToastPulse {
-      0% { transform: scale(0.88); opacity: 0.8; }
-      100% { transform: scale(1.25); opacity: 0; }
+      0% {
+        transform: scale(0.88);
+        opacity: 0.8;
+      }
+      100% {
+        transform: scale(1.25);
+        opacity: 0;
+      }
     }
     @keyframes pushSparkle {
-      0%,100% { transform: scale(0.7) rotate(0); opacity: 0.35; }
-      50% { transform: scale(1.25) rotate(20deg); opacity: 1; }
+      0%,
+      100% {
+        transform: scale(0.7) rotate(0);
+        opacity: 0.35;
+      }
+      50% {
+        transform: scale(1.25) rotate(20deg);
+        opacity: 1;
+      }
     }
-    @keyframes pushToastTimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+    @keyframes pushToastTimer {
+      from {
+        transform: scaleX(1);
+      }
+      to {
+        transform: scaleX(0);
+      }
+    }
 
-    /* Push Disable Toast */
+    /* Disable Notification Confirmation + Success Toast */
     .swal-push-disable {
       width: min(370px, calc(100vw - 32px)) !important;
       border-radius: 26px !important;
       padding: 0 !important;
       overflow: hidden !important;
       background: linear-gradient(145deg, #fff 0%, #fff7f7 100%) !important;
-      box-shadow: 0 28px 80px rgba(239,68,68,0.24) !important;
+      box-shadow: 0 28px 80px rgba(239, 68, 68, 0.24) !important;
     }
-    .swal-push-disable .swal2-html-container { margin: 0 !important; padding: 0 !important; }
-    .push-disable-toast { position: relative; padding: 30px 24px 26px; text-align: center; overflow: hidden; }
+    .swal-push-disable .swal2-html-container {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .push-disable-toast {
+      position: relative;
+      padding: 30px 24px 26px;
+      text-align: center;
+      overflow: hidden;
+    }
     .push-disable-icon {
       width: 86px;
       height: 86px;
@@ -390,21 +569,79 @@
       background: linear-gradient(145deg, #fb7185, #ef4444, #f97316);
       color: #fff;
       font-size: 36px;
-      box-shadow: 0 17px 38px rgba(239,68,68,0.30);
-      animation: pushDisablePop 0.58s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 17px 38px rgba(239, 68, 68, 0.30);
+      animation: pushDisablePop 0.58s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .push-disable-title { margin: 0; color: #0f172a; font-size: 21px; font-weight: 800; letter-spacing: -0.4px; }
-    .push-disable-message { max-width: 285px; margin: 8px auto 0; color: #64748b; font-size: 13px; line-height: 1.6; }
-    .push-disable-status { display: inline-flex; align-items: center; gap: 7px; margin-top: 17px; padding: 8px 13px; border-radius: 999px; background: #fee2e2; color: #b91c1c; font-size: 11px; font-weight: 800; }
-    .push-disable-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: #fee2e2; overflow: hidden; }
-    .push-disable-progress::after { content: ""; display: block; width: 100%; height: 100%; transform-origin: left; background: linear-gradient(90deg, #fb7185, #ef4444, #f97316); animation: pushDisableTimer 2.8s linear forwards; }
-    .push-btn.deactivate { background: linear-gradient(135deg, #fee2e2, #fff1f2); color: #dc2626; border: 1px solid #fecaca; }
+    .push-disable-title {
+      margin: 0;
+      color: #0f172a;
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+    }
+    .push-disable-message {
+      max-width: 285px;
+      margin: 8px auto 0;
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .push-disable-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 17px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: #fee2e2;
+      color: #b91c1c;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .push-disable-progress {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 5px;
+      background: #fee2e2;
+      overflow: hidden;
+    }
+    .push-disable-progress::after {
+      content: "";
+      display: block;
+      width: 100%;
+      height: 100%;
+      transform-origin: left;
+      background: linear-gradient(90deg, #fb7185, #ef4444, #f97316);
+      animation: pushDisableTimer 2.8s linear forwards;
+    }
+    .push-btn.deactivate {
+      background: linear-gradient(135deg, #fee2e2, #fff1f2);
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
     @keyframes pushDisablePop {
-      0% { transform: scale(0.55) rotate(9deg); opacity: 0; }
-      70% { transform: scale(1.08) rotate(-2deg); }
-      100% { transform: scale(1); opacity: 1; }
+      0% {
+        transform: scale(0.55) rotate(9deg);
+        opacity: 0;
+      }
+      70% {
+        transform: scale(1.08) rotate(-2deg);
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
-    @keyframes pushDisableTimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+    @keyframes pushDisableTimer {
+      from {
+        transform: scaleX(1);
+      }
+      to {
+        transform: scaleX(0);
+      }
+    }
   </style>
 </head>
 <body>
@@ -454,10 +691,12 @@
       </div>
     </div>
 
-    <!-- Filter Chips -->
+    <!-- Modern Filter Chips Container -->
     <div class="flex items-center gap-2 mb-5 overflow-x-auto pb-1" style="scrollbar-width: none; -ms-overflow-style: none;">
       <style>
-        .scroll-content::-webkit-scrollbar { display: none; }
+        .scroll-content::-webkit-scrollbar {
+          display: none;
+        }
       </style>
       <button class="filter-chip active" data-status="ALL">Semua</button>
       <button class="filter-chip" data-status="OPEN">Open</button>
@@ -465,7 +704,7 @@
       <button class="filter-chip" data-status="DONE">Done</button>
     </div>
 
-    <!-- History List -->
+    <!-- List Items -->
     <div id="historyList">
       <div class="text-center text-gray-400 py-8">
         <i class="fa-regular fa-clock text-3xl block mb-2"></i>
@@ -484,6 +723,7 @@
   <!-- Logout Overlay (Toast di tengah) -->
   <div id="logoutOverlay">
     <div id="logoutToast">
+      <!-- handle dihilangkan karena modal tengah -->
       <div class="logout-icon">
         <i class="fa-solid fa-right-from-bracket"></i>
       </div>

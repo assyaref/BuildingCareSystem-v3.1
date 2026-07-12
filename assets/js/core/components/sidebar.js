@@ -870,6 +870,9 @@
         return overlay;
     }
 
+    // =====================================================
+    // PERBAIKAN: Redirect ke 'login' (tanpa .html)
+    // =====================================================
     async function performLogout() {
         try {
             if (window.BCS?.Auth?.logout) await window.BCS.Auth.logout();
@@ -879,7 +882,8 @@
         } finally {
             ["BCS_SESSION", "bcs_session", "BCS_USER", "BCS_TOKEN"].forEach(key => localStorage.removeItem(key));
             sessionStorage.clear();
-            window.location.href = "login.html";
+            // ✅ PERBAIKAN: redirect ke login tanpa .html
+            window.location.href = "login";
         }
     }
 

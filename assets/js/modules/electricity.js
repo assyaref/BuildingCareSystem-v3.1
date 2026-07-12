@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 2.7 (Fix auto-fill override bulan)
+ * Version 2.8 (Fix edit data salah bulan)
  * =====================================================
  */
 
@@ -501,9 +501,10 @@ const ElectricityController = {
         }
 
         pageRows.forEach((item, idx) => {
-            const badgeClass = this.getStatusBadge(item.status);
             const isNegative = item.pemakaian < 0;
             const posisi = (item.no && item.no !== '-' && item.no !== 'null') ? item.no : '-';
+            // Buat ID unik untuk setiap record: gabungan bulan + posisi + idPelanggan
+            const uniqueId = `${item.bulan}|${item.no}|${item.idPelanggan}`;
             tbody.insertAdjacentHTML("beforeend", `
                 <tr>
                     <td class="text-start ps-4">${start + idx + 1}</td>
@@ -521,7 +522,7 @@ const ElectricityController = {
                             <button class="btn btn-outline-primary btn-detail" data-id="${item.idPelanggan}" title="Detail">
                                 <i class="bi bi-eye"></i>
                             </button>
-                            <button class="btn btn-outline-warning btn-edit" data-id="${item.idPelanggan}" title="Edit">
+                            <button class="btn btn-outline-warning btn-edit" data-unique="${uniqueId}" title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button class="btn btn-outline-danger btn-delete" data-id="${item.idPelanggan}" title="Hapus">
@@ -582,11 +583,17 @@ const ElectricityController = {
     bindEditButton() {
         document.querySelectorAll(".btn-edit").forEach(btn => {
             btn.onclick = () => {
-                const id = btn.dataset.id;
-                const record = this.state.records.find(r => r.idPelanggan === id);
+                const unique = btn.dataset.unique;
+                // Cari record berdasarkan unique (bulan|posisi|idPelanggan)
+                const [bulan, posisi, idPelanggan] = unique.split('|');
+                const record = this.state.records.find(r =>
+                    r.bulan === bulan &&
+                    r.no === posisi &&
+                    r.idPelanggan === idPelanggan
+                );
                 if (record) {
                     this.openForm({
-                        id: record.idPelanggan,
+                        id: record.idPelanggan, // bisa juga pakai unique
                         bulan: record.bulan,
                         posisi: record.no || '',
                         idPelanggan: record.idPelanggan,
@@ -649,7 +656,7 @@ const ElectricityController = {
         }
 
         // ==========================================================
-        // PERBAIKAN: Gunakan flag untuk menonaktifkan auto-fill sementara
+        // SUPPRESS AUTO-FILL SELAMA PENGISIAN FORM
         // ==========================================================
         this._suppressAutoFill = true;
 
@@ -661,28 +668,13 @@ const ElectricityController = {
             newPosisi.id = 'formPosisi';
 
             newPosisi.addEventListener('change', function(e) {
-                // Abaikan jika sedang suppress
                 if (ElectricityController._suppressAutoFill) return;
 
                 const selectedPosisi = this.value.trim();
                 if (!selectedPosisi) return;
 
-                const bulanSelect = document.getElementById('formBulan');
-                const selectedBulan = bulanSelect ? bulanSelect.value.trim() : '';
-
-                // Cari record dengan kombinasi posisi + bulan (jika bulan terisi)
-                let record = null;
-                if (selectedBulan) {
-                    record = ElectricityController.state.records.find(r => 
-                        r.no === selectedPosisi && r.bulan === selectedBulan
-                    );
-                }
-
-                // Jika tidak ditemukan, cari record dengan posisi saja (untuk ID & Entitas)
-                if (!record) {
-                    record = ElectricityController.state.records.find(r => r.no === selectedPosisi);
-                }
-
+                // Cari record dengan posisi yang sama (abaikan bulan)
+                const record = ElectricityController.state.records.find(r => r.no === selectedPosisi);
                 const idInput = document.getElementById('formIdPelanggan');
                 const entitasSelect = document.getElementById('formEntitas');
                 const awalInput = document.getElementById('formAwal');
@@ -692,7 +684,6 @@ const ElectricityController = {
                 const keteranganInput = document.getElementById('formKeterangan');
 
                 if (record) {
-                    // Isi field lain, tapi JANGAN sentuh bulan (biarkan tetap)
                     if (idInput) idInput.value = record.idPelanggan || '';
                     if (entitasSelect) entitasSelect.value = record.entitas || '';
                     if (awalInput) awalInput.value = record.awal || '';
@@ -701,7 +692,6 @@ const ElectricityController = {
                     if (nominalInput) nominalInput.value = record.nominal || '';
                     if (keteranganInput) keteranganInput.value = record.keterangan || '';
                 } else {
-                    // Tidak ada data, kosongkan field lain (bulan tetap)
                     if (idInput) idInput.value = '';
                     if (entitasSelect) entitasSelect.value = '';
                     if (awalInput) awalInput.value = '';
@@ -711,7 +701,6 @@ const ElectricityController = {
                     if (keteranganInput) keteranganInput.value = '';
                 }
 
-                // Trigger kalkulasi
                 ElectricityController.calculateForm();
             });
         }
@@ -729,7 +718,6 @@ const ElectricityController = {
                 if (!val) return;
                 const record = ElectricityController.state.records.find(r => r.idPelanggan === val);
                 if (record) {
-                    const bulanSelect = document.getElementById('formBulan');
                     const entitasSelect = document.getElementById('formEntitas');
                     const posisiSelect = document.getElementById('formPosisi');
                     const awalInput = document.getElementById('formAwal');
@@ -738,7 +726,6 @@ const ElectricityController = {
                     const nominalInput = document.getElementById('formNominal');
                     const keteranganInput = document.getElementById('formKeterangan');
 
-                    // Isi field, tapi JANGAN sentuh bulan
                     if (entitasSelect) entitasSelect.value = record.entitas || '';
                     if (posisiSelect) posisiSelect.value = record.no || '';
                     if (awalInput) awalInput.value = record.awal || '';

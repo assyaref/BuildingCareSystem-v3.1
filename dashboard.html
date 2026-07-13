@@ -139,146 +139,280 @@
             background: #1e3a5f;
             color: #60a5fa;
         }
+
+        /* ===== AI WIDGET STYLES ===== */
+        .ai-widget {
+            background: var(--bg-surface, #ffffff);
+            border-radius: 16px;
+            border: 1px solid var(--border-color, #e2e8f0);
+            padding: 20px;
+            transition: all 0.2s;
+        }
+        .ai-widget .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .ai-widget .ai-header .ai-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 20px;
+        }
+        .ai-widget .ai-header h5 {
+            margin: 0;
+            font-weight: 600;
+            color: var(--text-primary, #0f172a);
+        }
+        .ai-widget .ai-header small {
+            color: var(--text-secondary, #64748b);
+            font-size: 12px;
+        }
+
+        .ai-prediction-card {
+            background: var(--bg-card-hover, #f8fafc);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-left: 4px solid #7c3aed;
+        }
+        .ai-prediction-card .label {
+            font-size: 12px;
+            color: var(--text-secondary, #64748b);
+            font-weight: 500;
+        }
+        .ai-prediction-card .value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary, #0f172a);
+        }
+        .ai-prediction-card .desc {
+            font-size: 13px;
+            color: var(--text-secondary, #64748b);
+        }
+
+        .ai-anomaly-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .ai-anomaly-badge.danger {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        .ai-anomaly-badge.warning {
+            background: #fffbeb;
+            color: #d97706;
+        }
+        .ai-anomaly-badge.success {
+            background: #ecfdf5;
+            color: #059669;
+        }
+
+        .ai-chat-container {
+            margin-top: 12px;
+            border-top: 1px solid var(--border-color, #e2e8f0);
+            padding-top: 14px;
+        }
+        .ai-chat-messages {
+            max-height: 120px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ai-chat-messages .msg {
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            max-width: 90%;
+            word-break: break-word;
+        }
+        .ai-chat-messages .msg.bot {
+            background: var(--bg-card-hover, #f1f5f9);
+            color: var(--text-primary, #0f172a);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .ai-chat-messages .msg.user {
+            background: #7c3aed;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .ai-chat-input-group {
+            display: flex;
+            gap: 8px;
+        }
+        .ai-chat-input-group input {
+            flex: 1;
+            border: 1px solid var(--border-color, #e2e8f0);
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 13px;
+            background: var(--bg-surface, #ffffff);
+            color: var(--text-primary, #0f172a);
+            outline: none;
+            transition: border 0.2s;
+        }
+        .ai-chat-input-group input:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+        }
+        .ai-chat-input-group button {
+            border: none;
+            background: #7c3aed;
+            color: #fff;
+            border-radius: 10px;
+            padding: 0 16px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .ai-chat-input-group button:hover {
+            background: #6d28d9;
+        }
+
+        [data-theme="dark"] .ai-prediction-card {
+            background: #1e293b;
+        }
+        [data-theme="dark"] .ai-chat-messages .msg.bot {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+        [data-theme="dark"] .ai-chat-input-group input {
+            background: #1e293b;
+            border-color: #334155;
+            color: #e2e8f0;
+        }
+        [data-theme="dark"] .ai-anomaly-badge.danger {
+            background: #7f1d1d;
+            color: #fca5a5;
+        }
+        [data-theme="dark"] .ai-anomaly-badge.warning {
+            background: #78350f;
+            color: #fcd34d;
+        }
+        [data-theme="dark"] .ai-anomaly-badge.success {
+            background: #064e3b;
+            color: #6ee7b7;
+        }
     </style>
 
-<style id="bcs-sidebar-compat-final">
-/* =========================================================
-   BCS SIDEBAR COMPATIBILITY LAYER
-   Menyamakan sidebar pada SEMUA halaman.
-   sidebar.js tetap menjadi satu-satunya sumber desain sidebar.
-   ========================================================= */
-:root { --bcs-sb-width: 292px !important; }
-
-html, body { overflow-x: hidden; }
-
-.wrapper {
-    display: block !important;
-    min-height: 100vh !important;
-}
-
-/* Neutralize legacy page-level sidebar rules */
-body > .wrapper > .sidebar,
-.wrapper > .sidebar,
-aside.sidebar,
-.sidebar {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: auto !important;
-    bottom: 0 !important;
-    width: var(--bcs-sb-width) !important;
-    min-width: var(--bcs-sb-width) !important;
-    max-width: var(--bcs-sb-width) !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-    flex-shrink: 0 !important;
-    z-index: 1040 !important;
-}
-
-/* Content geometry must be identical on every desktop page */
-body > .wrapper > .content,
-.wrapper > .content,
-main.content,
-.content {
-    margin-left: var(--bcs-sb-width) !important;
-    width: calc(100% - var(--bcs-sb-width)) !important;
-    max-width: none !important;
-    min-width: 0 !important;
-}
-
-/* Hide old static sidebar fragments while JS is preparing */
-.sidebar > .logo-area,
-.sidebar > nav:not(.sb-body),
-.sidebar > .user-profile-card {
-    display: none !important;
-}
-
-/* Restore dynamic sidebar components with fixed geometry */
-.sidebar .sb-desktop-header {
-    min-height: 258px !important;
-    height: 258px !important;
-    padding: 30px 24px 52px !important;
-    flex: 0 0 258px !important;
-}
-
-.sidebar .sb-body {
-    display: block !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    padding: 14px 20px 12px !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-}
-
-.sidebar .sb-menu-item {
-    width: 100% !important;
-    min-height: 56px !important;
-    margin: 4px 0 !important;
-    padding: 8px 13px !important;
-}
-
-.sidebar .sb-menu-item.active {
-    min-height: 64px !important;
-    margin: 10px 0 !important;
-    padding: 10px 15px !important;
-}
-
-.sidebar .sb-footer {
-    display: block !important;
-    flex: 0 0 auto !important;
-    padding: 12px 20px 20px !important;
-}
-
-/* Mobile: JS off-canvas + topbar + bottom navigation */
-@media (max-width: 991.98px) {
-    body > .wrapper > .sidebar,
-    .wrapper > .sidebar,
-    aside.sidebar,
-    .sidebar {
-        width: min(86vw, 320px) !important;
-        min-width: 0 !important;
-        max-width: 320px !important;
-        height: 100dvh !important;
-        min-height: 100dvh !important;
-        transform: translateX(-105%) !important;
-        transition: transform .28s cubic-bezier(.2,.8,.2,1) !important;
-        z-index: 1090 !important;
-    }
-
-    .sidebar.sb-open {
-        transform: translateX(0) !important;
-    }
-
-    body > .wrapper > .content,
-    .wrapper > .content,
-    main.content,
-    .content {
-        margin-left: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        padding-top: calc(var(--bcs-mobile-topbar, 66px) + 10px) !important;
-        padding-bottom: calc(var(--bcs-mobile-bottom, 72px) + 14px) !important;
-    }
-
-    .sidebar .sb-desktop-header {
-        min-height: 190px !important;
-        height: 190px !important;
-        flex-basis: 190px !important;
-        padding: 24px 20px 38px !important;
-    }
-
-    .sidebar .sb-body {
-        padding: 10px 16px !important;
-    }
-
-    .sidebar .sb-footer {
-        padding: 10px 16px 18px !important;
-    }
-}
-</style>
+    <style id="bcs-sidebar-compat-final">
+        /* =========================================================
+           BCS SIDEBAR COMPATIBILITY LAYER
+           ========================================================= */
+        :root { --bcs-sb-width: 292px !important; }
+        html, body { overflow-x: hidden; }
+        .wrapper { display: block !important; min-height: 100vh !important; }
+        body > .wrapper > .sidebar,
+        .wrapper > .sidebar,
+        aside.sidebar,
+        .sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: auto !important;
+            bottom: 0 !important;
+            width: var(--bcs-sb-width) !important;
+            min-width: var(--bcs-sb-width) !important;
+            max-width: var(--bcs-sb-width) !important;
+            height: 100dvh !important;
+            min-height: 100dvh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            flex-shrink: 0 !important;
+            z-index: 1040 !important;
+        }
+        body > .wrapper > .content,
+        .wrapper > .content,
+        main.content,
+        .content {
+            margin-left: var(--bcs-sb-width) !important;
+            width: calc(100% - var(--bcs-sb-width)) !important;
+            max-width: none !important;
+            min-width: 0 !important;
+        }
+        .sidebar > .logo-area,
+        .sidebar > nav:not(.sb-body),
+        .sidebar > .user-profile-card {
+            display: none !important;
+        }
+        .sidebar .sb-desktop-header {
+            min-height: 258px !important;
+            height: 258px !important;
+            padding: 30px 24px 52px !important;
+            flex: 0 0 258px !important;
+        }
+        .sidebar .sb-body {
+            display: block !important;
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            padding: 14px 20px 12px !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+        .sidebar .sb-menu-item {
+            width: 100% !important;
+            min-height: 56px !important;
+            margin: 4px 0 !important;
+            padding: 8px 13px !important;
+        }
+        .sidebar .sb-menu-item.active {
+            min-height: 64px !important;
+            margin: 10px 0 !important;
+            padding: 10px 15px !important;
+        }
+        .sidebar .sb-footer {
+            display: block !important;
+            flex: 0 0 auto !important;
+            padding: 12px 20px 20px !important;
+        }
+        @media (max-width: 991.98px) {
+            body > .wrapper > .sidebar,
+            .wrapper > .sidebar,
+            aside.sidebar,
+            .sidebar {
+                width: min(86vw, 320px) !important;
+                min-width: 0 !important;
+                max-width: 320px !important;
+                height: 100dvh !important;
+                min-height: 100dvh !important;
+                transform: translateX(-105%) !important;
+                transition: transform .28s cubic-bezier(.2,.8,.2,1) !important;
+                z-index: 1090 !important;
+            }
+            .sidebar.sb-open { transform: translateX(0) !important; }
+            body > .wrapper > .content,
+            .wrapper > .content,
+            main.content,
+            .content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding-top: calc(var(--bcs-mobile-topbar, 66px) + 10px) !important;
+                padding-bottom: calc(var(--bcs-mobile-bottom, 72px) + 14px) !important;
+            }
+            .sidebar .sb-desktop-header {
+                min-height: 190px !important;
+                height: 190px !important;
+                flex-basis: 190px !important;
+                padding: 24px 20px 38px !important;
+            }
+            .sidebar .sb-body { padding: 10px 16px !important; }
+            .sidebar .sb-footer { padding: 10px 16px 18px !important; }
+        }
+    </style>
 
 </head>
 
@@ -294,7 +428,7 @@ main.content,
                 <h5>Building Care</h5>
                 <small>Enterprise v3.2</small>
             </div>
-            <nav></nav> <!-- 🔥 SIDEBAR DINAMIS DIISI OLEH sidebar.js -->
+            <nav></nav>
         </aside>
 
         <!-- MAIN CONTENT -->
@@ -313,7 +447,6 @@ main.content,
                     </div>
 
                     <div class="d-flex align-items-center gap-3 flex-wrap">
-                        <!-- Auto-Refresh Timer -->
                         <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background: var(--bg-card-hover, #f8fafc); border: 1px solid var(--border-color, #e2e8f0);">
                             <span class="text-muted" style="font-size: 12px;">Auto-refresh:</span>
                             <span id="refreshTimer" class="fw-bold" style="font-size: 13px; min-width: 20px; text-align: center; color: var(--text-primary, #0f172a);">7</span>
@@ -321,17 +454,14 @@ main.content,
                             <span class="live-dot"></span>
                         </div>
 
-                        <!-- Dark Mode -->
                         <button class="theme-switcher-btn" id="darkModeToggle" title="Toggle Theme">
                             <i class="bi bi-moon-fill" id="darkModeIcon" style="font-size: 1.15rem;"></i>
                         </button>
 
-                        <!-- Logout Button -->
                         <button class="btn btn-sm btn-outline-light" id="logoutBtn" title="Logout" style="border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.2); color: #fff;">
                             <i class="bi bi-box-arrow-right" style="font-size: 1.15rem;"></i>
                         </button>
 
-                        <!-- User Profile -->
                         <div class="user-profile-card p-3 d-flex align-items-center gap-3">
                             <div class="avatar d-flex justify-content-center align-items-center" style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0D47A1, #2563EB); color: #fff;">
                                 <i class="bi bi-person-fill" style="font-size: 1.3rem;"></i>
@@ -533,6 +663,72 @@ main.content,
                     </div>
                 </section>
 
+                <!-- ============================================================ -->
+                <!-- ===== AI WIDGET ===== -->
+                <!-- ============================================================ -->
+                <section class="row g-4 mt-2 mb-4">
+                    <div class="col-12">
+                        <div class="ai-widget">
+                            <div class="ai-header">
+                                <div class="ai-icon">
+                                    <i class="bi bi-robot"></i>
+                                </div>
+                                <div>
+                                    <h5>AI Intelligence <span class="badge bg-purple text-white ms-2" style="font-size: 10px; background: #7c3aed;">v1.0</span></h5>
+                                    <small>Analisis cerdas &amp; prediksi berbasis data</small>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <!-- Prediksi -->
+                                <div class="col-md-4">
+                                    <div class="ai-prediction-card">
+                                        <div class="label"><i class="bi bi-graph-up-arrow me-1"></i> Prediksi Bulan Depan</div>
+                                        <div class="value" id="aiPredictionValue">--</div>
+                                        <div class="desc" id="aiPredictionDesc">Memuat data...</div>
+                                    </div>
+                                </div>
+
+                                <!-- Deteksi Anomali -->
+                                <div class="col-md-4">
+                                    <div class="ai-prediction-card" style="border-left-color: #f59e0b;">
+                                        <div class="label"><i class="bi bi-exclamation-triangle me-1"></i> Deteksi Anomali</div>
+                                        <div id="aiAnomalyContent">
+                                            <div class="desc">Memuat data...</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Rekomendasi -->
+                                <div class="col-md-4">
+                                    <div class="ai-prediction-card" style="border-left-color: #22c55e;">
+                                        <div class="label"><i class="bi bi-lightbulb me-1"></i> Rekomendasi Cerdas</div>
+                                        <div id="aiRecommendationContent">
+                                            <div class="desc">Memuat data...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chatbot Assistant -->
+                            <div class="ai-chat-container">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-chat-dots-fill text-purple" style="color: #7c3aed;"></i>
+                                    <span class="fw-semibold" style="font-size: 14px; color: var(--text-primary, #0f172a);">AI Assistant</span>
+                                    <span class="text-muted" style="font-size: 11px;">Tanyakan tentang data dashboard</span>
+                                </div>
+                                <div class="ai-chat-messages" id="aiChatMessages">
+                                    <div class="msg bot">👋 Halo! Tanyakan tentang total report, trend AC, prediksi, atau lainnya.</div>
+                                </div>
+                                <div class="ai-chat-input-group">
+                                    <input type="text" id="aiChatInput" placeholder="Tanyakan sesuatu..." autocomplete="off">
+                                    <button id="aiChatSend"><i class="bi bi-send-fill"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
@@ -566,8 +762,10 @@ main.content,
     </script>
     <script src="assets/js/modules/dashboard.js">
     </script>
+    <script src="assets/js/modules/ai.js">
+    </script>
 
-    <!-- 🔥 SIDEBAR DINAMIS -->
+    <!-- SIDEBAR DINAMIS -->
     <script src="assets/js/core/components/sidebar.js">
     </script>
 
@@ -576,33 +774,27 @@ main.content,
             'use strict';
 
             // =============================================
-            // 🔥 GUARD: Hanya ADMINISTRATOR, SUPER ADMIN, dan LEAD BRANCH SUPPORT
+            // GUARD: Hanya ADMINISTRATOR, SUPER ADMIN, dan LEAD BRANCH SUPPORT
             // =============================================
             function checkAccess() {
-                // Gunakan checkRole dari auth.js jika tersedia
                 if (typeof checkRole === 'function') {
                     if (!checkRole(['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'])) {
-                        // Redirect sudah ditangani oleh checkRole
                         return false;
                     }
                     return true;
                 }
-
-                // Fallback manual
                 try {
                     var session = BCS.Storage.getSession();
                     if (!session || !session.token) {
                         window.location.href = '/login';
                         return false;
                     }
-
                     var role = (session.role || (session.user && session.user.role) || '').toUpperCase();
                     if (!['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'].includes(role)) {
                         console.warn('⛔ Akses ditolak untuk role:', role);
                         window.location.href = '/login';
                         return false;
                     }
-
                     console.log('✅ Akses dashboard diterima untuk role:', role);
                     return true;
                 } catch (e) {
@@ -746,6 +938,104 @@ main.content,
             }
 
             // =============================================
+            // AI CHATBOT
+            // =============================================
+            function initAIChat() {
+                var input = document.getElementById('aiChatInput');
+                var sendBtn = document.getElementById('aiChatSend');
+                var messages = document.getElementById('aiChatMessages');
+
+                if (!input || !sendBtn || !messages) return;
+
+                function addMessage(text, isUser) {
+                    var div = document.createElement('div');
+                    div.className = 'msg ' + (isUser ? 'user' : 'bot');
+                    div.textContent = text;
+                    messages.appendChild(div);
+                    messages.scrollTop = messages.scrollHeight;
+                }
+
+                function processQuery(query) {
+                    var q = query.toLowerCase().trim();
+                    var response = '';
+
+                    // Ambil data terakhir dari dashboard (global)
+                    var data = window.__bcsDashboardData || {};
+                    var total = data.total || 0;
+                    var ac = data.ac || 0;
+                    var listrik = data.listrik || 0;
+                    var gedung = data.gedung || 0;
+                    var open = data.open || 0;
+                    var progress = data.progress || 0;
+                    var done = data.done || 0;
+                    var prediksi = window.__bcsAIPrediction || null;
+
+                    if (q.includes('total') || q.includes('semua') || q.includes('report')) {
+                        response = '📊 Total laporan: ' + total + ' (AC: ' + ac + ', Listrik: ' + listrik + ', Gedung: ' +
+                            gedung + ')';
+                    } else if (q.includes('ac')) {
+                        response = '❄️ Laporan AC: ' + ac + ' laporan.';
+                    } else if (q.includes('listrik')) {
+                        response = '⚡ Laporan Listrik: ' + listrik + ' laporan.';
+                    } else if (q.includes('gedung') || q.includes('bangunan')) {
+                        response = '🏢 Laporan Kondisi Gedung: ' + gedung + ' laporan.';
+                    } else if (q.includes('open') || q.includes('terbuka')) {
+                        response = '📂 Laporan status OPEN: ' + open;
+                    } else if (q.includes('progress') || q.includes('proses')) {
+                        response = '🔄 Laporan IN PROGRESS: ' + progress;
+                    } else if (q.includes('done') || q.includes('selesai')) {
+                        response = '✅ Laporan DONE: ' + done;
+                    } else if (q.includes('prediksi') || q.includes('perkiraan')) {
+                        if (prediksi !== null && prediksi !== undefined) {
+                            response = '🔮 Prediksi laporan bulan depan: ' + Math.round(prediksi) +
+                                ' laporan. (Berdasarkan tren 12 bulan terakhir)';
+                        } else {
+                            response = '⚠️ Data prediksi belum tersedia. Silakan refresh dashboard.';
+                        }
+                    } else if (q.includes('anomali') || q.includes('lonjakan')) {
+                        var anomali = window.__bcsAIAnomaly || [];
+                        if (anomali.length > 0) {
+                            response = '🚨 Terdeteksi anomali pada: ' + anomali.join(', ') +
+                                '. Periksa kategori tersebut.';
+                        } else {
+                            response = '✅ Tidak ada anomali signifikan terdeteksi.';
+                        }
+                    } else if (q.includes('rekomendasi') || q.includes('saran')) {
+                        var rekom = window.__bcsAIRecommendation || 'Belum ada rekomendasi.';
+                        response = '💡 ' + rekom;
+                    } else if (q.includes('halo') || q.includes('hai') || q.includes('hello')) {
+                        response = '👋 Halo! Ada yang bisa saya bantu? Tanyakan tentang total report, AC, listrik, gedung, prediksi, anomali, atau rekomendasi.';
+                    } else {
+                        response =
+                            '🤔 Maaf, saya tidak mengerti. Coba tanyakan: total report, AC, listrik, gedung, open, progress, done, prediksi, anomali, atau rekomendasi.';
+                    }
+
+                    return response;
+                }
+
+                function handleSend() {
+                    var text = input.value.trim();
+                    if (!text) return;
+                    addMessage(text, true);
+                    input.value = '';
+
+                    // Simulasi delay untuk respons bot
+                    setTimeout(function() {
+                        var reply = processQuery(text);
+                        addMessage(reply, false);
+                    }, 300);
+                }
+
+                sendBtn.addEventListener('click', handleSend);
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSend();
+                    }
+                });
+            }
+
+            // =============================================
             // INIT
             // =============================================
             function init() {
@@ -753,12 +1043,18 @@ main.content,
                 initDarkMode();
                 initLogout();
                 startAutoRefresh();
+                initAIChat();
 
                 if (window.DashboardController && typeof window.DashboardController.init === 'function') {
                     window.DashboardController.init();
                 }
 
-                console.log('✅ Dashboard System Initialized (SLA removed) — Roles: ADMINISTRATOR, SUPER ADMIN, LEAD BRANCH SUPPORT');
+                // Sinkronisasi AI setelah dashboard load
+                if (window.AIController && typeof window.AIController.attachToDashboard === 'function') {
+                    window.AIController.attachToDashboard();
+                }
+
+                console.log('✅ Dashboard + AI Intelligence Initialized');
             }
 
             window.addEventListener('beforeunload', function() {

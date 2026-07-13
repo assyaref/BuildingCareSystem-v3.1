@@ -12,7 +12,7 @@
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -76,22 +76,7 @@
                 transform: scale(0.8);
             }
         }
-        .theme-switcher-btn {
-            width: 42px;
-            height: 42px;
-            border-radius: 50% !important;
-            background: var(--bg-surface, #ffffff);
-            border: 1px solid var(--border-color, #e2e8f0);
-            color: var(--text-primary, #0f172a);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        .theme-switcher-btn:hover {
-            background: var(--bg-card-hover, #f1f5f9);
-            transform: rotate(20deg);
-        }
+
         .user-profile-card {
             background: var(--bg-surface, #ffffff);
             border-radius: 12px;
@@ -108,209 +93,378 @@
             margin-top: 2px;
         }
 
-        /* Dark mode support */
-        [data-theme="dark"] .sidebar nav a.menu {
-            color: #94a3b8;
-        }
-        [data-theme="dark"] .sidebar nav a.menu:hover {
-            background: #1e293b;
-            color: #e2e8f0;
-        }
-        [data-theme="dark"] .sidebar nav a.menu.active {
-            background: #1e3a5f;
-            color: #60a5fa;
-        }
-        [data-theme="dark"] .sidebar nav a.menu.text-danger:hover {
-            background: #7f1d1d !important;
-        }
-        [data-theme="dark"] .user-profile-card {
-            background: #1e293b;
-            border-color: #334155;
-        }
-        [data-theme="dark"] .theme-switcher-btn {
-            background: #1e293b;
-            border-color: #334155;
-            color: #e2e8f0;
-        }
-        [data-theme="dark"] .theme-switcher-btn:hover {
-            background: #334155;
-        }
-        [data-theme="dark"] .role-badge {
-            background: #1e3a5f;
-            color: #60a5fa;
-        }
-
-        /* ===== AI WIDGET STYLES ===== */
+        /* ===== AI WIDGET SUPER COLORFUL ===== */
         .ai-widget {
-            background: var(--bg-surface, #ffffff);
-            border-radius: 16px;
-            border: 1px solid var(--border-color, #e2e8f0);
-            padding: 20px;
-            transition: all 0.2s;
+            background: linear-gradient(145deg, #ffffff, #f8faff);
+            border-radius: 24px;
+            border: 1px solid rgba(124, 58, 237, 0.15);
+            padding: 24px 28px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(124, 58, 237, 0.08);
+        }
+        .ai-widget:hover {
+            box-shadow: 0 12px 48px rgba(124, 58, 237, 0.15);
+            transform: translateY(-2px);
         }
         .ai-widget .ai-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
+            gap: 14px;
+            margin-bottom: 20px;
         }
         .ai-widget .ai-header .ai-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
             background: linear-gradient(135deg, #7c3aed, #4f46e5);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 20px;
+            font-size: 26px;
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
         }
         .ai-widget .ai-header h5 {
             margin: 0;
-            font-weight: 600;
-            color: var(--text-primary, #0f172a);
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 20px;
         }
         .ai-widget .ai-header small {
-            color: var(--text-secondary, #64748b);
-            font-size: 12px;
+            color: #64748b;
+            font-size: 13px;
+        }
+        .ai-widget .ai-header .ai-badge {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: #fff;
+            font-size: 11px;
+            padding: 4px 14px;
+            border-radius: 999px;
+            font-weight: 600;
+            margin-left: 10px;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .ai-score-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px 18px;
+            text-align: center;
+            border: 1px solid #eef2ff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            transition: all 0.2s;
+        }
+        .ai-score-card:hover {
+            border-color: #7c3aed;
+            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.08);
+        }
+        .ai-score-card .score-number {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1.2;
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .ai-score-card .score-label {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .ai-score-card .score-bar {
+            height: 8px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            margin: 10px 0 6px;
+            overflow: hidden;
+        }
+        .ai-score-card .score-bar .fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.8s ease;
+        }
+        .ai-score-card .score-detail {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .ai-score-card .score-detail small {
+            font-weight: 400;
+            color: #64748b;
         }
 
         .ai-prediction-card {
-            background: var(--bg-card-hover, #f8fafc);
-            border-radius: 12px;
-            padding: 14px 16px;
-            margin-bottom: 10px;
-            border-left: 4px solid #7c3aed;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 18px 20px;
+            border-left: 5px solid #7c3aed;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            transition: all 0.2s;
+        }
+        .ai-prediction-card:hover {
+            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.08);
         }
         .ai-prediction-card .label {
-            font-size: 12px;
-            color: var(--text-secondary, #64748b);
-            font-weight: 500;
-        }
-        .ai-prediction-card .value {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary, #0f172a);
-        }
-        .ai-prediction-card .desc {
             font-size: 13px;
-            color: var(--text-secondary, #64748b);
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .ai-prediction-card .label i {
+            color: #7c3aed;
+            margin-right: 4px;
         }
 
-        .ai-anomaly-badge {
-            display: inline-block;
-            padding: 3px 12px;
-            border-radius: 999px;
+        .ai-insight-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .ai-insight-list li {
+            display: flex;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 14px;
+            color: #0f172a;
+            border-bottom: 1px solid #f1f5f9;
+            align-items: flex-start;
+        }
+        .ai-insight-list li:last-child {
+            border-bottom: none;
+        }
+        .ai-insight-list li i {
+            margin-top: 2px;
+            color: #7c3aed;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .ai-recommendation-item {
+            background: linear-gradient(135deg, #f0fdf4, #f7fee7);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-left: 4px solid #22c55e;
+            font-size: 14px;
+            color: #0f172a;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .ai-recommendation-item:hover {
+            transform: translateX(4px);
+        }
+        .ai-recommendation-item i {
+            color: #22c55e;
+            margin-right: 8px;
+        }
+
+        .ai-prediction-box {
+            background: linear-gradient(135deg, #fefce8, #fef3c7);
+            border-radius: 12px;
+            padding: 14px 12px;
+            text-align: center;
+            border: 1px solid #fde68a;
+            transition: all 0.2s;
+        }
+        .ai-prediction-box:hover {
+            transform: scale(1.02);
+        }
+        .ai-prediction-box .label {
             font-size: 12px;
+            color: #92400e;
             font-weight: 600;
         }
-        .ai-anomaly-badge.danger {
-            background: #fef2f2;
-            color: #dc2626;
-        }
-        .ai-anomaly-badge.warning {
-            background: #fffbeb;
-            color: #d97706;
-        }
-        .ai-anomaly-badge.success {
-            background: #ecfdf5;
-            color: #059669;
+        .ai-prediction-box .value {
+            font-size: 20px;
+            font-weight: 800;
+            color: #78350f;
         }
 
         .ai-chat-container {
-            margin-top: 12px;
-            border-top: 1px solid var(--border-color, #e2e8f0);
-            padding-top: 14px;
+            margin-top: 16px;
+            border-top: 2px dashed #e2e8f0;
+            padding-top: 18px;
         }
         .ai-chat-messages {
-            max-height: 120px;
+            max-height: 160px;
             overflow-y: auto;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             display: flex;
             flex-direction: column;
             gap: 6px;
         }
         .ai-chat-messages .msg {
-            padding: 8px 14px;
-            border-radius: 12px;
-            font-size: 13px;
-            max-width: 90%;
+            padding: 10px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            max-width: 92%;
             word-break: break-word;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
         }
         .ai-chat-messages .msg.bot {
-            background: var(--bg-card-hover, #f1f5f9);
-            color: var(--text-primary, #0f172a);
+            background: #f1f5f9;
+            color: #0f172a;
             align-self: flex-start;
             border-bottom-left-radius: 4px;
+            border-left: 4px solid #7c3aed;
         }
         .ai-chat-messages .msg.user {
-            background: #7c3aed;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
             color: #fff;
             align-self: flex-end;
             border-bottom-right-radius: 4px;
         }
         .ai-chat-input-group {
             display: flex;
-            gap: 8px;
+            gap: 10px;
         }
         .ai-chat-input-group input {
             flex: 1;
-            border: 1px solid var(--border-color, #e2e8f0);
-            border-radius: 10px;
-            padding: 8px 14px;
-            font-size: 13px;
-            background: var(--bg-surface, #ffffff);
-            color: var(--text-primary, #0f172a);
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 10px 18px;
+            font-size: 14px;
+            background: #ffffff;
+            color: #0f172a;
             outline: none;
-            transition: border 0.2s;
+            transition: all 0.2s;
         }
         .ai-chat-input-group input:focus {
             border-color: #7c3aed;
-            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
         }
         .ai-chat-input-group button {
             border: none;
-            background: #7c3aed;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
             color: #fff;
-            border-radius: 10px;
-            padding: 0 16px;
-            font-weight: 500;
-            transition: background 0.2s;
+            border-radius: 14px;
+            padding: 0 22px;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
         }
         .ai-chat-input-group button:hover {
-            background: #6d28d9;
+            transform: scale(1.04);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
         }
 
-        [data-theme="dark"] .ai-prediction-card {
-            background: #1e293b;
+        .ai-status-badge {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            font-size: 12px;
+            padding: 4px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
         }
-        [data-theme="dark"] .ai-chat-messages .msg.bot {
-            background: #1e293b;
-            color: #e2e8f0;
+
+        /* Tombol Generate Insight */
+        .btn-insight {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 8px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 0 4px 16px rgba(124, 58, 237, 0.25);
         }
-        [data-theme="dark"] .ai-chat-input-group input {
-            background: #1e293b;
-            border-color: #334155;
-            color: #e2e8f0;
+        .btn-insight:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(124, 58, 237, 0.35);
+            color: #fff;
         }
-        [data-theme="dark"] .ai-anomaly-badge.danger {
-            background: #7f1d1d;
-            color: #fca5a5;
+        .btn-insight i {
+            margin-right: 6px;
         }
-        [data-theme="dark"] .ai-anomaly-badge.warning {
-            background: #78350f;
-            color: #fcd34d;
+
+        /* Warna-warni tambahan */
+        .bg-soft-purple { background: #f5f3ff; }
+        .bg-soft-green { background: #f0fdf4; }
+        .bg-soft-yellow { background: #fefce8; }
+        .bg-soft-blue { background: #eff6ff; }
+        .border-gradient-purple { border-image: linear-gradient(135deg, #7c3aed, #4f46e5) 1; }
+
+        .text-gradient-purple {
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        [data-theme="dark"] .ai-anomaly-badge.success {
-            background: #064e3b;
-            color: #6ee7b7;
+
+        /* responsif */
+        @media (max-width: 768px) {
+            .ai-widget { padding: 16px; }
+        }
+
+        /* Hilangkan dark mode related */
+        .theme-switcher-btn { display: none !important; }
+        [data-theme="dark"] { display: none; }
+
+        /* Sidebar compat */
+        .sidebar .sb-desktop-header {
+            min-height: 258px !important;
+            height: 258px !important;
+            padding: 30px 24px 52px !important;
+            flex: 0 0 258px !important;
+        }
+        .sidebar .sb-body {
+            display: block !important;
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            padding: 14px 20px 12px !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+        .sidebar .sb-menu-item {
+            width: 100% !important;
+            min-height: 56px !important;
+            margin: 4px 0 !important;
+            padding: 8px 13px !important;
+        }
+        .sidebar .sb-menu-item.active {
+            min-height: 64px !important;
+            margin: 10px 0 !important;
+            padding: 10px 15px !important;
+        }
+        .sidebar .sb-footer {
+            display: block !important;
+            flex: 0 0 auto !important;
+            padding: 12px 20px 20px !important;
+        }
+        @media (max-width: 991.98px) {
+            .sidebar {
+                width: min(86vw, 320px) !important;
+                min-width: 0 !important;
+                max-width: 320px !important;
+                height: 100dvh !important;
+                min-height: 100dvh !important;
+                transform: translateX(-105%) !important;
+                transition: transform .28s cubic-bezier(.2,.8,.2,1) !important;
+                z-index: 1090 !important;
+            }
+            .sidebar.sb-open { transform: translateX(0) !important; }
+            .content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding-top: calc(var(--bcs-mobile-topbar, 66px) + 10px) !important;
+                padding-bottom: calc(var(--bcs-mobile-bottom, 72px) + 14px) !important;
+            }
+            .sidebar .sb-desktop-header {
+                min-height: 190px !important;
+                height: 190px !important;
+                flex-basis: 190px !important;
+                padding: 24px 20px 38px !important;
+            }
+            .sidebar .sb-body { padding: 10px 16px !important; }
+            .sidebar .sb-footer { padding: 10px 16px 18px !important; }
         }
     </style>
 
     <style id="bcs-sidebar-compat-final">
-        /* =========================================================
-           BCS SIDEBAR COMPATIBILITY LAYER
-           ========================================================= */
         :root { --bcs-sb-width: 292px !important; }
         html, body { overflow-x: hidden; }
         .wrapper { display: block !important; min-height: 100vh !important; }
@@ -348,70 +502,6 @@
         .sidebar > .user-profile-card {
             display: none !important;
         }
-        .sidebar .sb-desktop-header {
-            min-height: 258px !important;
-            height: 258px !important;
-            padding: 30px 24px 52px !important;
-            flex: 0 0 258px !important;
-        }
-        .sidebar .sb-body {
-            display: block !important;
-            flex: 1 1 auto !important;
-            min-height: 0 !important;
-            padding: 14px 20px 12px !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-        }
-        .sidebar .sb-menu-item {
-            width: 100% !important;
-            min-height: 56px !important;
-            margin: 4px 0 !important;
-            padding: 8px 13px !important;
-        }
-        .sidebar .sb-menu-item.active {
-            min-height: 64px !important;
-            margin: 10px 0 !important;
-            padding: 10px 15px !important;
-        }
-        .sidebar .sb-footer {
-            display: block !important;
-            flex: 0 0 auto !important;
-            padding: 12px 20px 20px !important;
-        }
-        @media (max-width: 991.98px) {
-            body > .wrapper > .sidebar,
-            .wrapper > .sidebar,
-            aside.sidebar,
-            .sidebar {
-                width: min(86vw, 320px) !important;
-                min-width: 0 !important;
-                max-width: 320px !important;
-                height: 100dvh !important;
-                min-height: 100dvh !important;
-                transform: translateX(-105%) !important;
-                transition: transform .28s cubic-bezier(.2,.8,.2,1) !important;
-                z-index: 1090 !important;
-            }
-            .sidebar.sb-open { transform: translateX(0) !important; }
-            body > .wrapper > .content,
-            .wrapper > .content,
-            main.content,
-            .content {
-                margin-left: 0 !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                padding-top: calc(var(--bcs-mobile-topbar, 66px) + 10px) !important;
-                padding-bottom: calc(var(--bcs-mobile-bottom, 72px) + 14px) !important;
-            }
-            .sidebar .sb-desktop-header {
-                min-height: 190px !important;
-                height: 190px !important;
-                flex-basis: 190px !important;
-                padding: 24px 20px 38px !important;
-            }
-            .sidebar .sb-body { padding: 10px 16px !important; }
-            .sidebar .sb-footer { padding: 10px 16px 18px !important; }
-        }
     </style>
 
 </head>
@@ -447,18 +537,14 @@
                     </div>
 
                     <div class="d-flex align-items-center gap-3 flex-wrap">
-                        <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background: var(--bg-card-hover, #f8fafc); border: 1px solid var(--border-color, #e2e8f0);">
+                        <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
                             <span class="text-muted" style="font-size: 12px;">Auto-refresh:</span>
-                            <span id="refreshTimer" class="fw-bold" style="font-size: 13px; min-width: 20px; text-align: center; color: var(--text-primary, #0f172a);">7</span>
+                            <span id="refreshTimer" class="fw-bold" style="font-size: 13px; min-width: 20px; text-align: center; color: #0f172a;">7</span>
                             <span class="text-muted" style="font-size: 11px;">detik</span>
                             <span class="live-dot"></span>
                         </div>
 
-                        <button class="theme-switcher-btn" id="darkModeToggle" title="Toggle Theme">
-                            <i class="bi bi-moon-fill" id="darkModeIcon" style="font-size: 1.15rem;"></i>
-                        </button>
-
-                        <button class="btn btn-sm btn-outline-light" id="logoutBtn" title="Logout" style="border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.2); color: #fff;">
+                        <button class="btn btn-sm btn-outline-danger" id="logoutBtn" title="Logout" style="border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; color: #ef4444;">
                             <i class="bi bi-box-arrow-right" style="font-size: 1.15rem;"></i>
                         </button>
 
@@ -467,7 +553,7 @@
                                 <i class="bi bi-person-fill" style="font-size: 1.3rem;"></i>
                             </div>
                             <div>
-                                <div class="profile-name fw-semibold text-truncate" id="userName" style="max-width: 150px; color: var(--text-primary, #0f172a);">Loading...</div>
+                                <div class="profile-name fw-semibold text-truncate" id="userName" style="max-width: 150px; color: #0f172a;">Loading...</div>
                                 <div class="role-badge" id="userRole">User</div>
                             </div>
                         </div>
@@ -481,7 +567,7 @@
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <h6 class="text-uppercase text-muted mb-1" style="font-size: 12px; font-weight: 600;">Total Report</h6>
-                                    <h2 id="totalReport" class="fw-bold mb-2" style="color: var(--text-primary, #0f172a);">0</h2>
+                                    <h2 id="totalReport" class="fw-bold mb-2" style="color: #0f172a;">0</h2>
                                 </div>
                                 <div class="summary-icon bg-primary" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
                                     <i class="bi bi-file-earmark-text-fill"></i>
@@ -500,7 +586,7 @@
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <h6 class="text-uppercase text-muted mb-1" style="font-size: 12px; font-weight: 600;">AC</h6>
-                                    <h2 id="acTotal" class="fw-bold mb-2" style="color: var(--text-primary, #0f172a);">0</h2>
+                                    <h2 id="acTotal" class="fw-bold mb-2" style="color: #0f172a;">0</h2>
                                 </div>
                                 <div class="summary-icon bg-info" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
                                     <i class="bi bi-snow"></i>
@@ -519,7 +605,7 @@
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <h6 class="text-uppercase text-muted mb-1" style="font-size: 12px; font-weight: 600;">Listrik</h6>
-                                    <h2 id="listrikTotal" class="fw-bold mb-2" style="color: var(--text-primary, #0f172a);">0</h2>
+                                    <h2 id="listrikTotal" class="fw-bold mb-2" style="color: #0f172a;">0</h2>
                                 </div>
                                 <div class="summary-icon bg-warning" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
                                     <i class="bi bi-lightning-charge-fill"></i>
@@ -538,7 +624,7 @@
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <h6 class="text-uppercase text-muted mb-1" style="font-size: 12px; font-weight: 600;">Kondisi Gedung</h6>
-                                    <h2 id="gedungTotal" class="fw-bold mb-2" style="color: var(--text-primary, #0f172a);">0</h2>
+                                    <h2 id="gedungTotal" class="fw-bold mb-2" style="color: #0f172a;">0</h2>
                                 </div>
                                 <div class="summary-icon bg-purple" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.25rem;">
                                     <i class="bi bi-building-fill"></i>
@@ -548,6 +634,118 @@
                                 <i id="gedungTrendIcon" class="bi bi-arrow-up-short fs-5"></i>
                                 <span id="gedungTrend">0</span>
                                 <span class="text-muted" style="font-size: 12px;">dari minggu lalu</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============================================================ -->
+                <!-- ===== AI WIDGET (DI ATAS, FULL COLOR) ===== -->
+                <!-- ============================================================ -->
+                <section class="row g-4 mt-4 mb-4">
+                    <div class="col-12">
+                        <div class="ai-widget">
+                            <div class="ai-header">
+                                <div class="ai-icon">
+                                    <i class="bi bi-robot"></i>
+                                </div>
+                                <div>
+                                    <h5>AI Facility Analyst <span class="ai-badge">BETA</span></h5>
+                                    <small>Analisis otomatis berbasis data real-time · Prediksi · Deteksi · Rekomendasi</small>
+                                </div>
+                                <div class="ms-auto d-flex align-items-center gap-3">
+                                    <span id="aiStatus" class="ai-status-badge"><i class="bi bi-check-circle-fill me-1"></i> Aktif</span>
+                                    <button class="btn-insight" id="generateInsightBtn"><i class="bi bi-lightbulb"></i> Insight</button>
+                                </div>
+                            </div>
+
+                            <!-- Baris 1: Health Score & Risk Level -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <div class="ai-score-card">
+                                        <div class="score-label"><i class="bi bi-heart-pulse me-1" style="color: #ef4444;"></i> Health Score</div>
+                                        <div class="score-number" id="healthScoreValue">--</div>
+                                        <div class="score-bar">
+                                            <div class="fill" id="healthScoreBar" style="width:0%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
+                                        </div>
+                                        <div class="score-detail" id="healthScoreDetail">Memuat...</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="ai-score-card" style="border-color: #fde68a;">
+                                        <div class="score-label"><i class="bi bi-shield-exclamation me-1" style="color: #f59e0b;"></i> Risk Level</div>
+                                        <div class="score-number" id="riskLevelValue" style="font-size: 32px; background: linear-gradient(135deg, #f59e0b, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">--</div>
+                                        <div class="score-detail" id="riskLevelDetail">Memuat...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Baris 2: AI Insight & AI Recommendation -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <div class="ai-prediction-card" style="border-left-color: #7c3aed;">
+                                        <div class="label"><i class="bi bi-lightbulb"></i> AI Insight</div>
+                                        <ul class="ai-insight-list" id="aiInsightList">
+                                            <li><i class="bi bi-info-circle-fill"></i> Memuat data...</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="ai-prediction-card" style="border-left-color: #22c55e;">
+                                        <div class="label"><i class="bi bi-check-circle"></i> AI Recommendation</div>
+                                        <div id="aiRecommendationContainer">
+                                            <div class="text-muted">Memuat data...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Baris 3: Prediksi 7 Hari -->
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="ai-prediction-card" style="border-left-color: #f59e0b; background: linear-gradient(135deg, #fffbeb, #fef3c7);">
+                                        <div class="label"><i class="bi bi-graph-up"></i> Prediksi 7 Hari ke Depan</div>
+                                        <div class="row g-2 mt-1">
+                                            <div class="col-md-4">
+                                                <div class="ai-prediction-box">
+                                                    <div class="label">Open</div>
+                                                    <div class="value" id="predOpen">--</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="ai-prediction-box" style="background: linear-gradient(135deg, #eff6ff, #dbeafe); border-color: #93c5fd;">
+                                                    <div class="label">Progress</div>
+                                                    <div class="value" id="predProgress">--</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="ai-prediction-box" style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-color: #86efac;">
+                                                    <div class="label">Done</div>
+                                                    <div class="value" id="predDone">--</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end mt-2">
+                                            <a href="#" class="text-decoration-none" style="color: #7c3aed; font-size: 13px; font-weight: 600;">Lihat Detail Analisis <i class="bi bi-chevron-right"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chatbot Assistant -->
+                            <div class="ai-chat-container">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-chat-dots-fill" style="color: #7c3aed; font-size: 20px;"></i>
+                                    <span class="fw-bold" style="font-size: 15px; color: #0f172a;">AI Assistant</span>
+                                    <span class="text-muted" style="font-size: 12px;">Tanyakan tentang data dashboard</span>
+                                </div>
+                                <div class="ai-chat-messages" id="aiChatMessages">
+                                    <div class="msg bot">👋 Halo! Saya AI Facility Analyst. Tanyakan tentang total report, kategori, prediksi, atau rekomendasi.</div>
+                                </div>
+                                <div class="ai-chat-input-group">
+                                    <input type="text" id="aiChatInput" placeholder="Tanyakan sesuatu..." autocomplete="off">
+                                    <button id="aiChatSend"><i class="bi bi-send-fill me-1"></i> Kirim</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -563,10 +761,10 @@
                                 </div>
                                 <div>
                                     <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">Open</h6>
-                                    <h2 id="totalOpen" class="fw-bold mb-0" style="color: var(--text-primary, #0f172a);">0</h2>
+                                    <h2 id="totalOpen" class="fw-bold mb-0" style="color: #0f172a;">0</h2>
                                 </div>
                             </div>
-                            <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary, #64748b);">0% dari total report</div>
+                            <div class="status-percent mb-2" style="font-size: 13px; color: #64748b;">0% dari total report</div>
                             <div class="sparkline spark-orange"></div>
                         </div>
                     </div>
@@ -579,10 +777,10 @@
                                 </div>
                                 <div>
                                     <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">In Progress</h6>
-                                    <h2 id="totalProgress" class="fw-bold mb-0" style="color: var(--text-primary, #0f172a);">0</h2>
+                                    <h2 id="totalProgress" class="fw-bold mb-0" style="color: #0f172a;">0</h2>
                                 </div>
                             </div>
-                            <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary, #64748b);">0% dari total report</div>
+                            <div class="status-percent mb-2" style="font-size: 13px; color: #64748b;">0% dari total report</div>
                             <div class="sparkline spark-blue"></div>
                         </div>
                     </div>
@@ -595,10 +793,10 @@
                                 </div>
                                 <div>
                                     <h6 class="text-muted mb-0" style="font-size: 13px; font-weight: 500;">Done</h6>
-                                    <h2 id="totalDone" class="fw-bold mb-0" style="color: var(--text-primary, #0f172a);">0</h2>
+                                    <h2 id="totalDone" class="fw-bold mb-0" style="color: #0f172a;">0</h2>
                                 </div>
                             </div>
-                            <div class="status-percent mb-2" style="font-size: 13px; color: var(--text-secondary, #64748b);">0% dari total report</div>
+                            <div class="status-percent mb-2" style="font-size: 13px; color: #64748b;">0% dari total report</div>
                             <div class="sparkline spark-green"></div>
                         </div>
                     </div>
@@ -613,7 +811,7 @@
                                     <span class="fw-semibold"><i class="bi bi-bar-chart-line-fill me-2 text-primary"></i>Statistik Laporan</span>
                                     <small class="text-secondary" style="font-size: 12px;">Last Update : <span id="lastUpdate">-</span></small>
                                 </div>
-                                <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" id="refreshDashboard" style="border-color: var(--border-color, #e2e8f0); color: var(--text-primary, #0f172a); font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 8px;">
+                                <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" id="refreshDashboard" style="border-color: #e2e8f0; color: #0f172a; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 8px;">
                                     <i class="bi bi-arrow-clockwise"></i> Refresh
                                 </button>
                             </div>
@@ -638,7 +836,7 @@
                         <div class="card enterprise-card h-100">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <span class="fw-semibold">Aktivitas Terbaru</span>
-                                <a href="/history" class="text-decoration-none fw-medium" style="color: var(--accent-color, #2563eb); font-size: 14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size: 10px;"></i></a>
+                                <a href="/history" class="text-decoration-none fw-medium" style="color: #2563eb; font-size: 14px;">Lihat Semua <i class="bi bi-chevron-right" style="font-size: 10px;"></i></a>
                             </div>
                             <div class="card-body p-4" style="max-height: 310px; overflow-y: auto;">
                                 <div id="recentActivity" class="d-flex flex-column gap-1"></div>
@@ -663,71 +861,10 @@
                     </div>
                 </section>
 
-                <!-- ============================================================ -->
-                <!-- ===== AI WIDGET ===== -->
-                <!-- ============================================================ -->
-                <section class="row g-4 mt-2 mb-4">
-                    <div class="col-12">
-                        <div class="ai-widget">
-                            <div class="ai-header">
-                                <div class="ai-icon">
-                                    <i class="bi bi-robot"></i>
-                                </div>
-                                <div>
-                                    <h5>AI Intelligence <span class="badge bg-purple text-white ms-2" style="font-size: 10px; background: #7c3aed;">v1.0</span></h5>
-                                    <small>Analisis cerdas &amp; prediksi berbasis data</small>
-                                </div>
-                            </div>
-
-                            <div class="row g-3">
-                                <!-- Prediksi -->
-                                <div class="col-md-4">
-                                    <div class="ai-prediction-card">
-                                        <div class="label"><i class="bi bi-graph-up-arrow me-1"></i> Prediksi Bulan Depan</div>
-                                        <div class="value" id="aiPredictionValue">--</div>
-                                        <div class="desc" id="aiPredictionDesc">Memuat data...</div>
-                                    </div>
-                                </div>
-
-                                <!-- Deteksi Anomali -->
-                                <div class="col-md-4">
-                                    <div class="ai-prediction-card" style="border-left-color: #f59e0b;">
-                                        <div class="label"><i class="bi bi-exclamation-triangle me-1"></i> Deteksi Anomali</div>
-                                        <div id="aiAnomalyContent">
-                                            <div class="desc">Memuat data...</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Rekomendasi -->
-                                <div class="col-md-4">
-                                    <div class="ai-prediction-card" style="border-left-color: #22c55e;">
-                                        <div class="label"><i class="bi bi-lightbulb me-1"></i> Rekomendasi Cerdas</div>
-                                        <div id="aiRecommendationContent">
-                                            <div class="desc">Memuat data...</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Chatbot Assistant -->
-                            <div class="ai-chat-container">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <i class="bi bi-chat-dots-fill text-purple" style="color: #7c3aed;"></i>
-                                    <span class="fw-semibold" style="font-size: 14px; color: var(--text-primary, #0f172a);">AI Assistant</span>
-                                    <span class="text-muted" style="font-size: 11px;">Tanyakan tentang data dashboard</span>
-                                </div>
-                                <div class="ai-chat-messages" id="aiChatMessages">
-                                    <div class="msg bot">👋 Halo! Tanyakan tentang total report, trend AC, prediksi, atau lainnya.</div>
-                                </div>
-                                <div class="ai-chat-input-group">
-                                    <input type="text" id="aiChatInput" placeholder="Tanyakan sesuatu..." autocomplete="off">
-                                    <button id="aiChatSend"><i class="bi bi-send-fill"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                <!-- Footer -->
+                <footer class="text-center text-muted py-3" style="font-size: 13px; border-top: 1px solid #e2e8f0;">
+                    © 2026 Building Care System Enterprise - Radiant Group Duri &nbsp;|&nbsp; v7.1.0 Enterprise Edition
+                </footer>
 
             </div>
         </main>
@@ -761,8 +898,6 @@
     <script src="assets/js/modules/auth.js">
     </script>
     <script src="assets/js/modules/dashboard.js">
-    </script>
-    <script src="assets/js/modules/ai.js">
     </script>
 
     <!-- SIDEBAR DINAMIS -->
@@ -809,41 +944,6 @@
             }
 
             // =============================================
-            // DARK MODE
-            // =============================================
-            function initDarkMode() {
-                var toggle = document.getElementById('darkModeToggle');
-                var icon = document.getElementById('darkModeIcon');
-                if (!toggle) return;
-                var savedTheme = localStorage.getItem('bcs_theme') || 'dark';
-                document.documentElement.setAttribute('data-theme', savedTheme);
-                if (icon) {
-                    if (savedTheme === 'dark') {
-                        icon.className = 'bi bi-sun-fill';
-                        icon.style.color = '#ffd700';
-                    } else {
-                        icon.className = 'bi bi-moon-fill';
-                        icon.style.color = '';
-                    }
-                }
-                toggle.addEventListener('click', function() {
-                    var currentTheme = document.documentElement.getAttribute('data-theme');
-                    var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                    document.documentElement.setAttribute('data-theme', newTheme);
-                    localStorage.setItem('bcs_theme', newTheme);
-                    if (icon) {
-                        if (newTheme === 'dark') {
-                            icon.className = 'bi bi-sun-fill';
-                            icon.style.color = '#ffd700';
-                        } else {
-                            icon.className = 'bi bi-moon-fill';
-                            icon.style.color = '';
-                        }
-                    }
-                });
-            }
-
-            // =============================================
             // LOGOUT
             // =============================================
             function initLogout() {
@@ -864,7 +964,7 @@
             }
 
             // =============================================
-            // AUTO-REFRESH (Tanpa Toast)
+            // AUTO-REFRESH
             // =============================================
             var refreshTimer = 7;
             var refreshInterval = null;
@@ -909,7 +1009,7 @@
                 }, 7000);
 
                 updateTimerDisplay();
-                console.log('✅ Auto-refresh started (every 7 seconds) - without toast');
+                console.log('✅ Auto-refresh started (every 7 seconds)');
             }
 
             function stopAutoRefresh() {
@@ -937,124 +1037,406 @@
                 }
             }
 
-            // =============================================
-            // AI CHATBOT
-            // =============================================
-            function initAIChat() {
-                var input = document.getElementById('aiChatInput');
-                var sendBtn = document.getElementById('aiChatSend');
-                var messages = document.getElementById('aiChatMessages');
+            // ============================================================
+            // ===== SUPER AI MODULE (FULL COLOR) =====
+            // ============================================================
+            var AICore = {
 
-                if (!input || !sendBtn || !messages) return;
+                _data: null,
+                _monthly: [],
 
-                function addMessage(text, isUser) {
-                    var div = document.createElement('div');
-                    div.className = 'msg ' + (isUser ? 'user' : 'bot');
-                    div.textContent = text;
-                    messages.appendChild(div);
-                    messages.scrollTop = messages.scrollHeight;
-                }
+                init: function() {
+                    this._attachToDashboard();
+                    this._setupChatbot();
+                    this._setupInsightButton();
+                },
 
-                function processQuery(query) {
-                    var q = query.toLowerCase().trim();
-                    var response = '';
-
-                    // Ambil data terakhir dari dashboard (global)
-                    var data = window.__bcsDashboardData || {};
-                    var total = data.total || 0;
-                    var ac = data.ac || 0;
-                    var listrik = data.listrik || 0;
-                    var gedung = data.gedung || 0;
-                    var open = data.open || 0;
-                    var progress = data.progress || 0;
-                    var done = data.done || 0;
-                    var prediksi = window.__bcsAIPrediction || null;
-
-                    if (q.includes('total') || q.includes('semua') || q.includes('report')) {
-                        response = '📊 Total laporan: ' + total + ' (AC: ' + ac + ', Listrik: ' + listrik + ', Gedung: ' +
-                            gedung + ')';
-                    } else if (q.includes('ac')) {
-                        response = '❄️ Laporan AC: ' + ac + ' laporan.';
-                    } else if (q.includes('listrik')) {
-                        response = '⚡ Laporan Listrik: ' + listrik + ' laporan.';
-                    } else if (q.includes('gedung') || q.includes('bangunan')) {
-                        response = '🏢 Laporan Kondisi Gedung: ' + gedung + ' laporan.';
-                    } else if (q.includes('open') || q.includes('terbuka')) {
-                        response = '📂 Laporan status OPEN: ' + open;
-                    } else if (q.includes('progress') || q.includes('proses')) {
-                        response = '🔄 Laporan IN PROGRESS: ' + progress;
-                    } else if (q.includes('done') || q.includes('selesai')) {
-                        response = '✅ Laporan DONE: ' + done;
-                    } else if (q.includes('prediksi') || q.includes('perkiraan')) {
-                        if (prediksi !== null && prediksi !== undefined) {
-                            response = '🔮 Prediksi laporan bulan depan: ' + Math.round(prediksi) +
-                                ' laporan. (Berdasarkan tren 12 bulan terakhir)';
-                        } else {
-                            response = '⚠️ Data prediksi belum tersedia. Silakan refresh dashboard.';
-                        }
-                    } else if (q.includes('anomali') || q.includes('lonjakan')) {
-                        var anomali = window.__bcsAIAnomaly || [];
-                        if (anomali.length > 0) {
-                            response = '🚨 Terdeteksi anomali pada: ' + anomali.join(', ') +
-                                '. Periksa kategori tersebut.';
-                        } else {
-                            response = '✅ Tidak ada anomali signifikan terdeteksi.';
-                        }
-                    } else if (q.includes('rekomendasi') || q.includes('saran')) {
-                        var rekom = window.__bcsAIRecommendation || 'Belum ada rekomendasi.';
-                        response = '💡 ' + rekom;
-                    } else if (q.includes('halo') || q.includes('hai') || q.includes('hello')) {
-                        response = '👋 Halo! Ada yang bisa saya bantu? Tanyakan tentang total report, AC, listrik, gedung, prediksi, anomali, atau rekomendasi.';
-                    } else {
-                        response =
-                            '🤔 Maaf, saya tidak mengerti. Coba tanyakan: total report, AC, listrik, gedung, open, progress, done, prediksi, anomali, atau rekomendasi.';
-                    }
-
-                    return response;
-                }
-
-                function handleSend() {
-                    var text = input.value.trim();
-                    if (!text) return;
-                    addMessage(text, true);
-                    input.value = '';
-
-                    // Simulasi delay untuk respons bot
+                _attachToDashboard: function() {
+                    var self = this;
+                    setInterval(function() {
+                        self._harvestData();
+                        self._updateAIWidgets();
+                    }, 5000);
                     setTimeout(function() {
-                        var reply = processQuery(text);
-                        addMessage(reply, false);
-                    }, 300);
-                }
+                        self._harvestData();
+                        self._updateAIWidgets();
+                    }, 1000);
+                },
 
-                sendBtn.addEventListener('click', handleSend);
-                input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleSend();
+                _harvestData: function() {
+                    try {
+                        var total = parseInt(document.getElementById('totalReport').textContent) || 0;
+                        var ac = parseInt(document.getElementById('acTotal').textContent) || 0;
+                        var listrik = parseInt(document.getElementById('listrikTotal').textContent) || 0;
+                        var gedung = parseInt(document.getElementById('gedungTotal').textContent) || 0;
+                        var open = parseInt(document.getElementById('totalOpen').textContent) || 0;
+                        var progress = parseInt(document.getElementById('totalProgress').textContent) || 0;
+                        var done = parseInt(document.getElementById('totalDone').textContent) || 0;
+
+                        var monthly = [];
+                        if (window.monthlyChart && window.monthlyChart.data) {
+                            monthly = window.monthlyChart.data.datasets[0].data || [];
+                        }
+
+                        this._data = {
+                            total: total,
+                            ac: ac,
+                            listrik: listrik,
+                            gedung: gedung,
+                            open: open,
+                            progress: progress,
+                            done: done,
+                            monthly: monthly
+                        };
+
+                        window.__bcsDashboardData = this._data;
+                    } catch (e) {
+                        console.warn('Harvest data error:', e);
                     }
-                });
-            }
+                },
+
+                _predictNext: function(monthly) {
+                    if (!monthly || monthly.length < 2) return null;
+                    var n = monthly.length;
+                    var sumX = 0,
+                        sumY = 0,
+                        sumXY = 0,
+                        sumX2 = 0;
+                    for (var i = 0; i < n; i++) {
+                        var x = i + 1;
+                        var y = monthly[i];
+                        sumX += x;
+                        sumY += y;
+                        sumXY += x * y;
+                        sumX2 += x * x;
+                    }
+                    var slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                    var intercept = (sumY - slope * sumX) / n;
+                    var next = slope * (n + 1) + intercept;
+                    return Math.max(0, Math.round(next));
+                },
+
+                _calculateHealthScore: function() {
+                    var data = this._data;
+                    if (!data || data.total === 0) return { score: 0, label: 'Tidak Ada Data', color: '#6b7280' };
+                    var open = data.open,
+                        progress = data.progress,
+                        done = data.done;
+                    var total = data.total;
+                    var doneRatio = done / total;
+                    var progressRatio = progress / total;
+                    var openRatio = open / total;
+                    var rawScore = (doneRatio * 0.6) + (progressRatio * 0.2) + ((1 - openRatio) * 0.2);
+                    var score = Math.round(rawScore * 100);
+                    score = Math.max(0, Math.min(100, score));
+                    var label = score >= 80 ? 'Good' : (score >= 50 ? 'Medium' : 'Low');
+                    var color = score >= 80 ? '#22c55e' : (score >= 50 ? '#f59e0b' : '#ef4444');
+                    return { score: score, label: label, color: color };
+                },
+
+                _calculateRiskLevel: function() {
+                    var data = this._data;
+                    if (!data || data.total === 0) return { level: 'Tidak Ada Data', grade: 'N/A', detail: 'Belum ada data' };
+                    var open = data.open,
+                        progress = data.progress,
+                        done = data.done;
+                    var total = data.total;
+                    var openRatio = open / total;
+                    var progressRatio = progress / total;
+                    var doneRatio = done / total;
+
+                    if (openRatio > 0.4) return { level: 'Tinggi', grade: 'A', detail: 'Open tinggi, perlu tindakan segera' };
+                    if (openRatio > 0.2) return { level: 'Sedang', grade: 'B', detail: 'Open moderat, waspada' };
+                    if (progressRatio > 0.6) return { level: 'Sedang', grade: 'B', detail: 'Banyak progress, percepat penyelesaian' };
+                    return { level: 'Rendah', grade: 'C', detail: 'Kondisi terkendali' };
+                },
+
+                _generateInsights: function() {
+                    var data = this._data;
+                    if (!data || data.total === 0) return ['Belum ada data untuk dianalisis.'];
+                    var insights = [];
+                    var total = data.total,
+                        open = data.open,
+                        progress = data.progress,
+                        done = data.done;
+                    var ac = data.ac,
+                        listrik = data.listrik,
+                        gedung = data.gedung;
+
+                    if (progress / total > 0.5) {
+                        insights.push(
+                            progress > 0 ? Math.round((progress / total) * 100) + '% laporan masih berstatus Progress. Beban pekerjaan masih tinggi, perlu percepatan penyelesaian.' :
+                            'Tidak ada laporan Progress.'
+                        );
+                    }
+                    if (ac / total > 0.5) {
+                        insights.push('Kategori AC menyumbang ' + Math.round((ac / total) * 100) +
+                            '% dari seluruh laporan. Gangguan AC menjadi penyumbang terbesar.');
+                    }
+                    if (done === 0) {
+                        insights.push('Belum ada pekerjaan yang selesai minggu ini. Penyelesaian perlu ditingkatkan.');
+                    } else {
+                        if (done < 5) {
+                            insights.push('Penyelesaian laporan masih rendah, hanya ' + done +
+                                ' laporan selesai. Percepat tindakan.');
+                        }
+                    }
+                    var pred = this._predictNext(data.monthly);
+                    if (pred !== null && pred > total * 1.2) {
+                        insights.push('Diperkirakan backlog meningkat dalam 5 hari ke depan. Jika tren saat ini tetap, open report dapat mencapai ' +
+                            Math.round(pred * 0.4) + '%.');
+                    }
+                    if (insights.length === 0) {
+                        insights.push('Semua indikator dalam batas normal. Pertahankan kinerja.');
+                    }
+                    if (insights.length > 5) insights = insights.slice(0, 5);
+                    return insights;
+                },
+
+                _generateRecommendations: function() {
+                    var data = this._data;
+                    if (!data || data.total === 0) return ['Belum ada data untuk rekomendasi.'];
+                    var recs = [];
+                    var ac = data.ac,
+                        listrik = data.listrik,
+                        gedung = data.gedung;
+                    var open = data.open,
+                        progress = data.progress,
+                        done = data.done;
+                    var total = data.total;
+
+                    if (ac / total > 0.4) {
+                        recs.push('Prioritaskan penyelesaian Work Order kategori AC. Fokus pada ' + open +
+                            ' laporan yang sudah > 24 jam.');
+                    }
+                    if (progress / total > 0.5) {
+                        recs.push('Tambah teknis pada shift sore untuk mempercepat peningkatan laporan Progress.');
+                    }
+                    if (open > 10) {
+                        recs.push('Follow up seluruh WO yang sudah > 3 hari agar tidak menjadi backlog dan keterlambatan.');
+                    }
+                    if (ac / total > 0.3) {
+                        recs.push('Lakukan preventive maintenance AC secara berkala untuk menekan jumlah gangguan berulang.');
+                    }
+                    if (recs.length === 0) {
+                        recs.push('Pertahankan kinerja saat ini. Lakukan monitoring rutin.');
+                    }
+                    if (recs.length > 4) recs = recs.slice(0, 4);
+                    return recs;
+                },
+
+                _predict7Days: function() {
+                    var data = this._data;
+                    if (!data || data.total === 0) {
+                        return { open: '--', progress: '--', done: '--' };
+                    }
+                    var open = data.open,
+                        progress = data.progress,
+                        done = data.done;
+                    var total = data.total;
+                    var rate = total > 0 ? 0.05 : 0.1;
+                    var predOpen = Math.round(open * (1 + rate * 0.8));
+                    var predProgress = Math.round(progress * (1 + rate * 0.6));
+                    var predDone = Math.round(done * (1 + rate * 0.4));
+                    return {
+                        open: Math.max(0, predOpen),
+                        progress: Math.max(0, predProgress),
+                        done: Math.max(0, predDone)
+                    };
+                },
+
+                _updateAIWidgets: function() {
+                    var data = this._data;
+                    if (!data) return;
+
+                    var health = this._calculateHealthScore();
+                    document.getElementById('healthScoreValue').textContent = health.score;
+                    document.getElementById('healthScoreBar').style.width = health.score + '%';
+                    document.getElementById('healthScoreBar').style.background = health.color;
+                    document.getElementById('healthScoreDetail').textContent = health.label + ' · Productivity ' + health
+                        .score + '%';
+
+                    var risk = this._calculateRiskLevel();
+                    document.getElementById('riskLevelValue').textContent = risk.level;
+                    document.getElementById('riskLevelDetail').textContent = risk.grade + ' · ' + risk.detail;
+
+                    var insights = this._generateInsights();
+                    var insightList = document.getElementById('aiInsightList');
+                    insightList.innerHTML = '';
+                    insights.forEach(function(text) {
+                        var li = document.createElement('li');
+                        li.innerHTML = '<i class="bi bi-info-circle-fill"></i> ' + text;
+                        insightList.appendChild(li);
+                    });
+
+                    var recs = this._generateRecommendations();
+                    var recContainer = document.getElementById('aiRecommendationContainer');
+                    recContainer.innerHTML = '';
+                    recs.forEach(function(text) {
+                        var div = document.createElement('div');
+                        div.className = 'ai-recommendation-item';
+                        div.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + text;
+                        recContainer.appendChild(div);
+                    });
+
+                    var pred7 = this._predict7Days();
+                    document.getElementById('predOpen').textContent = pred7.open !== '--' ? pred7.open + ' laporan' : '--';
+                    document.getElementById('predProgress').textContent = pred7.progress !== '--' ? pred7.progress +
+                        ' laporan' : '--';
+                    document.getElementById('predDone').textContent = pred7.done !== '--' ? pred7.done + ' laporan' : '--';
+
+                    document.getElementById('aiStatus').innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Aktif';
+                },
+
+                _setupChatbot: function() {
+                    var input = document.getElementById('aiChatInput');
+                    var sendBtn = document.getElementById('aiChatSend');
+                    var messages = document.getElementById('aiChatMessages');
+                    if (!input || !sendBtn || !messages) return;
+
+                    var self = this;
+
+                    function addMessage(text, isUser) {
+                        var div = document.createElement('div');
+                        div.className = 'msg ' + (isUser ? 'user' : 'bot');
+                        div.textContent = text;
+                        messages.appendChild(div);
+                        messages.scrollTop = messages.scrollHeight;
+                    }
+
+                    function processQuery(query) {
+                        var q = query.toLowerCase().trim();
+                        var data = self._data || {};
+                        var total = data.total || 0;
+                        var ac = data.ac || 0;
+                        var listrik = data.listrik || 0;
+                        var gedung = data.gedung || 0;
+                        var open = data.open || 0;
+                        var progress = data.progress || 0;
+                        var done = data.done || 0;
+
+                        if (q.includes('total') || q.includes('semua') || q.includes('report')) {
+                            return '📊 Total laporan: ' + total + ' (AC: ' + ac + ', Listrik: ' + listrik +
+                                ', Gedung: ' + gedung + ')';
+                        } else if (q.includes('ac')) {
+                            return '❄️ Laporan AC: ' + ac + ' laporan.';
+                        } else if (q.includes('listrik')) {
+                            return '⚡ Laporan Listrik: ' + listrik + ' laporan.';
+                        } else if (q.includes('gedung') || q.includes('bangunan')) {
+                            return '🏢 Laporan Kondisi Gedung: ' + gedung + ' laporan.';
+                        } else if (q.includes('open')) {
+                            return '📂 Laporan OPEN: ' + open;
+                        } else if (q.includes('progress')) {
+                            return '🔄 Laporan PROGRESS: ' + progress;
+                        } else if (q.includes('done')) {
+                            return '✅ Laporan DONE: ' + done;
+                        } else if (q.includes('prediksi') || q.includes('perkiraan')) {
+                            var pred = self._predictNext(data.monthly);
+                            if (pred !== null) {
+                                return '🔮 Prediksi laporan bulan depan: ' + pred +
+                                    ' laporan. (Regresi linear dari tren 12 bulan)';
+                            } else {
+                                return '⚠️ Data prediksi belum tersedia.';
+                            }
+                        } else if (q.includes('anomali') || q.includes('lonjakan')) {
+                            var anomalies = [];
+                            if (ac > total * 0.5) anomalies.push('AC');
+                            if (listrik > total * 0.3) anomalies.push('Listrik');
+                            if (gedung > total * 0.2) anomalies.push('Gedung');
+                            if (anomalies.length > 0) {
+                                return '🚨 Terdeteksi anomali pada: ' + anomalies.join(', ') +
+                                    '. Periksa kategori tersebut.';
+                            } else {
+                                return '✅ Tidak ada anomali signifikan terdeteksi.';
+                            }
+                        } else if (q.includes('rekomendasi') || q.includes('saran')) {
+                            var recs = self._generateRecommendations();
+                            return '💡 ' + recs.join(' ');
+                        } else if (q.includes('halo') || q.includes('hai') || q.includes('hello')) {
+                            return '👋 Halo! Saya AI Facility Analyst. Tanyakan tentang total report, AC, listrik, gedung, open, progress, done, prediksi, anomali, atau rekomendasi.';
+                        } else {
+                            return '🤔 Maaf, saya tidak mengerti. Coba tanyakan: total report, AC, listrik, gedung, open, progress, done, prediksi, anomali, atau rekomendasi.';
+                        }
+                    }
+
+                    function handleSend() {
+                        var text = input.value.trim();
+                        if (!text) return;
+                        addMessage(text, true);
+                        input.value = '';
+                        setTimeout(function() {
+                            var reply = processQuery(text);
+                            addMessage(reply, false);
+                        }, 300);
+                    }
+
+                    sendBtn.addEventListener('click', handleSend);
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleSend();
+                        }
+                    });
+                },
+
+                _setupInsightButton: function() {
+                    var btn = document.getElementById('generateInsightBtn');
+                    if (!btn) return;
+                    var self = this;
+                    btn.addEventListener('click', function() {
+                        var data = self._data;
+                        if (!data || data.total === 0) {
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Belum Ada Data',
+                                text: 'Data dashboard belum tersedia. Tunggu refresh berikutnya.',
+                                confirmButtonColor: '#7c3aed'
+                            });
+                            return;
+                        }
+                        var insights = self._generateInsights();
+                        var recs = self._generateRecommendations();
+                        var health = self._calculateHealthScore();
+                        var risk = self._calculateRiskLevel();
+                        var html = '<div style="text-align:left;">';
+                        html += '<b>🧠 AI Insight</b><br><br>';
+                        insights.forEach(function(t) {
+                            html += '• ' + t + '<br>';
+                        });
+                        html += '<br><b>💡 Rekomendasi</b><br>';
+                        recs.forEach(function(r) {
+                            html += '• ' + r + '<br>';
+                        });
+                        html += '<br><b>📊 Health Score:</b> ' + health.score + ' (' + health.label + ')<br>';
+                        html += '<b>⚠️ Risk Level:</b> ' + risk.level + ' (' + risk.grade + ')<br>';
+                        html += '</div>';
+                        Swal.fire({
+                            title: 'AI Analysis Report',
+                            html: html,
+                            icon: 'info',
+                            confirmButtonColor: '#7c3aed',
+                            confirmButtonText: 'OK',
+                            width: 600
+                        });
+                    });
+                }
+            };
 
             // =============================================
             // INIT
             // =============================================
             function init() {
                 loadUserInfo();
-                initDarkMode();
                 initLogout();
                 startAutoRefresh();
-                initAIChat();
 
                 if (window.DashboardController && typeof window.DashboardController.init === 'function') {
                     window.DashboardController.init();
                 }
 
-                // Sinkronisasi AI setelah dashboard load
-                if (window.AIController && typeof window.AIController.attachToDashboard === 'function') {
-                    window.AIController.attachToDashboard();
-                }
+                AICore.init();
 
-                console.log('✅ Dashboard + AI Intelligence Initialized');
+                console.log('✅ Dashboard + Super AI (Facility Analyst) Initialized');
             }
 
             window.addEventListener('beforeunload', function() {

@@ -21,6 +21,103 @@
 
     <!-- Electricity Module CSS -->
     <link rel="stylesheet" href="assets/css/electricity.css" />
+
+    <!-- ==========================================
+         CUSTOM COLORFUL UI OVERRIDES 
+    =========================================== -->
+    <style>
+        body {
+            background-color: #f4f7fe; /* Latar belakang abu-abu terang / kebiruan */
+        }
+        
+        /* Modifikasi Card Dasar */
+        .summary-card, .electricity-card, .mini-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            border: none;
+            height: 100%;
+        }
+
+        /* Ikon Summary Card (Lebih Berwarna) */
+        .summary-icon {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; margin-right: 16px;
+        }
+        .bg-icon-blue   { background: #e0e8ff; color: #4318ff; }
+        .bg-icon-green  { background: #dcfce7; color: #05cd99; }
+        .bg-icon-yellow { background: #fef08a; color: #ffb547; }
+        .bg-icon-red    { background: #fee2e2; color: #ee5d50; }
+        .bg-icon-purple { background: #f4e8ff; color: #7000ff; }
+
+        .badge-trend {
+            padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;
+        }
+        .trend-up { background: #dcfce7; color: #05cd99; }
+
+        /* Grafik Latar Gelap / Biru Tua (Chart Dark Card) */
+        .chart-dark-bg {
+            background: linear-gradient(135deg, #1b2559 0%, #111c44 100%) !important;
+            color: #ffffff;
+        }
+        .chart-dark-bg .card-header h5, 
+        .chart-dark-bg .card-header i {
+            color: #ffffff !important;
+        }
+        .chart-dark-bg select.filter-control {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .chart-dark-bg .text-muted {
+            color: rgba(255,255,255,0.7) !important;
+        }
+
+        /* Warna Mini Cards (Pemakaian Naik/Turun, Catatan) */
+        .card-naik {
+            background: linear-gradient(135deg, #05cd99 0%, #04a57b 100%);
+            color: white;
+        }
+        .card-turun {
+            background: linear-gradient(135deg, #ee5d50 0%, #c44035 100%);
+            color: white;
+        }
+        .card-catatan {
+            background: linear-gradient(135deg, #ffb547 0%, #e09b2d 100%);
+            color: white;
+        }
+        
+        /* Timpa warna teks di dalam solid card agar tetap kontras (putih) */
+        .card-naik small, .card-naik h5, .card-naik span, 
+        .card-turun small, .card-turun h5, .card-turun span, 
+        .card-catatan small, .card-catatan h5, .card-catatan span {
+            color: #ffffff !important;
+        }
+        
+        /* Ikon transparan pada solid card */
+        .card-naik .mini-icon, 
+        .card-turun .mini-icon, 
+        .card-catatan .mini-icon {
+            background: rgba(255, 255, 255, 0.25) !important;
+            color: white !important;
+        }
+
+        /* Header Tabel Biru */
+        .table-custom-header th {
+            background-color: #4318ff !important;
+            color: #ffffff !important;
+            border-bottom: none !important;
+        }
+        #tblElectricity {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        #tblElectricity thead th:first-child { border-top-left-radius: 8px; }
+        #tblElectricity thead th:last-child { border-top-right-radius: 8px; }
+    </style>
 </head>
 <body>
 
@@ -34,33 +131,33 @@
         <!-- TOPBAR -->
         <header class="page-header">
             <div>
-                <h3 class="page-title">Utility Management / Listrik</h3>
+                <h3 class="page-title fw-bold">Utility Management / Listrik</h3>
             </div>
             <div class="d-flex align-items-center gap-3">
-                <div class="update-pill">
-                    <i class="bi bi-clock-history"></i>
-                    <div>
+                <div class="update-pill bg-white shadow-sm px-3 py-2 rounded-pill d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history text-primary"></i>
+                    <div style="line-height: 1.2;">
                         <span class="text-muted d-block" style="font-size:0.7rem;">Last Update</span>
-                        <strong id="lblLastUpdate">-</strong>
+                        <strong id="lblLastUpdate" class="fs-6">-</strong>
                     </div>
                 </div>
                 <div class="position-relative">
-                    <button class="btn btn-light bg-white border rounded-circle shadow-sm p-2 d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
-                        <i class="bi bi-bell-fill text-muted"></i>
+                    <button class="btn btn-light bg-white border-0 rounded-circle shadow-sm p-2 d-flex align-items-center justify-content-center" style="width:45px;height:45px;">
+                        <i class="bi bi-bell-fill text-primary"></i>
                     </button>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary border border-2 border-white">3</span>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-2 border-white">3</span>
                 </div>
-                <button id="btnRefresh" class="btn btn-primary d-flex align-items-center gap-2" type="button">
+                <button id="btnRefresh" class="btn btn-primary shadow-sm d-flex align-items-center gap-2 rounded-pill px-4" type="button" style="background-color:#4318ff; border:none;">
                     <i class="bi bi-arrow-repeat"></i> Refresh
                 </button>
             </div>
         </header>
 
         <!-- BREADCRUMB -->
-        <nav class="breadcrumb-wrapper">
+        <nav class="breadcrumb-wrapper mb-3">
             <ol class="breadcrumb m-0">
-                <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-                <li class="breadcrumb-item active">Listrik</li>
+                <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item active fw-medium">Listrik</li>
             </ol>
         </nav>
 
@@ -68,11 +165,11 @@
         <section class="summary-section mb-4">
             <div class="row g-3 row-cols-1 row-cols-md-3 row-cols-xl-5">
                 <div class="col">
-                    <div class="summary-card">
+                    <div class="summary-card d-flex align-items-center">
                         <div class="summary-icon bg-icon-blue"><i class="bi bi-lightning-charge-fill"></i></div>
                         <div class="flex-grow-1">
-                            <small>Total Pemakaian (kWh)</small>
-                            <h2 id="totalKwh">0</h2>
+                            <small class="text-muted fw-bold">Total Pemakaian (kWh)</small>
+                            <h3 id="totalKwh" class="fw-bold mb-1">0</h3>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge-trend trend-up" id="totalTrend"><i class="bi bi-arrow-up-short"></i> 0%</span>
                                 <span class="text-muted" style="font-size:0.7rem;">dari bulan lalu</span>
@@ -81,11 +178,11 @@
                     </div>
                 </div>
                 <div class="col">
-                    <div class="summary-card">
+                    <div class="summary-card d-flex align-items-center">
                         <div class="summary-icon bg-icon-green"><i class="bi bi-cash-stack"></i></div>
                         <div class="flex-grow-1">
-                            <small>Total Nominal</small>
-                            <h2 id="totalNominal">Rp 0</h2>
+                            <small class="text-muted fw-bold">Total Nominal</small>
+                            <h4 id="totalNominal" class="fw-bold mb-1">Rp 0</h4>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge-trend trend-up" id="nominalTrend"><i class="bi bi-arrow-up-short"></i> 0%</span>
                                 <span class="text-muted" style="font-size:0.7rem;">dari bulan lalu</span>
@@ -94,36 +191,36 @@
                     </div>
                 </div>
                 <div class="col">
-                    <div class="summary-card">
+                    <div class="summary-card d-flex align-items-center">
                         <div class="summary-icon bg-icon-yellow"><i class="bi bi-speedometer2"></i></div>
                         <div class="flex-grow-1">
-                            <small>Jumlah Meter</small>
-                            <h2 id="totalMeter">0</h2>
+                            <small class="text-muted fw-bold">Jumlah Meter</small>
+                            <h3 id="totalMeter" class="fw-bold mb-1">0</h3>
                             <span class="badge-trend trend-up d-inline-block">Aktif semua</span>
                         </div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="summary-card">
+                    <div class="summary-card d-flex align-items-center">
                         <div class="summary-icon bg-icon-red"><i class="bi bi-graph-up-arrow"></i></div>
                         <div class="flex-grow-1">
-                            <small>Rata-rata per Hari (kWh)</small>
-                            <h2 id="avgKwh">0</h2>
+                            <small class="text-muted fw-bold">Rata-rata per Hari (kWh)</small>
+                            <h3 id="avgKwh" class="fw-bold mb-1">0</h3>
                             <span class="text-muted" style="font-size:0.7rem;" id="avgMonthLabel">-</span>
                         </div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="summary-card">
+                    <div class="summary-card d-flex align-items-center">
                         <div class="summary-icon bg-icon-purple"><i class="bi bi-shield-check"></i></div>
                         <div class="flex-grow-1 w-100">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <small>Data Quality</small>
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <small class="text-muted fw-bold">Data Quality</small>
                                 <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill" style="font-size:0.65rem;">Good</span>
                             </div>
-                            <h2 id="dataQuality">81%</h2>
-                            <div class="quality-progress">
-                                <div class="quality-progress-bar" id="qualityBar" style="width:81%;"></div>
+                            <h3 id="dataQuality" class="fw-bold mb-2">81%</h3>
+                            <div class="quality-progress progress" style="height: 6px;">
+                                <div class="progress-bar bg-primary rounded-pill" id="qualityBar" style="width:81%; background-color:#7000ff !important;"></div>
                             </div>
                         </div>
                     </div>
@@ -135,9 +232,9 @@
         <section class="mb-4">
             <div class="row g-4">
                 <div class="col-xl-6 col-lg-12">
-                    <div class="electricity-card d-flex flex-column">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="fs-6 fw-bold"><i class="bi bi-bar-chart-fill text-primary me-2"></i> Grafik Pemakaian Listrik (kWh)</h5>
+                    <div class="electricity-card chart-dark-bg d-flex flex-column">
+                        <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center pb-0">
+                            <h5 class="fs-6 fw-bold"><i class="bi bi-bar-chart-fill me-2" style="color:#05cd99;"></i> Grafik Pemakaian Listrik (kWh)</h5>
                             <select class="form-select form-select-sm filter-control w-auto"><option>12 Bulan</option></select>
                         </div>
                         <div class="card-body flex-grow-1">
@@ -146,8 +243,8 @@
                     </div>
                 </div>
                 <div class="col-xl-3 col-lg-6">
-                    <div class="electricity-card d-flex flex-column">
-                        <div class="card-header"><h5 class="fs-6 fw-bold"><i class="bi bi-pie-chart-fill text-warning me-2"></i> Pemakaian per Meter</h5></div>
+                    <div class="electricity-card chart-dark-bg d-flex flex-column">
+                        <div class="card-header border-0 bg-transparent pb-0"><h5 class="fs-6 fw-bold"><i class="bi bi-pie-chart-fill text-warning me-2"></i> Pemakaian per Meter</h5></div>
                         <div class="card-body d-flex flex-column align-items-center justify-content-center">
                             <div style="position:relative;width:160px;height:160px;">
                                 <canvas id="entityChart"></canvas>
@@ -158,12 +255,24 @@
                 </div>
                 <div class="col-xl-3 col-lg-6">
                     <div class="electricity-card d-flex flex-column">
-                        <div class="card-header"><h5 class="fs-6 fw-bold">Ringkasan Status</h5></div>
-                        <div class="card-body d-flex flex-column justify-content-center gap-2">
-                            <div class="status-list-item status-normal"><div><i class="bi bi-shield-check"></i> Normal</div><div class="count">0 <span class="fw-normal text-muted" style="font-size:0.75rem;">Meter →</span></div></div>
-                            <div class="status-list-item status-maintenance"><div><i class="bi bi-exclamation-triangle"></i> Maintenance</div><div class="count">0 <span class="fw-normal text-muted" style="font-size:0.75rem;">Meter →</span></div></div>
-                            <div class="status-list-item status-ganti"><div><i class="bi bi-speedometer"></i> Ganti Meter</div><div class="count">0 <span class="fw-normal text-muted" style="font-size:0.75rem;">Meter →</span></div></div>
-                            <div class="status-list-item status-negatif"><div><i class="bi bi-dash-circle"></i> Negatif (kWh)</div><div class="count">0 <span class="fw-normal text-muted" style="font-size:0.75rem;">Meter →</span></div></div>
+                        <div class="card-header border-0 bg-transparent pb-0"><h5 class="fs-6 fw-bold text-dark"><i class="bi bi-info-circle-fill text-primary me-2"></i> Ringkasan Status</h5></div>
+                        <div class="card-body d-flex flex-column justify-content-center gap-3">
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                                <div class="text-success fw-medium"><i class="bi bi-shield-check me-2"></i> Normal</div>
+                                <div class="fw-bold">14 <span class="fw-normal text-muted" style="font-size:0.75rem;">Meter →</span></div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                                <div class="text-warning fw-medium"><i class="bi bi-exclamation-triangle me-2"></i> Maintenance</div>
+                                <div class="fw-bold">1 <span class="fw-normal text-muted" style="font-size:0.75rem;">Meter →</span></div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+                                <div class="text-danger fw-medium"><i class="bi bi-speedometer me-2"></i> Ganti Meter</div>
+                                <div class="fw-bold">2 <span class="fw-normal text-muted" style="font-size:0.75rem;">Meter →</span></div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pb-1">
+                                <div class="text-secondary fw-medium"><i class="bi bi-dash-circle me-2"></i> Negatif (kWh)</div>
+                                <div class="fw-bold">0 <span class="fw-normal text-muted" style="font-size:0.75rem;">Meter →</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -174,44 +283,51 @@
         <section class="mb-4">
             <div class="row g-3 row-cols-1 row-cols-md-2 row-cols-xl-4">
                 <div class="col">
-                    <div class="mini-card">
-                        <div class="mini-icon bg-icon-green"><i class="bi bi-graph-up-arrow"></i></div>
+                    <div class="mini-card card-naik d-flex align-items-center p-3">
+                        <div class="mini-icon rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px; height:45px; font-size:20px;">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
                         <div>
-                            <small class="text-success fw-bold">Pemakaian Naik</small>
-                            <h5 id="growthInfo">-</h5>
-                            <span class="text-muted" style="font-size:0.7rem;">dibandingkan bulan lalu</span>
+                            <small class="fw-bold text-uppercase" style="letter-spacing:0.5px;">Pemakaian Naik</small>
+                            <h4 id="growthInfo" class="fw-bold mb-0">0%</h4>
+                            <span style="font-size:0.7rem;">dibandingkan bulan lalu</span>
                         </div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="mini-card">
-                        <div class="mini-icon bg-icon-red"><i class="bi bi-graph-down-arrow"></i></div>
+                    <div class="mini-card card-turun d-flex align-items-center p-3">
+                        <div class="mini-icon rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px; height:45px; font-size:20px;">
+                            <i class="bi bi-graph-down-arrow"></i>
+                        </div>
                         <div>
-                            <small class="text-danger fw-bold">Pemakaian Turun</small>
-                            <h5 id="declineInfo">-</h5>
-                            <span class="text-muted" style="font-size:0.7rem;">dibandingkan bulan lalu</span>
+                            <small class="fw-bold text-uppercase" style="letter-spacing:0.5px;">Pemakaian Turun</small>
+                            <h4 id="declineInfo" class="fw-bold mb-0">0</h4>
+                            <span style="font-size:0.7rem;">dibandingkan bulan lalu</span>
                         </div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="mini-card">
-                        <div class="mini-icon bg-icon-yellow"><i class="bi bi-pencil-square"></i></div>
+                    <div class="mini-card card-catatan d-flex align-items-center p-3">
+                        <div class="mini-icon rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px; height:45px; font-size:20px;">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
                         <div>
-                            <small class="text-warning fw-bold">Catatan Meter</small>
-                            <h5 id="alertSummary">-</h5>
-                            <span class="text-muted" style="font-size:0.7rem;">perlu perhatian</span>
+                            <small class="fw-bold text-uppercase" style="letter-spacing:0.5px;">Catatan Meter</small>
+                            <h4 id="alertSummary" class="fw-bold mb-0">3 Meter</h4>
+                            <span style="font-size:0.7rem;">perlu perhatian</span>
                         </div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="mini-card align-items-start">
-                        <div class="mini-icon text-muted bg-light border"><i class="bi bi-hdd-network"></i></div>
+                    <div class="mini-card d-flex align-items-center p-3">
+                        <div class="mini-icon bg-light text-primary border rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px; height:45px; font-size:20px;">
+                            <i class="bi bi-hdd-network"></i>
+                        </div>
                         <div class="w-100">
-                            <small class="fw-bold text-dark mb-2 d-block">Sistem</small>
-                            <div class="d-flex flex-wrap gap-2 system-tags">
-                                <span class="badge">Server <span class="fw-bold ms-1">Online</span></span>
-                                <span class="badge">Heartbeat <span class="fw-bold ms-1">Active</span></span>
-                                <span class="badge">Session <span class="fw-bold ms-1">Valid</span></span>
+                            <small class="fw-bold text-dark d-block mb-1 text-uppercase" style="letter-spacing:0.5px;">Sistem</small>
+                            <div class="d-flex flex-column gap-1">
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle text-start w-100"><i class="bi bi-circle-fill me-1" style="font-size:0.5rem;"></i> Server Online</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle text-start w-100"><i class="bi bi-heart-pulse me-1"></i> Heartbeat Active</span>
                             </div>
                         </div>
                     </div>
@@ -221,17 +337,18 @@
 
         <!-- TABLE HISTORY -->
         <section class="mb-5">
-            <div class="electricity-card overflow-hidden">
-                <div class="p-3 bg-white border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div class="electricity-card overflow-hidden p-0">
+                <div class="p-4 bg-white border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3">
                     <div>
-                        <h5 class="fs-6 fw-bold mb-1"><i class="bi bi-table text-primary me-2"></i> Data Pemakaian Listrik</h5>
-                        <small class="text-muted" id="tableInfo">Menampilkan 0 data</small>
+                        <h5 class="fs-5 fw-bold mb-1"><i class="bi bi-table text-primary me-2"></i> Data Pemakaian Listrik</h5>
+                        <small class="text-muted" id="tableInfo">Menampilkan data aktif</small>
                     </div>
                     <div class="d-flex flex-wrap align-items-center gap-2">
-                        <div class="input-group input-group-sm" style="width:200px;">
-                            <input id="txtSearch" type="text" class="form-control filter-control" placeholder="Cari Entitas / Meter...">
+                        <div class="input-group input-group-sm rounded-pill border overflow-hidden shadow-sm" style="width:220px;">
+                            <input id="txtSearch" type="text" class="form-control border-0" placeholder="Cari Entitas / Meter...">
+                            <button id="btnSearch" class="btn btn-light bg-white border-0 text-muted"><i class="bi bi-search"></i></button>
                         </div>
-                        <select id="cmbStatus" class="form-select form-select-sm filter-control" style="width:150px;">
+                        <select id="cmbStatus" class="form-select form-select-sm rounded-pill shadow-sm" style="width:150px;">
                             <option value="ALL">Semua Status</option>
                             <option value="NORMAL">NORMAL</option>
                             <option value="MAINTENANCE">MAINTENANCE</option>
@@ -239,45 +356,44 @@
                             <option value="NO_READING">NO READING</option>
                             <option value="GANTI_METER">GANTI METER</option>
                         </select>
-                        <button id="btnSearch" type="button" class="btn btn-primary btn-sm px-3 filter-control border-0"><i class="bi bi-search"></i></button>
-                        <button id="btnReset" type="button" class="btn btn-outline-secondary bg-white btn-sm px-3 filter-control">Reset</button>
-                        <button id="btnAddData" type="button" class="btn btn-success btn-sm px-3 filter-control border-0 fw-medium">
-                            <i class="bi bi-plus-lg me-1"></i> Tambah Data
+                        <button id="btnReset" type="button" class="btn btn-outline-secondary rounded-pill btn-sm px-3 shadow-sm">Reset</button>
+                        <button id="btnAddData" type="button" class="btn btn-success rounded-pill btn-sm px-4 shadow-sm fw-medium d-flex align-items-center" style="background-color: #05cd99; border:none;">
+                            <i class="bi bi-plus-lg me-2"></i> Tambah Data
                         </button>
                     </div>
                 </div>
 
-                <div class="table-responsive">
-                    <table id="tblElectricity" class="table align-middle text-center mb-0">
-                        <thead>
+                <div class="table-responsive p-3">
+                    <table id="tblElectricity" class="table align-middle text-center mb-0 table-hover">
+                        <thead class="table-custom-header">
                             <tr>
-                                <th class="text-start ps-4">No</th>
-                                <th class="text-start">Bulan</th>
-                                <th class="text-start">Posisi Meteran</th>
-                                <th class="text-start">ID Pelanggan</th>
-                                <th class="text-start">Entitas</th>
-                                <th class="text-end">Awal Bulan (kWh)</th>
-                                <th class="text-end">Akhir Bulan (kWh)</th>
-                                <th class="text-end">Pemakaian (kWh)</th>
-                                <th class="text-end">Nominal (Rp)</th>
-                                <th>Keterangan</th>
-                                <th>Aksi</th>
+                                <th class="text-start ps-4 py-3">No</th>
+                                <th class="text-start py-3">Bulan</th>
+                                <th class="text-start py-3">Posisi Meteran</th>
+                                <th class="text-start py-3">ID Pelanggan</th>
+                                <th class="text-start py-3">Entitas</th>
+                                <th class="text-end py-3">Awal (kWh)</th>
+                                <th class="text-end py-3">Akhir (kWh)</th>
+                                <th class="text-end py-3">Pemakaian (kWh)</th>
+                                <th class="text-end py-3">Nominal (Rp)</th>
+                                <th class="py-3">Keterangan</th>
+                                <th class="py-3">Aksi</th>
                             </tr>
                         </thead>
                         <tbody><!-- Render by electricity.js --></tbody>
                     </table>
                 </div>
 
-                <div class="p-3 bg-white border-top d-flex flex-wrap justify-content-between align-items-center">
+                <div class="p-3 bg-white border-top d-flex flex-wrap justify-content-between align-items-center rounded-bottom">
                     <div class="d-flex align-items-center gap-2">
                         <span class="text-muted" style="font-size:0.8rem;">Tampilkan</span>
-                        <select id="cmbPageSize" class="form-select form-select-sm filter-control" style="width:60px;padding:4px 8px;">
+                        <select id="cmbPageSize" class="form-select form-select-sm rounded" style="width:70px;">
                             <option value="5">5</option>
                             <option value="10" selected>10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
                         </select>
-                        <span class="text-muted" style="font-size:0.8rem;">/ halaman</span>
+                        <span class="text-muted" style="font-size:0.8rem;">data</span>
                     </div>
                     <nav><ul id="pagination" class="pagination pagination-sm mb-0"></ul></nav>
                 </div>
@@ -285,25 +401,25 @@
         </section>
 
         <!-- ==================================================
-             FORM MODAL (TAMBAH / EDIT) dengan DROPDOWN POSISI & NOTES
+             FORM MODAL (TAMBAH / EDIT)
         ================================================== -->
         <div class="modal fade" id="formModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="formModalTitle">
-                            <i class="bi bi-plus-circle text-success me-2"></i> Tambah Data
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-light border-bottom-0">
+                        <h5 class="modal-title fw-bold" id="formModalTitle">
+                            <i class="bi bi-plus-circle text-success me-2"></i> Tambah Data Listrik
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body p-4">
                         <form id="electricityForm">
                             <input type="hidden" id="formId" value="">
-                            <div class="row g-3">
+                            <div class="row g-4">
                                 <!-- Bulan -->
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold">Bulan <span class="text-danger">*</span></label>
-                                    <select id="formBulan" class="form-select" required>
+                                    <label class="form-label fw-bold text-secondary">Bulan <span class="text-danger">*</span></label>
+                                    <select id="formBulan" class="form-select shadow-sm" required>
                                         <option value="">Pilih Bulan</option>
                                         <option value="Januari">Januari</option>
                                         <option value="Februari">Februari</option>
@@ -320,26 +436,26 @@
                                     </select>
                                 </div>
 
-                                <!-- Posisi Meteran - DROPDOWN -->
+                                <!-- Posisi Meteran -->
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold">Posisi Meteran <span class="text-danger">*</span></label>
-                                    <select id="formPosisi" class="form-select" required>
+                                    <label class="form-label fw-bold text-secondary">Posisi Meteran <span class="text-danger">*</span></label>
+                                    <select id="formPosisi" class="form-select shadow-sm" required>
                                         <option value="">Pilih Posisi</option>
                                         <!-- Opsi akan diisi oleh JavaScript dari data existing -->
                                     </select>
                                 </div>
 
-                                <!-- ID Pelanggan - DATALIST -->
+                                <!-- ID Pelanggan -->
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold">ID Pelanggan <span class="text-danger">*</span></label>
-                                    <input id="formIdPelanggan" list="idPelangganList" class="form-control" placeholder="Cari atau pilih ID Pelanggan..." required autocomplete="off">
+                                    <label class="form-label fw-bold text-secondary">ID Pelanggan <span class="text-danger">*</span></label>
+                                    <input id="formIdPelanggan" list="idPelangganList" class="form-control shadow-sm" placeholder="Ketik ID Pelanggan..." required autocomplete="off">
                                     <datalist id="idPelangganList"></datalist>
                                 </div>
 
                                 <!-- Entitas -->
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold">Entitas <span class="text-danger">*</span></label>
-                                    <select id="formEntitas" class="form-select" required>
+                                    <label class="form-label fw-bold text-secondary">Entitas <span class="text-danger">*</span></label>
+                                    <select id="formEntitas" class="form-select shadow-sm" required>
                                         <option value="">Pilih Entitas</option>
                                         <option value="RUI">RUI</option>
                                         <option value="RUI-SPC">RUI-SPC</option>
@@ -349,45 +465,47 @@
 
                                 <!-- Awal -->
                                 <div class="col-md-3">
-                                    <label class="form-label">Awal Bulan (kWh)</label>
-                                    <input id="formAwal" type="number" step="0.01" class="form-control" placeholder="0.00">
+                                    <label class="form-label text-secondary">Awal (kWh)</label>
+                                    <input id="formAwal" type="number" step="0.01" class="form-control shadow-sm" placeholder="0.00">
                                 </div>
 
                                 <!-- Akhir -->
                                 <div class="col-md-3">
-                                    <label class="form-label">Akhir Bulan (kWh)</label>
-                                    <input id="formAkhir" type="number" step="0.01" class="form-control" placeholder="0.00">
+                                    <label class="form-label text-secondary">Akhir (kWh)</label>
+                                    <input id="formAkhir" type="number" step="0.01" class="form-control shadow-sm" placeholder="0.00">
                                 </div>
 
                                 <!-- Pemakaian (otomatis) -->
                                 <div class="col-md-3">
-                                    <label class="form-label">Pemakaian (kWh)</label>
-                                    <input id="formPemakaian" type="number" step="0.01" class="form-control" placeholder="0.00" readonly>
+                                    <label class="form-label text-secondary">Pemakaian</label>
+                                    <input id="formPemakaian" type="number" step="0.01" class="form-control bg-light" placeholder="0.00" readonly>
                                 </div>
 
                                 <!-- Nominal (otomatis) -->
                                 <div class="col-md-3">
-                                    <label class="form-label">Nominal (Rp)</label>
-                                    <input id="formNominal" type="number" step="1" class="form-control" placeholder="0" readonly>
+                                    <label class="form-label text-secondary">Nominal (Rp)</label>
+                                    <input id="formNominal" type="number" step="1" class="form-control bg-light" placeholder="0" readonly>
                                 </div>
 
                                 <!-- Keterangan -->
                                 <div class="col-md-12">
-                                    <label class="form-label">Keterangan</label>
-                                    <input id="formKeterangan" class="form-control" placeholder="Ganti Meteran baru">
+                                    <label class="form-label text-secondary">Keterangan</label>
+                                    <input id="formKeterangan" class="form-control shadow-sm" placeholder="Masukkan keterangan (opsional)">
                                 </div>
 
                                 <!-- NOTES PERHITUNGAN -->
-                                <div class="col-md-12 mt-2">
-                                    <div id="calcNotes"></div>
+                                <div class="col-md-12">
+                                    <div id="calcNotes" class="bg-light p-3 rounded text-muted" style="font-size:0.85rem; border-left: 3px solid #4318ff;">
+                                        Otomatisasi kalkulasi kWh dan biaya akan ditampilkan di sini.
+                                    </div>
                                 </div>
                             </div>
                         </form>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="button" id="btnSaveRecord" class="btn btn-primary">
-                            <i class="bi bi-check2"></i> Simpan
+                    <div class="modal-footer bg-light border-top-0">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" id="btnSaveRecord" class="btn btn-primary rounded-pill px-4 shadow-sm" style="background-color: #4318ff; border:none;">
+                            <i class="bi bi-check2"></i> Simpan Data
                         </button>
                     </div>
                 </div>
@@ -397,25 +515,27 @@
         <!-- DETAIL METER MODAL -->
         <div class="modal fade" id="meterDetailModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title"><i class="bi bi-lightning-charge-fill text-warning"></i> Detail Meter</h5>
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-light">
+                        <h5 class="modal-title fw-bold"><i class="bi bi-lightning-charge-fill text-warning me-2"></i> Detail Meteran</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
-                        <div class="row mb-4">
-                            <div class="col-md-3"><div class="border rounded p-3"><small>ID Meter</small><h5 id="detailMeterId">-</h5></div></div>
-                            <div class="col-md-3"><div class="border rounded p-3"><small>Entitas</small><h5 id="detailEntity">-</h5></div></div>
-                            <div class="col-md-3"><div class="border rounded p-3"><small>Total kWh</small><h5 id="detailTotalKwh">-</h5></div></div>
-                            <div class="col-md-3"><div class="border rounded p-3"><small>Total Biaya</small><h5 id="detailTotalNominal">-</h5></div></div>
+                    <div class="modal-body p-4">
+                        <div class="row mb-4 g-3">
+                            <div class="col-md-3"><div class="border rounded-4 p-3 bg-white shadow-sm"><small class="text-muted">ID Meter</small><h5 id="detailMeterId" class="fw-bold mt-1">-</h5></div></div>
+                            <div class="col-md-3"><div class="border rounded-4 p-3 bg-white shadow-sm"><small class="text-muted">Entitas</small><h5 id="detailEntity" class="fw-bold mt-1">-</h5></div></div>
+                            <div class="col-md-3"><div class="border rounded-4 p-3 bg-white shadow-sm"><small class="text-muted">Total kWh</small><h5 id="detailTotalKwh" class="fw-bold mt-1 text-primary">-</h5></div></div>
+                            <div class="col-md-3"><div class="border rounded-4 p-3 bg-white shadow-sm"><small class="text-muted">Total Biaya</small><h5 id="detailTotalNominal" class="fw-bold mt-1 text-success">-</h5></div></div>
                         </div>
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-header">Monthly History</div>
-                            <div class="card-body"><canvas id="detailChart"></canvas></div>
+                        <div class="card shadow-sm mb-4 border-0 rounded-4">
+                            <div class="card-header bg-transparent fw-bold pb-0 border-0 pt-3">Monthly History</div>
+                            <div class="card-body"><canvas id="detailChart" style="max-height: 250px;"></canvas></div>
                         </div>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead><tr><th>Bulan</th><th>Awal</th><th>Akhir</th><th>Pemakaian</th><th>Nominal</th><th>Status</th></tr></thead>
+                        <div class="table-responsive bg-white rounded-4 shadow-sm border p-3">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr><th>Bulan</th><th>Awal</th><th>Akhir</th><th>Pemakaian</th><th>Nominal</th><th>Status</th></tr>
+                                </thead>
                                 <tbody id="detailTable"></tbody>
                             </table>
                         </div>
@@ -426,22 +546,23 @@
 
         <!-- LOADING OVERLAY -->
         <div id="loadingOverlay" class="loading-overlay d-none" role="status" aria-live="polite">
-            <div class="text-center">
+            <div class="text-center bg-white p-4 rounded-4 shadow">
                 <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
-                <div class="mt-3">Memuat data listrik...</div>
+                <div class="mt-3 fw-medium text-secondary">Memuat data listrik...</div>
             </div>
         </div>
 
         <!-- EMPTY STATE -->
         <div id="emptyState" class="d-none" role="alert">
-            <div class="text-center py-5">
-                <i class="bi bi-lightning-charge" style="font-size:72px;color:#999;"></i>
-                <h4 class="mt-3">Belum Ada Data Listrik</h4>
-                <p class="text-muted">Silakan sinkronkan spreadsheet atau tambah data.</p>
+            <div class="text-center py-5 bg-white rounded-4 shadow-sm border mx-auto" style="max-width: 500px;">
+                <i class="bi bi-lightning-charge" style="font-size:72px;color:#d1d5db;"></i>
+                <h4 class="mt-3 fw-bold">Belum Ada Data</h4>
+                <p class="text-muted mb-4">Silakan sinkronkan spreadsheet atau tambah data baru.</p>
+                <button class="btn btn-primary rounded-pill px-4"><i class="bi bi-plus-lg me-2"></i>Tambah Data Pertama</button>
             </div>
         </div>
 
-        <footer class="text-center text-muted py-4 border-top mt-4">
+        <footer class="text-center text-muted py-4 border-top mt-4" style="font-size: 0.85rem;">
             Building Care System Enterprise v4.3 | Electricity Management Module
         </footer>
 

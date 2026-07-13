@@ -173,25 +173,6 @@ Backend
 
 ---
 
-# 📈 Repository Statistics
-
-> Ganti `YOUR_GITHUB_USERNAME` dan `YOUR_REPOSITORY_NAME` sesuai repository Anda.
-
-<p align="center">
-
-<img height="170" src="https://github-readme-stats.vercel.app/api?username=YOUR_GITHUB_USERNAME&show_icons=true&theme=tokyonight"/>
-
-<img height="170" src="https://github-readme-streak-stats.herokuapp.com/?user=YOUR_GITHUB_USERNAME&theme=tokyonight"/>
-
-</p>
-
-<p align="center">
-
-<img src="https://github-readme-activity-graph.vercel.app/graph?username=YOUR_GITHUB_USERNAME&theme=github-compact"/>
-
-</p>
-
----
 
 # 🎯 Roadmap
 
@@ -217,8 +198,6 @@ Enterprise Facility Management Platform
 
 ---
 
-<p align="center">
 
-### ⭐ If you like this project, don't forget to Star the repository ⭐
 
-</p>
+

@@ -9,7 +9,7 @@
     <meta name="author" content="Radiant Group Duri">
 
     <title>Work Order — Building Care System Enterprise</title>
-    <!-- FIX: Kategori & Ditugaskan tidak kosong + UI List Detail -->
+    <!-- FIX: Kategori & Ditugaskan pada detail sesuai data WO (dari list) -->
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
@@ -1918,7 +1918,7 @@ main.content,
             }
 
             // =============================================
-            // VIEW DETAIL — LIST UI & KATEGORI PASTI TERISI
+            // VIEW DETAIL — PASTIKAN KATEGORI & DITUGASKAN TERISI
             // =============================================
             async function viewDetail(id) {
                 try {
@@ -1931,61 +1931,63 @@ main.content,
                     var w = res.data || {};
                     var container = document.getElementById('detailContent');
 
-                    // === AMBIL KATEGORI DARI BERBAGAI SUMBER ===
+                    // === CARI DATA DARI CACHE (allWO) ===
                     var cachedWO = allWO.find(function(item) {
                         return String(item.id || '') === String(w.id || id || '');
                     }) || {};
 
-                    var detailCategory = firstValue(
+                    // === KATEGORI: prioritas dari w, cache, report, atau judul ===
+                    var category = firstValue(
                         w,
                         ['category', 'category_id', 'kategori'],
                         ''
                     );
-                    if (!detailCategory) {
-                        detailCategory = firstValue(
+                    if (!category) {
+                        category = firstValue(
                             cachedWO,
                             ['category', 'category_id', 'kategori'],
                             ''
                         );
                     }
-                    if (!detailCategory && w.report_id) {
+                    if (!category && w.report_id) {
                         var sourceReport = openReports.find(function(r) {
                             return String(reportIdOf(r)) === String(w.report_id);
                         }) || {};
-                        detailCategory = firstValue(
+                        category = firstValue(
                             sourceReport,
                             ['kategori', 'category', 'category_id'],
                             ''
                         );
                     }
-                    if (!detailCategory) {
+                    if (!category) {
                         var titleMatch = String(w.title || cachedWO.title || '')
                             .match(/^Perbaikan\s+([^-]+?)\s*-/i);
                         if (titleMatch && titleMatch[1]) {
-                            detailCategory = titleMatch[1].trim();
+                            category = titleMatch[1].trim();
                         }
                     }
-                    // Jika masih kosong, fallback ke 'GEDUNG' (karena data contoh)
-                    if (!detailCategory) detailCategory = 'GEDUNG';
+                    category = String(category || '-').toUpperCase();
 
-                    detailCategory = String(detailCategory).toUpperCase();
-                    w.category = detailCategory;
-                    w.category_id = detailCategory;
-                    w.kategori = detailCategory;
-
-                    // === AMBIL DITUGASKAN ===
-                    var assignedTo = firstValue(w, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], 'Belum ditugaskan');
-                    if (assignedTo === 'Belum ditugaskan' && cachedWO.assigned_to) {
-                        assignedTo = cachedWO.assigned_to;
+                    // === DITUGASKAN (Teknisi) ===
+                    var assignedTo = firstValue(w, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], '');
+                    if (!assignedTo) {
+                        assignedTo = firstValue(cachedWO, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], '');
+                    }
+                    if (!assignedTo) {
+                        assignedTo = 'Belum ditugaskan';
                     }
 
-                    var location = firstValue(w, ['location', 'lokasi'], '-');
-                    if (location === '-' && cachedWO.location) location = cachedWO.location;
+                    // === LOKASI ===
+                    var location = firstValue(w, ['location', 'lokasi'], '');
+                    if (!location) location = firstValue(cachedWO, ['location', 'lokasi'], '-');
                     var floor = firstValue(w, ['floor', 'lantai', 'room', 'ruangan'], '');
+                    if (!floor) floor = firstValue(cachedWO, ['floor', 'lantai', 'room', 'ruangan'], '');
+
                     var status = normalizeStatusValue(firstValue(w, ['status', 'wo_status'], 'open'));
                     var priority = String(firstValue(w, ['priority', 'prioritas'], 'medium')).toLowerCase();
-                    var timeline = Array.isArray(w.timeline) ? w.timeline : [];
 
+                    // === TIMELINE ===
+                    var timeline = Array.isArray(w.timeline) ? w.timeline : [];
                     var timelineHtml = '';
                     if (timeline.length > 0) {
                         timelineHtml = timeline.map(function(t) {
@@ -2032,7 +2034,7 @@ main.content,
                             <div class="detail-list">
                                 <div class="detail-item">
                                     <span class="detail-label">KATEGORI</span>
-                                    <span class="detail-value"><span class="badge bg-info">${detailCategory}</span></span>
+                                    <span class="detail-value"><span class="badge bg-info">${category}</span></span>
                                 </div>
                                 <div class="detail-item">
                                     <span class="detail-label">LOKASI</span>

@@ -9,7 +9,7 @@
     <meta name="author" content="Radiant Group Duri">
 
     <title>Work Order — Building Care System Enterprise</title>
-    <!-- FINAL FIX: Edit Report Picker + WO-to-History Sync + Role Guard + Bukti Link + PDF Hyperlink + Card Detail UI -->
+    <!-- FINAL FIX: Kategori & Ditugaskan tidak lagi kosong -->
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
@@ -1980,44 +1980,56 @@ main.content,
                         return String(item.id || '') === String(w.id || id || '');
                     }) || {};
 
-                    // Kategori: prioritas dari w, cache, report, atau judul
-                    var detailCategory = firstValue(
-                        w,
-                        ['category', 'category_id', 'kategori'],
-                        ''
-                    );
-                    if (!detailCategory) {
-                        detailCategory = firstValue(
-                            cachedWO,
-                            ['category', 'category_id', 'kategori'],
-                            ''
-                        );
+                    // =========================================
+                    // KATEGORI — prioritas dari berbagai sumber
+                    // =========================================
+                    var detailCategory = firstValue(w, ['category', 'category_id', 'kategori'], '');
+                    if (!detailCategory || detailCategory === 'undefined' || detailCategory === 'null') {
+                        detailCategory = firstValue(cachedWO, ['category', 'category_id', 'kategori'], '');
                     }
                     if (!detailCategory && w.report_id) {
                         var sourceReport = openReports.find(function(r) {
                             return String(reportIdOf(r)) === String(w.report_id);
                         }) || {};
-                        detailCategory = firstValue(
-                            sourceReport,
-                            ['kategori', 'category', 'category_id'],
-                            ''
-                        );
+                        detailCategory = firstValue(sourceReport, ['kategori', 'category', 'category_id'], '');
                     }
                     if (!detailCategory) {
-                        var titleMatch = String(w.title || cachedWO.title || '')
-                            .match(/^Perbaikan\s+([^-]+?)\s*-/i);
+                        var titleMatch = String(w.title || cachedWO.title || '').match(/^Perbaikan\s+([^-]+?)\s*-/i);
                         if (titleMatch && titleMatch[1]) {
                             detailCategory = titleMatch[1].trim();
                         }
                     }
-                    detailCategory = String(detailCategory || '-').toUpperCase();
+                    // Jika masih kosong, beri nilai default
+                    if (!detailCategory || detailCategory === 'undefined' || detailCategory === 'null') {
+                        detailCategory = 'Tidak diketahui';
+                    }
+                    detailCategory = String(detailCategory).toUpperCase();
+
+                    // =========================================
+                    // ASSIGNED TO — dari response atau cache
+                    // =========================================
+                    var assignedTo = firstValue(
+                        w,
+                        ['assigned_to', 'assigned_to_name', 'technician', 'teknisi', 'assignedTo'],
+                        ''
+                    );
+                    if (!assignedTo || assignedTo === '-' || assignedTo === 'undefined' || assignedTo === 'null') {
+                        assignedTo = firstValue(
+                            cachedWO,
+                            ['assigned_to', 'assigned_to_name', 'technician', 'teknisi', 'assignedTo'],
+                            'Belum ditugaskan'
+                        );
+                    }
+                    if (!assignedTo || assignedTo === '-' || assignedTo === 'undefined' || assignedTo === 'null') {
+                        assignedTo = 'Belum ditugaskan';
+                    }
 
                     // Assign ke w agar digunakan di seluruh bagian
                     w.category = detailCategory;
                     w.category_id = detailCategory;
                     w.kategori = detailCategory;
+                    w.assigned_to = assignedTo;
 
-                    var assignedTo = firstValue(w, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], 'Belum ditugaskan');
                     var location = firstValue(w, ['location', 'lokasi'], '-');
                     var floor = firstValue(w, ['floor', 'lantai', 'room', 'ruangan'], '');
                     var status = normalizeStatusValue(firstValue(w, ['status', 'wo_status'], 'open'));

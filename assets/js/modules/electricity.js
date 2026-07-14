@@ -73,8 +73,10 @@ const ElectricityController = {
 
     showLoading(show) {
         const el = document.getElementById("loadingOverlay");
-        if (!el) return;
-        el.classList.toggle("d-none", !show);
+        if (el) {
+            el.classList.toggle("d-none", !show);
+        }
+        // Jika elemen tidak ada, tidak melakukan apa-apa (tidak error)
     },
 
     showError(message) {

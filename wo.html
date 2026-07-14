@@ -9,7 +9,7 @@
     <meta name="author" content="Radiant Group Duri">
 
     <title>Work Order — Building Care System Enterprise</title>
-    <!-- FINAL FIX: Edit Report Picker + WO-to-History Sync + Role Guard + Bukti Link -->
+    <!-- FINAL FIX: Edit Report Picker + WO-to-History Sync + Role Guard + Bukti Link + PDF Hyperlink + Card Detail UI -->
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
@@ -406,6 +406,58 @@
         @media (max-width: 768px) {
             .summary-card h2 { font-size: 24px; }
             .report-picker-tools { grid-template-columns: 1fr; }
+        }
+
+        /* CARD DETAIL UI */
+        .detail-card {
+            background: var(--bg-card-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            height: 100%;
+            transition: all 0.2s;
+        }
+        .detail-card:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .detail-card .card-icon {
+            font-size: 20px;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: var(--bg-card);
+            color: var(--accent-color);
+        }
+        .detail-card .card-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-muted);
+        }
+        .detail-card .card-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+        .detail-card .card-value .badge {
+            font-size: 12px;
+        }
+        .timeline-card {
+            background: var(--bg-card-hover);
+            border-radius: 16px;
+            padding: 16px;
+        }
+        .timeline-card .timeline-item {
+            border-left-color: var(--accent-color);
+        }
+        .timeline-card .timeline-item::before {
+            background: var(--accent-color);
         }
     </style>
 
@@ -1910,7 +1962,7 @@ main.content,
             }
 
             // =============================================
-            // VIEW DETAIL — DENGAN BUKTI LINK DI TABEL BIAYA
+            // VIEW DETAIL — DENGAN UI KARTU YANG LEBIH MENARIK
             // =============================================
             async function viewDetail(id) {
                 try {
@@ -1923,7 +1975,48 @@ main.content,
                     var w = res.data || {};
                     var container = document.getElementById('detailContent');
 
-                    var category = detailCategory;
+                    // Ambil data dari berbagai sumber agar tidak "undefined"
+                    var cachedWO = allWO.find(function(item) {
+                        return String(item.id || '') === String(w.id || id || '');
+                    }) || {};
+
+                    // Kategori: prioritas dari w, cache, report, atau judul
+                    var detailCategory = firstValue(
+                        w,
+                        ['category', 'category_id', 'kategori'],
+                        ''
+                    );
+                    if (!detailCategory) {
+                        detailCategory = firstValue(
+                            cachedWO,
+                            ['category', 'category_id', 'kategori'],
+                            ''
+                        );
+                    }
+                    if (!detailCategory && w.report_id) {
+                        var sourceReport = openReports.find(function(r) {
+                            return String(reportIdOf(r)) === String(w.report_id);
+                        }) || {};
+                        detailCategory = firstValue(
+                            sourceReport,
+                            ['kategori', 'category', 'category_id'],
+                            ''
+                        );
+                    }
+                    if (!detailCategory) {
+                        var titleMatch = String(w.title || cachedWO.title || '')
+                            .match(/^Perbaikan\s+([^-]+?)\s*-/i);
+                        if (titleMatch && titleMatch[1]) {
+                            detailCategory = titleMatch[1].trim();
+                        }
+                    }
+                    detailCategory = String(detailCategory || '-').toUpperCase();
+
+                    // Assign ke w agar digunakan di seluruh bagian
+                    w.category = detailCategory;
+                    w.category_id = detailCategory;
+                    w.kategori = detailCategory;
+
                     var assignedTo = firstValue(w, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], 'Belum ditugaskan');
                     var location = firstValue(w, ['location', 'lokasi'], '-');
                     var floor = firstValue(w, ['floor', 'lantai', 'room', 'ruangan'], '');
@@ -1939,23 +2032,9 @@ main.content,
                                 ['status', 'new_status', 'newStatus', 'action', 'activity', 'event'],
                                 'Aktivitas WO'
                             ));
-
-                            var timelineLabel = timelineStatus === 'Aktivitas WO'
-                                ? timelineStatus
-                                : formatStatus(timelineStatus);
-
-                            var timelineNotes = firstValue(
-                                t,
-                                ['notes', 'note', 'description', 'keterangan', 'message'],
-                                ''
-                            );
-
-                            var timelineDate = firstValue(
-                                t,
-                                ['created_at', 'createdAt', 'datetime', 'timestamp', 'date'],
-                                ''
-                            );
-
+                            var timelineLabel = timelineStatus === 'Aktivitas WO' ? timelineStatus : formatStatus(timelineStatus);
+                            var timelineNotes = firstValue(t, ['notes', 'note', 'description', 'keterangan', 'message'], '');
+                            var timelineDate = firstValue(t, ['created_at', 'createdAt', 'datetime', 'timestamp', 'date'], '');
                             return `
                                 <div class="timeline-item">
                                     <div class="time">${formatDateTimeSafe(timelineDate)}</div>
@@ -1965,53 +2044,100 @@ main.content,
                             `;
                         }).join('');
                     } else {
-                        timelineHtml = '<div class="text-muted" style="color:var(--text-muted);">Belum ada aktivitas</div>';
+                        timelineHtml = '<div class="text-muted">Belum ada aktivitas</div>';
                     }
 
+                    // RENDER DENGAN GAYA KARTU
                     container.innerHTML = `
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="fw-bold text-muted" style="font-size:11px;color:var(--text-muted);">REPORT SUMBER</div>
-                            <div class="fw-semibold" style="color:var(--text-secondary);">${firstValue(w, ['report_id', 'reportId'], '-')}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="fw-bold text-muted" style="font-size:11px;color:var(--text-muted);">NO. WO</div>
-                            <div class="fw-bold" style="font-size:16px;color:#4b7bec;">${firstValue(w, ['wo_number', 'woNumber', 'id'], '-')}</div>
-                        </div>
+                        <!-- Header -->
                         <div class="col-12">
-                            ${getStatusBadge(status)} ${getPriorityBadge(priority)}
-                            ${w.is_emergency === true || String(w.is_emergency).toUpperCase() === 'TRUE' ? '<span class="badge bg-danger ms-1">⚠️ Darurat</span>' : ''}
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                <div>
+                                    <span class="badge bg-primary fs-6">${firstValue(w, ['wo_number', 'woNumber', 'id'], '-')}</span>
+                                    ${w.is_emergency === true || String(w.is_emergency).toUpperCase() === 'TRUE' ? '<span class="badge bg-danger ms-2">⚠️ Darurat</span>' : ''}
+                                </div>
+                                <div>
+                                    ${getStatusBadge(status)} ${getPriorityBadge(priority)}
+                                </div>
+                            </div>
+                            <h4 class="mt-2" style="color:var(--text-primary);">${w.title || '-'}</h4>
+                            <p class="text-muted" style="font-size:13px;">${w.description || '-'}</p>
                         </div>
-                        <div class="col-12"><hr style="border-color:var(--border-color);"></div>
-                        <div class="col-md-12">
-                            <h5 style="color:var(--text-primary);">${w.title || '-'}</h5>
-                            <p class="text-muted" style="font-size:13px;color:var(--text-secondary);">${w.description || '-'}</p>
+
+                        <!-- Kartu Informasi -->
+                        <div class="col-md-6 col-lg-4">
+                            <div class="detail-card">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="bi bi-tag text-primary card-icon"></i>
+                                    <span class="card-label">Kategori</span>
+                                </div>
+                                <div class="card-value"><span class="badge bg-info">${detailCategory}</span></div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="text-muted" style="font-size:11px;color:var(--text-muted);">Kategori</div>
-                            <div style="color:var(--text-secondary);">${category}</div>
+
+                        <div class="col-md-6 col-lg-4">
+                            <div class="detail-card">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="bi bi-geo-alt text-success card-icon"></i>
+                                    <span class="card-label">Lokasi</span>
+                                </div>
+                                <div class="card-value">${location}${floor ? ' <span class="text-muted">- Lantai '+floor+'</span>' : ''}</div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="text-muted" style="font-size:11px;color:var(--text-muted);">Lokasi</div>
-                            <div style="color:var(--text-secondary);">${location}${floor ? ' - Lantai ' + floor : ''}</div>
+
+                        <div class="col-md-6 col-lg-4">
+                            <div class="detail-card">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="bi bi-person-badge text-warning card-icon"></i>
+                                    <span class="card-label">Ditugaskan</span>
+                                </div>
+                                <div class="card-value">${assignedTo}</div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="text-muted" style="font-size:11px;color:var(--text-muted);">Ditugaskan</div>
-                            <div style="color:var(--text-secondary);">${assignedTo}</div>
+
+                        <div class="col-md-6 col-lg-4">
+                            <div class="detail-card">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="bi bi-calendar-event text-danger card-icon"></i>
+                                    <span class="card-label">Jadwal</span>
+                                </div>
+                                <div class="card-value">${w.scheduled_date ? formatDate(w.scheduled_date) : 'Belum dijadwalkan'}</div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="text-muted" style="font-size:11px;color:var(--text-muted);">Jadwal</div>
-                            <div style="color:var(--text-secondary);">${w.scheduled_date ? formatDate(w.scheduled_date) : 'Belum dijadwalkan'}</div>
+
+                        <div class="col-md-6 col-lg-4">
+                            <div class="detail-card">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="bi bi-file-earmark-text text-secondary card-icon"></i>
+                                    <span class="card-label">Report Sumber</span>
+                                </div>
+                                <div class="card-value">${firstValue(w, ['report_id', 'reportId'], '-')}</div>
+                            </div>
                         </div>
+
                         <div class="col-12">
-                            <div class="text-muted" style="font-size:11px;color:var(--text-muted);">Catatan</div>
-                            <div style="color:var(--text-secondary);">${w.notes || '-'}</div>
+                            <div class="detail-card">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="bi bi-pencil-square text-info card-icon"></i>
+                                    <span class="card-label">Catatan</span>
+                                </div>
+                                <div class="card-value">${w.notes || '-'}</div>
+                            </div>
                         </div>
+
+                        <!-- Timeline -->
                         <div class="col-12">
-                            <div class="text-muted mb-1" style="font-size:11px;color:var(--text-muted);">Timeline</div>
-                            ${timelineHtml}
+                            <div class="timeline-card">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="bi bi-clock-history text-primary" style="font-size:20px;"></i>
+                                    <span class="fw-bold">Timeline</span>
+                                </div>
+                                ${timelineHtml}
+                            </div>
                         </div>
-                        <div class="col-12"><hr style="border-color:var(--border-color);"></div>
+
+                        <!-- Biaya -->
                         <div class="col-12">
                             <div id="costDetailArea">
                                 <div class="text-center py-4 text-muted">
@@ -2024,54 +2150,6 @@ main.content,
 
                     currentDetailWOId = w.id;
                     currentDetailWO = w;
-
-                // FIX KATEGORI DETAIL:
-                // Prioritas sumber: response detail -> cache tabel -> report sumber -> judul WO.
-                var cachedWOForDetail = allWO.find(function(item) {
-                    return String(item.id || '') === String(w.id || id || '');
-                }) || {};
-
-                var detailCategory = firstValue(
-                    w,
-                    ['category', 'category_id', 'kategori'],
-                    ''
-                );
-
-                if (!detailCategory) {
-                    detailCategory = firstValue(
-                        cachedWOForDetail,
-                        ['category', 'category_id', 'kategori'],
-                        ''
-                    );
-                }
-
-                if (!detailCategory && w.report_id) {
-                    var sourceReportForDetail = openReports.find(function(r) {
-                        return String(reportIdOf(r)) === String(w.report_id);
-                    }) || {};
-
-                    detailCategory = firstValue(
-                        sourceReportForDetail,
-                        ['kategori', 'category', 'category_id'],
-                        ''
-                    );
-                }
-
-                if (!detailCategory) {
-                    var titleCategoryMatch = String(w.title || cachedWOForDetail.title || '')
-                        .match(/^Perbaikan\s+([^-]+?)\s*-/i);
-
-                    if (titleCategoryMatch && titleCategoryMatch[1]) {
-                        detailCategory = titleCategoryMatch[1].trim();
-                    }
-                }
-
-                detailCategory = String(detailCategory || '-').toUpperCase();
-
-                // Lengkapi object detail agar seluruh renderer dan Print PDF ikut memakai kategori benar.
-                w.category = detailCategory;
-                w.category_id = detailCategory;
-                w.kategori = detailCategory;
 
                     await renderCostSection(w.id);
 
@@ -2317,7 +2395,7 @@ main.content,
 
 
             // =============================================
-            // PRINT PDF DETAIL WORK ORDER — TAMBAHKAN KOLOM BUKTI
+            // PRINT PDF DETAIL WORK ORDER — DENGAN HYPERLINK PADA BUKTI
             // =============================================
             function pdfSafeText(value, fallback) {
                 var text = String(value == null || value === '' ? (fallback || '-') : value);
@@ -2502,8 +2580,9 @@ main.content,
                         costs.forEach(function(c, index) {
                             var descLines = doc.splitTextToSize(pdfSafeText(c.deskripsi || '-'), widths[1] - 3);
                             var vendorLines = doc.splitTextToSize(pdfSafeText(c.vendor || '-'), widths[6] - 3);
-                            var bukti = pdfSafeText(c.bukti_url || c.proof_url || '-');
-                            var buktiLines = doc.splitTextToSize(bukti, widths[5] - 3);
+                            var buktiRaw = c.bukti_url || c.proof_url || '';
+                            var buktiDisplay = buktiRaw ? buktiRaw : '-';
+                            var buktiLines = doc.splitTextToSize(buktiDisplay, widths[5] - 3);
                             var rowH = Math.max(8, Math.max(descLines.length, vendorLines.length, buktiLines.length) * 3.5 + 3);
 
                             addPageIfNeeded(rowH + 2);
@@ -2520,7 +2599,22 @@ main.content,
                             doc.text(String(Number(c.qty || 0)), colX[2] + 1.5, y + 5);
                             doc.text(Number(c.harga_satuan || 0).toLocaleString('id-ID'), colX[3] + 1.5, y + 5);
                             doc.text(Number(c.subtotal || 0).toLocaleString('id-ID'), colX[4] + 1.5, y + 5);
-                            doc.text(buktiLines, colX[5] + 1.5, y + 5);
+
+                            // TULIS BUKTI DENGAN HYPERLINK (jika ada URL)
+                            var buktiX = colX[5] + 1.5;
+                            var buktiY = y + 5;
+                            // Tulis teks bukti
+                            doc.text(buktiLines, buktiX, buktiY);
+                            // Jika bukti ada, tambahkan link pada area teks
+                            if (buktiRaw) {
+                                // Hitung tinggi teks bukti
+                                var buktiTextHeight = buktiLines.length * 3.5;
+                                // Lebar maksimal teks bukti
+                                var buktiTextWidth = widths[5] - 3;
+                                // Tambahkan link di area sel bukti
+                                doc.link(buktiX, buktiY - 3.5, buktiTextWidth, buktiTextHeight + 3, { url: buktiRaw });
+                            }
+
                             doc.text(vendorLines, colX[6] + 1.5, y + 5);
                             y += rowH;
                         });

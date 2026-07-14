@@ -1936,15 +1936,15 @@ main.content,
                         return String(item.id || '') === String(w.id || id || '');
                     }) || {};
 
-                    // === KATEGORI: prioritas dari w, cache, report, atau judul ===
+                    // === KATEGORI: prioritas dari cached, w, report, atau judul ===
                     var category = firstValue(
-                        w,
+                        cachedWO,
                         ['category', 'category_id', 'kategori'],
                         ''
                     );
                     if (!category) {
                         category = firstValue(
-                            cachedWO,
+                            w,
                             ['category', 'category_id', 'kategori'],
                             ''
                         );
@@ -1969,22 +1969,33 @@ main.content,
                     category = String(category || '-').toUpperCase();
 
                     // === DITUGASKAN (Teknisi) ===
-                    var assignedTo = firstValue(w, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], '');
+                    var assignedTo = firstValue(cachedWO, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], '');
                     if (!assignedTo) {
-                        assignedTo = firstValue(cachedWO, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], '');
+                        assignedTo = firstValue(w, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], '');
                     }
                     if (!assignedTo) {
                         assignedTo = 'Belum ditugaskan';
                     }
 
                     // === LOKASI ===
-                    var location = firstValue(w, ['location', 'lokasi'], '');
-                    if (!location) location = firstValue(cachedWO, ['location', 'lokasi'], '-');
-                    var floor = firstValue(w, ['floor', 'lantai', 'room', 'ruangan'], '');
-                    if (!floor) floor = firstValue(cachedWO, ['floor', 'lantai', 'room', 'ruangan'], '');
+                    var location = firstValue(cachedWO, ['location', 'lokasi'], '');
+                    if (!location) location = firstValue(w, ['location', 'lokasi'], '-');
+                    var floor = firstValue(cachedWO, ['floor', 'lantai', 'room', 'ruangan'], '');
+                    if (!floor) floor = firstValue(w, ['floor', 'lantai', 'room', 'ruangan'], '');
 
+                    // === STATUS & PRIORITAS ===
                     var status = normalizeStatusValue(firstValue(w, ['status', 'wo_status'], 'open'));
                     var priority = String(firstValue(w, ['priority', 'prioritas'], 'medium')).toLowerCase();
+
+                    // === JADWAL & CATATAN ===
+                    var scheduledDate = firstValue(cachedWO, ['scheduled_date', 'tanggal_jadwal', 'jadwal'], '');
+                    if (!scheduledDate) scheduledDate = firstValue(w, ['scheduled_date', 'tanggal_jadwal', 'jadwal'], '');
+                    var notes = firstValue(cachedWO, ['notes', 'catatan'], '');
+                    if (!notes) notes = firstValue(w, ['notes', 'catatan'], '');
+
+                    // === REPORT SUMBER ===
+                    var reportId = firstValue(cachedWO, ['report_id', 'reportId'], '');
+                    if (!reportId) reportId = firstValue(w, ['report_id', 'reportId'], '-');
 
                     // === TIMELINE ===
                     var timeline = Array.isArray(w.timeline) ? w.timeline : [];
@@ -2046,15 +2057,15 @@ main.content,
                                 </div>
                                 <div class="detail-item">
                                     <span class="detail-label">JADWAL</span>
-                                    <span class="detail-value">${w.scheduled_date ? formatDate(w.scheduled_date) : 'Belum dijadwalkan'}</span>
+                                    <span class="detail-value">${scheduledDate ? formatDate(scheduledDate) : 'Belum dijadwalkan'}</span>
                                 </div>
                                 <div class="detail-item">
                                     <span class="detail-label">REPORT SUMBER</span>
-                                    <span class="detail-value">${firstValue(w, ['report_id', 'reportId'], '-')}</span>
+                                    <span class="detail-value">${reportId}</span>
                                 </div>
                                 <div class="detail-item">
                                     <span class="detail-label">CATATAN</span>
-                                    <span class="detail-value">${w.notes || '-'}</span>
+                                    <span class="detail-value">${notes || '-'}</span>
                                 </div>
                             </div>
                         </div>

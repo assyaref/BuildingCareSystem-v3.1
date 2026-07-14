@@ -2330,7 +2330,7 @@ main.content,
 
 
             // =============================================
-            // PRINT PDF — TABEL DENGAN GARIS DAN LAYOUT RAPI
+            // PRINT PDF — TABEL RAPI DENGAN LEBAR KOLOM OPTIMAL
             // =============================================
             function pdfSafeText(value, fallback) {
                 var text = String(value == null || value === '' ? (fallback || '-') : value);
@@ -2361,7 +2361,7 @@ main.content,
 
                     var pageW = 210;
                     var pageH = 297;
-                    var margin = 12;
+                    var margin = 12; // dikurangi agar lebih luas
                     var contentW = pageW - (margin * 2);
                     var y = 16;
 
@@ -2374,7 +2374,7 @@ main.content,
                     }
 
                     function line(x1, y1, x2, y2) {
-                        doc.setDrawColor(200, 205, 215);
+                        doc.setDrawColor(220, 225, 235);
                         doc.line(x1, y1, x2, y2);
                     }
 
@@ -2433,7 +2433,6 @@ main.content,
 
                     drawPageHeader(true);
 
-                    // Title
                     doc.setTextColor(15, 23, 42);
                     doc.setFont('helvetica', 'bold');
                     doc.setFontSize(15);
@@ -2441,7 +2440,6 @@ main.content,
                     doc.text(titleLines, margin, y);
                     y += titleLines.length * 6 + 4;
 
-                    // Status & Priority
                     var statusText = formatStatus(normalizeStatusValue(w.status || 'open'));
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'bold');
@@ -2477,7 +2475,6 @@ main.content,
                     h2 = labelValue('Jadwal Pengerjaan', scheduled, margin + half + 8, half);
                     y += Math.max(h1, h2) + 2;
 
-                    // Deskripsi
                     sectionTitle('DESKRIPSI PEKERJAAN');
                     doc.setTextColor(51, 65, 85);
                     doc.setFont('helvetica', 'normal');
@@ -2497,22 +2494,22 @@ main.content,
                         y += notes.length * 4 + 7;
                     }
 
-                    // === TABEL RINCIAN BIAYA ===
                     sectionTitle('RINCIAN BIAYA PERBAIKAN');
 
+                    // Lebar kolom proporsional agar semua muat
+                    // Kategori: 18, Deskripsi: 46, Qty: 10, Harga: 22, Subtotal: 24, Bukti: 28, Vendor: 26
                     var colX = [
                         margin,
                         margin + 18,
-                        margin + 18 + 44,
-                        margin + 18 + 44 + 10,
-                        margin + 18 + 44 + 10 + 22,
-                        margin + 18 + 44 + 10 + 22 + 24,
-                        margin + 18 + 44 + 10 + 22 + 24 + 28
+                        margin + 18 + 46,
+                        margin + 18 + 46 + 10,
+                        margin + 18 + 46 + 10 + 22,
+                        margin + 18 + 46 + 10 + 22 + 24,
+                        margin + 18 + 46 + 10 + 22 + 24 + 28
                     ];
                     var headers = ['Kategori', 'Deskripsi', 'Qty', 'Harga', 'Subtotal', 'Bukti', 'Vendor'];
-                    var widths = [18, 44, 10, 22, 24, 28, 26];
+                    var widths = [18, 46, 10, 22, 24, 28, 26];
 
-                    // Header tabel dengan background biru dan border
                     addPageIfNeeded(16);
                     doc.setFillColor(30, 94, 255);
                     doc.rect(margin, y, contentW, 8, 'F');
@@ -2522,9 +2519,6 @@ main.content,
                     headers.forEach(function(h, i) {
                         doc.text(h, colX[i] + 1, y + 5);
                     });
-                    // Garis bawah header
-                    doc.setDrawColor(30, 94, 255);
-                    doc.line(margin, y + 8, pageW - margin, y + 8);
                     y += 8;
 
                     if (costs.length === 0) {
@@ -2543,17 +2537,14 @@ main.content,
                             var rowH = Math.max(8, Math.max(descLines.length, vendorLines.length, buktiLines.length) * 3.5 + 3);
 
                             addPageIfNeeded(rowH + 2);
-                            // Warna latar bergantian
                             if (index % 2 === 0) {
                                 doc.setFillColor(248, 250, 252);
                                 doc.rect(margin, y, contentW, rowH, 'F');
                             }
 
-                            // Garis horizontal bawah
-                            doc.setDrawColor(200, 205, 215);
+                            doc.setDrawColor(230, 235, 240);
                             doc.line(margin, y + rowH, pageW - margin, y + rowH);
 
-                            // Isi sel
                             doc.setTextColor(51, 65, 85);
                             doc.setFont('helvetica', 'normal');
                             doc.setFontSize(6);
@@ -2586,10 +2577,8 @@ main.content,
                         return sum + Number(c.subtotal || 0);
                     }, 0);
 
-                    // Total biaya dengan border
                     doc.setFillColor(238, 242, 255);
                     doc.roundedRect(pageW - margin - 78, y, 78, 18, 3, 3, 'F');
-                    doc.rect(pageW - margin - 78, y, 78, 18); // border
                     doc.setTextColor(71, 85, 105);
                     doc.setFont('helvetica', 'bold');
                     doc.setFontSize(7);

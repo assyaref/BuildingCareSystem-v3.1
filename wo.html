@@ -9,7 +9,7 @@
     <meta name="author" content="Radiant Group Duri">
 
     <title>Work Order — Building Care System Enterprise</title>
-    <!-- FIX: Kategori & Ditugaskan pada detail sesuai data WO (dari list) -->
+    <!-- FIX: PDF Kategori & Teknisi terisi, tabel rapi -->
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
@@ -19,7 +19,6 @@
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
     <style>
-        /* (Sama seperti sebelumnya) */
         :root {
             --bg-body: #f0f4ff;
             --bg-card: #ffffff;
@@ -2022,6 +2021,27 @@ main.content,
                         timelineHtml = '<div class="text-muted">Belum ada aktivitas</div>';
                     }
 
+                    // === SIMPAN ke currentDetailWO agar PDF bisa ambil data ===
+                    var detailData = {
+                        id: w.id,
+                        wo_number: w.wo_number || w.id,
+                        title: w.title || '-',
+                        description: w.description || '-',
+                        status: status,
+                        priority: priority,
+                        is_emergency: w.is_emergency,
+                        category: category,
+                        assigned_to: assignedTo,
+                        location: location,
+                        floor: floor,
+                        scheduled_date: scheduledDate,
+                        notes: notes,
+                        report_id: reportId,
+                        timeline: timeline
+                    };
+                    currentDetailWO = detailData;
+                    currentDetailWOId = w.id;
+
                     // === RENDER DETAIL LIST ===
                     container.innerHTML = `
                     <div class="row g-3">
@@ -2029,15 +2049,15 @@ main.content,
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                                 <h4 class="fw-bold" style="color:var(--text-primary);">
-                                    ${firstValue(w, ['wo_number', 'woNumber', 'id'], '-')}
+                                    ${detailData.wo_number}
                                 </h4>
                                 <div>
                                     ${getStatusBadge(status)} ${getPriorityBadge(priority)}
-                                    ${w.is_emergency === true || String(w.is_emergency).toUpperCase() === 'TRUE' ? '<span class="badge bg-danger ms-1">⚠️ Darurat</span>' : ''}
+                                    ${detailData.is_emergency === true || String(detailData.is_emergency).toUpperCase() === 'TRUE' ? '<span class="badge bg-danger ms-1">⚠️ Darurat</span>' : ''}
                                 </div>
                             </div>
-                            <h5 style="color:var(--text-primary);">${w.title || '-'}</h5>
-                            <p class="text-muted" style="font-size:13px;">${w.description || '-'}</p>
+                            <h5 style="color:var(--text-primary);">${detailData.title}</h5>
+                            <p class="text-muted" style="font-size:13px;">${detailData.description}</p>
                         </div>
 
                         <!-- Detail List -->
@@ -2091,9 +2111,6 @@ main.content,
                         </div>
                     </div>
                     `;
-
-                    currentDetailWOId = w.id;
-                    currentDetailWO = w;
 
                     await renderCostSection(w.id);
 
@@ -2332,7 +2349,7 @@ main.content,
 
 
             // =============================================
-            // PRINT PDF — DENGAN HYPERLINK
+            // PRINT PDF — DENGAN HYPERLINK & TABEL RAPI
             // =============================================
             function pdfSafeText(value, fallback) {
                 var text = String(value == null || value === '' ? (fallback || '-') : value);
@@ -2435,6 +2452,7 @@ main.content,
 
                     drawPageHeader(true);
 
+                    // Title
                     doc.setTextColor(15, 23, 42);
                     doc.setFont('helvetica', 'bold');
                     doc.setFontSize(15);
@@ -2442,6 +2460,7 @@ main.content,
                     doc.text(titleLines, margin, y);
                     y += titleLines.length * 6 + 4;
 
+                    // Status & Priority
                     var statusText = formatStatus(normalizeStatusValue(w.status || 'open'));
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'bold');
@@ -2457,17 +2476,26 @@ main.content,
                     line(margin, y, pageW - margin, y);
                     y += 8;
 
+                    // === DATA DARI currentDetailWO ===
+                    var category = firstValue(w, ['category', 'category_id', 'kategori'], '-');
+                    var assignedTo = firstValue(w, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], 'Belum ditugaskan');
+                    var location = firstValue(w, ['location', 'lokasi'], '-');
+                    var floor = firstValue(w, ['floor', 'lantai', 'room', 'ruangan'], '');
+                    var reportId = firstValue(w, ['report_id', 'reportId'], '-');
+                    var scheduled = w.scheduled_date ? formatDate(w.scheduled_date) : 'Belum dijadwalkan';
+
+                    // Layout 2 kolom
                     var half = (contentW - 8) / 2;
-                    var h1 = labelValue('Report Sumber', w.report_id || '-', margin, half);
-                    var h2 = labelValue('Kategori', firstValue(w, ['category', 'category_id', 'kategori'], '-'), margin + half + 8, half);
+                    var h1 = labelValue('Report Sumber', reportId, margin, half);
+                    var h2 = labelValue('Kategori', category, margin + half + 8, half);
                     y += Math.max(h1, h2) + 2;
 
-                    h1 = labelValue('Lokasi', firstValue(w, ['location', 'lokasi'], '-'), margin, half);
-                    h2 = labelValue('Lantai / Ruangan', firstValue(w, ['floor', 'lantai', 'room', 'ruangan'], '-'), margin + half + 8, half);
+                    h1 = labelValue('Lokasi', location, margin, half);
+                    h2 = labelValue('Lantai / Ruangan', floor || '-', margin + half + 8, half);
                     y += Math.max(h1, h2) + 2;
 
-                    h1 = labelValue('Teknisi', firstValue(w, ['assigned_to', 'assigned_to_id', 'assigned_to_name', 'teknisi'], 'Belum ditugaskan'), margin, half);
-                    h2 = labelValue('Jadwal Pengerjaan', w.scheduled_date ? formatDate(w.scheduled_date) : 'Belum dijadwalkan', margin + half + 8, half);
+                    h1 = labelValue('Teknisi', assignedTo, margin, half);
+                    h2 = labelValue('Jadwal Pengerjaan', scheduled, margin + half + 8, half);
                     y += Math.max(h1, h2) + 2;
 
                     sectionTitle('DESKRIPSI PEKERJAAN');
@@ -2491,6 +2519,7 @@ main.content,
 
                     sectionTitle('RINCIAN BIAYA PERBAIKAN');
 
+                    // Kolom tabel
                     var colX = [margin, margin + 24, margin + 84, margin + 101, margin + 128, margin + 156, margin + 184];
                     var headers = ['Kategori', 'Deskripsi', 'Qty', 'Harga', 'Subtotal', 'Bukti', 'Vendor'];
                     var widths = [22, 58, 15, 25, 26, 26, 22];
@@ -2533,9 +2562,13 @@ main.content,
                             doc.text(pdfSafeText(c.kategori || '-'), colX[0] + 1.5, y + 5);
                             doc.text(descLines, colX[1] + 1.5, y + 5);
                             doc.text(String(Number(c.qty || 0)), colX[2] + 1.5, y + 5);
-                            doc.text(Number(c.harga_satuan || 0).toLocaleString('id-ID'), colX[3] + 1.5, y + 5);
-                            doc.text(Number(c.subtotal || 0).toLocaleString('id-ID'), colX[4] + 1.5, y + 5);
+                            // Harga & Subtotal rata kanan
+                            var priceText = Number(c.harga_satuan || 0).toLocaleString('id-ID');
+                            var subtotalText = Number(c.subtotal || 0).toLocaleString('id-ID');
+                            doc.text(priceText, colX[3] + widths[3] - 2, y + 5, { align: 'right' });
+                            doc.text(subtotalText, colX[4] + widths[4] - 2, y + 5, { align: 'right' });
 
+                            // Bukti
                             var buktiX = colX[5] + 1.5;
                             var buktiY = y + 5;
                             doc.text(buktiLines, buktiX, buktiY);

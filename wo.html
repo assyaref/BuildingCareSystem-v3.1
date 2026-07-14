@@ -9,7 +9,6 @@
     <meta name="author" content="Radiant Group Duri">
 
     <title>Work Order — Building Care System Enterprise</title>
-    <!-- FIX: PDF Kategori & Teknisi terisi, tabel rapi -->
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
@@ -407,7 +406,6 @@
             .report-picker-tools { grid-template-columns: 1fr; }
         }
 
-        /* DETAIL LIST UI */
         .detail-list {
             display: flex;
             flex-direction: column;
@@ -456,9 +454,6 @@
     </style>
 
 <style id="bcs-sidebar-compat-final">
-/* =========================================================
-   BCS SIDEBAR COMPATIBILITY LAYER
-   ========================================================= */
 :root { --bcs-sb-width: 292px !important; }
 
 html, body { overflow-x: hidden; }
@@ -1917,7 +1912,7 @@ main.content,
             }
 
             // =============================================
-            // VIEW DETAIL — PASTIKAN KATEGORI & DITUGASKAN TERISI
+            // VIEW DETAIL
             // =============================================
             async function viewDetail(id) {
                 try {
@@ -1930,12 +1925,10 @@ main.content,
                     var w = res.data || {};
                     var container = document.getElementById('detailContent');
 
-                    // === CARI DATA DARI CACHE (allWO) ===
                     var cachedWO = allWO.find(function(item) {
                         return String(item.id || '') === String(w.id || id || '');
                     }) || {};
 
-                    // === KATEGORI: prioritas dari cached, w, report, atau judul ===
                     var category = firstValue(
                         cachedWO,
                         ['category', 'category_id', 'kategori'],
@@ -1967,7 +1960,6 @@ main.content,
                     }
                     category = String(category || '-').toUpperCase();
 
-                    // === DITUGASKAN (Teknisi) ===
                     var assignedTo = firstValue(cachedWO, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], '');
                     if (!assignedTo) {
                         assignedTo = firstValue(w, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], '');
@@ -1976,27 +1968,22 @@ main.content,
                         assignedTo = 'Belum ditugaskan';
                     }
 
-                    // === LOKASI ===
                     var location = firstValue(cachedWO, ['location', 'lokasi'], '');
                     if (!location) location = firstValue(w, ['location', 'lokasi'], '-');
                     var floor = firstValue(cachedWO, ['floor', 'lantai', 'room', 'ruangan'], '');
                     if (!floor) floor = firstValue(w, ['floor', 'lantai', 'room', 'ruangan'], '');
 
-                    // === STATUS & PRIORITAS ===
                     var status = normalizeStatusValue(firstValue(w, ['status', 'wo_status'], 'open'));
                     var priority = String(firstValue(w, ['priority', 'prioritas'], 'medium')).toLowerCase();
 
-                    // === JADWAL & CATATAN ===
                     var scheduledDate = firstValue(cachedWO, ['scheduled_date', 'tanggal_jadwal', 'jadwal'], '');
                     if (!scheduledDate) scheduledDate = firstValue(w, ['scheduled_date', 'tanggal_jadwal', 'jadwal'], '');
                     var notes = firstValue(cachedWO, ['notes', 'catatan'], '');
                     if (!notes) notes = firstValue(w, ['notes', 'catatan'], '');
 
-                    // === REPORT SUMBER ===
                     var reportId = firstValue(cachedWO, ['report_id', 'reportId'], '');
                     if (!reportId) reportId = firstValue(w, ['report_id', 'reportId'], '-');
 
-                    // === TIMELINE ===
                     var timeline = Array.isArray(w.timeline) ? w.timeline : [];
                     var timelineHtml = '';
                     if (timeline.length > 0) {
@@ -2021,7 +2008,6 @@ main.content,
                         timelineHtml = '<div class="text-muted">Belum ada aktivitas</div>';
                     }
 
-                    // === SIMPAN ke currentDetailWO agar PDF bisa ambil data ===
                     var detailData = {
                         id: w.id,
                         wo_number: w.wo_number || w.id,
@@ -2042,10 +2028,8 @@ main.content,
                     currentDetailWO = detailData;
                     currentDetailWOId = w.id;
 
-                    // === RENDER DETAIL LIST ===
                     container.innerHTML = `
                     <div class="row g-3">
-                        <!-- Header -->
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                                 <h4 class="fw-bold" style="color:var(--text-primary);">
@@ -2060,7 +2044,6 @@ main.content,
                             <p class="text-muted" style="font-size:13px;">${detailData.description}</p>
                         </div>
 
-                        <!-- Detail List -->
                         <div class="col-12">
                             <div class="detail-list">
                                 <div class="detail-item">
@@ -2090,7 +2073,6 @@ main.content,
                             </div>
                         </div>
 
-                        <!-- Timeline -->
                         <div class="col-12 mt-3">
                             <div class="timeline-card">
                                 <div class="d-flex align-items-center gap-2 mb-3">
@@ -2101,7 +2083,6 @@ main.content,
                             </div>
                         </div>
 
-                        <!-- Biaya -->
                         <div class="col-12">
                             <div id="costDetailArea">
                                 <div class="text-center py-4 text-muted">
@@ -2349,7 +2330,7 @@ main.content,
 
 
             // =============================================
-            // PRINT PDF — DENGAN HYPERLINK & TABEL RAPI
+            // PRINT PDF — TABEL RAPI DENGAN ALIGNMENT
             // =============================================
             function pdfSafeText(value, fallback) {
                 var text = String(value == null || value === '' ? (fallback || '-') : value);
@@ -2452,7 +2433,6 @@ main.content,
 
                     drawPageHeader(true);
 
-                    // Title
                     doc.setTextColor(15, 23, 42);
                     doc.setFont('helvetica', 'bold');
                     doc.setFontSize(15);
@@ -2460,7 +2440,6 @@ main.content,
                     doc.text(titleLines, margin, y);
                     y += titleLines.length * 6 + 4;
 
-                    // Status & Priority
                     var statusText = formatStatus(normalizeStatusValue(w.status || 'open'));
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'bold');
@@ -2476,7 +2455,6 @@ main.content,
                     line(margin, y, pageW - margin, y);
                     y += 8;
 
-                    // === DATA DARI currentDetailWO ===
                     var category = firstValue(w, ['category', 'category_id', 'kategori'], '-');
                     var assignedTo = firstValue(w, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], 'Belum ditugaskan');
                     var location = firstValue(w, ['location', 'lokasi'], '-');
@@ -2484,7 +2462,6 @@ main.content,
                     var reportId = firstValue(w, ['report_id', 'reportId'], '-');
                     var scheduled = w.scheduled_date ? formatDate(w.scheduled_date) : 'Belum dijadwalkan';
 
-                    // Layout 2 kolom
                     var half = (contentW - 8) / 2;
                     var h1 = labelValue('Report Sumber', reportId, margin, half);
                     var h2 = labelValue('Kategori', category, margin + half + 8, half);
@@ -2519,10 +2496,10 @@ main.content,
 
                     sectionTitle('RINCIAN BIAYA PERBAIKAN');
 
-                    // Kolom tabel
-                    var colX = [margin, margin + 24, margin + 84, margin + 101, margin + 128, margin + 156, margin + 184];
+                    // Lebar kolom dioptimalkan: Kategori 20, Deskripsi 58, Qty 12, Harga 28, Subtotal 28, Bukti 26, Vendor 22
+                    var colX = [margin, margin + 20, margin + 78, margin + 90, margin + 118, margin + 146, margin + 172];
                     var headers = ['Kategori', 'Deskripsi', 'Qty', 'Harga', 'Subtotal', 'Bukti', 'Vendor'];
-                    var widths = [22, 58, 15, 25, 26, 26, 22];
+                    var widths = [20, 58, 12, 28, 28, 26, 22];
 
                     addPageIfNeeded(16);
                     doc.setFillColor(30, 94, 255);
@@ -2556,12 +2533,17 @@ main.content,
                                 doc.rect(margin, y, contentW, rowH, 'F');
                             }
 
+                            // Border ringan antar baris
+                            doc.setDrawColor(230, 235, 240);
+                            doc.line(margin, y + rowH, pageW - margin, y + rowH);
+
                             doc.setTextColor(51, 65, 85);
                             doc.setFont('helvetica', 'normal');
                             doc.setFontSize(6.5);
                             doc.text(pdfSafeText(c.kategori || '-'), colX[0] + 1.5, y + 5);
                             doc.text(descLines, colX[1] + 1.5, y + 5);
                             doc.text(String(Number(c.qty || 0)), colX[2] + 1.5, y + 5);
+
                             // Harga & Subtotal rata kanan
                             var priceText = Number(c.harga_satuan || 0).toLocaleString('id-ID');
                             var subtotalText = Number(c.subtotal || 0).toLocaleString('id-ID');

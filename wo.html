@@ -9,7 +9,7 @@
     <meta name="author" content="Radiant Group Duri">
 
     <title>Work Order — Building Care System Enterprise</title>
-    <!-- FINAL FIX: Edit Report Picker + WO-to-History Sync + Role Guard -->
+    <!-- FINAL FIX: Edit Report Picker + WO-to-History Sync + Role Guard + Bukti Link -->
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
@@ -741,7 +741,6 @@ main.content,
                                             </tbody>
                                         </table>
                                     </div>
-                                    <!-- HAPUS: report-result-info dan small.text-muted -->
                                 </div>
                             </div>
                             <div class="col-md-12">
@@ -1910,6 +1909,9 @@ main.content,
                 }
             }
 
+            // =============================================
+            // VIEW DETAIL — DENGAN BUKTI LINK DI TABEL BIAYA
+            // =============================================
             async function viewDetail(id) {
                 try {
                     var res = await BCS.Api.post('getWorkOrder', { id: id });
@@ -2084,6 +2086,9 @@ main.content,
             }
 
 
+            // =============================================
+            // RENDER COST SECTION — DENGAN KOLOM BUKTI
+            // =============================================
             async function renderCostSection(woId) {
                 var area = document.getElementById('costDetailArea');
                 if (!area) return;
@@ -2097,23 +2102,27 @@ main.content,
                 });
                 var grand = Object.keys(totals).reduce(function(s, k) { return s + totals[k]; }, 0);
 
+                // KOLOM BUKTI
                 var rows = currentCosts.length ? currentCosts.map(function(c) {
                     var cat = String(c.kategori || c.category || 'LAINNYA').toUpperCase();
                     var qty = Number(c.qty || 0);
                     var price = Number(c.harga_satuan || c.unit_price || 0);
                     var subtotal = Number(c.subtotal || qty * price);
+                    var bukti = c.bukti_url || c.proof_url || '';
+                    var buktiHtml = bukti ? `<a href="${escapeHtml(bukti)}" target="_blank" class="text-primary" title="Buka bukti"><i class="bi bi-link-45deg"></i> Lihat</a>` : '-';
                     return `<tr>
                         <td><span class="cost-category cost-${cat.toLowerCase()}">${escapeHtml(cat)}</span></td>
                         <td>${escapeHtml(c.deskripsi || c.description || '-')}</td>
                         <td class="text-center">${qty}</td>
                         <td class="text-end">${formatRupiah(price)}</td>
                         <td class="text-end fw-bold">${formatRupiah(subtotal)}</td>
+                        <td class="text-center">${buktiHtml}</td>
                         <td class="text-center">
                             <button class="btn-action edit" onclick="window.BCSCostEdit('${escapeHtml(c.id)}')" title="Edit"><i class="bi bi-pencil"></i></button>
                             <button class="btn-action delete" onclick="window.BCSCostDelete('${escapeHtml(c.id)}')" title="Hapus"><i class="bi bi-trash"></i></button>
                         </td>
                     </tr>`;
-                }).join('') : '<tr><td colspan="6" class="text-center py-4 text-muted">Belum ada rincian biaya</td></tr>';
+                }).join('') : '<tr><td colspan="7" class="text-center py-4 text-muted">Belum ada rincian biaya</td></tr>';
 
                 area.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -2139,7 +2148,15 @@ main.content,
                         <div class="col-lg-8">
                             <div class="table-responsive">
                                 <table class="table table-sm cost-table mb-0">
-                                    <thead><tr><th>Kategori</th><th>Deskripsi</th><th class="text-center">Qty</th><th class="text-end">Harga</th><th class="text-end">Subtotal</th><th class="text-center">Aksi</th></tr></thead>
+                                    <thead><tr>
+                                        <th>Kategori</th>
+                                        <th>Deskripsi</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-end">Harga</th>
+                                        <th class="text-end">Subtotal</th>
+                                        <th class="text-center">Bukti</th>
+                                        <th class="text-center">Aksi</th>
+                                    </tr></thead>
                                     <tbody>${rows}</tbody>
                                 </table>
                             </div>
@@ -2167,6 +2184,9 @@ main.content,
                 document.getElementById('costSubtotal').value = formatRupiah(qty * price);
             }
 
+            // =============================================
+            // OPEN COST MODAL — ISI ULANG BUKTI
+            // =============================================
             function openCostModal(cost) {
                 document.getElementById('costForm').reset();
                 document.getElementById('costWOId').value = currentDetailWOId || '';
@@ -2204,6 +2224,9 @@ main.content,
             document.getElementById('costQty').addEventListener('input', updateCostSubtotal);
             document.getElementById('costUnitPrice').addEventListener('input', updateCostSubtotal);
 
+            // =============================================
+            // SUBMIT COST FORM — PASTIKAN BUKTI_URL TERKIRIM
+            // =============================================
             document.getElementById('costForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 var qty = Number(document.getElementById('costQty').value || 0);
@@ -2294,7 +2317,7 @@ main.content,
 
 
             // =============================================
-            // PRINT PDF DETAIL WORK ORDER
+            // PRINT PDF DETAIL WORK ORDER — TAMBAHKAN KOLOM BUKTI
             // =============================================
             function pdfSafeText(value, fallback) {
                 var text = String(value == null || value === '' ? (fallback || '-') : value);
@@ -2453,9 +2476,10 @@ main.content,
 
                     sectionTitle('RINCIAN BIAYA PERBAIKAN');
 
-                    var colX = [margin, margin + 24, margin + 84, margin + 101, margin + 128, margin + 158];
-                    var headers = ['Kategori', 'Deskripsi', 'Qty', 'Harga', 'Subtotal', 'Vendor'];
-                    var widths = [22, 58, 15, 25, 28, 22];
+                    // Kolom: Kategori, Deskripsi, Qty, Harga, Subtotal, Bukti, Vendor
+                    var colX = [margin, margin + 24, margin + 84, margin + 101, margin + 128, margin + 156, margin + 184];
+                    var headers = ['Kategori', 'Deskripsi', 'Qty', 'Harga', 'Subtotal', 'Bukti', 'Vendor'];
+                    var widths = [22, 58, 15, 25, 26, 26, 22];
 
                     addPageIfNeeded(16);
                     doc.setFillColor(30, 94, 255);
@@ -2477,8 +2501,10 @@ main.content,
                     } else {
                         costs.forEach(function(c, index) {
                             var descLines = doc.splitTextToSize(pdfSafeText(c.deskripsi || '-'), widths[1] - 3);
-                            var vendorLines = doc.splitTextToSize(pdfSafeText(c.vendor || '-'), widths[5] - 3);
-                            var rowH = Math.max(8, Math.max(descLines.length, vendorLines.length) * 3.5 + 3);
+                            var vendorLines = doc.splitTextToSize(pdfSafeText(c.vendor || '-'), widths[6] - 3);
+                            var bukti = pdfSafeText(c.bukti_url || c.proof_url || '-');
+                            var buktiLines = doc.splitTextToSize(bukti, widths[5] - 3);
+                            var rowH = Math.max(8, Math.max(descLines.length, vendorLines.length, buktiLines.length) * 3.5 + 3);
 
                             addPageIfNeeded(rowH + 2);
                             if (index % 2 === 0) {
@@ -2494,7 +2520,8 @@ main.content,
                             doc.text(String(Number(c.qty || 0)), colX[2] + 1.5, y + 5);
                             doc.text(Number(c.harga_satuan || 0).toLocaleString('id-ID'), colX[3] + 1.5, y + 5);
                             doc.text(Number(c.subtotal || 0).toLocaleString('id-ID'), colX[4] + 1.5, y + 5);
-                            doc.text(vendorLines, colX[5] + 1.5, y + 5);
+                            doc.text(buktiLines, colX[5] + 1.5, y + 5);
+                            doc.text(vendorLines, colX[6] + 1.5, y + 5);
                             y += rowH;
                         });
                     }

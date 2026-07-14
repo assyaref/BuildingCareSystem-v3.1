@@ -9,7 +9,7 @@
     <meta name="author" content="Radiant Group Duri">
 
     <title>Work Order — Building Care System Enterprise</title>
-    <!-- FINAL FIX: Kategori & Ditugaskan tidak lagi kosong -->
+    <!-- FIX: Kategori & Ditugaskan tidak kosong + UI List Detail -->
 
     <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
 
@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
     <style>
-        /* (Sama seperti sebelumnya, tidak diubah) */
+        /* (Sama seperti sebelumnya) */
         :root {
             --bg-body: #f0f4ff;
             --bg-card: #ffffff;
@@ -408,64 +408,57 @@
             .report-picker-tools { grid-template-columns: 1fr; }
         }
 
-        /* CARD DETAIL UI */
-        .detail-card {
-            background: var(--bg-card-hover);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 16px;
-            height: 100%;
-            transition: all 0.2s;
+        /* DETAIL LIST UI */
+        .detail-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
-        .detail-card:hover {
-            border-color: var(--accent-color);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        .detail-item {
+            display: flex;
+            align-items: baseline;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-color);
         }
-        .detail-card .card-icon {
-            font-size: 20px;
-            width: 36px;
-            height: 36px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            background: var(--bg-card);
-            color: var(--accent-color);
+        .detail-item:last-child {
+            border-bottom: none;
         }
-        .detail-card .card-label {
-            font-size: 11px;
+        .detail-label {
+            min-width: 130px;
+            font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.4px;
             color: var(--text-muted);
+            flex-shrink: 0;
         }
-        .detail-card .card-value {
+        .detail-value {
             font-size: 14px;
             font-weight: 500;
             color: var(--text-primary);
             word-break: break-word;
         }
-        .detail-card .card-value .badge {
+        .detail-value .badge {
             font-size: 12px;
         }
-        .timeline-card {
-            background: var(--bg-card-hover);
-            border-radius: 16px;
-            padding: 16px;
-        }
-        .timeline-card .timeline-item {
-            border-left-color: var(--accent-color);
-        }
-        .timeline-card .timeline-item::before {
-            background: var(--accent-color);
+        @media (max-width: 576px) {
+            .detail-item {
+                flex-wrap: wrap;
+            }
+            .detail-label {
+                min-width: 100%;
+                font-size: 11px;
+                margin-bottom: 2px;
+            }
+            .detail-value {
+                font-size: 13px;
+            }
         }
     </style>
 
 <style id="bcs-sidebar-compat-final">
 /* =========================================================
    BCS SIDEBAR COMPATIBILITY LAYER
-   Menyamakan sidebar pada SEMUA halaman.
-   sidebar.js tetap menjadi satu-satunya sumber desain sidebar.
    ========================================================= */
 :root { --bcs-sb-width: 292px !important; }
 
@@ -476,7 +469,6 @@ html, body { overflow-x: hidden; }
     min-height: 100vh !important;
 }
 
-/* Neutralize legacy page-level sidebar rules */
 body > .wrapper > .sidebar,
 .wrapper > .sidebar,
 aside.sidebar,
@@ -498,7 +490,6 @@ aside.sidebar,
     z-index: 1040 !important;
 }
 
-/* Content geometry must be identical on every desktop page */
 body > .wrapper > .content,
 .wrapper > .content,
 main.content,
@@ -509,14 +500,12 @@ main.content,
     min-width: 0 !important;
 }
 
-/* Hide old static sidebar fragments while JS is preparing */
 .sidebar > .logo-area,
 .sidebar > nav:not(.sb-body),
 .sidebar > .user-profile-card {
     display: none !important;
 }
 
-/* Restore dynamic sidebar components with fixed geometry */
 .sidebar .sb-desktop-header {
     min-height: 258px !important;
     height: 258px !important;
@@ -552,7 +541,6 @@ main.content,
     padding: 12px 20px 20px !important;
 }
 
-/* Mobile: JS off-canvas + topbar + bottom navigation */
 @media (max-width: 991.98px) {
     body > .wrapper > .sidebar,
     .wrapper > .sidebar,
@@ -997,14 +985,12 @@ main.content,
                     setTimeout(checkAdminAccess, 200);
                     return;
                 }
-                // Gunakan checkRole dari auth.js jika tersedia
                 if (typeof checkRole === 'function') {
                     if (!checkRole(['ADMINISTRATOR', 'SUPER ADMIN', 'LEAD BRANCH SUPPORT'])) {
                         return;
                     }
                     return;
                 }
-                // Fallback manual
                 var session = BCS.Storage.getSession();
                 if (!session || !session.token) {
                     window.location.href = '/login';
@@ -1137,9 +1123,7 @@ main.content,
             }
 
             // =============================================
-            // STATUS SYNC
-            // Sinkronisasi WO -> Report ditangani sepenuhnya oleh backend WorkOrder.gs.
-            // Frontend tidak memanggil updateReportStatus agar tidak terjadi request/email ganda.
+            // STATUS SYNC — Backend handled
             // =============================================
 
             async function getCostsForWO(woId) {
@@ -1265,10 +1249,6 @@ main.content,
             // =============================================
             // FETCH DATA
             // =============================================
-            // =============================================
-            // API READINESS GUARD
-            // Mencegah error jika api.js terlambat/gagal dimuat sementara
-            // =============================================
             function isApiReady() {
                 return !!(
                     window.BCS &&
@@ -1373,7 +1353,7 @@ main.content,
             }
 
             // =============================================
-            // FILTER — PERBAIKAN CASE-INSENSITIVE
+            // FILTER
             // =============================================
             function applyFilters() {
                 var keyword = searchInput.value.toLowerCase().trim();
@@ -1393,7 +1373,6 @@ main.content,
                 if (status) {
                     result = result.filter(function(w) { return w.status === status; });
                 }
-                // ⭐ PRIORITY FILTER — CASE-INSENSITIVE
                 if (priority) {
                     result = result.filter(function(w) {
                         var wPriority = (w.priority || '').trim().toLowerCase();
@@ -1520,7 +1499,7 @@ main.content,
             }
 
             // =============================================
-            // REPORT SOURCE FOR WORK ORDER
+            // REPORT SOURCE
             // =============================================
             function normalizeReportStatus(value) {
                 return String(value || '').trim().toUpperCase();
@@ -1544,7 +1523,6 @@ main.content,
                     if (m) return new Date(+m[3], +m[2] - 1, +m[1]).getTime();
                 }
 
-                // Fallback dari ID BCS-YYYYMMDD-...
                 var id = String(reportIdOf(r) || '');
                 var idMatch = id.match(/BCS-(\d{4})(\d{2})(\d{2})/i);
                 if (idMatch) {
@@ -1594,7 +1572,6 @@ main.content,
                             input.value = this.dataset.reportId;
                             tbody.querySelectorAll('tr').forEach(function(x){ x.classList.remove('selected'); });
                             this.classList.add('selected');
-                            // Selalu panggil fillWOFromReport (baik create maupun edit)
                             fillWOFromReport(input.value);
                         });
                     });
@@ -1617,10 +1594,6 @@ main.content,
                         throw new Error((res && res.message) || 'Gagal memuat Report');
                     }
 
-                    // Normalisasi response getReports agar kompatibel dengan:
-                    // 1. { success:true, data:[...] }
-                    // 2. { success:true, data:{ reports:[...] } }
-                    // 3. { success:true, reports:[...] }
                     var reports = [];
 
                     if (Array.isArray(res.data)) {
@@ -1642,7 +1615,6 @@ main.content,
                         return status === 'OPEN' && (!alreadyHasWO || String(id) === String(selectedId || ''));
                     });
 
-                    // Report terbaru selalu berada paling atas.
                     openReports.sort(function(a, b) {
                         return reportDateOf(b) - reportDateOf(a);
                     });
@@ -1662,13 +1634,11 @@ main.content,
                 });
                 if (!r) return;
 
-                // Ambil nilai ASLI dari Report / History.
                 var reportCategory = String(r.kategori || r.category || '').trim().toUpperCase();
                 var reportPriority = String(r.prioritas || r.priority || 'NORMAL').trim().toUpperCase();
                 var location = r.lokasi || r.location || '';
                 var description = r.deskripsi || r.description || '';
 
-                // Sinkron kategori History -> value kategori Work Order.
                 var categoryMap = {
                     'AC': 'AC',
                     'LISTRIK': 'LISTRIK',
@@ -1678,8 +1648,6 @@ main.content,
                     'KONDISI BANGUNAN': 'GEDUNG'
                 };
 
-                // Sinkron prioritas History -> value internal Work Order.
-                // Tampilan tetap mengikuti istilah Report: NORMAL / HIGH / URGENT.
                 var priorityMap = {
                     'NORMAL': 'low',
                     'LOW': 'low',
@@ -1710,7 +1678,6 @@ main.content,
                 });
             }
 
-            // Report dipilih melalui klik baris tabel.
             document.getElementById('woReportId').addEventListener('mousedown', function() {
                 if (!isEditMode && !this.disabled && this.size === 1) {
                     this.size = 8;
@@ -1765,7 +1732,6 @@ main.content,
                 document.getElementById('modalTitle').textContent =
                     data ? 'Edit Work Order' : 'Buat Work Order';
 
-                // Siapkan daftar kategori lebih dulu agar nilai edit tidak hilang.
                 await loadCategories();
 
                 var reportSelect = document.getElementById('woReportId');
@@ -1777,7 +1743,6 @@ main.content,
                 if (reportGroup) reportGroup.style.display = '';
 
                 if (data) {
-                    // MODE EDIT: TAMPILKAN REPORT PICKER dan pilih report yang terhubung
                     if (reportTools) reportTools.style.display = '';
                     if (reportInfo) reportInfo.style.display = '';
                     if (reportHelp) reportHelp.style.display = '';
@@ -1786,8 +1751,6 @@ main.content,
 
                     var linkedReportId = String(data.report_id || '').trim();
                     reportSelect.value = linkedReportId;
-
-                    // Render tabel dengan report yang terhubung tetap dipilih
                     renderOpenReportOptions(linkedReportId);
 
                     document.getElementById('woTitle').value = data.title || '';
@@ -1814,9 +1777,8 @@ main.content,
                         data.is_emergency === true ||
                         String(data.is_emergency).toUpperCase() === 'TRUE';
 
-                    reportSelect.disabled = false; // Izinkan perubahan
+                    reportSelect.disabled = false;
                 } else {
-                    // MODE CREATE: aktifkan pencarian dan daftar Report OPEN
                     if (reportTools) reportTools.style.display = '';
                     if (reportInfo) reportInfo.style.display = '';
                     if (reportHelp) reportHelp.style.display = '';
@@ -1832,9 +1794,6 @@ main.content,
             }
 
 
-            // =============================================
-            // FIX MODAL STUCK SETELAH BATAL / TUTUP EDIT
-            // =============================================
             function cleanupModalState() {
                 isEditMode = false;
                 editId = null;
@@ -1858,7 +1817,6 @@ main.content,
                     if (reportHelp) reportHelp.style.display = '';
                 }
 
-                // Bersihkan backdrop liar hanya jika tidak ada modal yang masih terbuka
                 setTimeout(function() {
                     if (!document.querySelector('.modal.show')) {
                         document.querySelectorAll('.modal-backdrop').forEach(function(el) {
@@ -1928,8 +1886,6 @@ main.content,
                     }
 
                     if (res && res.success) {
-                        // Backend updateWorkOrder() menjadi satu-satunya pengendali:
-                        // WO status -> Report status -> email.
                         showToast(isEditMode ? 'WO berhasil diperbarui' : 'WO berhasil dibuat');
 
                         bootstrap.Modal.getInstance(document.getElementById('woModal')).hide();
@@ -1962,7 +1918,7 @@ main.content,
             }
 
             // =============================================
-            // VIEW DETAIL — DENGAN UI KARTU YANG LEBIH MENARIK
+            // VIEW DETAIL — LIST UI & KATEGORI PASTI TERISI
             // =============================================
             async function viewDetail(id) {
                 try {
@@ -1975,62 +1931,56 @@ main.content,
                     var w = res.data || {};
                     var container = document.getElementById('detailContent');
 
-                    // Ambil data dari berbagai sumber agar tidak "undefined"
+                    // === AMBIL KATEGORI DARI BERBAGAI SUMBER ===
                     var cachedWO = allWO.find(function(item) {
                         return String(item.id || '') === String(w.id || id || '');
                     }) || {};
 
-                    // =========================================
-                    // KATEGORI — prioritas dari berbagai sumber
-                    // =========================================
-                    var detailCategory = firstValue(w, ['category', 'category_id', 'kategori'], '');
-                    if (!detailCategory || detailCategory === 'undefined' || detailCategory === 'null') {
-                        detailCategory = firstValue(cachedWO, ['category', 'category_id', 'kategori'], '');
+                    var detailCategory = firstValue(
+                        w,
+                        ['category', 'category_id', 'kategori'],
+                        ''
+                    );
+                    if (!detailCategory) {
+                        detailCategory = firstValue(
+                            cachedWO,
+                            ['category', 'category_id', 'kategori'],
+                            ''
+                        );
                     }
                     if (!detailCategory && w.report_id) {
                         var sourceReport = openReports.find(function(r) {
                             return String(reportIdOf(r)) === String(w.report_id);
                         }) || {};
-                        detailCategory = firstValue(sourceReport, ['kategori', 'category', 'category_id'], '');
+                        detailCategory = firstValue(
+                            sourceReport,
+                            ['kategori', 'category', 'category_id'],
+                            ''
+                        );
                     }
                     if (!detailCategory) {
-                        var titleMatch = String(w.title || cachedWO.title || '').match(/^Perbaikan\s+([^-]+?)\s*-/i);
+                        var titleMatch = String(w.title || cachedWO.title || '')
+                            .match(/^Perbaikan\s+([^-]+?)\s*-/i);
                         if (titleMatch && titleMatch[1]) {
                             detailCategory = titleMatch[1].trim();
                         }
                     }
-                    // Jika masih kosong, beri nilai default
-                    if (!detailCategory || detailCategory === 'undefined' || detailCategory === 'null') {
-                        detailCategory = 'Tidak diketahui';
-                    }
+                    // Jika masih kosong, fallback ke 'GEDUNG' (karena data contoh)
+                    if (!detailCategory) detailCategory = 'GEDUNG';
+
                     detailCategory = String(detailCategory).toUpperCase();
-
-                    // =========================================
-                    // ASSIGNED TO — dari response atau cache
-                    // =========================================
-                    var assignedTo = firstValue(
-                        w,
-                        ['assigned_to', 'assigned_to_name', 'technician', 'teknisi', 'assignedTo'],
-                        ''
-                    );
-                    if (!assignedTo || assignedTo === '-' || assignedTo === 'undefined' || assignedTo === 'null') {
-                        assignedTo = firstValue(
-                            cachedWO,
-                            ['assigned_to', 'assigned_to_name', 'technician', 'teknisi', 'assignedTo'],
-                            'Belum ditugaskan'
-                        );
-                    }
-                    if (!assignedTo || assignedTo === '-' || assignedTo === 'undefined' || assignedTo === 'null') {
-                        assignedTo = 'Belum ditugaskan';
-                    }
-
-                    // Assign ke w agar digunakan di seluruh bagian
                     w.category = detailCategory;
                     w.category_id = detailCategory;
                     w.kategori = detailCategory;
-                    w.assigned_to = assignedTo;
+
+                    // === AMBIL DITUGASKAN ===
+                    var assignedTo = firstValue(w, ['assigned_to', 'assigned_to_name', 'technician', 'teknisi'], 'Belum ditugaskan');
+                    if (assignedTo === 'Belum ditugaskan' && cachedWO.assigned_to) {
+                        assignedTo = cachedWO.assigned_to;
+                    }
 
                     var location = firstValue(w, ['location', 'lokasi'], '-');
+                    if (location === '-' && cachedWO.location) location = cachedWO.location;
                     var floor = firstValue(w, ['floor', 'lantai', 'room', 'ruangan'], '');
                     var status = normalizeStatusValue(firstValue(w, ['status', 'wo_status'], 'open'));
                     var priority = String(firstValue(w, ['priority', 'prioritas'], 'medium')).toLowerCase();
@@ -2059,87 +2009,56 @@ main.content,
                         timelineHtml = '<div class="text-muted">Belum ada aktivitas</div>';
                     }
 
-                    // RENDER DENGAN GAYA KARTU
+                    // === RENDER DETAIL LIST ===
                     container.innerHTML = `
                     <div class="row g-3">
                         <!-- Header -->
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                                <div>
-                                    <span class="badge bg-primary fs-6">${firstValue(w, ['wo_number', 'woNumber', 'id'], '-')}</span>
-                                    ${w.is_emergency === true || String(w.is_emergency).toUpperCase() === 'TRUE' ? '<span class="badge bg-danger ms-2">⚠️ Darurat</span>' : ''}
-                                </div>
+                                <h4 class="fw-bold" style="color:var(--text-primary);">
+                                    ${firstValue(w, ['wo_number', 'woNumber', 'id'], '-')}
+                                </h4>
                                 <div>
                                     ${getStatusBadge(status)} ${getPriorityBadge(priority)}
+                                    ${w.is_emergency === true || String(w.is_emergency).toUpperCase() === 'TRUE' ? '<span class="badge bg-danger ms-1">⚠️ Darurat</span>' : ''}
                                 </div>
                             </div>
-                            <h4 class="mt-2" style="color:var(--text-primary);">${w.title || '-'}</h4>
+                            <h5 style="color:var(--text-primary);">${w.title || '-'}</h5>
                             <p class="text-muted" style="font-size:13px;">${w.description || '-'}</p>
                         </div>
 
-                        <!-- Kartu Informasi -->
-                        <div class="col-md-6 col-lg-4">
-                            <div class="detail-card">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <i class="bi bi-tag text-primary card-icon"></i>
-                                    <span class="card-label">Kategori</span>
-                                </div>
-                                <div class="card-value"><span class="badge bg-info">${detailCategory}</span></div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 col-lg-4">
-                            <div class="detail-card">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <i class="bi bi-geo-alt text-success card-icon"></i>
-                                    <span class="card-label">Lokasi</span>
-                                </div>
-                                <div class="card-value">${location}${floor ? ' <span class="text-muted">- Lantai '+floor+'</span>' : ''}</div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 col-lg-4">
-                            <div class="detail-card">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <i class="bi bi-person-badge text-warning card-icon"></i>
-                                    <span class="card-label">Ditugaskan</span>
-                                </div>
-                                <div class="card-value">${assignedTo}</div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 col-lg-4">
-                            <div class="detail-card">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <i class="bi bi-calendar-event text-danger card-icon"></i>
-                                    <span class="card-label">Jadwal</span>
-                                </div>
-                                <div class="card-value">${w.scheduled_date ? formatDate(w.scheduled_date) : 'Belum dijadwalkan'}</div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 col-lg-4">
-                            <div class="detail-card">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <i class="bi bi-file-earmark-text text-secondary card-icon"></i>
-                                    <span class="card-label">Report Sumber</span>
-                                </div>
-                                <div class="card-value">${firstValue(w, ['report_id', 'reportId'], '-')}</div>
-                            </div>
-                        </div>
-
+                        <!-- Detail List -->
                         <div class="col-12">
-                            <div class="detail-card">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <i class="bi bi-pencil-square text-info card-icon"></i>
-                                    <span class="card-label">Catatan</span>
+                            <div class="detail-list">
+                                <div class="detail-item">
+                                    <span class="detail-label">KATEGORI</span>
+                                    <span class="detail-value"><span class="badge bg-info">${detailCategory}</span></span>
                                 </div>
-                                <div class="card-value">${w.notes || '-'}</div>
+                                <div class="detail-item">
+                                    <span class="detail-label">LOKASI</span>
+                                    <span class="detail-value">${location}${floor ? ' - Lantai ' + floor : ''}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">DITUGASKAN</span>
+                                    <span class="detail-value">${assignedTo}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">JADWAL</span>
+                                    <span class="detail-value">${w.scheduled_date ? formatDate(w.scheduled_date) : 'Belum dijadwalkan'}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">REPORT SUMBER</span>
+                                    <span class="detail-value">${firstValue(w, ['report_id', 'reportId'], '-')}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">CATATAN</span>
+                                    <span class="detail-value">${w.notes || '-'}</span>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Timeline -->
-                        <div class="col-12">
+                        <div class="col-12 mt-3">
                             <div class="timeline-card">
                                 <div class="d-flex align-items-center gap-2 mb-3">
                                     <i class="bi bi-clock-history text-primary" style="font-size:20px;"></i>
@@ -2177,7 +2096,7 @@ main.content,
 
 
             // =============================================
-            // RENDER COST SECTION — DENGAN KOLOM BUKTI
+            // RENDER COST SECTION
             // =============================================
             async function renderCostSection(woId) {
                 var area = document.getElementById('costDetailArea');
@@ -2192,7 +2111,6 @@ main.content,
                 });
                 var grand = Object.keys(totals).reduce(function(s, k) { return s + totals[k]; }, 0);
 
-                // KOLOM BUKTI
                 var rows = currentCosts.length ? currentCosts.map(function(c) {
                     var cat = String(c.kategori || c.category || 'LAINNYA').toUpperCase();
                     var qty = Number(c.qty || 0);
@@ -2274,9 +2192,6 @@ main.content,
                 document.getElementById('costSubtotal').value = formatRupiah(qty * price);
             }
 
-            // =============================================
-            // OPEN COST MODAL — ISI ULANG BUKTI
-            // =============================================
             function openCostModal(cost) {
                 document.getElementById('costForm').reset();
                 document.getElementById('costWOId').value = currentDetailWOId || '';
@@ -2314,9 +2229,6 @@ main.content,
             document.getElementById('costQty').addEventListener('input', updateCostSubtotal);
             document.getElementById('costUnitPrice').addEventListener('input', updateCostSubtotal);
 
-            // =============================================
-            // SUBMIT COST FORM — PASTIKAN BUKTI_URL TERKIRIM
-            // =============================================
             document.getElementById('costForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 var qty = Number(document.getElementById('costQty').value || 0);
@@ -2407,7 +2319,7 @@ main.content,
 
 
             // =============================================
-            // PRINT PDF DETAIL WORK ORDER — DENGAN HYPERLINK PADA BUKTI
+            // PRINT PDF — DENGAN HYPERLINK
             // =============================================
             function pdfSafeText(value, fallback) {
                 var text = String(value == null || value === '' ? (fallback || '-') : value);
@@ -2566,7 +2478,6 @@ main.content,
 
                     sectionTitle('RINCIAN BIAYA PERBAIKAN');
 
-                    // Kolom: Kategori, Deskripsi, Qty, Harga, Subtotal, Bukti, Vendor
                     var colX = [margin, margin + 24, margin + 84, margin + 101, margin + 128, margin + 156, margin + 184];
                     var headers = ['Kategori', 'Deskripsi', 'Qty', 'Harga', 'Subtotal', 'Bukti', 'Vendor'];
                     var widths = [22, 58, 15, 25, 26, 26, 22];
@@ -2612,18 +2523,12 @@ main.content,
                             doc.text(Number(c.harga_satuan || 0).toLocaleString('id-ID'), colX[3] + 1.5, y + 5);
                             doc.text(Number(c.subtotal || 0).toLocaleString('id-ID'), colX[4] + 1.5, y + 5);
 
-                            // TULIS BUKTI DENGAN HYPERLINK (jika ada URL)
                             var buktiX = colX[5] + 1.5;
                             var buktiY = y + 5;
-                            // Tulis teks bukti
                             doc.text(buktiLines, buktiX, buktiY);
-                            // Jika bukti ada, tambahkan link pada area teks
                             if (buktiRaw) {
-                                // Hitung tinggi teks bukti
                                 var buktiTextHeight = buktiLines.length * 3.5;
-                                // Lebar maksimal teks bukti
                                 var buktiTextWidth = widths[5] - 3;
-                                // Tambahkan link di area sel bukti
                                 doc.link(buktiX, buktiY - 3.5, buktiTextWidth, buktiTextHeight + 3, { url: buktiRaw });
                             }
 

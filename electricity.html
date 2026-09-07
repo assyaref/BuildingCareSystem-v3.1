@@ -29,10 +29,9 @@
     =========================================== -->
     <style>
         body {
-            background-color: #f4f7fe; /* Latar belakang abu-abu terang / kebiruan */
+            background-color: #f4f7fe;
         }
         
-        /* Modifikasi Card Dasar */
         .summary-card, .electricity-card, .mini-card {
             background: #ffffff;
             border-radius: 16px;
@@ -42,7 +41,6 @@
             height: 100%;
         }
 
-        /* Ikon Summary Card (Lebih Berwarna) */
         .summary-icon {
             width: 56px; height: 56px;
             border-radius: 14px;
@@ -60,7 +58,6 @@
         }
         .trend-up { background: #dcfce7; color: #05cd99; }
 
-        /* Grafik Latar Gelap / Biru Tua (Chart Dark Card) */
         .chart-dark-bg {
             background: linear-gradient(135deg, #1b2559 0%, #111c44 100%) !important;
             color: #ffffff;
@@ -78,7 +75,6 @@
             color: rgba(255,255,255,0.7) !important;
         }
 
-        /* Warna Mini Cards (Pemakaian Naik/Turun, Catatan) */
         .card-naik {
             background: linear-gradient(135deg, #05cd99 0%, #04a57b 100%);
             color: white;
@@ -92,14 +88,12 @@
             color: white;
         }
         
-        /* Timpa warna teks di dalam solid card agar tetap kontras (putih) */
         .card-naik small, .card-naik h5, .card-naik span, 
         .card-turun small, .card-turun h5, .card-turun span, 
         .card-catatan small, .card-catatan h5, .card-catatan span {
             color: #ffffff !important;
         }
         
-        /* Ikon transparan pada solid card */
         .card-naik .mini-icon, 
         .card-turun .mini-icon, 
         .card-catatan .mini-icon {
@@ -107,7 +101,6 @@
             color: white !important;
         }
 
-        /* Header Tabel Biru */
         .table-custom-header th {
             background-color: #4318ff !important;
             color: #ffffff !important;
@@ -160,7 +153,6 @@
             color: white;
         }
 
-        /* Export button group in table header */
         .export-btn-group {
             display: flex;
             gap: 6px;
@@ -640,6 +632,7 @@
 <script src="assets/js/core/ui.js"></script>
 <script src="assets/js/core/components/sidebar.js"></script>
 
+<!-- Electricity Module -->
 <script src="assets/js/modules/electricity.js"></script>
 
 </body>

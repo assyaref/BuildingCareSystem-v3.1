@@ -269,7 +269,7 @@ const Api = (() => {
     }
 
     // =============================================
-    // EXPORT FUNCTIONS - TAMBAHKAN INI
+    // EXPORT FUNCTIONS - DIPERBAIKI
     // =============================================
 
     /**
@@ -279,6 +279,9 @@ const Api = (() => {
      */
     async function exportElectricityTable(filter = {}) {
         try {
+            console.log('[API] exportElectricityTable called with filter:', filter);
+            
+            // Gunakan request biasa untuk mendapatkan data
             const response = await request('POST', 'exportElectricityTable', {
                 keyword: filter.keyword || '',
                 status: filter.status || 'ALL',
@@ -286,11 +289,38 @@ const Api = (() => {
                 pageSize: filter.pageSize || 10
             });
 
-            // Untuk export PDF, response mungkin berupa blob atau base64
-            // Sesuaikan dengan response dari backend
-            if (response.data && response.data.pdfBase64) {
-                // Jika backend mengembalikan base64
-                const byteCharacters = atob(response.data.pdfBase64);
+            console.log('[API] exportElectricityTable response:', response);
+
+            // Cek apakah response sukses
+            if (!response.success) {
+                throw new Error(response.message || 'Gagal export data');
+            }
+
+            // Cek berbagai format response yang mungkin
+            const data = response.data || {};
+
+            // Format 1: Langsung blob URL
+            if (data.url) {
+                console.log('[API] Fetching PDF from URL:', data.url);
+                const blobResponse = await fetch(data.url);
+                if (!blobResponse.ok) {
+                    throw new Error(`Failed to fetch PDF: ${blobResponse.status}`);
+                }
+                return await blobResponse.blob();
+            }
+
+            // Format 2: Base64 encoded PDF
+            if (data.pdfBase64 || data.base64 || data.pdf) {
+                const base64 = data.pdfBase64 || data.base64 || data.pdf;
+                console.log('[API] Decoding base64 PDF, length:', base64.length);
+                
+                // Remove data URL prefix if present
+                let cleanBase64 = base64;
+                if (base64.includes('base64,')) {
+                    cleanBase64 = base64.split('base64,')[1];
+                }
+                
+                const byteCharacters = atob(cleanBase64);
                 const byteNumbers = new Array(byteCharacters.length);
                 for (let i = 0; i < byteCharacters.length; i++) {
                     byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -299,20 +329,147 @@ const Api = (() => {
                 return new Blob([byteArray], { type: 'application/pdf' });
             }
 
-            // Jika backend mengembalikan blob URL atau data langsung
-            if (response.data && response.data.url) {
-                const blobResponse = await fetch(response.data.url);
-                return await blobResponse.blob();
-            }
-
-            // Fallback: jika response adalah blob langsung
+            // Format 3: Response adalah blob langsung (jika fetch dengan responseType blob)
             if (response instanceof Blob) {
                 return response;
             }
 
-            throw new Error('Format response tidak dikenali');
+            // Format 4: Data dalam bentuk array buffer atau string
+            if (data.content || data.data) {
+                const content = data.content || data.data;
+                if (typeof content === 'string') {
+                    // Coba parse sebagai base64
+                    try {
+                        const byteCharacters = atob(content);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        return new Blob([byteArray], { type: 'application/pdf' });
+                    } catch (e) {
+                        // Jika bukan base64, coba sebagai text
+                        return new Blob([content], { type: 'application/pdf' });
+                    }
+                }
+            }
+
+            // Jika semua format gagal, coba buat PDF dari HTML table (fallback)
+            console.warn('[API] No recognized PDF format, creating fallback PDF from table data');
+            return await createFallbackPDF(filter);
+
         } catch (error) {
             console.error('[API] exportElectricityTable error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Create fallback PDF from table data (client-side)
+     */
+    async function createFallbackPDF(filter) {
+        try {
+            // Ambil data dari state jika tersedia
+            const data = filter._records || [];
+            if (!data || data.length === 0) {
+                throw new Error('Tidak ada data untuk diexport');
+            }
+
+            // Gunakan library jsPDF jika tersedia
+            if (typeof window.jspdf !== 'undefined') {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('l', 'mm', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                
+                // Header
+                doc.setFontSize(16);
+                doc.text('Data Pemakaian Listrik', pageWidth/2, 20, { align: 'center' });
+                doc.setFontSize(10);
+                doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 30);
+                
+                // Table
+                const headers = ['No', 'Bulan', 'Posisi', 'ID Pelanggan', 'Entitas', 'Awal', 'Akhir', 'Pemakaian', 'Nominal'];
+                const rows = data.map((item, idx) => [
+                    idx + 1,
+                    item.bulan || '',
+                    item.no || '-',
+                    item.idPelanggan || '',
+                    item.entitas || '',
+                    (item.awal || 0).toLocaleString('id-ID'),
+                    (item.akhir || 0).toLocaleString('id-ID'),
+                    (item.pemakaian || 0).toLocaleString('id-ID'),
+                    'Rp ' + (item.nominal || 0).toLocaleString('id-ID')
+                ]);
+
+                doc.autoTable({
+                    head: [headers],
+                    body: rows,
+                    startY: 40,
+                    styles: { fontSize: 8 },
+                    headStyles: { fillColor: [67, 24, 255] },
+                    columnStyles: {
+                        0: { cellWidth: 10 },
+                        1: { cellWidth: 20 },
+                        2: { cellWidth: 25 },
+                        3: { cellWidth: 25 },
+                        4: { cellWidth: 20 },
+                        5: { cellWidth: 20 },
+                        6: { cellWidth: 20 },
+                        7: { cellWidth: 20 },
+                        8: { cellWidth: 25 }
+                    }
+                });
+
+                return doc.output('blob');
+            }
+
+            // Fallback: Buat blob HTML
+            const html = `
+                <html>
+                <head><title>Data Listrik</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    h1 { color: #4318ff; }
+                    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+                    th { background: #4318ff; color: white; padding: 8px; text-align: left; }
+                    td { padding: 6px 8px; border: 1px solid #ddd; }
+                    tr:nth-child(even) { background: #f9f9f9; }
+                    .footer { margin-top: 30px; font-size: 12px; color: #666; }
+                </style>
+                </head>
+                <body>
+                <h1>Data Pemakaian Listrik</h1>
+                <p>Tanggal: ${new Date().toLocaleDateString('id-ID')}</p>
+                <table>
+                    <thead><tr>
+                        <th>No</th><th>Bulan</th><th>Posisi</th>
+                        <th>ID Pelanggan</th><th>Entitas</th>
+                        <th>Awal</th><th>Akhir</th><th>Pemakaian</th><th>Nominal</th>
+                    </tr></thead>
+                    <tbody>
+                        ${data.map((item, idx) => `
+                            <tr>
+                                <td>${idx + 1}</td>
+                                <td>${item.bulan || ''}</td>
+                                <td>${item.no || '-'}</td>
+                                <td>${item.idPelanggan || ''}</td>
+                                <td>${item.entitas || ''}</td>
+                                <td>${(item.awal || 0).toLocaleString('id-ID')}</td>
+                                <td>${(item.akhir || 0).toLocaleString('id-ID')}</td>
+                                <td>${(item.pemakaian || 0).toLocaleString('id-ID')}</td>
+                                <td>Rp ${(item.nominal || 0).toLocaleString('id-ID')}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <div class="footer">Generated by Building Care System Enterprise</div>
+                </body>
+                </html>
+            `;
+
+            return new Blob([html], { type: 'application/pdf' });
+        } catch (error) {
+            console.error('[API] createFallbackPDF error:', error);
             throw error;
         }
     }
@@ -323,11 +480,34 @@ const Api = (() => {
      */
     async function exportDashboardPDF() {
         try {
+            console.log('[API] exportDashboardPDF called');
+            
             const response = await request('POST', 'exportDashboardPDF', {});
+            console.log('[API] exportDashboardPDF response:', response);
 
-            // Untuk export PDF, response mungkin berupa blob atau base64
-            if (response.data && response.data.pdfBase64) {
-                const byteCharacters = atob(response.data.pdfBase64);
+            if (!response.success) {
+                throw new Error(response.message || 'Gagal export dashboard');
+            }
+
+            const data = response.data || {};
+
+            // Format 1: URL
+            if (data.url) {
+                const blobResponse = await fetch(data.url);
+                if (!blobResponse.ok) {
+                    throw new Error(`Failed to fetch PDF: ${blobResponse.status}`);
+                }
+                return await blobResponse.blob();
+            }
+
+            // Format 2: Base64
+            if (data.pdfBase64 || data.base64 || data.pdf) {
+                const base64 = data.pdfBase64 || data.base64 || data.pdf;
+                let cleanBase64 = base64;
+                if (base64.includes('base64,')) {
+                    cleanBase64 = base64.split('base64,')[1];
+                }
+                const byteCharacters = atob(cleanBase64);
                 const byteNumbers = new Array(byteCharacters.length);
                 for (let i = 0; i < byteCharacters.length; i++) {
                     byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -336,16 +516,12 @@ const Api = (() => {
                 return new Blob([byteArray], { type: 'application/pdf' });
             }
 
-            if (response.data && response.data.url) {
-                const blobResponse = await fetch(response.data.url);
-                return await blobResponse.blob();
-            }
-
             if (response instanceof Blob) {
                 return response;
             }
 
             throw new Error('Format response tidak dikenali');
+
         } catch (error) {
             console.error('[API] exportDashboardPDF error:', error);
             throw error;

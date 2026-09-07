@@ -14,6 +14,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <!-- Core BCS CSS -->
     <link rel="stylesheet" href="assets/css/style.css" />
@@ -117,6 +119,57 @@
         }
         #tblElectricity thead th:first-child { border-top-left-radius: 8px; }
         #tblElectricity thead th:last-child { border-top-right-radius: 8px; }
+
+        /* Export Button Styles */
+        .btn-export {
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-export:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .btn-export-pdf {
+            background: #dc3545;
+            color: white;
+            border: none;
+        }
+        .btn-export-pdf:hover {
+            background: #c82333;
+            color: white;
+        }
+        .btn-export-excel {
+            background: #28a745;
+            color: white;
+            border: none;
+        }
+        .btn-export-excel:hover {
+            background: #218838;
+            color: white;
+        }
+        .btn-export-dashboard {
+            background: #6f42c1;
+            color: white;
+            border: none;
+        }
+        .btn-export-dashboard:hover {
+            background: #5a32a3;
+            color: white;
+        }
+
+        /* Export button group in table header */
+        .export-btn-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .export-btn-group .btn {
+            font-size: 0.75rem;
+            padding: 4px 12px;
+        }
     </style>
 </head>
 <body>
@@ -235,7 +288,12 @@
                     <div class="electricity-card chart-dark-bg d-flex flex-column">
                         <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center pb-0">
                             <h5 class="fs-6 fw-bold"><i class="bi bi-bar-chart-fill me-2" style="color:#05cd99;"></i> Grafik Pemakaian Listrik (kWh)</h5>
-                            <select class="form-select form-select-sm filter-control w-auto"><option>12 Bulan</option></select>
+                            <div class="d-flex gap-2">
+                                <select class="form-select form-select-sm filter-control w-auto"><option>12 Bulan</option></select>
+                                <button id="btnExportDashboardPDF" class="btn btn-export btn-export-dashboard btn-sm" title="Export Dashboard PDF">
+                                    <i class="bi bi-file-pdf"></i> Export
+                                </button>
+                            </div>
                         </div>
                         <div class="card-body flex-grow-1">
                             <canvas id="monthlyChart" style="max-height:250px;"></canvas>
@@ -360,6 +418,15 @@
                         <button id="btnAddData" type="button" class="btn btn-success rounded-pill btn-sm px-4 shadow-sm fw-medium d-flex align-items-center" style="background-color: #05cd99; border:none;">
                             <i class="bi bi-plus-lg me-2"></i> Tambah Data
                         </button>
+                        <!-- Export Buttons Group -->
+                        <div class="export-btn-group">
+                            <button id="btnExportTablePDF" type="button" class="btn btn-export btn-export-pdf btn-sm" title="Export Data ke PDF">
+                                <i class="bi bi-file-pdf"></i> PDF
+                            </button>
+                            <button id="btnExportTableExcel" type="button" class="btn btn-export btn-export-excel btn-sm" title="Export Data ke Excel">
+                                <i class="bi bi-file-excel"></i> Excel
+                            </button>
+                        </div>
                     </div>
                 </div>
 

@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 3.7 (FIXED EXPORT RESPONSE)
+ * Version 3.8 (FULL EXPORT SUMMARY + DUPLICATE HANDLING)
  * =====================================================
  */
 
@@ -642,12 +642,89 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // EXPORT FUNCTIONS - DIPERBAIKI
+    // EXPORT FUNCTIONS - LENGKAP
     // ==========================================================
 
     /**
+     * Export seluruh summary dashboard ke PDF
+     * Mencakup semua kartu summary, grafik, dan informasi
+     */
+    async exportSummaryPDF() {
+        if (this.state.exportLoading) return;
+        try {
+            this.state.exportLoading = true;
+            this.showToast('Sedang memproses export Summary PDF...', 'info');
+
+            // CEK: Pastikan fungsi tersedia
+            if (typeof BCS.Api.exportElectricitySummary !== 'function') {
+                console.error('[Electricity] BCS.Api.exportElectricitySummary is not a function');
+                console.log('[Electricity] Available methods:', Object.keys(BCS.Api));
+                throw new Error('Fungsi export summary belum tersedia. Silakan refresh halaman.');
+            }
+
+            // Siapkan data dashboard lengkap
+            const dashboardData = this.state.dashboard || {};
+            
+            // Tambahkan data records untuk detail jika diperlukan
+            const exportData = {
+                ...dashboardData,
+                records: this.state.records || [],
+                filteredRecords: this.getFilteredRecords(),
+                statusCounts: this.getStatusCounts()
+            };
+
+            const blob = await BCS.Api.exportElectricitySummary(exportData);
+
+            if (!blob || blob.size === 0) {
+                throw new Error('File PDF kosong');
+            }
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Summary_Listrik_${new Date().toISOString().split('T')[0]}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+            this.showToast('Export Summary PDF berhasil!', 'success');
+        } catch (err) {
+            console.error('[Electricity] Export Summary error:', err);
+            this.showError(err.message || 'Gagal export Summary PDF.');
+        } finally {
+            this.state.exportLoading = false;
+        }
+    },
+
+    /**
+     * Get status counts untuk summary
+     */
+    getStatusCounts() {
+        const records = this.state.records || [];
+        const counts = {
+            'NORMAL': 0,
+            'MAINTENANCE': 0,
+            'GANTI_METER': 0,
+            'NEGATIVE': 0,
+            'NO_READING': 0,
+            'ALERT': 0
+        };
+
+        records.forEach(r => {
+            const status = r.status || 'NORMAL';
+            if (counts[status] !== undefined) {
+                counts[status]++;
+            } else {
+                counts['NORMAL']++;
+            }
+        });
+
+        return counts;
+    },
+
+    /**
      * Export data tabel ke PDF
-     * Menggunakan filter yang sedang aktif
      */
     async exportTablePDF() {
         if (this.state.exportLoading) return;
@@ -655,30 +732,24 @@ const ElectricityController = {
             this.state.exportLoading = true;
             this.showToast('Sedang memproses export PDF...', 'info');
 
-            // CEK: Pastikan fungsi tersedia di BCS.Api
             if (typeof BCS.Api.exportElectricityTable !== 'function') {
-                console.error('[Electricity] BCS.Api.exportElectricityTable is not a function');
-                console.log('[Electricity] Available methods:', Object.keys(BCS.Api));
-                throw new Error('Fungsi export PDF belum tersedia. Silakan refresh halaman.');
+                throw new Error('Fungsi export PDF belum tersedia.');
             }
 
-            // Siapkan data untuk export - kirimkan juga records untuk fallback
             const filterData = {
                 keyword: this.state.filter.keyword,
                 status: this.state.filter.status,
                 page: this.state.filter.page,
                 pageSize: this.state.filter.pageSize,
-                _records: this.getFilteredRecords() // Untuk fallback
+                _records: this.getFilteredRecords()
             };
 
             const blob = await BCS.Api.exportElectricityTable(filterData);
 
-            // Validasi blob
             if (!blob || blob.size === 0) {
                 throw new Error('File PDF kosong');
             }
 
-            // Download file
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -686,24 +757,19 @@ const ElectricityController = {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
-            // Revoke URL setelah delay
-            setTimeout(() => {
-                URL.revokeObjectURL(url);
-            }, 5000);
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
 
             this.showToast('Export PDF berhasil!', 'success');
         } catch (err) {
             console.error('[Electricity] Export PDF error:', err);
-            this.showError(err.message || 'Gagal export PDF. Pastikan backend mendukung export.');
+            this.showError(err.message || 'Gagal export PDF.');
         } finally {
             this.state.exportLoading = false;
         }
     },
 
     /**
-     * Export data tabel ke Excel (Client-side)
-     * Menggunakan data yang sudah difilter di state
+     * Export data tabel ke Excel
      */
     async exportTableExcel() {
         if (this.state.exportLoading) return;
@@ -711,19 +777,16 @@ const ElectricityController = {
             this.state.exportLoading = true;
             this.showToast('Sedang memproses export Excel...', 'info');
 
-            // CEK: Pastikan XLSX tersedia
             if (typeof XLSX === 'undefined') {
-                throw new Error('Library XLSX tidak ditemukan. Silakan refresh halaman.');
+                throw new Error('Library XLSX tidak ditemukan.');
             }
 
-            // Ambil data yang sudah difilter
             const rows = this.getFilteredRecords();
             
             if (rows.length === 0) {
                 throw new Error('Tidak ada data untuk diexport');
             }
 
-            // Format data untuk Excel
             const data = rows.map((item, idx) => ({
                 'No': idx + 1,
                 'Bulan': item.bulan || '',
@@ -738,11 +801,10 @@ const ElectricityController = {
                 'Status': item.status || 'NORMAL'
             }));
 
-            // Gunakan fungsi exportToExcel dari BCS.Api
             if (typeof BCS.Api.exportToExcel === 'function') {
                 BCS.Api.exportToExcel(data, 'Data_Listrik');
             } else {
-                // Fallback: buat sendiri
+                // Fallback
                 const worksheet = XLSX.utils.json_to_sheet(data);
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Listrik');
@@ -779,7 +841,7 @@ const ElectricityController = {
     },
 
     /**
-     * Get filtered records berdasarkan filter yang aktif
+     * Get filtered records
      */
     getFilteredRecords() {
         let rows = [...this.state.records];
@@ -802,7 +864,7 @@ const ElectricityController = {
     },
 
     /**
-     * Export dashboard ke PDF
+     * Export dashboard ke PDF (legacy - untuk tombol di card grafik)
      */
     async exportDashboardPDF() {
         if (this.state.exportLoading) return;
@@ -810,11 +872,8 @@ const ElectricityController = {
             this.state.exportLoading = true;
             this.showToast('Sedang memproses export Dashboard PDF...', 'info');
 
-            // CEK: Pastikan fungsi tersedia di BCS.Api
             if (typeof BCS.Api.exportDashboardPDF !== 'function') {
-                console.error('[Electricity] BCS.Api.exportDashboardPDF is not a function');
-                console.log('[Electricity] Available methods:', Object.keys(BCS.Api));
-                throw new Error('Fungsi export dashboard belum tersedia. Silakan refresh halaman.');
+                throw new Error('Fungsi export dashboard belum tersedia.');
             }
 
             const blob = await BCS.Api.exportDashboardPDF();
@@ -842,7 +901,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // CRUD
+    // CRUD - DIPERBAIKI DENGAN DUPLICATE HANDLING
     // ==========================================================
 
     openForm(data = null) {
@@ -1066,6 +1125,10 @@ const ElectricityController = {
         }
     },
 
+    // ==========================================================
+    // SAVE RECORD - DENGAN DUPLICATE HANDLING
+    // ==========================================================
+
     async saveRecord() {
         const formData = {
             id: document.getElementById('formId').value,
@@ -1080,25 +1143,75 @@ const ElectricityController = {
             keterangan: document.getElementById('formKeterangan').value
         };
 
+        // Validasi required fields
         if (!formData.bulan || !formData.posisiMeteran || !formData.idPelanggan || !formData.entitas) {
             this.showToast('Bulan, Posisi Meteran, ID Pelanggan, dan Entitas wajib diisi.', 'warning');
             return;
+        }
+
+        // CEK DUPLIKAT: Cek apakah data sudah ada (kecuali sedang edit)
+        if (!formData.id) {
+            const existing = this.state.records.find(r =>
+                r.idPelanggan === formData.idPelanggan &&
+                r.bulan === formData.bulan &&
+                r.no === formData.posisiMeteran
+            );
+
+            if (existing) {
+                // Tampilkan dialog konfirmasi untuk overwrite
+                const result = await Swal.fire({
+                    title: 'Data Sudah Ada!',
+                    html: `
+                        <p>Data dengan kombinasi berikut sudah ada:</p>
+                        <ul style="text-align:left;">
+                            <li><strong>ID Pelanggan:</strong> ${formData.idPelanggan}</li>
+                            <li><strong>Bulan:</strong> ${formData.bulan}</li>
+                            <li><strong>Posisi:</strong> ${formData.posisiMeteran}</li>
+                        </ul>
+                        <p>Apakah Anda ingin <strong>mengupdate</strong> data yang sudah ada?</p>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Update!',
+                    cancelButtonText: 'Batal'
+                });
+
+                if (!result.isConfirmed) {
+                    return; // User membatalkan
+                }
+
+                // Set id untuk update
+                formData.id = existing.idPelanggan;
+                document.getElementById('formId').value = existing.idPelanggan;
+            }
         }
 
         try {
             this.showLoading(true);
             const action = formData.id ? 'updateElectricityRecord' : 'createElectricityRecord';
             const response = await BCS.Api.request('POST', action, formData);
+            
             if (response.success) {
                 this.showToast('Data berhasil disimpan.', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
                 this.loadDashboard({ showLoading: false, showToast: false });
             } else {
-                this.showError(response.message || 'Gagal menyimpan data.');
+                // Handle error khusus duplicate
+                if (response.message && (response.message.includes('sudah ada') || response.message.includes('duplicate'))) {
+                    this.showError('Data dengan ID Pelanggan dan Bulan tersebut sudah ada. Silakan gunakan data yang berbeda atau update data yang ada.');
+                } else {
+                    this.showError(response.message || 'Gagal menyimpan data.');
+                }
             }
         } catch (err) {
             console.error(err);
-            this.showError(err.message);
+            if (err.message && (err.message.includes('duplicate') || err.message.includes('already'))) {
+                this.showError('Data sudah ada. Silakan gunakan ID Pelanggan dan Bulan yang berbeda.');
+            } else {
+                this.showError(err.message || 'Gagal menyimpan data.');
+            }
         } finally {
             this.showLoading(false);
         }
@@ -1328,9 +1441,14 @@ const ElectricityController = {
             this.exportTableExcel();
         });
 
-        // Export Dashboard PDF
+        // Export Dashboard PDF (legacy - untuk tombol di card grafik)
         document.getElementById("btnExportDashboardPDF")?.addEventListener("click", () => {
             this.exportDashboardPDF();
+        });
+
+        // EXPORT SUMMARY PDF - TAMBAHKAN INI
+        document.getElementById("btnExportSummaryPDF")?.addEventListener("click", () => {
+            this.exportSummaryPDF();
         });
     },
 

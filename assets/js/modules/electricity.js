@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 3.6 (ADDED EXPORT PDF & EXCEL)
+ * Version 3.6 (FIXED EXPORT)
  * =====================================================
  */
 
@@ -142,7 +142,6 @@ const ElectricityController = {
         try {
             if (showLoading) this.showLoading(true);
 
-            // Gunakan electricityService yang sudah diimport
             const dashboardRes = await BCS.Api.getElectricityDashboard();
             if (!dashboardRes.success) {
                 this.showError(dashboardRes.message || "Gagal memuat dashboard.");
@@ -643,7 +642,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // EXPORT FUNCTIONS
+    // EXPORT FUNCTIONS - PERBAIKI DENGAN CEK FUNGSI
     // ==========================================================
 
     /**
@@ -655,6 +654,13 @@ const ElectricityController = {
         try {
             this.state.exportLoading = true;
             this.showToast('Sedang memproses export PDF...', 'info');
+
+            // CEK: Pastikan fungsi tersedia
+            if (typeof BCS.Api.exportElectricityTable !== 'function') {
+                console.error('[Electricity] BCS.Api.exportElectricityTable is not a function');
+                console.log('[Electricity] Available methods:', Object.keys(BCS.Api));
+                throw new Error('Fungsi export belum tersedia. Silakan refresh halaman.');
+            }
 
             const blob = await BCS.Api.exportElectricityTable({
                 keyword: this.state.filter.keyword,
@@ -674,8 +680,8 @@ const ElectricityController = {
 
             this.showToast('Export PDF berhasil!', 'success');
         } catch (err) {
-            console.error(err);
-            this.showError(err.message || 'Gagal export PDF.');
+            console.error('[Electricity] Export PDF error:', err);
+            this.showError(err.message || 'Gagal export PDF. Pastikan backend mendukung export.');
         } finally {
             this.state.exportLoading = false;
         }
@@ -683,13 +689,18 @@ const ElectricityController = {
 
     /**
      * Export data tabel ke Excel
-     * Menggunakan data yang sudah difilter di state
+     * Menggunakan data yang sudah difilter di state (Client-side)
      */
     async exportTableExcel() {
         if (this.state.exportLoading) return;
         try {
             this.state.exportLoading = true;
             this.showToast('Sedang memproses export Excel...', 'info');
+
+            // CEK: Pastikan XLSX tersedia
+            if (typeof XLSX === 'undefined') {
+                throw new Error('Library XLSX tidak ditemukan. Silakan refresh halaman.');
+            }
 
             const rows = this.getFilteredRecords();
             const data = rows.map((item, idx) => ({
@@ -732,7 +743,7 @@ const ElectricityController = {
 
             this.showToast('Export Excel berhasil!', 'success');
         } catch (err) {
-            console.error(err);
+            console.error('[Electricity] Export Excel error:', err);
             this.showError(err.message || 'Gagal export Excel.');
         } finally {
             this.state.exportLoading = false;
@@ -771,6 +782,13 @@ const ElectricityController = {
             this.state.exportLoading = true;
             this.showToast('Sedang memproses export Dashboard PDF...', 'info');
 
+            // CEK: Pastikan fungsi tersedia
+            if (typeof BCS.Api.exportDashboardPDF !== 'function') {
+                console.error('[Electricity] BCS.Api.exportDashboardPDF is not a function');
+                console.log('[Electricity] Available methods:', Object.keys(BCS.Api));
+                throw new Error('Fungsi export dashboard belum tersedia. Silakan refresh halaman.');
+            }
+
             const blob = await BCS.Api.exportDashboardPDF();
 
             const url = URL.createObjectURL(blob);
@@ -784,7 +802,7 @@ const ElectricityController = {
 
             this.showToast('Export Dashboard PDF berhasil!', 'success');
         } catch (err) {
-            console.error(err);
+            console.error('[Electricity] Export Dashboard error:', err);
             this.showError(err.message || 'Gagal export Dashboard PDF.');
         } finally {
             this.state.exportLoading = false;
@@ -1055,7 +1073,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // DELETE RECORD - HANYA SATU BARIS DENGAN FILTER LENGKAP
+    // DELETE RECORD
     // ==========================================================
 
     async deleteRecord({ recordId, id, bulan, posisi }) {

@@ -269,19 +269,16 @@ const Api = (() => {
     }
 
     // =============================================
-    // EXPORT FUNCTIONS - DIPERBAIKI
+    // EXPORT FUNCTIONS - LENGKAP
     // =============================================
 
     /**
      * Export electricity table to PDF
-     * @param {Object} filter - Filter data (keyword, status, page, pageSize)
-     * @returns {Promise<Blob>} PDF file as blob
      */
     async function exportElectricityTable(filter = {}) {
         try {
             console.log('[API] exportElectricityTable called with filter:', filter);
             
-            // Gunakan request biasa untuk mendapatkan data
             const response = await request('POST', 'exportElectricityTable', {
                 keyword: filter.keyword || '',
                 status: filter.status || 'ALL',
@@ -291,17 +288,14 @@ const Api = (() => {
 
             console.log('[API] exportElectricityTable response:', response);
 
-            // Cek apakah response sukses
             if (!response.success) {
                 throw new Error(response.message || 'Gagal export data');
             }
 
-            // Cek berbagai format response yang mungkin
             const data = response.data || {};
 
-            // Format 1: Langsung blob URL
+            // Format 1: URL
             if (data.url) {
-                console.log('[API] Fetching PDF from URL:', data.url);
                 const blobResponse = await fetch(data.url);
                 if (!blobResponse.ok) {
                     throw new Error(`Failed to fetch PDF: ${blobResponse.status}`);
@@ -309,17 +303,13 @@ const Api = (() => {
                 return await blobResponse.blob();
             }
 
-            // Format 2: Base64 encoded PDF
+            // Format 2: Base64
             if (data.pdfBase64 || data.base64 || data.pdf) {
                 const base64 = data.pdfBase64 || data.base64 || data.pdf;
-                console.log('[API] Decoding base64 PDF, length:', base64.length);
-                
-                // Remove data URL prefix if present
                 let cleanBase64 = base64;
                 if (base64.includes('base64,')) {
                     cleanBase64 = base64.split('base64,')[1];
                 }
-                
                 const byteCharacters = atob(cleanBase64);
                 const byteNumbers = new Array(byteCharacters.length);
                 for (let i = 0; i < byteCharacters.length; i++) {
@@ -329,32 +319,11 @@ const Api = (() => {
                 return new Blob([byteArray], { type: 'application/pdf' });
             }
 
-            // Format 3: Response adalah blob langsung (jika fetch dengan responseType blob)
             if (response instanceof Blob) {
                 return response;
             }
 
-            // Format 4: Data dalam bentuk array buffer atau string
-            if (data.content || data.data) {
-                const content = data.content || data.data;
-                if (typeof content === 'string') {
-                    // Coba parse sebagai base64
-                    try {
-                        const byteCharacters = atob(content);
-                        const byteNumbers = new Array(byteCharacters.length);
-                        for (let i = 0; i < byteCharacters.length; i++) {
-                            byteNumbers[i] = byteCharacters.charCodeAt(i);
-                        }
-                        const byteArray = new Uint8Array(byteNumbers);
-                        return new Blob([byteArray], { type: 'application/pdf' });
-                    } catch (e) {
-                        // Jika bukan base64, coba sebagai text
-                        return new Blob([content], { type: 'application/pdf' });
-                    }
-                }
-            }
-
-            // Jika semua format gagal, coba buat PDF dari HTML table (fallback)
+            // Fallback
             console.warn('[API] No recognized PDF format, creating fallback PDF from table data');
             return await createFallbackPDF(filter);
 
@@ -369,25 +338,21 @@ const Api = (() => {
      */
     async function createFallbackPDF(filter) {
         try {
-            // Ambil data dari state jika tersedia
             const data = filter._records || [];
             if (!data || data.length === 0) {
                 throw new Error('Tidak ada data untuk diexport');
             }
 
-            // Gunakan library jsPDF jika tersedia
             if (typeof window.jspdf !== 'undefined') {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('l', 'mm', 'a4');
                 const pageWidth = doc.internal.pageSize.getWidth();
                 
-                // Header
                 doc.setFontSize(16);
                 doc.text('Data Pemakaian Listrik', pageWidth/2, 20, { align: 'center' });
                 doc.setFontSize(10);
                 doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 30);
                 
-                // Table
                 const headers = ['No', 'Bulan', 'Posisi', 'ID Pelanggan', 'Entitas', 'Awal', 'Akhir', 'Pemakaian', 'Nominal'];
                 const rows = data.map((item, idx) => [
                     idx + 1,
@@ -423,51 +388,7 @@ const Api = (() => {
                 return doc.output('blob');
             }
 
-            // Fallback: Buat blob HTML
-            const html = `
-                <html>
-                <head><title>Data Listrik</title>
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; }
-                    h1 { color: #4318ff; }
-                    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-                    th { background: #4318ff; color: white; padding: 8px; text-align: left; }
-                    td { padding: 6px 8px; border: 1px solid #ddd; }
-                    tr:nth-child(even) { background: #f9f9f9; }
-                    .footer { margin-top: 30px; font-size: 12px; color: #666; }
-                </style>
-                </head>
-                <body>
-                <h1>Data Pemakaian Listrik</h1>
-                <p>Tanggal: ${new Date().toLocaleDateString('id-ID')}</p>
-                <table>
-                    <thead><tr>
-                        <th>No</th><th>Bulan</th><th>Posisi</th>
-                        <th>ID Pelanggan</th><th>Entitas</th>
-                        <th>Awal</th><th>Akhir</th><th>Pemakaian</th><th>Nominal</th>
-                    </tr></thead>
-                    <tbody>
-                        ${data.map((item, idx) => `
-                            <tr>
-                                <td>${idx + 1}</td>
-                                <td>${item.bulan || ''}</td>
-                                <td>${item.no || '-'}</td>
-                                <td>${item.idPelanggan || ''}</td>
-                                <td>${item.entitas || ''}</td>
-                                <td>${(item.awal || 0).toLocaleString('id-ID')}</td>
-                                <td>${(item.akhir || 0).toLocaleString('id-ID')}</td>
-                                <td>${(item.pemakaian || 0).toLocaleString('id-ID')}</td>
-                                <td>Rp ${(item.nominal || 0).toLocaleString('id-ID')}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <div class="footer">Generated by Building Care System Enterprise</div>
-                </body>
-                </html>
-            `;
-
-            return new Blob([html], { type: 'application/pdf' });
+            throw new Error('jsPDF tidak tersedia untuk fallback');
         } catch (error) {
             console.error('[API] createFallbackPDF error:', error);
             throw error;
@@ -475,8 +396,232 @@ const Api = (() => {
     }
 
     /**
-     * Export dashboard to PDF
-     * @returns {Promise<Blob>} PDF file as blob
+     * Export electricity summary/dashboard to PDF
+     */
+    async function exportElectricitySummary(dashboardData = null) {
+        try {
+            console.log('[API] exportElectricitySummary called');
+            
+            // Jika data tidak dikirim, ambil dari dashboard
+            let dataToExport = dashboardData;
+            if (!dataToExport) {
+                const dashboard = await getElectricityDashboard();
+                if (dashboard.success) {
+                    dataToExport = dashboard.data;
+                }
+            }
+
+            if (!dataToExport) {
+                throw new Error('Tidak ada data dashboard untuk diexport');
+            }
+
+            // Coba export dari backend
+            const response = await request('POST', 'exportElectricitySummary', {
+                data: dataToExport
+            });
+
+            console.log('[API] exportElectricitySummary response:', response);
+
+            if (response.success) {
+                const data = response.data || {};
+
+                if (data.url) {
+                    const blobResponse = await fetch(data.url);
+                    if (!blobResponse.ok) {
+                        throw new Error(`Failed to fetch PDF: ${blobResponse.status}`);
+                    }
+                    return await blobResponse.blob();
+                }
+
+                if (data.pdfBase64 || data.base64 || data.pdf) {
+                    const base64 = data.pdfBase64 || data.base64 || data.pdf;
+                    let cleanBase64 = base64;
+                    if (base64.includes('base64,')) {
+                        cleanBase64 = base64.split('base64,')[1];
+                    }
+                    const byteCharacters = atob(cleanBase64);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    return new Blob([byteArray], { type: 'application/pdf' });
+                }
+
+                if (response instanceof Blob) {
+                    return response;
+                }
+            }
+
+            // Fallback: buat summary PDF dari data yang ada
+            console.warn('[API] Creating fallback summary PDF from dashboard data');
+            return await createSummaryPDF(dataToExport);
+
+        } catch (error) {
+            console.error('[API] exportElectricitySummary error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Create summary PDF from dashboard data (client-side)
+     */
+    async function createSummaryPDF(data) {
+        try {
+            if (typeof window.jspdf !== 'undefined') {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                let yPos = 20;
+
+                // Header
+                doc.setFontSize(18);
+                doc.setTextColor(67, 24, 255);
+                doc.text('ELECTRICITY DASHBOARD SUMMARY', pageWidth/2, yPos, { align: 'center' });
+                yPos += 10;
+
+                doc.setFontSize(10);
+                doc.setTextColor(100);
+                doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID', { 
+                    day: '2-digit', month: 'long', year: 'numeric' 
+                })}`, pageWidth/2, yPos, { align: 'center' });
+                yPos += 15;
+
+                // Summary Cards
+                const summaryData = [
+                    ['Total Pemakaian (kWh)', (data.totalKwh || 0).toLocaleString('id-ID')],
+                    ['Total Nominal', 'Rp ' + (data.totalNominal || 0).toLocaleString('id-ID')],
+                    ['Jumlah Meter', (data.totalMeter || 0).toLocaleString('id-ID')],
+                    ['Rata-rata per Hari (kWh)', (data.averageKwh || 0).toLocaleString('id-ID')],
+                    ['Data Quality', (data.efficiency || 0) + '%'],
+                    ['Bulan Tertinggi', data.highestMonth || '-'],
+                    ['Bulan Terendah', data.lowestMonth || '-'],
+                    ['Entitas Tertinggi', data.highestEntity || '-'],
+                    ['Entitas Terendah', data.lowestEntity || '-']
+                ];
+
+                const cardsPerRow = 2;
+                const cardWidth = (pageWidth - 40) / cardsPerRow;
+                const cardHeight = 25;
+
+                summaryData.forEach((item, index) => {
+                    const col = index % cardsPerRow;
+                    const row = Math.floor(index / cardsPerRow);
+                    const x = 20 + (col * (cardWidth + 5));
+                    const y = yPos + (row * (cardHeight + 5));
+
+                    doc.setFillColor(248, 249, 250);
+                    doc.roundedRect(x, y, cardWidth, cardHeight, 3, 3, 'F');
+                    doc.setDrawColor(67, 24, 255);
+                    doc.setLineWidth(0.5);
+                    doc.roundedRect(x, y, cardWidth, cardHeight, 3, 3, 'S');
+
+                    doc.setFontSize(9);
+                    doc.setTextColor(100);
+                    doc.text(item[0], x + 5, y + 8);
+
+                    doc.setFontSize(12);
+                    doc.setTextColor(33, 37, 41);
+                    doc.text(item[1], x + 5, y + 20);
+                });
+
+                yPos += Math.ceil(summaryData.length / cardsPerRow) * (cardHeight + 5) + 10;
+
+                // Monthly Chart Data (table)
+                if (data.monthly && data.monthly.length > 0) {
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+
+                    doc.setFontSize(14);
+                    doc.setTextColor(67, 24, 255);
+                    doc.text('GRAFIK PEMAKAIAN BULANAN', pageWidth/2, yPos, { align: 'center' });
+                    yPos += 10;
+
+                    const tableHeaders = ['Bulan', 'Pemakaian (kWh)'];
+                    const tableRows = data.monthly.map(item => [
+                        item.month || '-',
+                        (item.value || 0).toLocaleString('id-ID')
+                    ]);
+
+                    doc.autoTable({
+                        head: [tableHeaders],
+                        body: tableRows,
+                        startY: yPos + 5,
+                        styles: { fontSize: 9 },
+                        headStyles: { fillColor: [67, 24, 255] },
+                        columnStyles: {
+                            0: { cellWidth: 80 },
+                            1: { cellWidth: 80 }
+                        }
+                    });
+
+                    yPos = doc.lastAutoTable.finalY + 10;
+                }
+
+                // Entity Data
+                if (data.entity && data.entity.length > 0) {
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+
+                    doc.setFontSize(14);
+                    doc.setTextColor(67, 24, 255);
+                    doc.text('PEMAKAIAN PER ENTITAS', pageWidth/2, yPos, { align: 'center' });
+                    yPos += 10;
+
+                    const totalKwh = data.entity.reduce((sum, item) => sum + item.totalKwh, 0);
+                    const entityHeaders = ['Entitas', 'Total kWh', 'Persentase'];
+                    const entityRows = data.entity.map(item => [
+                        item.entitas || '-',
+                        (item.totalKwh || 0).toLocaleString('id-ID'),
+                        totalKwh > 0 ? ((item.totalKwh / totalKwh) * 100).toFixed(1) + '%' : '0%'
+                    ]);
+
+                    doc.autoTable({
+                        head: [entityHeaders],
+                        body: entityRows,
+                        startY: yPos + 5,
+                        styles: { fontSize: 9 },
+                        headStyles: { fillColor: [67, 24, 255] },
+                        columnStyles: {
+                            0: { cellWidth: 70 },
+                            1: { cellWidth: 70 },
+                            2: { cellWidth: 50 }
+                        }
+                    });
+
+                    yPos = doc.lastAutoTable.finalY + 10;
+                }
+
+                // Footer
+                const totalPages = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= totalPages; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(150);
+                    doc.text(
+                        `Building Care System Enterprise | Page ${i} of ${totalPages}`,
+                        pageWidth/2,
+                        doc.internal.pageSize.getHeight() - 10,
+                        { align: 'center' }
+                    );
+                }
+
+                return doc.output('blob');
+            }
+
+            throw new Error('jsPDF tidak tersedia untuk summary');
+        } catch (error) {
+            console.error('[API] createSummaryPDF error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Export dashboard to PDF (legacy)
      */
     async function exportDashboardPDF() {
         try {
@@ -491,7 +636,6 @@ const Api = (() => {
 
             const data = response.data || {};
 
-            // Format 1: URL
             if (data.url) {
                 const blobResponse = await fetch(data.url);
                 if (!blobResponse.ok) {
@@ -500,7 +644,6 @@ const Api = (() => {
                 return await blobResponse.blob();
             }
 
-            // Format 2: Base64
             if (data.pdfBase64 || data.base64 || data.pdf) {
                 const base64 = data.pdfBase64 || data.base64 || data.pdf;
                 let cleanBase64 = base64;
@@ -529,10 +672,7 @@ const Api = (() => {
     }
 
     /**
-     * Export electricity data to Excel (client-side menggunakan XLSX)
-     * @param {Array} data - Data yang akan diexport
-     * @param {String} filename - Nama file
-     * @returns {Blob} Excel file as blob
+     * Export electricity data to Excel (client-side)
      */
     function exportToExcel(data, filename = 'Data_Listrik') {
         try {
@@ -544,7 +684,6 @@ const Api = (() => {
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Listrik');
 
-            // Set column widths
             const colWidths = [
                 { wch: 5 }, { wch: 12 }, { wch: 15 }, { wch: 15 },
                 { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
@@ -557,7 +696,6 @@ const Api = (() => {
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
             });
             
-            // Download file
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -596,6 +734,7 @@ const Api = (() => {
         deleteElectricityRecord,
         // EXPORT
         exportElectricityTable,
+        exportElectricitySummary,
         exportDashboardPDF,
         exportToExcel
     };

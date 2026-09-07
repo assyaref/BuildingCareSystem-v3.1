@@ -77,7 +77,6 @@ const ElectricityController = {
         if (el) {
             el.classList.toggle("d-none", !show);
         }
-        // Jika elemen tidak ada, tidak melakukan apa-apa (tidak error)
     },
 
     showError(message) {
@@ -143,6 +142,7 @@ const ElectricityController = {
         try {
             if (showLoading) this.showLoading(true);
 
+            // Gunakan electricityService yang sudah diimport
             const dashboardRes = await BCS.Api.getElectricityDashboard();
             if (!dashboardRes.success) {
                 this.showError(dashboardRes.message || "Gagal memuat dashboard.");
@@ -646,6 +646,10 @@ const ElectricityController = {
     // EXPORT FUNCTIONS
     // ==========================================================
 
+    /**
+     * Export data tabel ke PDF
+     * Menggunakan filter yang sedang aktif
+     */
     async exportTablePDF() {
         if (this.state.exportLoading) return;
         try {
@@ -677,13 +681,16 @@ const ElectricityController = {
         }
     },
 
+    /**
+     * Export data tabel ke Excel
+     * Menggunakan data yang sudah difilter di state
+     */
     async exportTableExcel() {
         if (this.state.exportLoading) return;
         try {
             this.state.exportLoading = true;
             this.showToast('Sedang memproses export Excel...', 'info');
 
-            // Untuk Excel, kita bisa menggunakan data yang sudah ada di state
             const rows = this.getFilteredRecords();
             const data = rows.map((item, idx) => ({
                 'No': idx + 1,
@@ -732,6 +739,9 @@ const ElectricityController = {
         }
     },
 
+    /**
+     * Get filtered records berdasarkan filter yang aktif
+     */
     getFilteredRecords() {
         let rows = [...this.state.records];
         const keyword = this.state.filter.keyword.toLowerCase();
@@ -752,6 +762,9 @@ const ElectricityController = {
         return rows;
     },
 
+    /**
+     * Export dashboard ke PDF
+     */
     async exportDashboardPDF() {
         if (this.state.exportLoading) return;
         try {
@@ -779,7 +792,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // CRUD (dengan dropdown posisi & auto-calc)
+    // CRUD
     // ==========================================================
 
     openForm(data = null) {
@@ -1048,7 +1061,6 @@ const ElectricityController = {
     async deleteRecord({ recordId, id, bulan, posisi }) {
         console.log('[Electricity] deleteRecord params:', { recordId, id, bulan, posisi });
 
-        // Validasi semua parameter harus ada
         if (!id) {
             this.showToast('ID Pelanggan tidak ditemukan.', 'error');
             return;
@@ -1062,7 +1074,6 @@ const ElectricityController = {
             return;
         }
 
-        // Cari data yang akan dihapus untuk ditampilkan di konfirmasi
         const record = this.state.records.find(r =>
             r.idPelanggan === id &&
             r.bulan === bulan &&
@@ -1073,7 +1084,6 @@ const ElectricityController = {
             return;
         }
 
-        // Konfirmasi dengan detail lengkap
         const confirmed = await Swal.fire({
             title: 'Hapus Data?',
             html: `
@@ -1097,7 +1107,6 @@ const ElectricityController = {
 
         try {
             this.showLoading(true);
-            // Kirim id (ID Pelanggan) + bulan + posisi agar backend hapus spesifik
             const payload = {
                 id: id,
                 bulan: bulan,

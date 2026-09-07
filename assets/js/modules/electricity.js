@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 3.5 (FIXED DELETE - hanya satu baris sesuai filter)
+ * Version 3.6 (ADDED EXPORT PDF & EXCEL)
  * =====================================================
  */
 
@@ -25,7 +25,8 @@ const ElectricityController = {
             status: "ALL",
             page: 1,
             pageSize: 10
-        }
+        },
+        exportLoading: false
     },
 
     // ==========================================================
@@ -642,6 +643,142 @@ const ElectricityController = {
     },
 
     // ==========================================================
+    // EXPORT FUNCTIONS
+    // ==========================================================
+
+    async exportTablePDF() {
+        if (this.state.exportLoading) return;
+        try {
+            this.state.exportLoading = true;
+            this.showToast('Sedang memproses export PDF...', 'info');
+
+            const blob = await BCS.Api.exportElectricityTable({
+                keyword: this.state.filter.keyword,
+                status: this.state.filter.status,
+                page: this.state.filter.page,
+                pageSize: this.state.filter.pageSize
+            });
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Data_Listrik_${new Date().toISOString().split('T')[0]}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            this.showToast('Export PDF berhasil!', 'success');
+        } catch (err) {
+            console.error(err);
+            this.showError(err.message || 'Gagal export PDF.');
+        } finally {
+            this.state.exportLoading = false;
+        }
+    },
+
+    async exportTableExcel() {
+        if (this.state.exportLoading) return;
+        try {
+            this.state.exportLoading = true;
+            this.showToast('Sedang memproses export Excel...', 'info');
+
+            // Untuk Excel, kita bisa menggunakan data yang sudah ada di state
+            const rows = this.getFilteredRecords();
+            const data = rows.map((item, idx) => ({
+                'No': idx + 1,
+                'Bulan': item.bulan,
+                'Posisi Meteran': item.no || '-',
+                'ID Pelanggan': item.idPelanggan,
+                'Entitas': item.entitas,
+                'Awal (kWh)': item.awal || 0,
+                'Akhir (kWh)': item.akhir || 0,
+                'Pemakaian (kWh)': item.pemakaian || 0,
+                'Nominal (Rp)': item.nominal || 0,
+                'Keterangan': item.keterangan || '-',
+                'Status': item.status || 'NORMAL'
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Listrik');
+
+            // Set column widths
+            const colWidths = [
+                { wch: 5 }, { wch: 12 }, { wch: 15 }, { wch: 15 },
+                { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+                { wch: 20 }, { wch: 20 }, { wch: 15 }
+            ];
+            worksheet['!cols'] = colWidths;
+
+            const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: 'application/octet-stream' });
+            
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Data_Listrik_${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            this.showToast('Export Excel berhasil!', 'success');
+        } catch (err) {
+            console.error(err);
+            this.showError(err.message || 'Gagal export Excel.');
+        } finally {
+            this.state.exportLoading = false;
+        }
+    },
+
+    getFilteredRecords() {
+        let rows = [...this.state.records];
+        const keyword = this.state.filter.keyword.toLowerCase();
+        const status = this.state.filter.status;
+
+        if (keyword) {
+            rows = rows.filter(r =>
+                String(r.entitas).toLowerCase().includes(keyword) ||
+                String(r.idPelanggan).toLowerCase().includes(keyword) ||
+                String(r.no).toLowerCase().includes(keyword)
+            );
+        }
+
+        if (status !== "ALL") {
+            rows = rows.filter(r => r.status === status);
+        }
+
+        return rows;
+    },
+
+    async exportDashboardPDF() {
+        if (this.state.exportLoading) return;
+        try {
+            this.state.exportLoading = true;
+            this.showToast('Sedang memproses export Dashboard PDF...', 'info');
+
+            const blob = await BCS.Api.exportDashboardPDF();
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Dashboard_Listrik_${new Date().toISOString().split('T')[0]}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            this.showToast('Export Dashboard PDF berhasil!', 'success');
+        } catch (err) {
+            console.error(err);
+            this.showError(err.message || 'Gagal export Dashboard PDF.');
+        } finally {
+            this.state.exportLoading = false;
+        }
+    },
+
+    // ==========================================================
     // CRUD (dengan dropdown posisi & auto-calc)
     // ==========================================================
 
@@ -787,378 +924,4 @@ const ElectricityController = {
 
             const newAkhir = akhirInput.cloneNode(true);
             akhirInput.parentNode.replaceChild(newAkhir, akhirInput);
-            newAkhir.id = 'formAkhir';
-            newAkhir.addEventListener('input', () => this.calculateForm());
-        }
-
-        // --- Isi data jika edit ---
-        if (data) {
-            title.innerHTML = `<i class="bi bi-pencil-square text-warning me-2"></i> Edit Data`;
-            btnSave.textContent = 'Update';
-            this._safeSetValue('formId', data.id || '');
-            this._safeSetValue('formBulan', data.bulan || '');
-            this._safeSetValue('formPosisi', data.posisi || '');
-            this._safeSetValue('formIdPelanggan', data.idPelanggan || '');
-            this._safeSetValue('formEntitas', data.entitas || '');
-            this._safeSetValue('formAwal', data.awal || '');
-            this._safeSetValue('formAkhir', data.akhir || '');
-            this._safeSetValue('formPemakaian', data.pemakaian || '');
-            this._safeSetValue('formNominal', data.nominal || '');
-            this._safeSetValue('formKeterangan', data.keterangan || '');
-            this.calculateForm();
-        } else {
-            title.innerHTML = `<i class="bi bi-plus-circle text-success me-2"></i> Tambah Data`;
-            btnSave.textContent = 'Simpan';
-            const form = document.getElementById('electricityForm');
-            if (form) form.reset();
-            this._safeSetValue('formId', '');
-            this._safeSetValue('formPosisi', '');
-            this._safeSetValue('formIdPelanggan', '');
-            this.calculateForm();
-        }
-
-        modal.show();
-    },
-
-    // ==========================================================
-    // AUTO-CALCULATE
-    // ==========================================================
-
-    calculateForm() {
-        const awal = parseFloat(document.getElementById('formAwal')?.value) || 0;
-        const akhir = parseFloat(document.getElementById('formAkhir')?.value) || 0;
-        const pemakaian = akhir - awal;
-        const hargaPerKwh = 1480;
-
-        const pemakaianInput = document.getElementById('formPemakaian');
-        const nominalInput = document.getElementById('formNominal');
-        const notesEl = document.getElementById('calcNotes');
-
-        if (pemakaianInput) {
-            pemakaianInput.value = pemakaian.toFixed(2);
-        }
-
-        const nominal = pemakaian * hargaPerKwh;
-        if (nominalInput) {
-            nominalInput.value = nominal.toFixed(0);
-        }
-
-        if (notesEl) {
-            if (pemakaian !== 0) {
-                const formattedKwh = pemakaian.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-                const formattedNominal = nominal.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-                notesEl.innerHTML = `
-                    <div class="alert alert-info mt-2 mb-0 py-2">
-                        <i class="bi bi-calculator me-1"></i>
-                        <strong>Perhitungan:</strong>
-                        ${formattedKwh} kWh × Rp ${hargaPerKwh.toLocaleString('id-ID')} = 
-                        <strong>Rp ${formattedNominal}</strong>
-                    </div>
-                `;
-            } else {
-                notesEl.innerHTML = `
-                    <div class="alert alert-secondary mt-2 mb-0 py-2">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Masukkan Awal dan Akhir untuk menghitung otomatis.
-                    </div>
-                `;
-            }
-        }
-    },
-
-    async saveRecord() {
-        const formData = {
-            id: document.getElementById('formId').value,
-            bulan: document.getElementById('formBulan').value,
-            posisiMeteran: document.getElementById('formPosisi').value,
-            idPelanggan: document.getElementById('formIdPelanggan').value,
-            entitas: document.getElementById('formEntitas').value,
-            awal: parseFloat(document.getElementById('formAwal').value) || 0,
-            akhir: parseFloat(document.getElementById('formAkhir').value) || 0,
-            pemakaian: parseFloat(document.getElementById('formPemakaian').value) || 0,
-            nominal: parseFloat(document.getElementById('formNominal').value) || 0,
-            keterangan: document.getElementById('formKeterangan').value
-        };
-
-        if (!formData.bulan || !formData.posisiMeteran || !formData.idPelanggan || !formData.entitas) {
-            this.showToast('Bulan, Posisi Meteran, ID Pelanggan, dan Entitas wajib diisi.', 'warning');
-            return;
-        }
-
-        try {
-            this.showLoading(true);
-            const action = formData.id ? 'updateElectricityRecord' : 'createElectricityRecord';
-            const response = await BCS.Api.request('POST', action, formData);
-            if (response.success) {
-                this.showToast('Data berhasil disimpan.', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
-                this.loadDashboard({ showLoading: false, showToast: false });
-            } else {
-                this.showError(response.message || 'Gagal menyimpan data.');
-            }
-        } catch (err) {
-            console.error(err);
-            this.showError(err.message);
-        } finally {
-            this.showLoading(false);
-        }
-    },
-
-    // ==========================================================
-    // DELETE RECORD - HANYA SATU BARIS DENGAN FILTER LENGKAP
-    // ==========================================================
-
-    async deleteRecord({ recordId, id, bulan, posisi }) {
-        console.log('[Electricity] deleteRecord params:', { recordId, id, bulan, posisi });
-
-        // Validasi semua parameter harus ada
-        if (!id) {
-            this.showToast('ID Pelanggan tidak ditemukan.', 'error');
-            return;
-        }
-        if (!bulan) {
-            this.showToast('Bulan tidak ditemukan.', 'error');
-            return;
-        }
-        if (!posisi) {
-            this.showToast('Posisi meteran tidak ditemukan.', 'error');
-            return;
-        }
-
-        // Cari data yang akan dihapus untuk ditampilkan di konfirmasi
-        const record = this.state.records.find(r =>
-            r.idPelanggan === id &&
-            r.bulan === bulan &&
-            r.no === posisi
-        );
-        if (!record) {
-            this.showToast('Data tidak ditemukan.', 'error');
-            return;
-        }
-
-        // Konfirmasi dengan detail lengkap
-        const confirmed = await Swal.fire({
-            title: 'Hapus Data?',
-            html: `
-                <p>Anda akan menghapus data:</p>
-                <ul style="text-align:left;">
-                    <li><strong>ID Pelanggan:</strong> ${record.idPelanggan}</li>
-                    <li><strong>Bulan:</strong> ${record.bulan}</li>
-                    <li><strong>Posisi:</strong> ${record.no}</li>
-                    <li><strong>Entitas:</strong> ${record.entitas}</li>
-                    <li><strong>Pemakaian:</strong> ${this.formatNumber(record.pemakaian, 2)} kWh</li>
-                </ul>
-                <p class="text-danger">Data yang dihapus tidak dapat dikembalikan.</p>
-            `,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
-        });
-        if (!confirmed.isConfirmed) return;
-
-        try {
-            this.showLoading(true);
-            // Kirim id (ID Pelanggan) + bulan + posisi agar backend hapus spesifik
-            const payload = {
-                id: id,
-                bulan: bulan,
-                posisi: posisi
-            };
-            console.log('[Electricity] Delete payload:', payload);
-            const response = await BCS.Api.request('POST', 'deleteElectricityRecord', payload);
-            console.log('[Electricity] Delete response:', response);
-
-            if (response.success) {
-                this.showToast(`Data ${record.bulan} (${record.no}) berhasil dihapus.`, 'success');
-                this.loadDashboard({ showLoading: false, showToast: false });
-            } else {
-                this.showError(response.message || 'Gagal menghapus data.');
-            }
-        } catch (err) {
-            console.error('[Electricity] Delete error:', err);
-            this.showError(err.message);
-        } finally {
-            this.showLoading(false);
-        }
-    },
-
-    // ==========================================================
-    // DETAIL METER
-    // ==========================================================
-
-    async showDetail(id) {
-        try {
-            this.showLoading(true);
-            const response = await BCS.Api.getElectricityDetail(id);
-
-            if (!response.success) {
-                this.showToast(response.message || "Data tidak ditemukan.", "error");
-                return;
-            }
-
-            const data = response.data || {};
-
-            this.setText("detailMeterId", data.id || "-");
-            this.setText("detailEntity", data.entity || "-");
-            this.setText("detailTotalKwh", this.formatNumber(data.totalKwh || 0));
-            this.setText("detailTotalNominal", this.formatCurrency(data.totalNominal || 0));
-
-            this.renderDetailChart(data.history || []);
-            this.renderDetailTable(data.history || []);
-
-            const modal = bootstrap.Modal.getOrCreateInstance(
-                document.getElementById("meterDetailModal")
-            );
-            modal.show();
-
-        } catch (err) {
-            console.error(err);
-            this.showToast(err.message, "error");
-        } finally {
-            this.showLoading(false);
-        }
-    },
-
-    renderDetailChart(history) {
-        const canvas = document.getElementById("detailChart");
-        if (!canvas) return;
-
-        if (this.chartDetail) {
-            this.chartDetail.destroy();
-        }
-
-        this.chartDetail = new Chart(canvas, {
-            type: "line",
-            data: {
-                labels: history.map(x => x.month),
-                datasets: [{
-                    label: "kWh",
-                    data: history.map(x => x.kwh),
-                    borderColor: "#1565C0",
-                    backgroundColor: "rgba(21,101,192,.15)",
-                    fill: true,
-                    tension: .35
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
-            }
-        });
-    },
-
-    renderDetailTable(history) {
-        const tbody = document.getElementById("detailTable");
-        if (!tbody) return;
-        tbody.innerHTML = "";
-
-        if (!history || !history.length) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center">Tidak ada histori.</td></tr>`;
-            return;
-        }
-
-        history.forEach(item => {
-            tbody.insertAdjacentHTML("beforeend", `
-                <tr>
-                    <td>${item.month}</td>
-                    <td>${this.formatNumber(item.awal)}</td>
-                    <td>${this.formatNumber(item.akhir)}</td>
-                    <td>${this.formatNumber(item.kwh)}</td>
-                    <td>${this.formatCurrency(item.nominal)}</td>
-                    <td>${item.status}</td>
-                </tr>
-            `);
-        });
-    },
-
-    // ==========================================================
-    // EVENT
-    // ==========================================================
-
-    registerEvent() {
-        document.getElementById("btnRefresh")?.addEventListener("click", () => {
-            this.loadDashboard({ showLoading: false, showToast: true });
-        });
-
-        document.getElementById("btnSearch")?.addEventListener("click", () => {
-            this.state.filter.keyword = document.getElementById("txtSearch").value.trim();
-            this.state.filter.page = 1;
-            this.renderTable();
-        });
-
-        document.getElementById("txtSearch")?.addEventListener("keydown", e => {
-            if (e.key === "Enter") {
-                document.getElementById("btnSearch").click();
-            }
-        });
-
-        document.getElementById("cmbStatus")?.addEventListener("change", e => {
-            this.state.filter.status = e.target.value;
-            this.state.filter.page = 1;
-            this.renderTable();
-        });
-
-        document.getElementById("btnReset")?.addEventListener("click", () => {
-            document.getElementById("txtSearch").value = "";
-            document.getElementById("cmbStatus").value = "ALL";
-            this.state.filter = { keyword: "", status: "ALL", page: 1, pageSize: 10 };
-            this.renderTable();
-        });
-
-        document.getElementById("cmbPageSize")?.addEventListener("change", (e) => {
-            this.state.filter.pageSize = parseInt(e.target.value, 10);
-            this.state.filter.page = 1;
-            this.renderTable();
-        });
-
-        document.getElementById("btnAddData")?.addEventListener("click", () => {
-            this.openForm(null);
-        });
-
-        document.getElementById("btnSaveRecord")?.addEventListener("click", () => {
-            this.saveRecord();
-        });
-    },
-
-    // ==========================================================
-    // DESTROY
-    // ==========================================================
-
-    destroyCharts() {
-        if (this.chartMonthly) {
-            this.chartMonthly.destroy();
-            this.chartMonthly = null;
-        }
-        if (this.chartEntity) {
-            this.chartEntity.destroy();
-            this.chartEntity = null;
-        }
-        if (this.chartDetail) {
-            this.chartDetail.destroy();
-            this.chartDetail = null;
-        }
-        if (this.refreshTimer) {
-            clearInterval(this.refreshTimer);
-            this.refreshTimer = null;
-        }
-        if (this.clockInterval) {
-            clearInterval(this.clockInterval);
-            this.clockInterval = null;
-        }
-    }
-};
-
-window.addEventListener("beforeunload", () => {
-    ElectricityController.destroyCharts();
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    if (window.Session && typeof Session.isLoggedIn === 'function' && !Session.isLoggedIn()) {
-        window.location.href = 'login.html';
-        return;
-    }
-    ElectricityController.init();
-});
+            newAkhir.id = 'form

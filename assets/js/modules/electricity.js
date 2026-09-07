@@ -642,7 +642,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // EXPORT FUNCTIONS - LENGKAP
+    // EXPORT FUNCTIONS - LENGKAP DENGAN ERROR HANDLING
     // ==========================================================
 
     /**
@@ -659,13 +659,13 @@ const ElectricityController = {
             if (typeof BCS.Api.exportElectricitySummary !== 'function') {
                 console.error('[Electricity] BCS.Api.exportElectricitySummary is not a function');
                 console.log('[Electricity] Available methods:', Object.keys(BCS.Api));
-                throw new Error('Fungsi export summary belum tersedia. Silakan refresh halaman.');
+                this.showError('Fungsi export summary belum tersedia. Silakan refresh halaman.');
+                return;
             }
 
             // Siapkan data dashboard lengkap
             const dashboardData = this.state.dashboard || {};
             
-            // Tambahkan data records untuk detail jika diperlukan
             const exportData = {
                 ...dashboardData,
                 records: this.state.records || [],
@@ -732,8 +732,12 @@ const ElectricityController = {
             this.state.exportLoading = true;
             this.showToast('Sedang memproses export PDF...', 'info');
 
+            // CEK: Pastikan fungsi tersedia
             if (typeof BCS.Api.exportElectricityTable !== 'function') {
-                throw new Error('Fungsi export PDF belum tersedia.');
+                console.error('[Electricity] BCS.Api.exportElectricityTable is not a function');
+                console.log('[Electricity] Available methods:', Object.keys(BCS.Api));
+                this.showError('Fungsi export PDF belum tersedia. Silakan refresh halaman.');
+                return;
             }
 
             const filterData = {
@@ -778,13 +782,15 @@ const ElectricityController = {
             this.showToast('Sedang memproses export Excel...', 'info');
 
             if (typeof XLSX === 'undefined') {
-                throw new Error('Library XLSX tidak ditemukan.');
+                this.showError('Library XLSX tidak ditemukan. Silakan refresh halaman.');
+                return;
             }
 
             const rows = this.getFilteredRecords();
             
             if (rows.length === 0) {
-                throw new Error('Tidak ada data untuk diexport');
+                this.showError('Tidak ada data untuk diexport');
+                return;
             }
 
             const data = rows.map((item, idx) => ({
@@ -801,10 +807,11 @@ const ElectricityController = {
                 'Status': item.status || 'NORMAL'
             }));
 
+            // Gunakan fungsi exportToExcel jika tersedia
             if (typeof BCS.Api.exportToExcel === 'function') {
                 BCS.Api.exportToExcel(data, 'Data_Listrik');
             } else {
-                // Fallback
+                // Fallback manual
                 const worksheet = XLSX.utils.json_to_sheet(data);
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Listrik');
@@ -873,7 +880,8 @@ const ElectricityController = {
             this.showToast('Sedang memproses export Dashboard PDF...', 'info');
 
             if (typeof BCS.Api.exportDashboardPDF !== 'function') {
-                throw new Error('Fungsi export dashboard belum tersedia.');
+                this.showError('Fungsi export dashboard belum tersedia. Silakan refresh halaman.');
+                return;
             }
 
             const blob = await BCS.Api.exportDashboardPDF();
@@ -1158,7 +1166,6 @@ const ElectricityController = {
             );
 
             if (existing) {
-                // Tampilkan dialog konfirmasi untuk overwrite
                 const result = await Swal.fire({
                     title: 'Data Sudah Ada!',
                     html: `
@@ -1179,10 +1186,9 @@ const ElectricityController = {
                 });
 
                 if (!result.isConfirmed) {
-                    return; // User membatalkan
+                    return;
                 }
 
-                // Set id untuk update
                 formData.id = existing.idPelanggan;
                 document.getElementById('formId').value = existing.idPelanggan;
             }
@@ -1198,7 +1204,6 @@ const ElectricityController = {
                 bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
                 this.loadDashboard({ showLoading: false, showToast: false });
             } else {
-                // Handle error khusus duplicate
                 if (response.message && (response.message.includes('sudah ada') || response.message.includes('duplicate'))) {
                     this.showError('Data dengan ID Pelanggan dan Bulan tersebut sudah ada. Silakan gunakan data yang berbeda atau update data yang ada.');
                 } else {
@@ -1441,12 +1446,12 @@ const ElectricityController = {
             this.exportTableExcel();
         });
 
-        // Export Dashboard PDF (legacy - untuk tombol di card grafik)
+        // Export Dashboard PDF (legacy)
         document.getElementById("btnExportDashboardPDF")?.addEventListener("click", () => {
             this.exportDashboardPDF();
         });
 
-        // EXPORT SUMMARY PDF - TAMBAHKAN INI
+        // EXPORT SUMMARY PDF
         document.getElementById("btnExportSummaryPDF")?.addEventListener("click", () => {
             this.exportSummaryPDF();
         });

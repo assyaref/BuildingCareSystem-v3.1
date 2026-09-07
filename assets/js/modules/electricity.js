@@ -142,6 +142,7 @@ const ElectricityController = {
         try {
             if (showLoading) this.showLoading(true);
 
+            // Gunakan BCS.Api (sudah tersedia dari api.js)
             const dashboardRes = await BCS.Api.getElectricityDashboard();
             if (!dashboardRes.success) {
                 this.showError(dashboardRes.message || "Gagal memuat dashboard.");
@@ -642,7 +643,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // EXPORT FUNCTIONS - PERBAIKI DENGAN CEK FUNGSI
+    // EXPORT FUNCTIONS
     // ==========================================================
 
     /**
@@ -655,11 +656,11 @@ const ElectricityController = {
             this.state.exportLoading = true;
             this.showToast('Sedang memproses export PDF...', 'info');
 
-            // CEK: Pastikan fungsi tersedia
+            // CEK: Pastikan fungsi tersedia di BCS.Api
             if (typeof BCS.Api.exportElectricityTable !== 'function') {
                 console.error('[Electricity] BCS.Api.exportElectricityTable is not a function');
                 console.log('[Electricity] Available methods:', Object.keys(BCS.Api));
-                throw new Error('Fungsi export belum tersedia. Silakan refresh halaman.');
+                throw new Error('Fungsi export PDF belum tersedia. Silakan refresh halaman.');
             }
 
             const blob = await BCS.Api.exportElectricityTable({
@@ -669,6 +670,7 @@ const ElectricityController = {
                 pageSize: this.state.filter.pageSize
             });
 
+            // Download file
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -688,8 +690,8 @@ const ElectricityController = {
     },
 
     /**
-     * Export data tabel ke Excel
-     * Menggunakan data yang sudah difilter di state (Client-side)
+     * Export data tabel ke Excel (Client-side)
+     * Menggunakan data yang sudah difilter di state
      */
     async exportTableExcel() {
         if (this.state.exportLoading) return;
@@ -702,13 +704,16 @@ const ElectricityController = {
                 throw new Error('Library XLSX tidak ditemukan. Silakan refresh halaman.');
             }
 
+            // Ambil data yang sudah difilter
             const rows = this.getFilteredRecords();
+            
+            // Format data untuk Excel
             const data = rows.map((item, idx) => ({
                 'No': idx + 1,
-                'Bulan': item.bulan,
+                'Bulan': item.bulan || '',
                 'Posisi Meteran': item.no || '-',
-                'ID Pelanggan': item.idPelanggan,
-                'Entitas': item.entitas,
+                'ID Pelanggan': item.idPelanggan || '',
+                'Entitas': item.entitas || '',
                 'Awal (kWh)': item.awal || 0,
                 'Akhir (kWh)': item.akhir || 0,
                 'Pemakaian (kWh)': item.pemakaian || 0,
@@ -717,29 +722,36 @@ const ElectricityController = {
                 'Status': item.status || 'NORMAL'
             }));
 
-            const worksheet = XLSX.utils.json_to_sheet(data);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Listrik');
+            // Gunakan fungsi exportToExcel dari BCS.Api
+            if (typeof BCS.Api.exportToExcel === 'function') {
+                BCS.Api.exportToExcel(data, 'Data_Listrik');
+            } else {
+                // Fallback: buat sendiri
+                const worksheet = XLSX.utils.json_to_sheet(data);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Listrik');
 
-            // Set column widths
-            const colWidths = [
-                { wch: 5 }, { wch: 12 }, { wch: 15 }, { wch: 15 },
-                { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
-                { wch: 20 }, { wch: 20 }, { wch: 15 }
-            ];
-            worksheet['!cols'] = colWidths;
+                const colWidths = [
+                    { wch: 5 }, { wch: 12 }, { wch: 15 }, { wch: 15 },
+                    { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+                    { wch: 20 }, { wch: 20 }, { wch: 15 }
+                ];
+                worksheet['!cols'] = colWidths;
 
-            const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-            const blob = new Blob([wbout], { type: 'application/octet-stream' });
-            
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `Data_Listrik_${new Date().toISOString().split('T')[0]}.xlsx`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+                const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+                const blob = new Blob([wbout], { 
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+                });
+                
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Data_Listrik_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
 
             this.showToast('Export Excel berhasil!', 'success');
         } catch (err) {
@@ -782,7 +794,7 @@ const ElectricityController = {
             this.state.exportLoading = true;
             this.showToast('Sedang memproses export Dashboard PDF...', 'info');
 
-            // CEK: Pastikan fungsi tersedia
+            // CEK: Pastikan fungsi tersedia di BCS.Api
             if (typeof BCS.Api.exportDashboardPDF !== 'function') {
                 console.error('[Electricity] BCS.Api.exportDashboardPDF is not a function');
                 console.log('[Electricity] Available methods:', Object.keys(BCS.Api));

@@ -269,11 +269,13 @@ const Api = (() => {
     }
 
     // =============================================
-    // EXPORT FUNCTIONS - LENGKAP
+    // EXPORT FUNCTIONS - LENGKAP DENGAN ERROR HANDLING
     // =============================================
 
     /**
      * Export electricity table to PDF
+     * @param {Object} filter - Filter data
+     * @returns {Promise<Blob>} PDF file as blob
      */
     async function exportElectricityTable(filter = {}) {
         try {
@@ -343,6 +345,7 @@ const Api = (() => {
                 throw new Error('Tidak ada data untuk diexport');
             }
 
+            // Gunakan jsPDF jika tersedia
             if (typeof window.jspdf !== 'undefined') {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('l', 'mm', 'a4');
@@ -397,12 +400,13 @@ const Api = (() => {
 
     /**
      * Export electricity summary/dashboard to PDF
+     * @param {Object} dashboardData - Data dashboard
+     * @returns {Promise<Blob>} PDF file as blob
      */
     async function exportElectricitySummary(dashboardData = null) {
         try {
             console.log('[API] exportElectricitySummary called');
             
-            // Jika data tidak dikirim, ambil dari dashboard
             let dataToExport = dashboardData;
             if (!dataToExport) {
                 const dashboard = await getElectricityDashboard();
@@ -453,7 +457,7 @@ const Api = (() => {
                 }
             }
 
-            // Fallback: buat summary PDF dari data yang ada
+            // Fallback
             console.warn('[API] Creating fallback summary PDF from dashboard data');
             return await createSummaryPDF(dataToExport);
 
@@ -527,7 +531,7 @@ const Api = (() => {
 
                 yPos += Math.ceil(summaryData.length / cardsPerRow) * (cardHeight + 5) + 10;
 
-                // Monthly Chart Data (table)
+                // Monthly Chart Data
                 if (data.monthly && data.monthly.length > 0) {
                     if (yPos > 250) {
                         doc.addPage();
@@ -673,6 +677,9 @@ const Api = (() => {
 
     /**
      * Export electricity data to Excel (client-side)
+     * @param {Array} data - Data yang akan diexport
+     * @param {String} filename - Nama file
+     * @returns {Blob} Excel file as blob
      */
     function exportToExcel(data, filename = 'Data_Listrik') {
         try {

@@ -2,7 +2,7 @@
  * =====================================================
  * Building Care System Enterprise
  * Electricity Module
- * Version 3.6 (FIXED EXPORT)
+ * Version 3.7 (FIXED EXPORT RESPONSE)
  * =====================================================
  */
 
@@ -142,7 +142,6 @@ const ElectricityController = {
         try {
             if (showLoading) this.showLoading(true);
 
-            // Gunakan BCS.Api (sudah tersedia dari api.js)
             const dashboardRes = await BCS.Api.getElectricityDashboard();
             if (!dashboardRes.success) {
                 this.showError(dashboardRes.message || "Gagal memuat dashboard.");
@@ -643,7 +642,7 @@ const ElectricityController = {
     },
 
     // ==========================================================
-    // EXPORT FUNCTIONS
+    // EXPORT FUNCTIONS - DIPERBAIKI
     // ==========================================================
 
     /**
@@ -663,12 +662,21 @@ const ElectricityController = {
                 throw new Error('Fungsi export PDF belum tersedia. Silakan refresh halaman.');
             }
 
-            const blob = await BCS.Api.exportElectricityTable({
+            // Siapkan data untuk export - kirimkan juga records untuk fallback
+            const filterData = {
                 keyword: this.state.filter.keyword,
                 status: this.state.filter.status,
                 page: this.state.filter.page,
-                pageSize: this.state.filter.pageSize
-            });
+                pageSize: this.state.filter.pageSize,
+                _records: this.getFilteredRecords() // Untuk fallback
+            };
+
+            const blob = await BCS.Api.exportElectricityTable(filterData);
+
+            // Validasi blob
+            if (!blob || blob.size === 0) {
+                throw new Error('File PDF kosong');
+            }
 
             // Download file
             const url = URL.createObjectURL(blob);
@@ -678,7 +686,11 @@ const ElectricityController = {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            
+            // Revoke URL setelah delay
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 5000);
 
             this.showToast('Export PDF berhasil!', 'success');
         } catch (err) {
@@ -707,6 +719,10 @@ const ElectricityController = {
             // Ambil data yang sudah difilter
             const rows = this.getFilteredRecords();
             
+            if (rows.length === 0) {
+                throw new Error('Tidak ada data untuk diexport');
+            }
+
             // Format data untuk Excel
             const data = rows.map((item, idx) => ({
                 'No': idx + 1,
@@ -714,10 +730,10 @@ const ElectricityController = {
                 'Posisi Meteran': item.no || '-',
                 'ID Pelanggan': item.idPelanggan || '',
                 'Entitas': item.entitas || '',
-                'Awal (kWh)': item.awal || 0,
-                'Akhir (kWh)': item.akhir || 0,
-                'Pemakaian (kWh)': item.pemakaian || 0,
-                'Nominal (Rp)': item.nominal || 0,
+                'Awal (kWh)': (item.awal || 0).toLocaleString('id-ID', { minimumFractionDigits: 2 }),
+                'Akhir (kWh)': (item.akhir || 0).toLocaleString('id-ID', { minimumFractionDigits: 2 }),
+                'Pemakaian (kWh)': (item.pemakaian || 0).toLocaleString('id-ID', { minimumFractionDigits: 2 }),
+                'Nominal (Rp)': 'Rp ' + (item.nominal || 0).toLocaleString('id-ID'),
                 'Keterangan': item.keterangan || '-',
                 'Status': item.status || 'NORMAL'
             }));
@@ -750,7 +766,7 @@ const ElectricityController = {
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
             }
 
             this.showToast('Export Excel berhasil!', 'success');
@@ -803,6 +819,10 @@ const ElectricityController = {
 
             const blob = await BCS.Api.exportDashboardPDF();
 
+            if (!blob || blob.size === 0) {
+                throw new Error('File PDF kosong');
+            }
+
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -810,7 +830,7 @@ const ElectricityController = {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
 
             this.showToast('Export Dashboard PDF berhasil!', 'success');
         } catch (err) {

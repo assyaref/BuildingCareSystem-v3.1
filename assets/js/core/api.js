@@ -188,7 +188,7 @@ const Api = (() => {
         const list = response.data || [];
         response.data = list.map(item => ({
             bulan: item.bulan || item.month || '',
-            no: item.no || item.posisi || item.posisiMeteran || '', // <-- PASTIKAN no
+            no: item.no || item.posisi || item.posisiMeteran || '',
             idPelanggan: item.idPelanggan || item.id || '',
             entitas: item.entitas || item.entity || '',
             awal: item.awal || 0,
@@ -268,6 +268,136 @@ const Api = (() => {
         return request('POST', 'deleteElectricityRecord', data);
     }
 
+    // =============================================
+    // EXPORT FUNCTIONS - TAMBAHKAN INI
+    // =============================================
+
+    /**
+     * Export electricity table to PDF
+     * @param {Object} filter - Filter data (keyword, status, page, pageSize)
+     * @returns {Promise<Blob>} PDF file as blob
+     */
+    async function exportElectricityTable(filter = {}) {
+        try {
+            const response = await request('POST', 'exportElectricityTable', {
+                keyword: filter.keyword || '',
+                status: filter.status || 'ALL',
+                page: filter.page || 1,
+                pageSize: filter.pageSize || 10
+            });
+
+            // Untuk export PDF, response mungkin berupa blob atau base64
+            // Sesuaikan dengan response dari backend
+            if (response.data && response.data.pdfBase64) {
+                // Jika backend mengembalikan base64
+                const byteCharacters = atob(response.data.pdfBase64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                return new Blob([byteArray], { type: 'application/pdf' });
+            }
+
+            // Jika backend mengembalikan blob URL atau data langsung
+            if (response.data && response.data.url) {
+                const blobResponse = await fetch(response.data.url);
+                return await blobResponse.blob();
+            }
+
+            // Fallback: jika response adalah blob langsung
+            if (response instanceof Blob) {
+                return response;
+            }
+
+            throw new Error('Format response tidak dikenali');
+        } catch (error) {
+            console.error('[API] exportElectricityTable error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Export dashboard to PDF
+     * @returns {Promise<Blob>} PDF file as blob
+     */
+    async function exportDashboardPDF() {
+        try {
+            const response = await request('POST', 'exportDashboardPDF', {});
+
+            // Untuk export PDF, response mungkin berupa blob atau base64
+            if (response.data && response.data.pdfBase64) {
+                const byteCharacters = atob(response.data.pdfBase64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                return new Blob([byteArray], { type: 'application/pdf' });
+            }
+
+            if (response.data && response.data.url) {
+                const blobResponse = await fetch(response.data.url);
+                return await blobResponse.blob();
+            }
+
+            if (response instanceof Blob) {
+                return response;
+            }
+
+            throw new Error('Format response tidak dikenali');
+        } catch (error) {
+            console.error('[API] exportDashboardPDF error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Export electricity data to Excel (client-side menggunakan XLSX)
+     * @param {Array} data - Data yang akan diexport
+     * @param {String} filename - Nama file
+     * @returns {Blob} Excel file as blob
+     */
+    function exportToExcel(data, filename = 'Data_Listrik') {
+        try {
+            if (typeof XLSX === 'undefined') {
+                throw new Error('Library XLSX tidak ditemukan');
+            }
+
+            const worksheet = XLSX.utils.json_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Listrik');
+
+            // Set column widths
+            const colWidths = [
+                { wch: 5 }, { wch: 12 }, { wch: 15 }, { wch: 15 },
+                { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+                { wch: 20 }, { wch: 20 }, { wch: 15 }
+            ];
+            worksheet['!cols'] = colWidths;
+
+            const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            });
+            
+            // Download file
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${filename}_${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            return blob;
+        } catch (error) {
+            console.error('[API] exportToExcel error:', error);
+            throw error;
+        }
+    }
+
     return {
         post:(action,data)=>request("POST",action,data),
         get:(action,data)=>request("GET",action,data),
@@ -287,10 +417,14 @@ const Api = (() => {
         // CRUD
         createElectricityRecord,
         updateElectricityRecord,
-        deleteElectricityRecord
+        deleteElectricityRecord,
+        // EXPORT
+        exportElectricityTable,
+        exportDashboardPDF,
+        exportToExcel
     };
 })();
 
 window.BCS.Api = Api;
 window.Api = Api;
-console.log("✅ [API] Core API loaded with Electricity CRUD support");
+console.log("✅ [API] Core API loaded with Electricity CRUD and Export support");

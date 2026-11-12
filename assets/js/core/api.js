@@ -20,7 +20,14 @@ if (!BCS.Events) {
 
 const API_URL = (typeof CONFIG !== 'undefined' && CONFIG.API?.URL) ||
                 (window.CONFIG?.API?.URL) ||
-                "https://script.google.com/macros/s/AKfycbzN3jSKv-RywufMhzub5SAbReV0ES31_4AMZP7Us4UxhskijtydQYpOWmPgCKQ9GmzH2w/exec";
+                "https://script.google.com/macros/s/AKfycbwRwzGGNXT78sH9r0lWhOmRpAfOcVPxH8ALXHdGfM1QZWCUCuDEVXJVxJjnsc-KocfU0A/exec";
+
+// Pesan yang ditampilkan bila server Apps Script tidak bisa dihubungi sama sekali
+// (POST dan JSONP sama-sama gagal). Biasanya disebabkan otorisasi pemilik script
+// kedaluwarsa / dicabut atau deployment tidak aktif - bukan kesalahan user.
+const API_UNREACHABLE_MESSAGE =
+    "Server tidak dapat dihubungi. Silakan coba lagi beberapa saat. " +
+    "Jika masih gagal, hubungi admin (server Apps Script perlu dicek).";
 
 const Api = (() => {
     let loadingCounter = 0;
@@ -76,8 +83,13 @@ const Api = (() => {
             return result;
         } catch (error) {
             console.error("[API] Request failed:", error);
-            if (/CORS|Failed to fetch|NetworkError/i.test(error.message)) {
-                return await requestJsonp(action, data);
+            if (/CORS|Failed to fetch|NetworkError|Load failed/i.test(error.message)) {
+                const jsonp = await requestJsonp(action, data);
+                if (jsonp && jsonp.success === false && /^JSONP request/.test(jsonp.message || "")) {
+                    console.error("[API] Server Apps Script tidak merespons. Cek: " + API_URL + "?action=health");
+                    return {success:false,message:API_UNREACHABLE_MESSAGE,code:"API_UNREACHABLE"};
+                }
+                return jsonp;
             }
             return {success:false,message:error.message||"Request failed"};
         } finally {

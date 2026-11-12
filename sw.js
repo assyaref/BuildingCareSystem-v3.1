@@ -6,7 +6,7 @@
 
 "use strict";
 
-const CACHE_VERSION = "v2.3.11";
+const CACHE_VERSION = "v2.4.0";
 const CACHE_PREFIX = "bcs-cache-";
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
 
@@ -47,9 +47,7 @@ const APP_SHELL = [
     "/assets/icons/icon-96.png",
     "/assets/icons/icon-128.png",
     "/assets/icons/icon-144.png",
-    "/assets/icons/icon-152.png",
     "/assets/icons/icon-192.png",
-    "/assets/icons/icon-384.png",
     "/assets/icons/icon-512.png"
 ];
 
@@ -161,7 +159,33 @@ self.addEventListener("fetch", event => {
     }
 
     // ====================================================
-    // STATIC ASSETS = CACHE FIRST
+    // JS / CSS / JSON / CONFIG = NETWORK FIRST
+    // Agar perubahan config.js (mis. URL API) & kode JS
+    // langsung terpakai tanpa menunggu cache kedaluwarsa.
+    // Cache hanya dipakai saat offline.
+    // ====================================================
+
+    if (/\.(js|css|json)$/i.test(url.pathname)) {
+        event.respondWith(
+            fetch(request, { cache: "no-cache" })
+            .then(response => {
+                if (response && response.ok) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(request, clone)).catch(() => {});
+                }
+                return response;
+            })
+            .catch(async () => {
+                const cached = await caches.match(request);
+                if (cached) return cached;
+                return new Response("", { status: 503, statusText: "Offline" });
+            })
+        );
+        return;
+    }
+
+    // ====================================================
+    // GAMBAR / ICON / FONT = CACHE FIRST
     // ====================================================
 
     event.respondWith(

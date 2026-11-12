@@ -344,7 +344,7 @@
         // Ambil URL dari CONFIG
         const API_URL = (typeof CONFIG !== 'undefined' && CONFIG.API && CONFIG.API.URL) 
             ? CONFIG.API.URL 
-            : 'https://script.google.com/macros/s/AKfycbxsc5v8cpBDeWiJY3yyz3pQ37kF-bzaVOCPZLz2bAfSx4CdAO30-gGwQgg8Ln5eqWPcOg/exec';
+            : 'https://script.google.com/macros/s/AKfycbwRwzGGNXT78sH9r0lWhOmRpAfOcVPxH8ALXHdGfM1QZWCUCuDEVXJVxJjnsc-KocfU0A/exec';
         
         console.log('[History] 📡 API URL:', API_URL);
 

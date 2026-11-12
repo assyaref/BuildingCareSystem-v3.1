@@ -1,0 +1,38 @@
+# Memantau server Google Apps Script (backend BCS) setiap 30 menit.
+# Jika server tidak merespons JSON yang valid (mis. otorisasi pemilik script
+# kedaluwarsa / deployment tidak aktif), workflow ini GAGAL dan GitHub
+# mengirim email notifikasi ke pemilik repo.
+name: GAS Health Check
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: config/config.js
+          sparse-checkout-cone-mode: false
+
+      - name: Cek endpoint Apps Script
+        run: |
+          URL=$(grep -oE 'https://script\.google\.com/macros/s/[A-Za-z0-9_-]+/exec' config/config.js | head -1)
+          echo "Endpoint: $URL"
+          for i in 1 2 3; do
+            BODY=$(curl -sSL -m 60 "$URL?action=health" || true)
+            if echo "$BODY" | grep -q '"success":[ ]*true'; then
+              echo "OK: $BODY"
+              exit 0
+            fi
+            echo "Percobaan $i gagal, respons:"
+            echo "$BODY" | head -c 1500
+            echo
+            sleep 20
+          done
+          echo "::error::Server Apps Script tidak merespons. Buka editor Apps Script, cek Executions, lalu Deploy > Manage deployments (otorisasi ulang bila diminta)."
+          exit 1
